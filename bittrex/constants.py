@@ -1,0 +1,16 @@
+
+BITTREX_GET_TICKER = "https://bittrex.com/api/v1.1/public/getticker?market="
+
+# OHLC ~ canddle stick urls
+# https://bittrex.com/Api/v2.0/pub/market/GetTicks?tickInterval=oneMin&marketName=BTC-ETH&_=timest
+BITTREX_GET_OHLC = "https://bittrex.com/Api/v2.0/pub/market/GetTicks?tickInterval="
+
+#       FIXME NOTE - depth can vary
+# https://bittrex.com/api/v1.1/public/getorderbook?market=BTC-LTC&type=both
+BITTREX_GET_ORDER_BOOK = "https://bittrex.com/api/v1.1/public/getorderbook?type=both&market="
+
+# https://bittrex.com/api/v1.1/public/getmarkethistory?market=BTC-LTC
+BITTREX_GET_HISTORY = "https://bittrex.com/api/v1.1/public/getmarkethistory?market="
+
+BITTREX_CURRENCIES = ["BTC-DASH", "BTC-ETH", "BTC-LTC", "BTC-XRP", "BTC-BCC", "BTC-ETC", "BTC-SC", "BTC-DGB",
+                      "BTC_XEM", "BTC_ARDR"]

@@ -1,0 +1,4 @@
+class EXCHANGE:
+    POLONIEX = 1
+    KRAKEN = 2
+    BITTREX = 3

@@ -1,0 +1,97 @@
+from currency_utils import get_pair_name_by_id, get_currency_pair_from_bittrex, \
+    get_currency_pair_from_kraken, get_currency_pair_from_poloniex
+
+from BaseData import BaseData
+from Deal import Deal
+from enums.exchange import EXCHANGE
+from utils.exchange_utils import get_exchange_name_by_id
+
+
+class OrderBook(BaseData):
+    def __init__(self, pair, timest, ask_bids, sell_bids, exchange):
+        # FIXME NOTE - various volume data?
+        self.pair_id = pair
+        self.pair = get_pair_name_by_id(pair)
+        self.timest = timest
+        self.ask = ask_bids
+        self.bid = sell_bids
+        self.exchange_id = exchange
+        self.exchange = get_exchange_name_by_id(exchange)
+
+    def __str__(self):
+        attr_list = [a for a in dir(self) if not a.startswith('__') and not a.startswith("ask") and not a.startswith("bid") and not callable(getattr(self, a))]
+        str_repr = "["
+        for every_attr in attr_list:
+            str_repr += every_attr + " - " + str(getattr(self, every_attr)) + " "
+
+        str_repr += "bids - ["
+        for b in self.bid:
+            str_repr += str(b)
+        str_repr += "]"
+
+        str_repr += "asks - ["
+        for a in self.ask:
+            str_repr += str(a)
+        str_repr += "]"
+
+        str_repr += "]"
+
+        return str_repr
+
+    @classmethod
+    def from_poloniex(cls, json_document, currency, timest):
+        """
+        {"asks":[["0.00006604",11590.35669799],["0.00006606",25756.70896058]],
+        "bids":[["0.00006600",46771.47390146],["0.00006591",25268.665],],
+        "isFrozen":"0","seq":41049600}
+        """
+        timest = timest
+        currency_pair = get_currency_pair_from_poloniex(currency)
+
+        ask_bids = []
+        for b in json_document["asks"]:
+            ask_bids.append(Deal(b[0], b[1]))
+
+        sell_bids = []
+        for b in json_document["bids"]:
+            sell_bids.append(Deal(b[0], b[1]))
+
+        return OrderBook(currency_pair, timest, ask_bids, sell_bids, EXCHANGE.POLONIEX)
+
+    @classmethod
+    def from_kraken(cls, json_document, currency, timest):
+        """
+        {"error":[],"result":{"XETHXXBT":{"asks":[["0.081451","0.200",1501690777],["0.081496","163.150",1501691124]
+        "bids":[["0.080928","0.100",1501691107],["0.080926","0.255",1501691110]
+        """
+
+        ask_bids = []
+        for b in json_document["asks"]:
+            ask_bids.append(Deal(b[0], b[1]))
+
+        sell_bids = []
+        for b in json_document["bids"]:
+            sell_bids.append(Deal(b[0], b[1]))
+
+        currency_pair = get_currency_pair_from_kraken(currency)
+
+        return OrderBook(currency_pair, timest, ask_bids, sell_bids, EXCHANGE.KRAKEN)
+
+    @classmethod
+    def from_bittrex(cls, json_document, currency, timest):
+        """
+        {"success":true,"message":"","result":{"buy":[{"Quantity":12.76073322,"Rate":0.01557999},{"Quantity":12.01802925,"Rate":0.01557998}
+        "sell":[{"Quantity":0.38767680,"Rate":0.01560999},{"Quantity":2.24182363,"Rate":0.01561999}
+        """
+
+        ask_bids = []
+        for b in json_document["buy"]:
+            ask_bids.append(Deal(b["Rate"], b["Quantity"]))
+
+        sell_bids = []
+        for b in json_document["sell"]:
+            sell_bids.append(Deal(b["Rate"], b["Quantity"]))
+
+        currency_pair = get_currency_pair_from_bittrex(currency)
+
+        return OrderBook(currency_pair, timest, ask_bids, sell_bids, EXCHANGE.BITTREX)
