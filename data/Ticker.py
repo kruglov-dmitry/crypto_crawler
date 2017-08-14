@@ -1,10 +1,16 @@
-from currency_utils import get_pair_name_by_id, get_currency_pair_from_bittrex, \
+import re
+from utils.currency_utils import get_pair_name_by_id, get_currency_pair_from_bittrex, \
     get_currency_pair_from_kraken, get_currency_pair_from_poloniex
 
 from BaseData import BaseData
 from enums.exchange import EXCHANGE
 from utils.exchange_utils import get_exchange_name_by_id
 
+
+# [ask - 0.05828793 bid - 0.057457 exchange - BITTREX exchange_id - 3 pair - BTC_TO_DASH pair_id - 1 timest - 1502466890 ]
+# FIXME NOTE - not the smartest idea to deal with
+regex_string = "\[ask - (.*) bid - (.*) exchange - (.*) exchange_id - (.*) pair - (.*) pair_id - (.*) timest - (.*)\]"
+regex = re.compile(regex_string)
 
 class Ticker(BaseData):
     def __init__(self, pair, lowest_ask, highest_bid, timest, exchange):
@@ -72,3 +78,17 @@ class Ticker(BaseData):
         currency_pair = get_currency_pair_from_bittrex(currency)
 
         return Ticker(currency_pair, lowest_ask, highest_bid, timest, EXCHANGE.BITTREX)
+
+    @classmethod
+    def from_string(cls, some_string):
+        # [ask - 0.05828793 bid - 0.057457 exchange - BITTREX exchange_id - 3 pair - BTC_TO_DASH pair_id - 1 timest - 1502466890 ]
+        results = regex.findall(some_string)
+
+        # [('0.05828793', '0.057457', 'BITTREX', '3', 'BTC_TO_DASH', '1', '1502466890 ')]
+        ask = results[0][0]
+        bid = results[0][1]
+        exchange_id = results[0][3]
+        currency_pair_id = results[0][5]
+        timest = results[0][6]
+
+        return Ticker(currency_pair_id, ask, bid, timest, exchange_id)

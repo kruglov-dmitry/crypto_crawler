@@ -1,25 +1,29 @@
 from datetime import datetime
+import re
 
-from currency_utils import get_pair_name_by_id, get_currency_pair_from_bittrex, \
+from utils.currency_utils import get_pair_name_by_id, get_currency_pair_from_bittrex, \
     get_currency_pair_from_kraken, get_currency_pair_from_poloniex
 
 from BaseData import BaseData
 from enums.exchange import EXCHANGE
 from utils.exchange_utils import get_exchange_name_by_id
 
+# FIXME NOTE - not the smartest idea to deal with
+regex_string = "\[close - (.*) exchange - (.*) exchange_id - (.*) high - (.*) low - (.*) open - (.*) pair - (.*) pair_id - (.*) timest - (.*)\]"
+regex = re.compile(regex_string)
 
 class Candle(BaseData):
-    def __init__(self, pair, timest, price_high, price_low, price_open, price_close, exchange):
+    def __init__(self, pair_id, timest, price_high, price_low, price_open, price_close, exchange_id):
         # FIXME NOTE - various volume data?
-        self.pair_id = pair
-        self.pair = get_pair_name_by_id(pair)
+        self.pair_id = pair_id
+        self.pair = get_pair_name_by_id(pair_id)
         self.timest = long(timest)
         self.high = float(price_high)
         self.low = float(price_low)
         self.open = float(price_open)
         self.close = float(price_close)
-        self.exchange_id = exchange
-        self.exchange = get_exchange_name_by_id(exchange)
+        self.exchange_id = exchange_id
+        self.exchange = get_exchange_name_by_id(exchange_id)
 
     @classmethod
     def from_poloniex(cls, json_document, currency):
@@ -65,3 +69,20 @@ class Candle(BaseData):
         currency_pair = get_currency_pair_from_bittrex(currency)
 
         return Candle(currency_pair, timest, price_high, price_low, price_open, price_close, EXCHANGE.BITTREX)
+
+    @classmethod
+    def from_string(cls, some_string):
+        #[close - 0.07019143 exchange - BITTREX exchange_id - 3 high - 0.07031782 low - 0.06912551 open - 0.06912551
+        # pair - BTC_TO_DASH pair_id - 1 timest - 1499000400]
+        results = regex.findall(some_string)
+
+        # [('0.07019143', 'BITTREX', '3', '0.07031782', '0.06912551', '0.06912551', 'BTC_TO_DASH', '1', '1499000400')]
+        price_close = results[0][0]
+        exchange_id = results[0][2]
+        price_high = results[0][3]
+        price_low = results[0][4]
+        price_open = results[0][5]
+        currency_pair_id = results[0][7]
+        timest = results[0][8]
+
+        return Candle(currency_pair_id, timest, price_high, price_low, price_open, price_close, exchange_id)

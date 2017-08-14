@@ -1,6 +1,7 @@
 from datetime import datetime
+import re
 
-from currency_utils import get_pair_name_by_id, get_currency_pair_from_bittrex, \
+from utils.currency_utils import get_pair_name_by_id, get_currency_pair_from_bittrex, \
     get_currency_pair_from_kraken, get_currency_pair_from_poloniex
 
 from BaseData import BaseData
@@ -8,6 +9,10 @@ from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
 from utils.exchange_utils import get_exchange_name_by_id
 
+
+# FIXME NOTE - not the smartest idea to deal with
+regex_string = "\[amount - (.*) deal_type - (.*) exchange - (.*) exchange_id - (.*) pair - (.*) pair_id - (.*) price - (.*) timest - (.*) total - (.*)\]"
+regex = re.compile(regex_string)
 
 class OrderHistory(BaseData):
     def __init__(self, pair, timest, deal_type, price, amount, total, exchange):
@@ -119,3 +124,19 @@ class OrderHistory(BaseData):
         currency_pair = get_currency_pair_from_bittrex(pair)
 
         return OrderHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.POLONIEX)
+
+    @classmethod
+    def from_string(cls, some_string):
+        # [amount - 0.2288709 deal_type - 2 exchange - POLONIEX exchange_id - 1 pair - BTC_TO_DASH pair_id - 1 price - 0.060019 timest - 1502434895 total - 0 ]
+        results = regex.findall(some_string)
+
+        # [('0.2288709', '2', 'POLONIEX', '1', 'BTC_TO_DASH', '1', '0.060019', '1502434895', '0 ')]
+        amount = float(results[0][0])
+        deal_type = results[0][1]
+        exchange_id = results[0][3]
+        currency_pair_id = results[0][5]
+        price = float(results[0][6])
+        deal_timest = results[0][7]
+        total = price * amount
+
+        return OrderHistory(currency_pair_id, deal_timest, deal_type, price, amount, total, exchange_id)
