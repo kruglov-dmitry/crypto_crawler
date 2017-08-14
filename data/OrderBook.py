@@ -1,4 +1,5 @@
-from currency_utils import get_pair_name_by_id, get_currency_pair_from_bittrex, \
+import re
+from utils.currency_utils import get_pair_name_by_id, get_currency_pair_from_bittrex, \
     get_currency_pair_from_kraken, get_currency_pair_from_poloniex
 
 from BaseData import BaseData
@@ -6,6 +7,12 @@ from Deal import Deal
 from enums.exchange import EXCHANGE
 from utils.exchange_utils import get_exchange_name_by_id
 
+# FIXME NOTE - not the smartest idea to deal with
+regex_string = "\[exchange - (.*) exchange_id - (.*) pair - (.*) pair_id - (.*) timest - (.*) bids - (.*) asks - (.*) \]"
+regex = re.compile(regex_string)
+
+deal_array_regex_string = "price - ([0-9]*.[0-9e-]*) volume - ([0-9]*.[0-9e-]*)"
+deal_array_regex = re.compile(deal_array_regex_string)
 
 class OrderBook(BaseData):
     def __init__(self, pair, timest, ask_bids, sell_bids, exchange):
@@ -95,3 +102,28 @@ class OrderBook(BaseData):
         currency_pair = get_currency_pair_from_bittrex(currency)
 
         return OrderBook(currency_pair, timest, ask_bids, sell_bids, EXCHANGE.BITTREX)
+
+    @classmethod
+    def from_string(cls, some_string):
+        # [exchange - KRAKEN exchange_id - 2 pair - BTC_TO_XRP pair_id - 4 timest - 1502466918 bids - [[price - 5.055e-05 volume - 2595.354 ][price - 5.054e-05 volume - 70162.004 ]] asks - [[]]
+        results = regex.findall(some_string)
+
+        exchange_id = results[0][1]
+        currency_pair_id = results[0][3]
+        timest = results[0][4]
+
+        ask_bids = cls.parse_array_deal(results[0][6])
+        sell_bids = cls.parse_array_deal(results[0][5])
+
+        return OrderBook(currency_pair_id, timest, ask_bids, sell_bids, exchange_id)
+
+    @classmethod
+    def parse_array_deals(cls, some_string):
+        res = []
+
+        deals = regex.findall(some_string)
+        
+        for pair in deals:
+            res.append(Deal(pair[0], pair[1]))
+
+        return res
