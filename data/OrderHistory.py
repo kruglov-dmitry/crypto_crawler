@@ -8,13 +8,20 @@ from BaseData import BaseData
 from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
 from utils.exchange_utils import get_exchange_name_by_id
-
+from utils.time_utils import get_date_time_from_epoch
 
 # FIXME NOTE - not the smartest idea to deal with
 regex_string = "\[amount - (.*) deal_type - (.*) exchange - (.*) exchange_id - (.*) pair - (.*) pair_id - (.*) price - (.*) timest - (.*) total - (.*)\]"
 regex = re.compile(regex_string)
 
+ORDER_HISTORY_INSERT_QUERY = "insert into order_history(pair_id, exchange_id, deal_type, price, amount, total, " \
+                             "timest, date_time) values(%s, %s, %s, %s, %s, %s, %s, %s);"
+TRADE_HISTORY_TYPE_NAME = "trade_history"
+
 class OrderHistory(BaseData):
+    insert_query = ORDER_HISTORY_INSERT_QUERY
+    type = TRADE_HISTORY_TYPE_NAME
+
     def __init__(self, pair, timest, deal_type, price, amount, total, exchange):
         # FIXME NOTE - various volume data?
         self.pair_id = pair
@@ -26,6 +33,17 @@ class OrderHistory(BaseData):
         self.total = long(total)
         self.exchange_id = exchange
         self.exchange = get_exchange_name_by_id(exchange)
+
+    def get_pg_arg_list(self):
+        return (self.pair_id,
+                self.exchange_id,
+                self.deal_type,
+                self.price,
+                self.amount,
+                self.total,
+                self.timest,
+                get_date_time_from_epoch(self.timest)
+                )
 
     @classmethod
     def from_poloniex(cls, json_document, pair, timest):

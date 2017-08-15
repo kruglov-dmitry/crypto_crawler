@@ -7,12 +7,20 @@ from utils.currency_utils import get_pair_name_by_id, get_currency_pair_from_bit
 from BaseData import BaseData
 from enums.exchange import EXCHANGE
 from utils.exchange_utils import get_exchange_name_by_id
+from utils.time_utils import get_date_time_from_epoch
 
 # FIXME NOTE - not the smartest idea to deal with
 regex_string = "\[close - (.*) exchange - (.*) exchange_id - (.*) high - (.*) low - (.*) open - (.*) pair - (.*) pair_id - (.*) timest - (.*)\]"
 regex = re.compile(regex_string)
 
+CANDLE_INSERT_QUERY = "insert into candle (pair_id, exchange_id, open, close, high, low, timest, date_time)" \
+                      " values (%s, %s, %s, %s, %s, %s, %s, %s);"
+CANDLE_TYPE_NAME = "ohlc"
+
 class Candle(BaseData):
+    insert_query = CANDLE_INSERT_QUERY
+    type = CANDLE_TYPE_NAME
+
     def __init__(self, pair_id, timest, price_high, price_low, price_open, price_close, exchange_id):
         # FIXME NOTE - various volume data?
         self.pair_id = pair_id
@@ -24,6 +32,17 @@ class Candle(BaseData):
         self.close = float(price_close)
         self.exchange_id = exchange_id
         self.exchange = get_exchange_name_by_id(exchange_id)
+
+    def get_pg_arg_list(self):
+        return (self.pair_id,
+                self.exchange_id,
+                self.open,
+                self.close,
+                self.high,
+                self.low,
+                self.timest,
+                get_date_time_from_epoch(self.timest)
+                )
 
     @classmethod
     def from_poloniex(cls, json_document, currency):

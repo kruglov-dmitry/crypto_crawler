@@ -6,6 +6,7 @@ from BaseData import BaseData
 from Deal import Deal
 from enums.exchange import EXCHANGE
 from utils.exchange_utils import get_exchange_name_by_id
+from utils.time_utils import get_date_time_from_epoch
 
 # FIXME NOTE - not the smartest idea to deal with
 regex_string = "\[exchange - (.*) exchange_id - (.*) pair - (.*) pair_id - (.*) timest - (.*) bids - (.*) asks - (.*) \]"
@@ -14,7 +15,17 @@ regex = re.compile(regex_string)
 deal_array_regex_string = "price - ([0-9]*.[0-9e-]*) volume - ([0-9]*.[0-9e-]*)"
 deal_array_regex = re.compile(deal_array_regex_string)
 
+ORDER_BOOK_INSERT_QUERY = "insert into order_book(pair_id, exchange_id, timest, date_time) " \
+                          "values(%s, %s, %s, %s) RETURNING id;"
+ORDER_BOOK_TYPE_NAME = "order_book"
+
+ORDER_BOOK_INSERT_BIDS = "insert into order_book_ask(order_book_id, price, volume) values (%s, %s, %s);"
+ORDER_BOOK_INSERT_ASKS = "insert into order_book_bid(order_book_id, price, volume) values (%s, %s, %s);"
+
 class OrderBook(BaseData):
+    insert_query = ORDER_BOOK_INSERT_QUERY
+    type = ORDER_BOOK_TYPE_NAME
+
     def __init__(self, pair, timest, ask_bids, sell_bids, exchange):
         # FIXME NOTE - various volume data?
         self.pair_id = pair
@@ -24,6 +35,13 @@ class OrderBook(BaseData):
         self.bid = sell_bids
         self.exchange_id = exchange
         self.exchange = get_exchange_name_by_id(exchange)
+
+    def get_pg_arg_list(self):
+        return (self.pair_id,
+                self.exchange_id,
+                self.timest,
+                get_date_time_from_epoch(self.timest)
+                )
 
     def __str__(self):
         attr_list = [a for a in dir(self) if not a.startswith('__') and not a.startswith("ask") and not a.startswith("bid") and not callable(getattr(self, a))]
@@ -122,7 +140,7 @@ class OrderBook(BaseData):
         res = []
 
         deals = regex.findall(some_string)
-        
+
         for pair in deals:
             res.append(Deal(pair[0], pair[1]))
 

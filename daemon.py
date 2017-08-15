@@ -10,7 +10,12 @@ import telegram
 from dao.dao import get_ohlc, get_ticker, get_history, get_order_book
 from core.base_analysis import compare_price
 from utils.currency_utils import get_pair_name_by_id
+from file_parsing import init_pg_connection, load_to_postgres
 
+from data.Candle import CANDLE_TYPE_NAME
+from data.OrderBook import ORDER_BOOK_TYPE_NAME
+from data.OrderHistory import TRADE_HISTORY_TYPE_NAME
+from data.Ticker import TICKER_TYPE_NAME
 
 DEBUG_ENABLED = True
 
@@ -50,6 +55,7 @@ def inform_big_boss(info_to_report):
 
 
 def sock_data():
+    pg_conn = init_pg_connection()
 
     while(True):
         #
@@ -79,11 +85,16 @@ def sock_data():
         order_book = get_order_book()
         trade_history = get_history(prev_time, now_time)
 
-        save_to_file(all_tickers, "ticker.txt")
+        load_to_postgres(all_tickers, TICKER_TYPE_NAME, pg_conn)
+        load_to_postgres(candles, CANDLE_TYPE_NAME, pg_conn)
+        load_to_postgres(order_book, ORDER_BOOK_TYPE_NAME, pg_conn)
+        load_to_postgres(trade_history, TRADE_HISTORY_TYPE_NAME, pg_conn)
+
+        """save_to_file(all_tickers, "ticker.txt")
         save_to_file(candles, "ohlc.txt")
         save_to_file(order_book, "order_book.txt")
         save_to_file(trade_history, "trade_history.txt")
-
+"""
         print "Before sleep..."
         sleep_for(POLL_PERIOD_SECONDS)
 

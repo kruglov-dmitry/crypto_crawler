@@ -16,3 +16,6 @@ def get_now_seconds():
 
 def sleep_for(num_of_seconds):
     time.sleep(num_of_seconds)
+
+def get_date_time_from_epoch(ts_epoch):
+    return datetime.fromtimestamp(ts_epoch)

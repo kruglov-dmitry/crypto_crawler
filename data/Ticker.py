@@ -5,14 +5,21 @@ from utils.currency_utils import get_pair_name_by_id, get_currency_pair_from_bit
 from BaseData import BaseData
 from enums.exchange import EXCHANGE
 from utils.exchange_utils import get_exchange_name_by_id
-
+from utils.time_utils import get_date_time_from_epoch
 
 # [ask - 0.05828793 bid - 0.057457 exchange - BITTREX exchange_id - 3 pair - BTC_TO_DASH pair_id - 1 timest - 1502466890 ]
 # FIXME NOTE - not the smartest idea to deal with
 regex_string = "\[ask - (.*) bid - (.*) exchange - (.*) exchange_id - (.*) pair - (.*) pair_id - (.*) timest - (.*)\]"
 regex = re.compile(regex_string)
 
+TICKERS_INSERT_QUERY = "insert into tickers(pair_id, exchange_id, lowest_ask, highest_bid, " \
+                             "timest, date_time) values(%s, %s, %s, %s, %s, %s);"
+TICKER_TYPE_NAME = "ticker"
+
 class Ticker(BaseData):
+    insert_query = TICKERS_INSERT_QUERY
+    type = TICKER_TYPE_NAME
+
     def __init__(self, pair, lowest_ask, highest_bid, timest, exchange):
         self.pair_id = pair
         self.pair = get_pair_name_by_id(pair)
@@ -21,6 +28,15 @@ class Ticker(BaseData):
         self.timest = long(timest)
         self.exchange_id = exchange
         self.exchange = get_exchange_name_by_id(exchange)
+
+    def get_pg_arg_list(self):
+        return (self.pair_id,
+                self.exchange_id,
+                self.ask,
+                self.bid,
+                self.timest,
+                get_date_time_from_epoch(self.timest)
+                )
 
     @classmethod
     def from_poloniex(cls, currency, timest, json_document):

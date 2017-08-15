@@ -11,3 +11,9 @@ class BaseData(object):
         str_repr += "]"
 
         return str_repr
+
+    def get_insert_query(self):
+        return "NON IMPLEMENTED"
+
+    def get_pg_arg_list(self):
+        return ("NON IMPLEMENTED", )
