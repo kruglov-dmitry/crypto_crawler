@@ -94,7 +94,7 @@ def sock_data():
         save_to_file(candles, "ohlc.txt")
         save_to_file(order_book, "order_book.txt")
         save_to_file(trade_history, "trade_history.txt")
-"""
+        """
         print "Before sleep..."
         sleep_for(POLL_PERIOD_SECONDS)
 
