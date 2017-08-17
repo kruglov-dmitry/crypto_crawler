@@ -9,7 +9,7 @@ from utils.exchange_utils import get_exchange_name_by_id
 from utils.time_utils import get_date_time_from_epoch
 
 # FIXME NOTE - not the smartest idea to deal with
-regex_string = "\[exchange - (.*) exchange_id - (.*) pair - (.*) pair_id - (.*) timest - (.*) bids - (.*) asks - (.*) \]"
+regex_string = "\[exchange - (.*) exchange_id - (.*) pair - (.*) pair_id - (.*) timest - (.*) bids - (.*) asks - (.*)\]"
 regex = re.compile(regex_string)
 
 deal_array_regex_string = "price - ([0-9]*.[0-9e-]*) volume - ([0-9]*.[0-9e-]*)"
@@ -26,15 +26,15 @@ class OrderBook(BaseData):
     insert_query = ORDER_BOOK_INSERT_QUERY
     type = ORDER_BOOK_TYPE_NAME
 
-    def __init__(self, pair, timest, ask_bids, sell_bids, exchange):
+    def __init__(self, pair_id, timest, ask_bids, sell_bids, exchange_id):
         # FIXME NOTE - various volume data?
-        self.pair_id = pair
-        self.pair = get_pair_name_by_id(pair)
+        self.pair_id = int(pair_id)
+        self.pair = get_pair_name_by_id(self.pair_id)
         self.timest = timest
         self.ask = ask_bids
         self.bid = sell_bids
-        self.exchange_id = exchange
-        self.exchange = get_exchange_name_by_id(exchange)
+        self.exchange_id = int(exchange_id)
+        self.exchange = get_exchange_name_by_id(self.exchange_id)
 
     def get_pg_arg_list(self):
         return (self.pair_id,
@@ -52,7 +52,7 @@ class OrderBook(BaseData):
         str_repr += "bids - ["
         for b in self.bid:
             str_repr += str(b)
-        str_repr += "]"
+        str_repr += "] "
 
         str_repr += "asks - ["
         for a in self.ask:
@@ -130,8 +130,8 @@ class OrderBook(BaseData):
         currency_pair_id = results[0][3]
         timest = results[0][4]
 
-        ask_bids = cls.parse_array_deal(results[0][6])
-        sell_bids = cls.parse_array_deal(results[0][5])
+        ask_bids = cls.parse_array_deals(results[0][6])
+        sell_bids = cls.parse_array_deals(results[0][5])
 
         return OrderBook(currency_pair_id, timest, ask_bids, sell_bids, exchange_id)
 
@@ -139,7 +139,7 @@ class OrderBook(BaseData):
     def parse_array_deals(cls, some_string):
         res = []
 
-        deals = regex.findall(some_string)
+        deals = deal_array_regex.findall(some_string)
 
         for pair in deals:
             res.append(Deal(pair[0], pair[1]))

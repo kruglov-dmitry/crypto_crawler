@@ -23,15 +23,15 @@ class Candle(BaseData):
 
     def __init__(self, pair_id, timest, price_high, price_low, price_open, price_close, exchange_id):
         # FIXME NOTE - various volume data?
-        self.pair_id = pair_id
-        self.pair = get_pair_name_by_id(pair_id)
+        self.pair_id = int(pair_id)
+        self.pair = get_pair_name_by_id(self.pair_id)
         self.timest = long(timest)
         self.high = float(price_high)
         self.low = float(price_low)
         self.open = float(price_open)
         self.close = float(price_close)
-        self.exchange_id = exchange_id
-        self.exchange = get_exchange_name_by_id(exchange_id)
+        self.exchange_id = int(exchange_id)
+        self.exchange = get_exchange_name_by_id(self.exchange_id)
 
     def get_pg_arg_list(self):
         return (self.pair_id,

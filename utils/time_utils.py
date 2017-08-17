@@ -18,4 +18,4 @@ def sleep_for(num_of_seconds):
     time.sleep(num_of_seconds)
 
 def get_date_time_from_epoch(ts_epoch):
-    return datetime.fromtimestamp(ts_epoch)
+    return datetime.fromtimestamp(1.0 * long(ts_epoch))

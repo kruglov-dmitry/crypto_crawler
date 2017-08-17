@@ -20,14 +20,14 @@ class Ticker(BaseData):
     insert_query = TICKERS_INSERT_QUERY
     type = TICKER_TYPE_NAME
 
-    def __init__(self, pair, lowest_ask, highest_bid, timest, exchange):
-        self.pair_id = pair
-        self.pair = get_pair_name_by_id(pair)
+    def __init__(self, pair_id, lowest_ask, highest_bid, timest, exchange_id):
+        self.pair_id = int(pair_id)
+        self.pair = get_pair_name_by_id(self.pair_id)
         self.ask = float(lowest_ask)
         self.bid = float(highest_bid)
         self.timest = long(timest)
-        self.exchange_id = exchange
-        self.exchange = get_exchange_name_by_id(exchange)
+        self.exchange_id = int(exchange_id)
+        self.exchange = get_exchange_name_by_id(self.exchange_id)
 
     def get_pg_arg_list(self):
         return (self.pair_id,

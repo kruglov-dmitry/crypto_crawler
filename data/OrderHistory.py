@@ -22,17 +22,17 @@ class OrderHistory(BaseData):
     insert_query = ORDER_HISTORY_INSERT_QUERY
     type = TRADE_HISTORY_TYPE_NAME
 
-    def __init__(self, pair, timest, deal_type, price, amount, total, exchange):
+    def __init__(self, pair_id, timest, deal_type, price, amount, total, exchange_id):
         # FIXME NOTE - various volume data?
-        self.pair_id = pair
-        self.pair = get_pair_name_by_id(pair)
+        self.pair_id = int(pair_id)
+        self.pair = get_pair_name_by_id(self.pair_id)
         self.timest = long(timest)
         self.deal_type = deal_type
         self.price = float(price)
         self.amount = float(amount)
         self.total = long(total)
-        self.exchange_id = exchange
-        self.exchange = get_exchange_name_by_id(exchange)
+        self.exchange_id = int(exchange_id)
+        self.exchange = get_exchange_name_by_id(self.exchange_id)
 
     def get_pg_arg_list(self):
         return (self.pair_id,

@@ -27,10 +27,11 @@ def insert_data(some_object, pg_conn, dummy_flag):
     if dummy_flag:
         res = cur.fetchone()
         order_book_id = res[0]
-        for ask in some_object.asks:
+        
+        for ask in some_object.ask:
             cur.execute(ORDER_BOOK_INSERT_ASKS, (order_book_id, ask.price, ask.volume))
 
-        for bid in some_object.bids:
+        for bid in some_object.bid:
             cur.execute(ORDER_BOOK_INSERT_BIDS, (order_book_id, bid.price, bid.volume))
 
 
@@ -63,6 +64,7 @@ def load_to_postgres(array, pattern_name, pg_conn):
 def load_crap_from_folder(folder_name, pattern_name, pg_conn):
     file_list = glob.glob(folder_name + pattern_name + '*.txt')
     for every_file in file_list:
+	print "Processing file ", every_file
         array = load_data_from_file(every_file, pattern_name)
         load_to_postgres(array, pattern_name, pg_conn)
 
@@ -70,6 +72,7 @@ def init_pg_connection():
     # FIXME NOTE hardcoding is baaad Dmitry! pass some config
     pg_conn = PostgresConnection(db_host="192.168.1.106", db_port=5432, db_name="postgres", db_user="postgres",
                                  db_password="postgres")
+    pg_conn.connect()
     return pg_conn
 
 if __name__ == "__main__":
@@ -77,7 +80,8 @@ if __name__ == "__main__":
 
     pg_conn = init_pg_connection()
 
-    file_name_patterns = [TICKER_TYPE_NAME, CANDLE_TYPE_NAME, ORDER_BOOK_TYPE_NAME, TRADE_HISTORY_TYPE_NAME]
+    # file_name_patterns = [TICKER_TYPE_NAME, CANDLE_TYPE_NAME, ORDER_BOOK_TYPE_NAME, TRADE_HISTORY_TYPE_NAME]
+    file_name_patterns = [ORDER_BOOK_TYPE_NAME]
 
     for every_pattern in file_name_patterns:
         load_crap_from_folder(folder_name, every_pattern, pg_conn)
