@@ -21,18 +21,24 @@ def insert_data(some_object, pg_conn, dummy_flag):
         args_list[0] = int(args_list[0])
     """
 
-    cur.execute(PG_INSERT_QUERY, args_list)
+    try:
+    	cur.execute(PG_INSERT_QUERY, args_list)
+    except Exception, e:
+    	print "insert data failed :(  ", str(e)
 
     # Yeap, this crap I am not the biggest fun of!
     if dummy_flag:
-        res = cur.fetchone()
-        order_book_id = res[0]
-        
-        for ask in some_object.ask:
-            cur.execute(ORDER_BOOK_INSERT_ASKS, (order_book_id, ask.price, ask.volume))
+	try:
+            res = cur.fetchone()
+            order_book_id = res[0]
+            
+            for ask in some_object.ask:
+                cur.execute(ORDER_BOOK_INSERT_ASKS, (order_book_id, ask.price, ask.volume))
 
-        for bid in some_object.bid:
-            cur.execute(ORDER_BOOK_INSERT_BIDS, (order_book_id, bid.price, bid.volume))
+            for bid in some_object.bid:
+                cur.execute(ORDER_BOOK_INSERT_BIDS, (order_book_id, bid.price, bid.volume))
+        except Exception, e:
+	    print "Insert data failed for order book exactly: ", str(e)
 
 
 def constructor_selector(class_name, string_repr):

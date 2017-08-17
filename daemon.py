@@ -16,6 +16,7 @@ from data.Candle import CANDLE_TYPE_NAME
 from data.OrderBook import ORDER_BOOK_TYPE_NAME
 from data.OrderHistory import TRADE_HISTORY_TYPE_NAME
 from data.Ticker import TICKER_TYPE_NAME
+from utils.time_utils import get_date_time_from_epoch
 
 DEBUG_ENABLED = True
 
@@ -33,11 +34,38 @@ def save_to_file(some_data, file_name):
             myfile.write("%s\n" % str(entry))
 
 
-def inform_big_boss(info_to_report):
+def save_alarm_into_pg(pg_conn, src_ticker, dst_ticker):
+    cur = pg_conn.get_cursor()
+
+    PG_INSERT_QUERY = "insert into alarms(src_exchange_id, dst_exchange_id, src_pair_id, dst_pair_id, src_ask_price, dst_bid_price, timest, date_time) " \
+		      "values(%s, %s, %s, %s, %s, %s, %s, %s);"
+    args_list = (
+		src_ticker.exchange_id, 
+		dst_ticker.exchange_id,
+		src_ticker.pair_id,
+		dst_ticker.pair_id,
+		src_ticker.ask,
+		dst_ticker.bid,
+		src_ticker.timest,
+		get_date_time_from_epoch(src_ticker.timest)
+		)
+
+    try:
+    	cur.execute(PG_INSERT_QUERY, args_list)
+    except Exception, e:
+    	print "save_alarm_into_pg insert data failed :(  ", str(e)
+    	print "args: ", args_list
+    
+    pg_conn.commit()
+
+
+def inform_big_boss(info_to_report, pg_conn):
     bot = telegram.Bot(token='438844686:AAE8lS3VyMsNgtytR4I1uWy4DLUaot2e5hU')
     print "SEND NOTIFY"
     for debug in info_to_report:
-        msg = "Pair: {pair_name}, {ask_exchange}: {ask_price} {sell_exchange}: {sell_price}".format(
+        save_alarm_into_pg(debug[1], debug[2], pg_conn)
+	
+	msg = "Pair: {pair_name}, {ask_exchange}: {ask_price} {sell_exchange}: {sell_price}".format(
             pair_name=get_pair_name_by_id(debug[0]), ask_exchange=debug[1].exchange, ask_price=debug[1].ask, 
             	sell_exchange=debug[2].exchange, sell_price=debug[2].bid)
         try:
@@ -74,7 +102,7 @@ def sock_data():
         res = compare_price(bittrex_tickers, kraken_tickers, poloniex_tickers, TRIGGER_THRESHOLD)
 
         if res:
-            inform_big_boss(res)
+            inform_big_boss(res, pg_conn)
 
         #
         #   Second, we sock all other data for possible analysis
