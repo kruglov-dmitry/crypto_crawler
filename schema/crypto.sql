@@ -115,3 +115,21 @@ CREATE TABLE public.tickers
     CONSTRAINT pair_id___fk FOREIGN KEY (pair_id) REFERENCES pair (id)
 );
 CREATE UNIQUE INDEX tickers_id_uindex ON public.tickers (id);
+
+CREATE TABLE public.alarms
+(
+    id integer DEFAULT nextval('alarms_id_seq'::regclass) PRIMARY KEY NOT NULL,
+    src_exchange_id integer,
+    dst_exchange_id integer,
+    src_pair_id integer,
+    dst_pair_id integer,
+    src_ask_price double precision,
+    dst_bid_price double precision,
+    timest bigint,
+    date_time timestamp,
+    CONSTRAINT alarms_src_exchange_id_fk FOREIGN KEY (src_exchange_id) REFERENCES exchange (id),
+    CONSTRAINT alarms_dst_exchange_id_fk FOREIGN KEY (dst_exchange_id) REFERENCES exchange (id),
+    CONSTRAINT alarms_src_pair_id_fk FOREIGN KEY (src_pair_id) REFERENCES pair (id),
+    CONSTRAINT alarms_dst_pair_id_fk FOREIGN KEY (dst_pair_id) REFERENCES pair (id)
+);
+CREATE UNIQUE INDEX alarms_id_uindex ON public.alarms (id);
