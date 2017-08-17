@@ -1,7 +1,7 @@
 from constants import KRAKEN_GET_TICKER
 import requests
 from data.Ticker import Ticker
-from daemon import should_print_debug
+from debug_utils import should_print_debug
 
 
 def get_ticker_kraken(currency, timest):

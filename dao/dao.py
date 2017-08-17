@@ -35,19 +35,19 @@ def get_ticker():
     for currency in BITTREX_CURRENCIES:
         ticker = get_ticker_bittrex(currency, timest)
         if ticker is not None:
-            bittrex_tickers[currency] = ticker
+            bittrex_tickers[ticker.pair_id] = ticker
 
     kraken_tickers = {}
     for currency in KRAKEN_CURRENCIES:
         ticker = get_ticker_kraken(currency, timest)
         if ticker is not None:
-            kraken_tickers[currency] = ticker
+            kraken_tickers[ticker.pair_id] = ticker
 
     poloniex_tickers = {}
     for currency in POLONIEX_CURRENCIES:
         ticker = get_ticker_poloniex(currency, timest)
         if ticker is not None:
-            poloniex_tickers[currency] = ticker
+            poloniex_tickers[ticker.pair_id] = ticker
 
     return bittrex_tickers, kraken_tickers, poloniex_tickers
 

@@ -1,7 +1,7 @@
 from constants import BITTREX_GET_HISTORY
 import requests
 from data.OrderHistory import OrderHistory
-from daemon import should_print_debug
+from debug_utils import should_print_debug
 
 
 def get_history_bittrex(currency, prev_time, now_time):

@@ -1,7 +1,7 @@
 from constants import KRAKEN_GET_ORDER_BOOK
 import requests
 from data.OrderBook import OrderBook
-from daemon import should_print_debug
+from debug_utils import should_print_debug
 
 def get_order_book_kraken(currency, timest):
     # https://api.kraken.com/0/public/Depth?pair=XETHXXBT

@@ -18,10 +18,6 @@ from data.OrderHistory import TRADE_HISTORY_TYPE_NAME
 from data.Ticker import TICKER_TYPE_NAME
 from utils.time_utils import get_date_time_from_epoch
 
-DEBUG_ENABLED = True
-
-def should_print_debug():
-    return DEBUG_ENABLED
 
 # time to poll
 POLL_PERIOD_SECONDS = 120
@@ -34,7 +30,7 @@ def save_to_file(some_data, file_name):
             myfile.write("%s\n" % str(entry))
 
 
-def save_alarm_into_pg(pg_conn, src_ticker, dst_ticker):
+def save_alarm_into_pg(src_ticker, dst_ticker, pg_conn):
     cur = pg_conn.get_cursor()
 
     PG_INSERT_QUERY = "insert into alarms(src_exchange_id, dst_exchange_id, src_pair_id, dst_pair_id, src_ask_price, dst_bid_price, timest, date_time) " \
@@ -112,6 +108,11 @@ def sock_data():
         candles = get_ohlc()
         order_book = get_order_book()
         trade_history = get_history(prev_time, now_time)
+
+	print len(candles)
+	print len(order_book)
+	print len(trade_history)
+	print len(all_tickers)
 
         load_to_postgres(all_tickers, TICKER_TYPE_NAME, pg_conn)
         load_to_postgres(candles, CANDLE_TYPE_NAME, pg_conn)

@@ -1,7 +1,7 @@
 from constants import POLONIEX_GET_OHLC
 import requests
 from data.Candle import Candle
-from daemon import should_print_debug
+from debug_utils import should_print_debug
 
 
 def get_ohlc_poloniex(currency, date_end, date_start, period):

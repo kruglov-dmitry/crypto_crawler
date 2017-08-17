@@ -1,5 +1,5 @@
 from enums.currency_pair import CURRENCY_PAIR
-from daemon import should_print_debug
+from debug_utils import should_print_debug
 
 
 def compare_price(bittrex_tickers, kraken_tickers, poloniex_tickers, threshold):
@@ -41,25 +41,29 @@ def check_all_combinations(bittrex_ticker, kraken_ticker, poloniex_ticker, thres
 
     res_list = []
 
-    res = compare_ticket_pair(bittrex_ticker, kraken_ticker, threshold)
-    if res:
-        res_list.append(res)
-    res = compare_ticket_pair(kraken_ticker, bittrex_ticker, threshold)
-    if res:
-        res_list.append(res)
+    if bittrex_ticker is not None and kraken_ticker is not None:
+        res = compare_ticket_pair(bittrex_ticker, kraken_ticker, threshold)
+        if res:
+            res_list.append(res)
+        res = compare_ticket_pair(kraken_ticker, bittrex_ticker, threshold)
+        if res:
+            res_list.append(res)
 
-    res = compare_ticket_pair(kraken_ticker, poloniex_ticker, threshold)
-    if res:
-        res_list.append(res)
-    res = compare_ticket_pair(poloniex_ticker, kraken_ticker, threshold)
-    if res:
-        res_list.append(res)
-    res = compare_ticket_pair(bittrex_ticker, poloniex_ticker, threshold)
-    if res:
-        res_list.append(res)
-    res = compare_ticket_pair(poloniex_ticker, bittrex_ticker, threshold)
-    if res:
-        res_list.append(res)
+    if poloniex_ticker is not None and kraken_ticker is not None:
+        res = compare_ticket_pair(kraken_ticker, poloniex_ticker, threshold)
+        if res:
+            res_list.append(res)
+        res = compare_ticket_pair(poloniex_ticker, kraken_ticker, threshold)
+        if res:
+            res_list.append(res)
+
+    if bittrex_ticker is not None and poloniex_ticker is not None:
+        res = compare_ticket_pair(bittrex_ticker, poloniex_ticker, threshold)
+        if res:
+            res_list.append(res)
+        res = compare_ticket_pair(poloniex_ticker, bittrex_ticker, threshold)
+        if res:
+            res_list.append(res)
 
     return res_list
 
