@@ -72,12 +72,13 @@ def get_diff_lowest_ask_vs_highest_bid(first_one, second_one, threshold):
     difference = get_change(first_one.ask, second_one.bid)
 
     if should_print_debug():
-        print "ASK: ", first_one.ask
+        print "get_diff_lowest_ask_vs_highest_bid"
+	print "ASK: ", first_one.ask
         print "BID: ", second_one.bid
         print "DIFF: ", difference
 
     if difference >= threshold:
-        msg = "Lowest ask differ from highest bid more than {num}".format(num=threshold)
+        msg = "Lowest ask differ from highest bid more than {num} %".format(num=threshold)
         return msg, first_one.pair_id, first_one, second_one
 
     return ()
@@ -86,12 +87,13 @@ def check_highest_bid_bigger_than_lowest_ask(first_one, second_one, threshold):
     difference = get_change(first_one.bid, second_one.ask, provide_abs = False)
 
     if should_print_debug():
-        print "ASK: ", first_one.ask
+        print "check_highest_bid_bigger_than_lowest_ask"
+	print "ASK: ", first_one.ask
         print "BID: ", second_one.bid
         print "DIFF: ", difference
 
     if difference >= threshold:
-        msg = "highest bid bigger than Lowest ask for more than {num}".format(num=threshold)
+        msg = "highest bid bigger than Lowest ask for more than {num} %".format(num=threshold)
         return msg, first_one.pair_id, first_one, second_one
 
     return ()
