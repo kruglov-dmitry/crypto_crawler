@@ -77,7 +77,8 @@ def get_diff_lowest_ask_vs_highest_bid(first_one, second_one, threshold):
         print "DIFF: ", difference
 
     if difference >= threshold:
-        return "Lowest ask differ from highest bid more than ", first_one.pair_id, first_one, second_one
+        msg = "Lowest ask differ from highest bid more than {num}".format(num=threshold)
+        return msg, first_one.pair_id, first_one, second_one
 
     return ()
 
@@ -90,7 +91,7 @@ def check_highest_bid_bigger_than_lowest_ask(first_one, second_one, threshold):
         print "DIFF: ", difference
 
     if difference >= threshold:
-        msg = "highest bid bigger than Lowest ask for more than ".format(threshold)
+        msg = "highest bid bigger than Lowest ask for more than {num}".format(num=threshold)
         return msg, first_one.pair_id, first_one, second_one
 
     return ()
