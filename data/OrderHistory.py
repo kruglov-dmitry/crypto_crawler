@@ -73,7 +73,7 @@ class OrderHistory(BaseData):
 
         currency_pair = get_currency_pair_from_poloniex(pair)
 
-        return OrderHistory(pair, deal_timest, deal_type, price, amount, total, EXCHANGE.POLONIEX)
+        return OrderHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.POLONIEX)
 
     @classmethod
     def from_kraken(cls, json_document, pair, timest):

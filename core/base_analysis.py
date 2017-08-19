@@ -2,7 +2,7 @@ from enums.currency_pair import CURRENCY_PAIR
 from debug_utils import should_print_debug
 
 
-def compare_price(bittrex_tickers, kraken_tickers, poloniex_tickers, threshold):
+def compare_price(bittrex_tickers, kraken_tickers, poloniex_tickers, threshold, predicate):
     """
     High level function that perform tickers analysis
 
@@ -27,14 +27,14 @@ def compare_price(bittrex_tickers, kraken_tickers, poloniex_tickers, threshold):
         if every_currency in poloniex_tickers:
             poloniex_ticker = poloniex_tickers[every_currency]
 
-        current_result = check_all_combinations(bittrex_ticker, kraken_ticker, poloniex_ticker, threshold)
+        current_result = check_all_combinations(bittrex_ticker, kraken_ticker, poloniex_ticker, threshold, predicate)
         if current_result:
             res += current_result
 
     return res
 
 
-def check_all_combinations(bittrex_ticker, kraken_ticker, poloniex_ticker, threshold):
+def check_all_combinations(bittrex_ticker, kraken_ticker, poloniex_ticker, threshold, predicate):
     """
     FIXME TODO: generate permutation among input value in more general fashion!
     """
@@ -42,33 +42,33 @@ def check_all_combinations(bittrex_ticker, kraken_ticker, poloniex_ticker, thres
     res_list = []
 
     if bittrex_ticker is not None and kraken_ticker is not None:
-        res = compare_ticket_pair(bittrex_ticker, kraken_ticker, threshold)
+        res = predicate(bittrex_ticker, kraken_ticker, threshold)
         if res:
             res_list.append(res)
-        res = compare_ticket_pair(kraken_ticker, bittrex_ticker, threshold)
+        res = predicate(kraken_ticker, bittrex_ticker, threshold)
         if res:
             res_list.append(res)
 
     if poloniex_ticker is not None and kraken_ticker is not None:
-        res = compare_ticket_pair(kraken_ticker, poloniex_ticker, threshold)
+        res = predicate(kraken_ticker, poloniex_ticker, threshold)
         if res:
             res_list.append(res)
-        res = compare_ticket_pair(poloniex_ticker, kraken_ticker, threshold)
+        res = predicate(poloniex_ticker, kraken_ticker, threshold)
         if res:
             res_list.append(res)
 
     if bittrex_ticker is not None and poloniex_ticker is not None:
-        res = compare_ticket_pair(bittrex_ticker, poloniex_ticker, threshold)
+        res = predicate(bittrex_ticker, poloniex_ticker, threshold)
         if res:
             res_list.append(res)
-        res = compare_ticket_pair(poloniex_ticker, bittrex_ticker, threshold)
+        res = predicate(poloniex_ticker, bittrex_ticker, threshold)
         if res:
             res_list.append(res)
 
     return res_list
 
 
-def compare_ticket_pair(first_one, second_one, threshold):
+def get_diff_lowest_ask_vs_highest_bid(first_one, second_one, threshold):
     difference = get_change(first_one.ask, second_one.bid)
 
     if should_print_debug():
@@ -77,12 +77,25 @@ def compare_ticket_pair(first_one, second_one, threshold):
         print "DIFF: ", difference
 
     if difference >= threshold:
-        return first_one.pair_id, first_one, second_one
+        return "Lowest ask differ from highest bid more than ", first_one.pair_id, first_one, second_one
 
     return ()
 
+def check_highest_bid_bigger_than_lowest_ask(first_one, second_one, threshold):
+    difference = get_change(first_one.bid, second_one.ask, provide_abs = False)
 
-def get_change(current, previous):
+    if should_print_debug():
+        print "ASK: ", first_one.ask
+        print "BID: ", second_one.bid
+        print "DIFF: ", difference
+
+    if difference >= threshold:
+        msg = "highest bid bigger than Lowest ask for more than ".format(threshold)
+        return msg, first_one.pair_id, first_one, second_one
+
+    return ()
+
+def get_change(current, previous, provide_abs = True):
     """
 
     :param current:
@@ -91,7 +104,11 @@ def get_change(current, previous):
     """
 
     tot = 0.5 * (current + previous)
-    diff = abs(current - previous)
+    diff = 0.0
+    if provide_abs:
+        diff = abs(current - previous)
+    else:
+        diff = current - previous
 
     percent = ((diff / tot) * 100)
 
