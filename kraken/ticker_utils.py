@@ -3,6 +3,8 @@ import requests
 from data.Ticker import Ticker
 from debug_utils import should_print_debug
 
+HTTP_TIMEOUT_SECONDS = 5
+
 
 def get_ticker_kraken(currency, timest):
     # https://api.kraken.com/0/public/Ticker?pair=DASHXBT
@@ -12,7 +14,7 @@ def get_ticker_kraken(currency, timest):
         print final_url
 
     try:
-        r = requests.get(final_url).json()
+        r = requests.get(final_url, timeout=HTTP_TIMEOUT_SECONDS).json()
         if "result" in r:
             return Ticker.from_kraken(currency, timest, r["result"][currency])
     except Exception, e:
