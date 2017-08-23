@@ -1,9 +1,7 @@
 from constants import KRAKEN_GET_TICKER
-import requests
 from data.Ticker import Ticker
 from debug_utils import should_print_debug
-
-HTTP_TIMEOUT_SECONDS = 5
+from data_access.internet import send_request
 
 
 def get_ticker_kraken(currency, timest):
@@ -13,11 +11,11 @@ def get_ticker_kraken(currency, timest):
     if should_print_debug():
         print final_url
 
-    try:
-        r = requests.get(final_url, timeout=HTTP_TIMEOUT_SECONDS).json()
-        if "result" in r:
+    err_msg = "get_ticker_kraken called for {pair} at {timest}".format(pair=currency, timest=timest)
+    r = send_request(final_url, err_msg)
+
+    if r is not None and "result" in r:
+        if currency in r["result"]:
             return Ticker.from_kraken(currency, timest, r["result"][currency])
-    except Exception, e:
-        print "get_ticker_kraken: ", currency, timest, str(e)
 
     return None

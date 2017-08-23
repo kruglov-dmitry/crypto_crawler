@@ -1,7 +1,7 @@
 from constants import POLONIEX_GET_ORDER_BOOK
-import requests
 from data.OrderBook import OrderBook
 from debug_utils import should_print_debug
+from data_access.internet import send_request
 
 
 def get_order_book_poloniex(currency, timest):
@@ -11,10 +11,10 @@ def get_order_book_poloniex(currency, timest):
     if should_print_debug():
         print final_url
 
-    try:
-        r = requests.get(final_url)
-        return OrderBook.from_poloniex(r.json(), currency, timest)
-    except Exception, e:
-        print "get_order_book_poloniex: ", currency, timest, str(e)
+    err_msg = "get_order_book_poloniex called for {pair} at {timest}".format(pair=currency, timest=timest)
+    r = send_request(final_url, err_msg)
+
+    if r is not None:
+        return OrderBook.from_poloniex(r, currency, timest)
 
     return None

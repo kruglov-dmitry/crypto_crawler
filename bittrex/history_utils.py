@@ -1,7 +1,7 @@
 from constants import BITTREX_GET_HISTORY
-import requests
 from data.OrderHistory import OrderHistory
 from debug_utils import should_print_debug
+from data_access.internet import send_request
 
 
 def get_history_bittrex(currency, prev_time, now_time):
@@ -13,13 +13,11 @@ def get_history_bittrex(currency, prev_time, now_time):
     if should_print_debug():
         print final_url
 
-    try:
-        r = requests.get(final_url).json()
+    err_msg = "get_history_bittrex called for {pair} at {timest}".format(pair=currency, timest=now_time)
+    r = send_request(final_url, err_msg)
 
-        if "result" in r:
-            for rr in r["result"]:
-                all_history_records.append(OrderHistory.from_bittrex(rr, currency, now_time))
-    except Exception, e:
-        print "get_history_bittrex: ", currency, now_time, str(e)
+    if r is not None and "result" in r:
+        for rr in r["result"]:
+            all_history_records.append(OrderHistory.from_bittrex(rr, currency, now_time))
 
     return all_history_records

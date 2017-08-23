@@ -1,9 +1,7 @@
 from constants import BITTREX_GET_TICKER
-import requests
 from data.Ticker import Ticker
 from debug_utils import should_print_debug
-
-HTTP_TIMEOUT_SECONDS = 5
+from data_access.internet import send_request
 
 
 def get_ticker_bittrex(currency, timest):
@@ -13,11 +11,10 @@ def get_ticker_bittrex(currency, timest):
     if should_print_debug():
         print final_url
 
-    try:
-        r = requests.get(final_url, timeout=HTTP_TIMEOUT_SECONDS).json()
-        if "result" in r:
-            return Ticker.from_bittrex(currency, timest, r["result"])
-    except Exception, e:
-        print "get_ticker_bittrex: ", currency, timest, str(e)
+    err_msg = "get_ticker_bittrex called for {pair} at {timest}".format(pair=currency, timest=timest)
+    r = send_request(final_url, err_msg)
+
+    if r is not None and "result" in r:
+        return Ticker.from_bittrex(currency, timest, r["result"])
 
     return None
