@@ -73,27 +73,44 @@ def get_ohlc():
     return all_ohlc
 
 
-def get_order_book():
+def get_order_book(split_on_exchange=False):
+    
     all_order_book = []
+    
+    poloniex_order_book = []
+    kraken_order_book = []
+    bittrex_order_book = []
 
     timest = get_now_seconds()
 
     for currency in POLONIEX_CURRENCIES:
         order_book = get_order_book_poloniex(currency, timest)
         if order_book is not None:
-            all_order_book.append(order_book)
+            if split_on_exchange == True:
+		poloniex_order_book.append(order_book)	
+	    else:
+		all_order_book.append(order_book)
 
     for currency in KRAKEN_CURRENCIES:
         order_book = get_order_book_kraken(currency, timest)
         if order_book is not None:
-            all_order_book.append(order_book)
+            if split_on_exchange == True:
+		kraken_order_book.append(order_book)	
+	    else:
+                all_order_book.append(order_book)
 
     for currency in BITTREX_CURRENCIES:
         order_book = get_order_book_bittrex(currency, timest)
         if order_book is not None:
-            all_order_book.append(order_book)
+            if split_on_exchange == True:
+		bittrex_order_book.append(order_book)	
+	    else:
+            	all_order_book.append(order_book)
 
-    return all_order_book
+    if split_on_exchange == True:
+	return poloniex_order_book, kraken_order_book, bittrex_order_book
+    else:
+    	return all_order_book
 
 def get_history(prev_time, now_time):
     all_history = []
