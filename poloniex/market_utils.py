@@ -11,7 +11,7 @@ def signed_body(body):
 	#  The query's POST data signed by your key's "secret" according to the HMAC-SHA512 method.
 	pass
 
-def add_buy_order(key, pair_name, price, amount):
+def add_buy_order_poloniex(key, pair_name, price, amount):
 	body = { "command": "buy",
 		"currencyPair": pair_name,
 		"rate": price,
@@ -31,7 +31,7 @@ def add_buy_order(key, pair_name, price, amount):
 
 	print r
 
-def add_sell_order(key, pair_name, price, amount):
+def add_sell_order_poloniex(key, pair_name, price, amount):
 	body = {
 		"command": "sell",
 		"currencyPair": pair_name,
@@ -52,7 +52,7 @@ def add_sell_order(key, pair_name, price, amount):
 
 	print r
 
-def cancel_order(key, deal_id):
+def cancel_order_poloniex(key, deal_id):
 	body = {
 		"command": "cancelOrder",
 		"orderNumber" : deal_id,

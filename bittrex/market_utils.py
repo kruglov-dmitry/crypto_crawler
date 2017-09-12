@@ -2,7 +2,7 @@ from constants import BITTREX_CANCEL_ORDER, BITTREX_BUY_ORDER, BITTREX_SELL_ORDE
 from data_access.internet import send_request
 
 
-def add_buy_order(key, pair_name, price, amount):
+def add_buy_order_bittrex(key, pair_name, price, amount):
 	# https://bittrex.com/api/v1.1/market/buylimit?apikey=API_KEY&market=BTC-LTC&quantity=1.2&rate=1.3
     	final_url = BITTREX_BUY_ORDER + key + "&market=" + pair_name + "&quantity=" + str(amount) + "&rate=" + str(price)
 
@@ -15,7 +15,7 @@ def add_buy_order(key, pair_name, price, amount):
 	# FIXME
 	print r
 
-def add_sell_order(key, pair_name, price, amount):
+def add_sell_order_bittrex(key, pair_name, price, amount):
 	# https://bittrex.com/api/v1.1/market/selllimit?apikey=API_KEY&market=BTC-LTC&quantity=1.2&rate=1.3
 	final_url = BITTREX_SELL_ORDER + key + "&market=" + pair_name + "&quantity=" + str(amount) + "&rate=" + str(price)
 
@@ -29,7 +29,7 @@ def add_sell_order(key, pair_name, price, amount):
 	print r
 
 	
-def cancel_order(key, deal_id):
+def cancel_order_bittrex(key, deal_id):
 	# https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID
 	final_url = BITTREX_CANCEL_ORDER + key + "&uuid=" + deal_id
 
