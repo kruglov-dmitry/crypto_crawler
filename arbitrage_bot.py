@@ -8,6 +8,7 @@ POLL_PERIOD_SECONDS = 900
 
 def init_deal(exch_1_order, exch_2_order):
 	# exchange specific >_<
+	# call by exchange buy sell & pray
 
 
 # FIXME TODO - what if we add more exchanges
@@ -51,6 +52,7 @@ def mega_analysis(poloniex_order_book, kraken_order_book, bittrex_order_book, th
     		if difference >= threshold:
     		    msg = "highest bid bigger than Lowest ask for more than {num} %".format(num=threshold)
 		    # FIXME TODO init deal + recursive processing for next price
+                    # or not recursive but bissect everything that fall above threshold?
 		    
 
 if __name__ == "__main__":
