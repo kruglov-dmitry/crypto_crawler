@@ -108,3 +108,15 @@ class Ticker(BaseData):
         timest = results[0][6]
 
         return Ticker(currency_pair_id, ask, bid, timest, exchange_id)
+
+    @classmethod
+    def from_row(cls, db_row):
+        #  id, exchange_id, pair_id, lowest_ask, highest_bid, timest, date_time
+
+        exchange_id = db_row[1]
+        currency_pair_id = db_row[2]
+        ask = db_row[3]
+        bid = db_row[4]
+        timest = db_row[5]
+
+        return Ticker(currency_pair_id, ask, bid, timest, exchange_id)

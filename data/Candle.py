@@ -17,6 +17,7 @@ CANDLE_INSERT_QUERY = "insert into candle (pair_id, exchange_id, open, close, hi
                       " values (%s, %s, %s, %s, %s, %s, %s, %s);"
 CANDLE_TYPE_NAME = "ohlc"
 
+
 class Candle(BaseData):
     insert_query = CANDLE_INSERT_QUERY
     type = CANDLE_TYPE_NAME
@@ -105,3 +106,17 @@ class Candle(BaseData):
         timest = results[0][8]
 
         return Candle(currency_pair_id, timest, price_high, price_low, price_open, price_close, exchange_id)
+
+    @classmethod
+    def from_row(cls, db_row):
+        # id, pair_id, exchange_id, open, close, high, low, timest, date_time
+        currency_pair_id = db_row[1]
+        timest = db_row[7]
+        price_high = db_row[5]
+        price_low = db_row[6]
+        price_open = db_row[3]
+        price_close = db_row[4]
+        exchange_id = db_row[2]
+
+        return Candle(currency_pair_id, timest, price_high, price_low, price_open, price_close, exchange_id)
+

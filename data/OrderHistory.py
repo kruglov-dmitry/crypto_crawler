@@ -158,3 +158,17 @@ class OrderHistory(BaseData):
         total = price * amount
 
         return OrderHistory(currency_pair_id, deal_timest, deal_type, price, amount, total, exchange_id)
+
+    @classmethod
+    def from_row(cls, db_row):
+        #  id, pair_id, exchange_id, deal_type, price, amount, total, timest, date_time
+
+        currency_pair_id = db_row[1]
+        exchange_id = db_row[2]
+        deal_type = db_row[3]
+        price = db_row[4]
+        amount = db_row[5]
+        total = db_row[6]
+        deal_timest = db_row[7]
+
+        return OrderHistory(currency_pair_id, deal_timest, deal_type, price, amount, total, exchange_id)

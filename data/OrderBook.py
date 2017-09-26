@@ -150,3 +150,17 @@ class OrderBook(BaseData):
             res.append(Deal(pair[0], pair[1]))
 
         return res
+
+    @classmethod
+    def from_row(cls, db_row):
+        #  id, pair_id, exchange_id, timest, date_time
+
+        currency_pair_id = db_row[1]
+        exchange_id = db_row[2]
+        timest = db_row[3]
+
+        # FIXME
+        ask_bids = []
+        sell_bids = []
+
+        return OrderBook(currency_pair_id, timest, ask_bids, sell_bids, exchange_id)
