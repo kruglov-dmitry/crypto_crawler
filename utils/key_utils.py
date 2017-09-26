@@ -12,7 +12,7 @@ def load_keys(path):
     global access_keys
 
     for exchange in EXCHANGES:
-        with open(path + exchange, 'r') as myfile:
+        with open(path + "/" + exchange + ".key", 'r') as myfile:
             key = myfile.read()
             access_keys[exchange] = key
 
