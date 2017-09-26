@@ -22,6 +22,7 @@ ORDER_BOOK_TYPE_NAME = "order_book"
 ORDER_BOOK_INSERT_BIDS = "insert into order_book_ask(order_book_id, price, volume) values (%s, %s, %s);"
 ORDER_BOOK_INSERT_ASKS = "insert into order_book_bid(order_book_id, price, volume) values (%s, %s, %s);"
 
+
 class OrderBook(BaseData):
     insert_query = ORDER_BOOK_INSERT_QUERY
     type = ORDER_BOOK_TYPE_NAME
@@ -37,9 +38,8 @@ class OrderBook(BaseData):
         self.exchange = get_exchange_name_by_id(self.exchange_id)
 
     def sort_by_price(self):
-	self.ask = sorted(self.ask, key = lambda x: x.price, reverse=True)
-	self.bid = sorted(self.bid, key = lambda x: x.price, reverse=True)
-	
+        self.ask = sorted(self.ask, key = lambda x: x.price, reverse=False)  # lowest - first
+        self.bid = sorted(self.bid, key = lambda x: x.price, reverse=True)  # highest - first
 
     def get_pg_arg_list(self):
         return (self.pair_id,
@@ -128,7 +128,8 @@ class OrderBook(BaseData):
 
     @classmethod
     def from_string(cls, some_string):
-        # [exchange - KRAKEN exchange_id - 2 pair - BTC_TO_XRP pair_id - 4 timest - 1502466918 bids - [[price - 5.055e-05 volume - 2595.354 ][price - 5.054e-05 volume - 70162.004 ]] asks - [[]]
+        # [exchange - KRAKEN exchange_id - 2 pair - BTC_TO_XRP pair_id - 4 timest - 1502466918
+        # bids - [[price - 5.055e-05 volume - 2595.354 ][price - 5.054e-05 volume - 70162.004 ]] asks - [[]]
         results = regex.findall(some_string)
 
         exchange_id = results[0][1]
@@ -152,15 +153,20 @@ class OrderBook(BaseData):
         return res
 
     @classmethod
-    def from_row(cls, db_row):
-        #  id, pair_id, exchange_id, timest, date_time
+    def from_row(cls, db_row, asks_rows, sell_rows):
+        # id, pair_id, exchange_id, timest, date_time
+        # id, order_book_id, price, volume
 
         currency_pair_id = db_row[1]
         exchange_id = db_row[2]
         timest = db_row[3]
 
-        # FIXME
         ask_bids = []
+        for r in asks_rows:
+            ask_bids.append(Deal(r[2], r[3]))
+
         sell_bids = []
+        for r in sell_rows:
+            sell_bids.append(Deal(r[2], r[3]))
 
         return OrderBook(currency_pair_id, timest, ask_bids, sell_bids, exchange_id)

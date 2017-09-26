@@ -22,13 +22,13 @@ def init_deal(exch_1_order, exch_2_order):
 # FIXME TODO - what if we add more exchanges
 def mega_analysis(poloniex_order_book, kraken_order_book, bittrex_order_book, threshold):
     """
-	:param poloniex_order_book:
-	:param kraken_order_book:
-	:param bittrex_order_book:
-	:param threshold:
-	:return:
-
+    :param poloniex_order_book:
+    :param kraken_order_book:
+    :param bittrex_order_book:
+    :param threshold:
+    :return:
     """
+
     # split on currencies
     for every_currency in CURRENCY_PAIR.values():
         pol = [x for x in poloniex_order_book if x.pair_id == every_currency]
@@ -48,7 +48,7 @@ def mega_analysis(poloniex_order_book, kraken_order_book, bittrex_order_book, th
         pol_max = pol[0] if pol else None
         krak_max = krak[0] if krak else None
         bittr_max = bittr[0] if bittr else None
-		
+
         pol_min = pol[-1] if pol else None
         krak_min = krak[-1] if krak else None
         bittr_min = bittr[-1] if bittr else None
