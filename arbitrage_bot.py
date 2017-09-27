@@ -7,8 +7,8 @@ from utils.time_utils import sleep_for
 from core.base_analysis import get_change
 from enums.currency_pair import CURRENCY_PAIR
 
-# time to poll - 15 minutes
-POLL_PERIOD_SECONDS = 900
+# time to poll - 2 MINUTES
+POLL_PERIOD_SECONDS = 120
 
 
 def init_deal(exch_1_order, exch_2_order):
@@ -75,6 +75,8 @@ if __name__ == "__main__":
     threshold = 100 #  FIXME
 
     while (True):
+
+        #
         poloniex_order_book, kraken_order_book, bittrex_order_book = get_order_book(split_on_exchange=True)
 
         mega_analysis(poloniex_order_book, kraken_order_book, bittrex_order_book, threshold)

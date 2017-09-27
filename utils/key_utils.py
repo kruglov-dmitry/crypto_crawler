@@ -4,8 +4,20 @@ access_keys = {}
 
 
 class ExchangeKey(object):
-def __init__(self):
-	pass
+    def __init__(self, api_key, secret):
+        self.api_key = api_key
+        self.secret = secret
+
+    @classmethod
+    def from_file(cls, path, exchange):
+        array = []
+        with open(path + "/" + exchange + ".key", "r") as myfile:
+            for line in myfile:
+                array.append(line)
+                if len(array) == 2:
+                    break
+
+        return ExchangeKey(array[0], array[1])
 
 
 def load_keys(path):
@@ -17,9 +29,8 @@ def load_keys(path):
     global access_keys
 
     for exchange in EXCHANGES:
-        with open(path + "/" + exchange + ".key", 'r') as myfile:
-            key = myfile.read()
-            access_keys[exchange] = key
+        key = ExchangeKey.from_file(path, exchange)
+        access_keys[exchange] = key
 
 
 def get_key_by_exchange(exchange_id):
