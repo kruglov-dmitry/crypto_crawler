@@ -7,7 +7,7 @@ from urllib import urlencode as _urlencode
 
 def add_buy_order_bittrex(key, pair_name, price, amount):
     # https://bittrex.com/api/v1.1/market/buylimit?apikey=API_KEY&market=BTC-LTC&quantity=1.2&rate=1.3
-    final_url = BITTREX_BUY_ORDER + key.api_key + "&nonce=" + generate_nonce()
+    final_url = BITTREX_BUY_ORDER + key.api_key + "&nonce=" + str(generate_nonce())
 
     body = {
         "market": pair_name,
@@ -30,7 +30,7 @@ def add_buy_order_bittrex(key, pair_name, price, amount):
 
 def add_sell_order_bittrex(key, pair_name, price, amount):
     # https://bittrex.com/api/v1.1/market/selllimit?apikey=API_KEY&market=BTC-LTC&quantity=1.2&rate=1.3
-    final_url = BITTREX_SELL_ORDER + key.api_key + "&nonce=" + generate_nonce()
+    final_url = BITTREX_SELL_ORDER + key.api_key + "&nonce=" + str(generate_nonce())
 
     body = {
         "market": pair_name,
@@ -53,7 +53,7 @@ def add_sell_order_bittrex(key, pair_name, price, amount):
 
 def cancel_order_bittrex(key, deal_id):
     # https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID
-    final_url = BITTREX_CANCEL_ORDER + key.api_key + "&nonce=" + generate_nonce()
+    final_url = BITTREX_CANCEL_ORDER + key.api_key + "&nonce=" + str(generate_nonce())
 
     body = {
         "uuid": deal_id,
