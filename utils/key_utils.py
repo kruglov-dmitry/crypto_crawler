@@ -13,7 +13,7 @@ class ExchangeKey(object):
         array = []
         with open(path + "/" + exchange + ".key", "r") as myfile:
             for line in myfile:
-                array.append(line)
+                array.append(line.rstrip())
                 if len(array) == 2:
                     break
 
