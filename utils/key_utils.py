@@ -38,6 +38,14 @@ def signed_body(body, secret):
     return payload
 
 
+def signed_string(body, secret):
+    #  The query's POST data signed by your key's "secret" according to the HMAC-SHA512 method.
+    payload = hmac.new(secret, body, hashlib.sha512).hexdigest()
+
+    return payload
+
+
+
 def load_keys(path):
     """
     :param path: full path to folder with public keys, each key should be named as corresponding exchange

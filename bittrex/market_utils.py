@@ -1,6 +1,6 @@
 from constants import BITTREX_CANCEL_ORDER, BITTREX_BUY_ORDER, BITTREX_SELL_ORDER, BITTREX_CHECK_BALANCE
 from debug_utils import should_print_debug
-from utils.key_utils import generate_nonce, signed_body
+from utils.key_utils import signed_string, generate_nonce, signed_body
 from data_access.internet import send_post_request_with_header
 
 
@@ -61,7 +61,7 @@ def cancel_order_bittrex(key, deal_id):
         "nonce": generate_nonce()
     }
 
-    headers = {"apisign": signed_body(body, key.secret)}
+    headers = {"apisign": signed_body(body.encode(), key.secret)}
 
     if should_print_debug():
         print final_url, headers, body
@@ -74,12 +74,14 @@ def cancel_order_bittrex(key, deal_id):
 
 def show_balance_bittrex(key):
     # https://poloniex.com/tradingApi
-    final_url = BITTREX_CHECK_BALANCE + key + "&nonce=" + generate_nonce()
+    final_url = BITTREX_CHECK_BALANCE + key.api_key + "&nonce=" + str(generate_nonce())
 
     body = {
     }
 
-    headers = {"apisign": signed_body(final_url, key.secret)}
+    print final_url, type(final_url)
+
+    headers = {"apisign": signed_string(final_url, key.secret)}
 
     if should_print_debug():
         print final_url, headers, body
