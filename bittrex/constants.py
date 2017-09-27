@@ -25,4 +25,4 @@ BITTREX_SELL_ORDER = "https://bittrex.com/api/v1.1/market/selllimit"
 BITTREX_CANCEL_ORDER = "https://bittrex.com/api/v1.1/market/cancel"
 
 # https://bittrex.com/api/v1.1/account/getbalances?apikey=
-BITTREX_CHECK_BALANCE = "https://bittrex.com/api/v1.1/account/getbalances"
+BITTREX_CHECK_BALANCE = "https://bittrex.com/api/v1.1/account/getbalances?apikey="

@@ -73,15 +73,13 @@ def cancel_order_bittrex(key, deal_id):
 
 
 def show_balance_bittrex(key):
+    # https://poloniex.com/tradingApi
+    final_url = BITTREX_CHECK_BALANCE + key + "&nonce=" + generate_nonce()
+
     body = {
-        "apikey": key.api_key,
-        'nonce': generate_nonce()
     }
 
-    headers = {"apisign": signed_body(body, key.secret)}
-
-    # https://poloniex.com/tradingApi
-    final_url = BITTREX_CHECK_BALANCE
+    headers = {"apisign": signed_body(final_url, key.secret)}
 
     if should_print_debug():
         print final_url, headers, body
