@@ -5,6 +5,8 @@ from debug_utils import should_print_debug
 from utils.key_utils import get_key_by_exchange
 import hmac
 import hashlib
+import json
+from urllib import urlencode as _urlencode
 
 
 def generate_nonce():
@@ -16,15 +18,16 @@ def generate_nonce():
 
 def signed_body(body):
     # FIXME
-    key = get_key_by_exchange("poloniex")
+    # key = get_key_by_exchange("poloniex")
+    secret = "FIXME"
     #  The query's POST data signed by your key's "secret" according to the HMAC-SHA512 method.
-    payload = hmac.new(key, body, hashlib.sha512)
+    payload = hmac.new(secret, _urlencode(body), hashlib.sha512).hexdigest()
 
     return payload
 
 
 def add_buy_order_poloniex(key, pair_name, price, amount):
-    body = {
+    body =  {
         "command": "buy",
         "currencyPair": pair_name,
         "rate": price,
@@ -42,6 +45,7 @@ def add_buy_order_poloniex(key, pair_name, price, amount):
     err_msg = "add_buy_order poloniex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
     r = send_post_request_with_header(final_url, headers, body, err_msg)
+    # r = send_post_request_signed(final_url, headers, body, key, generate_nonce(), err_msg)
     print r
 
 

@@ -3,6 +3,11 @@ from constants import EXCHANGES
 access_keys = {}
 
 
+class ExchangeKey(object):
+def __init__(self):
+	pass
+
+
 def load_keys(path):
     """
     :param path: full path to folder with public keys, each key should be named as corresponding exchange
