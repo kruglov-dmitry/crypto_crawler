@@ -15,6 +15,9 @@ POLONIEX_GET_HISTORY = "https://poloniex.com/public?command=returnTradeHistory&c
 POLONIEX_CURRENCIES = ["BTC_DASH", "BTC_ETH", "BTC_LTC", "BTC_XRP", "BTC_ETC", "BTC_SC", "BTC_DGB", "BTC_XEM",
                        "BTC_ARDR"]
 
-POLONIEX_CANCEL_ORDER = "https://poloniex.com/tradingApi"
-POLONIEX_BUY_ORDER = "https://poloniex.com/tradingApi"
-POLONIEX_SELL_ORDER = "https://poloniex.com/tradingApi"
+POLONIEX_TRADING_API = "https://poloniex.com/tradingApi"
+
+POLONIEX_CANCEL_ORDER = POLONIEX_TRADING_API
+POLONIEX_BUY_ORDER = POLONIEX_TRADING_API
+POLONIEX_SELL_ORDER = POLONIEX_TRADING_API
+POLONIEX_CHECK_BALANCE = POLONIEX_TRADING_API
