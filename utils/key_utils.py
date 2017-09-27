@@ -1,4 +1,8 @@
+import time
 from constants import EXCHANGES
+import hmac
+import hashlib
+from urllib import urlencode as _urlencode
 
 access_keys = {}
 
@@ -18,6 +22,20 @@ class ExchangeKey(object):
                     break
 
         return ExchangeKey(array[0], array[1])
+
+
+def generate_nonce():
+    # Additionally, all queries must include a "nonce" POST parameter.
+    # The nonce parameter is an integer which must always be greater than the previous nonce used.
+    # FIXME - store in db
+    return int(round(time.time() * 1000))
+
+
+def signed_body(body, secret):
+    #  The query's POST data signed by your key's "secret" according to the HMAC-SHA512 method.
+    payload = hmac.new(secret, _urlencode(body), hashlib.sha512).hexdigest()
+
+    return payload
 
 
 def load_keys(path):

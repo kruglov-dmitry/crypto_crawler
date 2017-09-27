@@ -1,24 +1,7 @@
+from utils.key_utils import generate_nonce, signed_body
 from constants import POLONIEX_CANCEL_ORDER, POLONIEX_BUY_ORDER, POLONIEX_SELL_ORDER, POLONIEX_CHECK_BALANCE
 from data_access.internet import send_post_request_with_header
-import time
 from debug_utils import should_print_debug
-import hmac
-import hashlib
-from urllib import urlencode as _urlencode
-
-
-def generate_nonce():
-    # Additionally, all queries must include a "nonce" POST parameter.
-    # The nonce parameter is an integer which must always be greater than the previous nonce used.
-    # FIXME - store in db
-    return int(round(time.time() * 1000))
-
-
-def signed_body(body, secret):
-    #  The query's POST data signed by your key's "secret" according to the HMAC-SHA512 method.
-    payload = hmac.new(secret, _urlencode(body), hashlib.sha512).hexdigest()
-
-    return payload
 
 
 def add_buy_order_poloniex(key, pair_name, price, amount):
@@ -90,7 +73,7 @@ def cancel_order_poloniex(key, deal_id):
 def show_balance_poloniex(key):
     body = {
         'command': 'returnBalances',
-        'nonce': int(time.time() * 1000)
+        'nonce': generate_nonce()
     }
 
     headers = {"Key": key.api_key, "Sign": signed_body(body, key.secret)}
