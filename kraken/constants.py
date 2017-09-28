@@ -12,7 +12,10 @@ KRAKEN_GET_HISTORY = "https://api.kraken.com/0/public/Trades?pair="
 
 KRAKEN_CURRENCIES = ["DASHXBT", "XETHXXBT", "XLTCXXBT", "XXRPXXBT", "BCHXBT", "XETCXXBT"]
 
-KRAKEN_CANCEL_ORDER = "https://api.kraken.com/0/private/CancelOrder"
-KRAKEN_BUY_ORDER = "https://api.kraken.com/0/private/AddOrder"
-KRAKEN_SELL_ORDER = "https://api.kraken.com/0/private/AddOrder"
-KRAKEN_CHECK_BALANCE = "https://api.kraken.com/0/private/Balance"
+
+KRAKEN_BASE_API_URL = "https://api.kraken.com"
+
+KRAKEN_CANCEL_ORDER = "/0/private/CancelOrder"
+KRAKEN_BUY_ORDER = "/0/private/AddOrder"
+KRAKEN_SELL_ORDER = "/0/private/AddOrder"
+KRAKEN_CHECK_BALANCE = "/0/private/Balance"

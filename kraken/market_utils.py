@@ -1,4 +1,4 @@
-from constants import KRAKEN_CANCEL_ORDER, KRAKEN_BUY_ORDER, KRAKEN_SELL_ORDER, KRAKEN_CHECK_BALANCE
+from constants import KRAKEN_BASE_API_URL, KRAKEN_CANCEL_ORDER, KRAKEN_BUY_ORDER, KRAKEN_SELL_ORDER, KRAKEN_CHECK_BALANCE
 from data_access.internet import send_post_request_with_header
 from debug_utils import should_print_debug
 from utils.key_utils import generate_nonce, sign_kraken
@@ -6,7 +6,7 @@ from utils.key_utils import generate_nonce, sign_kraken
 
 def add_buy_order_kraken(key, pair_name, price, amount):
     # https://api.kraken.com/0/private/AddOrder
-    final_url = KRAKEN_BUY_ORDER
+    final_url = KRAKEN_BASE_API_URL + KRAKEN_BUY_ORDER
 
     current_nonce = generate_nonce()
 
@@ -19,7 +19,7 @@ def add_buy_order_kraken(key, pair_name, price, amount):
         "nonce": current_nonce
     }
 
-    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, final_url, key.secret)}
+    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_BUY_ORDER, key.secret)}
 
     if should_print_debug():
         print final_url, headers, body
@@ -33,7 +33,7 @@ def add_buy_order_kraken(key, pair_name, price, amount):
 
 def add_sell_order_kraken(key, pair_name, price, amount):
     # https://api.kraken.com/0/private/AddOrder
-    final_url = KRAKEN_SELL_ORDER
+    final_url = KRAKEN_BASE_API_URL + KRAKEN_SELL_ORDER
 
     current_nonce = generate_nonce()
 
@@ -46,7 +46,7 @@ def add_sell_order_kraken(key, pair_name, price, amount):
         "nonce": current_nonce
     }
 
-    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, final_url, key.secret)}
+    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_SELL_ORDER, key.secret)}
 
     if should_print_debug():
         print final_url, headers, body
@@ -60,14 +60,14 @@ def add_sell_order_kraken(key, pair_name, price, amount):
 
 def cancel_order_kraken(key, deal_id):
     # https://api.kraken.com/0/private/CancelOrder
-    final_url = KRAKEN_CANCEL_ORDER
+    final_url = KRAKEN_BASE_API_URL + KRAKEN_CANCEL_ORDER
 
     body = {
         "txid": deal_id,
         "nonce": generate_nonce()
     }
 
-    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, final_url, key.secret)}
+    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_CANCEL_ORDER, key.secret)}
 
     if should_print_debug():
         print final_url, headers, body
@@ -81,13 +81,13 @@ def cancel_order_kraken(key, deal_id):
 
 def show_balance_kraken(key):
 
-    final_url = KRAKEN_CHECK_BALANCE
+    final_url = KRAKEN_BASE_API_URL + KRAKEN_CHECK_BALANCE
 
     body = {
         "nonce=": generate_nonce()
     }
 
-    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, final_url, key.secret)}
+    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_CHECK_BALANCE, key.secret)}
 
     if should_print_debug():
         print final_url, headers, body
