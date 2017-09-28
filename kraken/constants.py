@@ -15,3 +15,4 @@ KRAKEN_CURRENCIES = ["DASHXBT", "XETHXXBT", "XLTCXXBT", "XXRPXXBT", "BCHXBT", "X
 KRAKEN_CANCEL_ORDER = "https://api.kraken.com/0/private/CancelOrder"
 KRAKEN_BUY_ORDER = "https://api.kraken.com/0/private/AddOrder"
 KRAKEN_SELL_ORDER = "https://api.kraken.com/0/private/AddOrder"
+KRAKEN_CHECK_BALANCE = "https://api.kraken.com/0/private/Balance"
