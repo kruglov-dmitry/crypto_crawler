@@ -14,8 +14,8 @@ def add_buy_order_kraken(key, pair_name, price, amount):
         "pair": pair_name,
         "type": "buy",
         "ordertype": "market",
-        "price": "price",
-        "volume": "amount",
+        "price": price,
+        "volume": amount,
         "nonce": current_nonce
     }
 
@@ -41,8 +41,8 @@ def add_sell_order_kraken(key, pair_name, price, amount):
         "pair": pair_name,
         "type": "sell",
         "ordertype": "market",
-        "price": "price",
-        "volume": "amount",
+        "price": price,
+        "volume": amount,
         "nonce": current_nonce
     }
 
@@ -84,7 +84,7 @@ def show_balance_kraken(key):
     final_url = KRAKEN_BASE_API_URL + KRAKEN_CHECK_BALANCE
 
     body = {
-        "nonce=": generate_nonce()
+        "nonce": generate_nonce()
     }
 
     headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_CHECK_BALANCE, key.secret)}
