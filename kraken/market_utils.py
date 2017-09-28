@@ -1,7 +1,7 @@
 from constants import KRAKEN_CANCEL_ORDER, KRAKEN_BUY_ORDER, KRAKEN_SELL_ORDER, KRAKEN_CHECK_BALANCE
 from data_access.internet import send_post_request_with_header
 from debug_utils import should_print_debug
-from utils.key_utils import generate_nonce, signed_body
+from utils.key_utils import generate_nonce, sign_kraken
 
 
 def add_buy_order_kraken(key, pair_name, price, amount):
@@ -19,7 +19,7 @@ def add_buy_order_kraken(key, pair_name, price, amount):
         "nonce": current_nonce
     }
 
-    headers = {"API-Key": key.api_key, "API-Sign": signed_body(body, key.secret) }
+    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, final_url, key.secret)}
 
     if should_print_debug():
         print final_url, headers, body
@@ -46,7 +46,7 @@ def add_sell_order_kraken(key, pair_name, price, amount):
         "nonce": current_nonce
     }
 
-    headers = {"API-Key": key.api_key, "API-Sign": signed_body(body, key.secret)}
+    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, final_url, key.secret)}
 
     if should_print_debug():
         print final_url, headers, body
@@ -67,7 +67,7 @@ def cancel_order_kraken(key, deal_id):
         "nonce": generate_nonce()
     }
 
-    headers = {"API-Key": key.api_key, "API-Sign": signed_body(body, key.secret)}
+    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, final_url, key.secret)}
 
     if should_print_debug():
         print final_url, headers, body
@@ -79,7 +79,7 @@ def cancel_order_kraken(key, deal_id):
     print r
 
 
-def show_balance_bittrex(key):
+def show_balance_kraken(key):
 
     final_url = KRAKEN_CHECK_BALANCE
 
@@ -87,7 +87,7 @@ def show_balance_bittrex(key):
         "nonce=": generate_nonce()
     }
 
-    headers = {"API-Key": key.api_key, "API-Sign": signed_body(body, key.secret)}
+    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, final_url, key.secret)}
 
     if should_print_debug():
         print final_url, headers, body

@@ -3,6 +3,7 @@ from constants import EXCHANGES
 import hmac
 import hashlib
 from urllib import urlencode as _urlencode
+import base64
 
 access_keys = {}
 
@@ -44,6 +45,27 @@ def signed_string(body, secret):
 
     return payload
 
+
+def sign_kraken(body, urlpath, secret):
+    """ Sign request data according to Kraken's scheme.
+    :param body: API request parameters
+    :type body: dict
+    :param urlpath: API URL path sans host
+    :type urlpath: str
+    :returns: signature digest
+    """
+
+    postdata = _urlencode(body)
+
+    # Unicode-objects must be encoded before hashing
+    encoded = (str(body['nonce']) + postdata).encode()
+    message = urlpath.encode() + hashlib.sha256(encoded).digest()
+
+    signature = hmac.new(base64.b64decode(secret),
+                             message, hashlib.sha512)
+    sigdigest = base64.b64encode(signature.digest())
+
+    return sigdigest.decode()
 
 
 def load_keys(path):
