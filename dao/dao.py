@@ -26,6 +26,17 @@ from bittrex.history_utils import get_history_bittrex
 from kraken.history_utils import get_history_kraken
 from poloniex.history_utils import get_history_poloniex
 
+from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, cancel_order_bittrex, show_balance_bittrex
+from kraken.market_utils import add_buy_order_kraken, add_sell_order_kraken, cancel_order_kraken, show_balance_kraken
+from poloniex.market_utils import add_buy_order_poloniex, add_sell_order_poloniex, cancel_order_poloniex, show_balance_poloniex
+
+from constants import POLONIEX_EXCHANGE, KRAKEN_EXCHANGE, BITTREX_EXCHANGE
+
+from enums.exchange import EXCHANGE
+from utils.key_utils import get_key_by_exchange
+
+from collections import defaultdict
+
 
 def get_ticker():
 
@@ -73,44 +84,29 @@ def get_ohlc():
     return all_ohlc
 
 
-def get_order_book(split_on_exchange=False):
+def get_order_book():
     
-    all_order_book = []
-    
-    poloniex_order_book = []
-    kraken_order_book = []
-    bittrex_order_book = []
+    all_order_book = defaultdict(list)
 
     timest = get_now_seconds()
 
     for currency in POLONIEX_CURRENCIES:
         order_book = get_order_book_poloniex(currency, timest)
         if order_book is not None:
-            if split_on_exchange == True:
-		poloniex_order_book.append(order_book)	
-	    else:
-		all_order_book.append(order_book)
+            all_order_book[POLONIEX_EXCHANGE] = order_book
 
     for currency in KRAKEN_CURRENCIES:
         order_book = get_order_book_kraken(currency, timest)
         if order_book is not None:
-            if split_on_exchange == True:
-		kraken_order_book.append(order_book)	
-	    else:
-                all_order_book.append(order_book)
+            all_order_book[KRAKEN_EXCHANGE] = order_book
 
     for currency in BITTREX_CURRENCIES:
         order_book = get_order_book_bittrex(currency, timest)
         if order_book is not None:
-            if split_on_exchange == True:
-		bittrex_order_book.append(order_book)	
-	    else:
-            	all_order_book.append(order_book)
+            all_order_book[BITTREX_EXCHANGE] = order_book
 
-    if split_on_exchange == True:
-	return poloniex_order_book, kraken_order_book, bittrex_order_book
-    else:
-    	return all_order_book
+    return all_order_book
+
 
 def get_history(prev_time, now_time):
     all_history = []
@@ -125,3 +121,39 @@ def get_history(prev_time, now_time):
         all_history += get_history_bittrex(currency, prev_time, now_time)
 
     return all_history
+
+
+# FIXME currency_utils opposite method to convert pair_id to exchange specific strings
+# FIXME 2 exchange as ENUMS not strings for key utils
+
+def buy_by_exchange(trade):
+    key = get_key_by_exchange(trade.exchange_id)
+    if trade.exchange_id == EXCHANGE.BITTREX:
+        add_buy_order_bittrex(key, trade.pair_id, trade.price, trade.volume)
+    elif trade.exchange_id == EXCHANGE.KRAKEN:
+        add_buy_order_kraken(key, trade.pair_id, trade.price, trade.volume)
+    elif trade.exchange_id == EXCHANGE.BITTREX:
+        add_buy_order_poloniex(key, trade.pair_id, trade.price, trade.volume)
+    else:
+        print "buy_by_exchange - Unknown exchange! ", trade
+
+
+def sell_by_exchange(trade):
+    key = get_key_by_exchange(trade.exchange_id)
+    if trade.exchange_id == EXCHANGE.BITTREX:
+        add_sell_order_bittrex(key, trade.pair_id, trade.price, trade.volume)
+    elif trade.exchange_id == EXCHANGE.KRAKEN:
+        add_sell_order_kraken(key, trade.pair_id, trade.price, trade.volume)
+    elif trade.exchange_id == EXCHANGE.BITTREX:
+        add_sell_order_poloniex(key, trade.pair_id, trade.price, trade.volume)
+    else:
+        print "sell_by_exchange - Unknown exchange! ", trade
+
+
+def cancel_by_exchange(trade):
+    # FIXME
+    pass
+
+def show_balance_by_exchange():
+    # FIXME
+    pass

@@ -1,89 +1,120 @@
-from dao.dao import get_order_book
+from dao.dao import get_order_book, buy_by_exchange, sell_by_exchange
 from data.OrderBook import ORDER_BOOK_TYPE_NAME
 from file_parsing import init_pg_connection, load_to_postgres
 from utils.key_utils import load_keys
 from debug_utils import should_print_debug
 from utils.time_utils import sleep_for
 from core.base_analysis import get_change
+from core.base_math import get_all_combination
 from enums.currency_pair import CURRENCY_PAIR
+from enums.deal_type import DEAL_TYPE
+from constants import EXCHANGES
+from collections import defaultdict
+from data.Trade import Trade
 
 # time to poll - 2 MINUTES
 POLL_PERIOD_SECONDS = 120
 
 
-def init_deal(exch_1_order, exch_2_order):
-    pass
+# FIXME NOTES:
+# 1. load initial balance to know what I can afford to buy
+# 2. load current deals set?
+# 3. integrate to bot commands to show active deal and be able to cancel them by command in chat?
 
 
-    # exchange specific >_<
-    # call by exchange buy sell & pray
+def init_deal(trade_to_perform, debug_msg):
+    # FIXME try catch with debug msg
+
+    if trade_to_perform.deal_type == DEAL_TYPE.SELL:
+        buy_by_exchange(trade_to_perform)
+    else:
+        sell_by_exchange(trade_to_perform)
 
 
-# FIXME TODO - what if we add more exchanges
-def mega_analysis(poloniex_order_book, kraken_order_book, bittrex_order_book, threshold):
+def analyse_order_book(first_order_book, second_order_book, threshold, action_to_perform):
+
+    difference = get_change(first_order_book.bid[0].price, second_order_book.ask[-1].price, provide_abs=False)
+
+    if should_print_debug():
+        print "check_highest_bid_bigger_than_lowest_ask"
+        print "ASK: ", first_order_book.bid[0].price
+        print "BID: ", second_order_book.ask[-1].price
+        print "DIFF: ", difference
+
+    if difference >= threshold:
+        # FIXME do we have enough volume of this currency to sell?
+        # FIXME do we have enough volume of WHAT currency to buy
+
+        msg = "highest bid bigger than Lowest ask for more than {num} %".format(num=threshold)
+
+        trade_at_first_exchange = Trade(DEAL_TYPE.BUY,
+                                        first_order_book.exchange_id,
+                                        first_order_book.pair_id,
+                                        first_order_book.bid[0].price,
+                                        first_order_book.bid[0].volume)
+        action_to_perform(trade_at_first_exchange, msg)
+
+        trade_at_second_exchange = Trade(DEAL_TYPE.SELL,
+                                        second_order_book.exchange_id,
+                                        second_order_book.pair_id,
+                                        second_order_book.ask[0].price,
+                                        second_order_book.ask[0].volume)
+        action_to_perform(trade_at_second_exchange, msg)
+
+        # continute processing remaining order book
+        first_order_book.trim_highest_bid_and_lowest_ask()
+        second_order_book.trim_highest_bid_and_lowest_ask()
+        analyse_order_book(first_order_book, second_order_book, threshold, action_to_perform)
+
+
+def mega_analysis(order_book, threshold, action_to_perform):
     """
-    :param poloniex_order_book:
-    :param kraken_order_book:
-    :param bittrex_order_book:
-    :param threshold:
+    :param order_book: dict of lists with order book, where keys are exchange names within particular time window
+            either request timeout or by timest window during playing within database
+    :param threshold: minimum difference of ask vs bid in percent that should trigger deal
+    :param action_to_perform: method, that take details of ask bid at two exchange and trigger deals
     :return:
     """
 
     # split on currencies
     for every_currency in CURRENCY_PAIR.values():
-        pol = [x for x in poloniex_order_book if x.pair_id == every_currency]
-        krak = [x for x in kraken_order_book if x.pair_id == every_currency]
-        bittr = [x for x in bittrex_order_book if x.pair_id == every_currency]
 
-        # sort bids and asks by price
-        for x in pol:
-            x.sort_by_price()
+        order_book_by_exchange_by_currency = defaultdict(list)
 
-        for x in krak:
-            x.sort_by_price()
+        for exchange in EXCHANGES:
+            if exchange in order_book:
+                exchange_order_book = [x for x in order_book[exchange] if x.pair_id == every_currency]
 
-        for x in bittr:
-            x.sort_by_price()
+                # sort bids ascending and asks descending by price
+                for x in exchange_order_book:
+                    x.sort_by_price()
 
-        pol_max = pol[0] if pol else None
-        krak_max = krak[0] if krak else None
-        bittr_max = bittr[0] if bittr else None
+                order_book_by_exchange_by_currency[exchange] = exchange_order_book
+            else:
+                print "{0} exchange not present within order_book!".format(exchange)
 
-        pol_min = pol[-1] if pol else None
-        krak_min = krak[-1] if krak else None
-        bittr_min = bittr[-1] if bittr else None
+        order_book_pairs = get_all_combination(order_book_by_exchange_by_currency, 2)
 
-        # check for threshold for every pair in more proper fashion
+        for every_pair in order_book_pairs:
+            first_order_book = order_book_by_exchange_by_currency[every_pair[0]]
+            second_order_book = order_book_by_exchange_by_currency[every_pair[1]]
 
-        # FIXME 2 : for every pair permutations
-        difference = get_change(pol_max.ask[0].price, krak_min.bid[0].price, provide_abs = False)
+            analyse_order_book(first_order_book, second_order_book, threshold, action_to_perform)
+            analyse_order_book(second_order_book, first_order_book, threshold, action_to_perform)
 
-        if should_print_debug():
-            print "check_highest_bid_bigger_than_lowest_ask"
-            print "ASK: ", pol_max.ask[0].price
-            print "BID: ",  krak_min.bid[0].price
-            print "DIFF: ", difference
-
-        if difference >= threshold:
-            msg = "highest bid bigger than Lowest ask for more than {num} %".format(num=threshold)
-            # FIXME TODO init deal + recursive processing for next price
-            # or not recursive but bissect everything that fall above threshold?
 
 if __name__ == "__main__":
     pg_conn = init_pg_connection()
     load_keys("./secret_keys")
-    threshold = 100 #  FIXME
+
+    threshold = 1.5 #  FIXME
 
     while (True):
+        order_book = get_order_book()
 
-        #
-        poloniex_order_book, kraken_order_book, bittrex_order_book = get_order_book(split_on_exchange=True)
+        mega_analysis(order_book, threshold, init_deal)
 
-        mega_analysis(poloniex_order_book, kraken_order_book, bittrex_order_book, threshold)
-
-        load_to_postgres(poloniex_order_book, ORDER_BOOK_TYPE_NAME, pg_conn)
-        load_to_postgres(kraken_order_book, ORDER_BOOK_TYPE_NAME, pg_conn)
-        load_to_postgres(bittrex_order_book, ORDER_BOOK_TYPE_NAME, pg_conn)
+        load_to_postgres(order_book, ORDER_BOOK_TYPE_NAME, pg_conn)
 
         print "Before sleep..."
         sleep_for(POLL_PERIOD_SECONDS)

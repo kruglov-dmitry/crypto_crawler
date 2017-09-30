@@ -22,13 +22,13 @@ def insert_data(some_object, pg_conn, dummy_flag):
     """
 
     try:
-    	cur.execute(PG_INSERT_QUERY, args_list)
+        cur.execute(PG_INSERT_QUERY, args_list)
     except Exception, e:
-    	print "insert data failed :(  ", str(e)
+        print "insert data failed :(  ", str(e)
 
     # Yeap, this crap I am not the biggest fun of!
     if dummy_flag:
-	try:
+        try:
             res = cur.fetchone()
             order_book_id = res[0]
             
@@ -38,7 +38,7 @@ def insert_data(some_object, pg_conn, dummy_flag):
             for bid in some_object.bid:
                 cur.execute(ORDER_BOOK_INSERT_BIDS, (order_book_id, bid.price, bid.volume))
         except Exception, e:
-	    print "Insert data failed for order book exactly: ", str(e)
+            print "Insert data failed for order book exactly: ", str(e)
 
 
 def constructor_selector(class_name, string_repr):
@@ -51,19 +51,21 @@ def constructor_selector(class_name, string_repr):
     elif class_name == TRADE_HISTORY_TYPE_NAME:
         return OrderHistory.from_string(string_repr)
 
+
 def load_data_from_file(every_file, pattern_name):
     array = []
     dummy_flag = (pattern_name == ORDER_BOOK_TYPE_NAME)
     with open(every_file, "r") as ins:
         for line in ins:
-        	obj = constructor_selector(pattern_name, line)
-		insert_data(obj, pg_conn, dummy_flag)
-    		pg_conn.commit()
-		#     array.append(constructor_selector(pattern_name, line))
-		#     if len(array) >= 100000:
-        	#     	load_to_postgres(array, pattern_name, pg_conn)
-		# 	array = []
+            obj = constructor_selector(pattern_name, line)
+            insert_data(obj, pg_conn, dummy_flag)
+            pg_conn.commit()
+        #     array.append(constructor_selector(pattern_name, line))
+        #     if len(array) >= 100000:
+        #    	load_to_postgres(array, pattern_name, pg_conn)
+        # 	array = []
     return array
+
 
 def load_to_postgres(array, pattern_name, pg_conn):
 
@@ -77,9 +79,10 @@ def load_to_postgres(array, pattern_name, pg_conn):
 def load_crap_from_folder(folder_name, pattern_name, pg_conn):
     file_list = glob.glob(folder_name + pattern_name + '*.txt')
     for every_file in file_list:
-	print "Processing file ", every_file
+        print "Processing file ", every_file
         array = load_data_from_file(every_file, pattern_name)
         # load_to_postgres(array, pattern_name, pg_conn)
+
 
 def init_pg_connection():
     # FIXME NOTE hardcoding is baaad Dmitry! pass some config
@@ -87,6 +90,7 @@ def init_pg_connection():
                                  db_password="postgres")
     pg_conn.connect()
     return pg_conn
+
 
 if __name__ == "__main__":
     folder_name = sys.argv[1]

@@ -21,7 +21,7 @@ def get_currency_pair_from_kraken(currency):
         'XETHXXBT': CURRENCY_PAIR.BTC_TO_ETH,
         'XLTCXXBT': CURRENCY_PAIR.BTC_TO_LTC,
         'XXRPXXBT': CURRENCY_PAIR.BTC_TO_XRP,
-	'BCHXBT': CURRENCY_PAIR.BTC_TO_BCC,
+        'BCHXBT': CURRENCY_PAIR.BTC_TO_BCC,
         'XETCXXBT': CURRENCY_PAIR.BTC_TO_ETC
     }[currency]
 
@@ -32,7 +32,7 @@ def get_currency_pair_from_bittrex(currency):
         'BTC-ETH': CURRENCY_PAIR.BTC_TO_ETH,
         'BTC-LTC': CURRENCY_PAIR.BTC_TO_LTC,
         'BTC-XRP': CURRENCY_PAIR.BTC_TO_XRP,
-	'BTC-BCC': CURRENCY_PAIR.BTC_TO_BCC,
+        'BTC-BCC': CURRENCY_PAIR.BTC_TO_BCC,
         'BTC-ETC': CURRENCY_PAIR.BTC_TO_ETC,
         'BTC-SC': CURRENCY_PAIR.BTC_TO_SC,
         'BTC-DGB': CURRENCY_PAIR.BTC_TO_DGB,
