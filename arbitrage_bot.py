@@ -20,6 +20,7 @@ POLL_PERIOD_SECONDS = 120
 # 1. load initial balance to know what I can afford to buy
 # 2. load current deals set?
 # 3. integrate to bot commands to show active deal and be able to cancel them by command in chat?
+# 4. take into account that we may need to change frequency of polling based on prospectivness of currency pair
 
 
 def init_deal(trade_to_perform, debug_msg):
@@ -33,6 +34,9 @@ def init_deal(trade_to_perform, debug_msg):
 
 def analyse_order_book(first_order_book, second_order_book, threshold, action_to_perform):
 
+    if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0:
+        return
+
     difference = get_change(first_order_book.bid[0].price, second_order_book.ask[-1].price, provide_abs=False)
 
     if should_print_debug():
@@ -44,26 +48,35 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
     if difference >= threshold:
         # FIXME do we have enough volume of this currency to sell?
         # FIXME do we have enough volume of WHAT currency to buy
+        # FIXME NOTE think about splitting on sub-methods for beatification
 
         msg = "highest bid bigger than Lowest ask for more than {num} %".format(num=threshold)
+
+        min_volume = min(first_order_book.bid[0].volume, second_order_book.ask[0].volume)
 
         trade_at_first_exchange = Trade(DEAL_TYPE.BUY,
                                         first_order_book.exchange_id,
                                         first_order_book.pair_id,
                                         first_order_book.bid[0].price,
-                                        first_order_book.bid[0].volume)
+                                        min_volume)
         action_to_perform(trade_at_first_exchange, msg)
 
         trade_at_second_exchange = Trade(DEAL_TYPE.SELL,
-                                        second_order_book.exchange_id,
-                                        second_order_book.pair_id,
-                                        second_order_book.ask[0].price,
-                                        second_order_book.ask[0].volume)
+                                         second_order_book.exchange_id,
+                                         second_order_book.pair_id,
+                                         second_order_book.ask[0].price,
+                                         min_volume)
         action_to_perform(trade_at_second_exchange, msg)
 
-        # continute processing remaining order book
-        first_order_book.trim_highest_bid_and_lowest_ask()
-        second_order_book.trim_highest_bid_and_lowest_ask()
+        # adjust volumes
+        if first_order_book.bid[0].volume > min_volume:
+            first_order_book.bid[0].volume = first_order_book.bid[0].volume - min_volume
+            second_order_book.ask = second_order_book.ask[:-1]
+        elif second_order_book.ask[0].volume > min_volume:
+            second_order_book.ask[0].volume = first_order_book.ask[0].volume - min_volume
+            first_order_book.bid = first_order_book.bid[1:]
+
+        # continue processing remaining order book
         analyse_order_book(first_order_book, second_order_book, threshold, action_to_perform)
 
 
@@ -96,10 +109,14 @@ def mega_analysis(order_book, threshold, action_to_perform):
         order_book_pairs = get_all_combination(order_book_by_exchange_by_currency, 2)
 
         for every_pair in order_book_pairs:
+            # FIXME NOTE - recursion will change them so we need to re-init it to apply vise-wersa processing
+
             first_order_book = order_book_by_exchange_by_currency[every_pair[0]]
             second_order_book = order_book_by_exchange_by_currency[every_pair[1]]
-
             analyse_order_book(first_order_book, second_order_book, threshold, action_to_perform)
+
+            first_order_book = order_book_by_exchange_by_currency[every_pair[0]]
+            second_order_book = order_book_by_exchange_by_currency[every_pair[1]]
             analyse_order_book(second_order_book, first_order_book, threshold, action_to_perform)
 
 
