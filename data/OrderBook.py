@@ -38,8 +38,12 @@ class OrderBook(BaseData):
         self.exchange = get_exchange_name_by_id(self.exchange_id)
 
     def sort_by_price(self):
-        self.ask = sorted(self.ask, key = lambda x: x.price, reverse=False)  # lowest - first
-        self.bid = sorted(self.bid, key = lambda x: x.price, reverse=True)  # highest - first
+        self.bid = sorted(self.bid, key=lambda x: x.price, reverse=True)        # highest - first
+        self.ask = sorted(self.ask, key = lambda x: x.price, reverse=False)     # lowest - first
+
+    def trim_highest_bid_and_lowest_ask(self):
+        self.bid = self.bid[1:]
+        self.ask = self.ask[:-1]
 
     def get_pg_arg_list(self):
         return (self.pair_id,

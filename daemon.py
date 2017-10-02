@@ -82,9 +82,9 @@ def analyse_tickers():
                             get_diff_lowest_ask_vs_highest_bid)
 
         if res:
-    	    for debug in res:
-        	save_alarm_into_pg(debug[2], debug[3], pg_conn)
-            # inform_big_boss(res, pg_conn)
+            for debug in res:
+                save_alarm_into_pg(debug[2], debug[3], pg_conn)
+                # inform_big_boss(res, pg_conn)
 
         res = compare_price(bittrex_tickers, kraken_tickers, poloniex_tickers, TRIGGER_THRESHOLD,
                             check_highest_bid_bigger_than_lowest_ask)

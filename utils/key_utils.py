@@ -1,5 +1,6 @@
 import time
-from constants import EXCHANGES
+from enums.exchange import EXCHANGE
+from utils.exchange_utils import get_exchange_name_by_id
 import hmac
 import hashlib
 from urllib import urlencode as _urlencode
@@ -14,9 +15,9 @@ class ExchangeKey(object):
         self.secret = secret
 
     @classmethod
-    def from_file(cls, path, exchange):
+    def from_file(cls, path, exchange_name):
         array = []
-        with open(path + "/" + exchange + ".key", "r") as myfile:
+        with open(path + "/" + exchange_name.lower() + ".key", "r") as myfile:
             for line in myfile:
                 array.append(line.rstrip())
                 if len(array) == 2:
@@ -61,8 +62,7 @@ def sign_kraken(body, urlpath, secret):
     encoded = (str(body['nonce']) + postdata).encode()
     message = urlpath.encode() + hashlib.sha256(encoded).digest()
 
-    signature = hmac.new(base64.b64decode(secret),
-                             message, hashlib.sha512)
+    signature = hmac.new(base64.b64decode(secret), message, hashlib.sha512)
     sigdigest = base64.b64encode(signature.digest())
 
     return sigdigest.decode()
@@ -76,9 +76,10 @@ def load_keys(path):
 
     global access_keys
 
-    for exchange in EXCHANGES:
-        key = ExchangeKey.from_file(path, exchange)
-        access_keys[exchange] = key
+    for exchange_id in EXCHANGE.values():
+        exchange_name = get_exchange_name_by_id(exchange_id)
+        key = ExchangeKey.from_file(path, exchange_name)
+        access_keys[exchange_id] = key
 
 
 def get_key_by_exchange(exchange_id):
