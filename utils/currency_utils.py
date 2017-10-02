@@ -41,6 +41,46 @@ def get_currency_pair_from_bittrex(currency):
     }[currency]
 
 
+def get_currency_pair_to_poloniex(currency):
+    return {
+        CURRENCY_PAIR.BTC_TO_DASH: 'BTC_DASH',
+        CURRENCY_PAIR.BTC_TO_ETH: 'BTC_ETH',
+        CURRENCY_PAIR.BTC_TO_LTC: 'BTC_LTC',
+        CURRENCY_PAIR.BTC_TO_XRP: 'BTC_XRP',
+        CURRENCY_PAIR.BTC_TO_ETC: 'BTC_ETC',
+        CURRENCY_PAIR.BTC_TO_SC: 'BTC_SC',
+        CURRENCY_PAIR.BTC_TO_DGB : 'BTC_DGB',
+        CURRENCY_PAIR.BTC_TO_XEM: 'BTC_XEM',
+        CURRENCY_PAIR.BTC_TO_ARDR: 'BTC_ARDR'
+    }[currency]
+
+
+def get_currency_pair_to_kraken(currency):
+    return {
+        CURRENCY_PAIR.BTC_TO_DASH: 'DASHXBT',
+        CURRENCY_PAIR.BTC_TO_ETH: 'XETHXXBT',
+        CURRENCY_PAIR.BTC_TO_LTC: 'XLTCXXBT',
+        CURRENCY_PAIR.BTC_TO_XRP: 'XXRPXXBT',
+        CURRENCY_PAIR.BTC_TO_BCC: 'BCHXBT',
+        CURRENCY_PAIR.BTC_TO_ETC: 'XETCXXBT'
+    }[currency]
+
+
+def get_currency_pair_to_bittrex(currency):
+    return {
+        CURRENCY_PAIR.BTC_TO_DASH: 'BTC-DASH',
+        CURRENCY_PAIR.BTC_TO_ETH: 'BTC-ETH',
+        CURRENCY_PAIR.BTC_TO_LTC: 'BTC-LTC',
+        CURRENCY_PAIR.BTC_TO_XRP: 'BTC-XRP',
+        CURRENCY_PAIR.BTC_TO_BCC: 'BTC-BCC',
+        CURRENCY_PAIR.BTC_TO_ETC: 'BTC-ETC',
+        CURRENCY_PAIR.BTC_TO_SC: 'BTC-SC',
+        CURRENCY_PAIR.BTC_TO_DGB: 'BTC-DGB',
+        CURRENCY_PAIR.BTC_TO_XEM: 'BTC-XEM',
+        CURRENCY_PAIR.BTC_TO_ARDR: 'BTC-ARDR'
+    }[currency]
+
+
 def get_pair_name_by_id(pair_id):
     return {
         CURRENCY_PAIR.BTC_TO_DASH: "BTC_TO_DASH",

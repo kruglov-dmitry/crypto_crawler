@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     pg_conn = init_pg_connection()
 
-    while (True):
+    while True:
         #
         #   First, we grab tickers only to trigger alerts if any
         #

@@ -8,9 +8,9 @@ from core.base_analysis import get_change
 from core.base_math import get_all_combination
 from enums.currency_pair import CURRENCY_PAIR
 from enums.deal_type import DEAL_TYPE
-from constants import EXCHANGES
 from collections import defaultdict
 from data.Trade import Trade
+from enums.exchange import EXCHANGE
 
 # time to poll - 2 MINUTES
 POLL_PERIOD_SECONDS = 120
@@ -94,17 +94,17 @@ def mega_analysis(order_book, threshold, action_to_perform):
 
         order_book_by_exchange_by_currency = defaultdict(list)
 
-        for exchange in EXCHANGES:
-            if exchange in order_book:
-                exchange_order_book = [x for x in order_book[exchange] if x.pair_id == every_currency]
+        for exchange_id in EXCHANGE.values():
+            if exchange_id in order_book:
+                exchange_order_book = [x for x in order_book[exchange_id] if x.pair_id == every_currency]
 
                 # sort bids ascending and asks descending by price
                 for x in exchange_order_book:
                     x.sort_by_price()
 
-                order_book_by_exchange_by_currency[exchange] = exchange_order_book
+                order_book_by_exchange_by_currency[exchange_id] = exchange_order_book
             else:
-                print "{0} exchange not present within order_book!".format(exchange)
+                print "{0} exchange not present within order_book!".format(exchange_id)
 
         order_book_pairs = get_all_combination(order_book_by_exchange_by_currency, 2)
 
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     pg_conn = init_pg_connection()
     load_keys("./secret_keys")
 
-    threshold = 1.5 #  FIXME
+    threshold = 1.5 # FIXME
 
     while (True):
         order_book = get_order_book()
