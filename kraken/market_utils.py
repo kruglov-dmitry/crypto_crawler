@@ -13,7 +13,7 @@ def add_buy_order_kraken(key, pair_name, price, amount):
     body = {
         "pair": pair_name,
         "type": "buy",
-        "ordertype": "market",
+        "ordertype": "limit",
         "price": price,
         "volume": amount,
         "nonce": current_nonce
@@ -40,7 +40,7 @@ def add_sell_order_kraken(key, pair_name, price, amount):
     body = {
         "pair": pair_name,
         "type": "sell",
-        "ordertype": "market",
+        "ordertype": "limit",
         "price": price,
         "volume": amount,
         "nonce": current_nonce
