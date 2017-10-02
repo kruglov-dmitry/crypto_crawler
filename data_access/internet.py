@@ -24,6 +24,7 @@ def send_post_request_with_header(final_url, header, body, error_msg):
 
     return res
 
+
 def send_post_request_signed(final_url, header, body, secret, nonce, error_msg):
     request = requests.Request('POST', final_url, params=body, headers=header)
     signature = hmac.new(secret, request.body, digestmod=hashlib.sha512)

@@ -123,9 +123,6 @@ def get_history(prev_time, now_time):
     return all_history
 
 
-# FIXME currency_utils opposite method to convert pair_id to exchange specific strings
-# FIXME 2 exchange as ENUMS not strings for key utils
-
 def buy_by_exchange(trade):
     key = get_key_by_exchange(trade.exchange_id)
     if trade.exchange_id == EXCHANGE.BITTREX:

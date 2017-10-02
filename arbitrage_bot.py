@@ -10,6 +10,7 @@ from enums.currency_pair import CURRENCY_PAIR
 from enums.deal_type import DEAL_TYPE
 from collections import defaultdict
 from data.Trade import Trade
+from data.OrderBook import OrderBook
 from enums.exchange import EXCHANGE
 
 # time to poll - 2 MINUTES
@@ -54,14 +55,14 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
 
         min_volume = min(first_order_book.bid[0].volume, second_order_book.ask[0].volume)
 
-        trade_at_first_exchange = Trade(DEAL_TYPE.BUY,
+        trade_at_first_exchange = Trade(DEAL_TYPE.SELL,
                                         first_order_book.exchange_id,
                                         first_order_book.pair_id,
                                         first_order_book.bid[0].price,
                                         min_volume)
         action_to_perform(trade_at_first_exchange, msg)
 
-        trade_at_second_exchange = Trade(DEAL_TYPE.SELL,
+        trade_at_second_exchange = Trade(DEAL_TYPE.BUY,
                                          second_order_book.exchange_id,
                                          second_order_book.pair_id,
                                          second_order_book.ask[0].price,
@@ -120,13 +121,91 @@ def mega_analysis(order_book, threshold, action_to_perform):
             analyse_order_book(second_order_book, first_order_book, threshold, action_to_perform)
 
 
-if __name__ == "__main__":
+def print_possible_deal_info(file_name, trade):
+    with open(file_name, 'a') as the_file:
+        the_file.write(str(trade) + "\n")
+
+
+def get_time_entries(pg_conn):
+    time_entries = []
+
+    select_query = "select distinct timest from order_book"
+    cursor = pg_conn.cursor()
+
+    cursor.execute(select_query)
+
+    for row in cursor:
+        time_entries.append(row[0])
+
+    return time_entries
+
+
+def get_order_book_asks(pg_conn, order_book_id):
+    order_books_asks = []
+
+    select_query = "select id, order_book_id, price, volume from order_book_ask where order_book_id = " + str(order_book_id)
+    cursor = pg_conn.cursor()
+
+    cursor.execute(select_query)
+
+    for row in cursor:
+        order_books_asks.append(row)
+
+    return order_books_asks
+
+
+def get_order_book_bids(pg_conn, order_book_id):
+    order_books_bids = []
+
+    select_query = "select id, order_book_id, price, volume from order_book_bid where order_book_id = " + str(order_book_id)
+    cursor = pg_conn.cursor()
+
+    cursor.execute(select_query)
+
+    for row in cursor:
+        order_books_bids.append(row)
+
+    return order_books_bids
+
+
+def get_order_book_by_time(pg_conn, timest):
+    order_books = []
+
+    select_query = "select id, pair_id, exchange_id, timest from order_book where timest = " + str(timest)
+    cursor = pg_conn.cursor()
+
+    cursor.execute(select_query)
+
+    for row in cursor:
+        order_book_id = row[0]
+
+        order_book_asks = get_order_book_asks(pg_conn, order_book_id)
+        order_book_bids = get_order_book_bids(pg_conn, order_book_id)
+
+        order_books.append(OrderBook.from_row(row, order_book_asks, order_book_bids))
+
+    return order_books
+
+
+def run_analysis_over_db():
+    # FIXME NOTE: accumulate profit
+    playable_threshold = 1.5  # Price difference, in percent
+
     pg_conn = init_pg_connection()
+    time_entries = get_time_entries(pg_conn)
+
+    for every_time_entry in time_entries:
+        order_book_grouped_by_time = get_order_book_by_time(pg_conn, every_time_entry)
+        for x in order_book_grouped_by_time:
+            mega_analysis(x, playable_threshold, print_possible_deal_info)
+
+
+def run_bot():
     load_keys("./secret_keys")
 
-    threshold = 1.5 # FIXME
+    threshold = 1.5  # FIXME
 
-    while (True):
+    while True:
         order_book = get_order_book()
 
         mega_analysis(order_book, threshold, init_deal)
@@ -135,3 +214,9 @@ if __name__ == "__main__":
 
         print "Before sleep..."
         sleep_for(POLL_PERIOD_SECONDS)
+
+
+if __name__ == "__main__":
+    pg_conn = init_pg_connection()
+
+    run_analysis_over_db()
