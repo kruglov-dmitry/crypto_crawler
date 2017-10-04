@@ -60,14 +60,14 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
                                         first_order_book.pair_id,
                                         first_order_book.bid[0].price,
                                         min_volume)
-        action_to_perform(trade_at_first_exchange, msg)
+        action_to_perform("history_trades.txt", trade_at_first_exchange)
 
         trade_at_second_exchange = Trade(DEAL_TYPE.BUY,
                                          second_order_book.exchange_id,
                                          second_order_book.pair_id,
                                          second_order_book.ask[0].price,
                                          min_volume)
-        action_to_perform(trade_at_second_exchange, msg)
+        action_to_perform("history_trades.txt", trade_at_second_exchange)
 
         # adjust volumes
         if first_order_book.bid[0].volume > min_volume:
@@ -114,11 +114,15 @@ def mega_analysis(order_book, threshold, action_to_perform):
 
             first_order_book = order_book_by_exchange_by_currency[every_pair[0]]
             second_order_book = order_book_by_exchange_by_currency[every_pair[1]]
-            analyse_order_book(first_order_book, second_order_book, threshold, action_to_perform)
+
+            if len(first_order_book) > 1 or len(second_order_book) > 1:
+                print "Something severely wrong!", len(first_order_book), len(second_order_book)
+            
+            analyse_order_book(first_order_book[0], second_order_book[0], threshold, action_to_perform)
 
             first_order_book = order_book_by_exchange_by_currency[every_pair[0]]
             second_order_book = order_book_by_exchange_by_currency[every_pair[1]]
-            analyse_order_book(second_order_book, first_order_book, threshold, action_to_perform)
+            analyse_order_book(second_order_book[0], first_order_book[0], threshold, action_to_perform)
 
 
 def print_possible_deal_info(file_name, trade):
@@ -130,7 +134,7 @@ def get_time_entries(pg_conn):
     time_entries = []
 
     select_query = "select distinct timest from order_book"
-    cursor = pg_conn.cursor()
+    cursor = pg_conn.get_cursor()
 
     cursor.execute(select_query)
 
@@ -144,7 +148,7 @@ def get_order_book_asks(pg_conn, order_book_id):
     order_books_asks = []
 
     select_query = "select id, order_book_id, price, volume from order_book_ask where order_book_id = " + str(order_book_id)
-    cursor = pg_conn.cursor()
+    cursor = pg_conn.get_cursor()
 
     cursor.execute(select_query)
 
@@ -158,7 +162,7 @@ def get_order_book_bids(pg_conn, order_book_id):
     order_books_bids = []
 
     select_query = "select id, order_book_id, price, volume from order_book_bid where order_book_id = " + str(order_book_id)
-    cursor = pg_conn.cursor()
+    cursor = pg_conn.get_cursor()
 
     cursor.execute(select_query)
 
@@ -169,10 +173,10 @@ def get_order_book_bids(pg_conn, order_book_id):
 
 
 def get_order_book_by_time(pg_conn, timest):
-    order_books = []
+    order_books = defaultdict(list)
 
     select_query = "select id, pair_id, exchange_id, timest from order_book where timest = " + str(timest)
-    cursor = pg_conn.cursor()
+    cursor = pg_conn.get_cursor()
 
     cursor.execute(select_query)
 
@@ -182,7 +186,7 @@ def get_order_book_by_time(pg_conn, timest):
         order_book_asks = get_order_book_asks(pg_conn, order_book_id)
         order_book_bids = get_order_book_bids(pg_conn, order_book_id)
 
-        order_books.append(OrderBook.from_row(row, order_book_asks, order_book_bids))
+        order_books[int(row[2])].append(OrderBook.from_row(row, order_book_asks, order_book_bids))
 
     return order_books
 
@@ -193,11 +197,16 @@ def run_analysis_over_db():
 
     pg_conn = init_pg_connection()
     time_entries = get_time_entries(pg_conn)
+    time_entries_num = len(time_entries)
+    print "Order_book num: ", time_entries_num 
+    cnt = 0
 
     for every_time_entry in time_entries:
         order_book_grouped_by_time = get_order_book_by_time(pg_conn, every_time_entry)
-        for x in order_book_grouped_by_time:
-            mega_analysis(x, playable_threshold, print_possible_deal_info)
+        # for x in order_book_grouped_by_time:
+        mega_analysis(order_book_grouped_by_time, playable_threshold, print_possible_deal_info)
+        cnt += 1
+	print "Processed ", cnt, " out of ", time_entries_num, " time entries"
 
 
 def run_bot():
