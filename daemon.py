@@ -54,8 +54,8 @@ def inform_big_boss(info_to_report, pg_conn):
         save_alarm_into_pg(debug[2], debug[3], pg_conn)
         msg = "Condition: {msg} \nPair: {pair_name}, {ask_exchange}: {ask_price} {sell_exchange}: {sell_price}".format(
             msg=debug[0],
-            pair_name=get_pair_name_by_id(debug[1]), ask_exchange=debug[2].exchange, ask_price=debug[2].ask,
-            sell_exchange=debug[3].exchange, sell_price=debug[3].bid)
+            pair_name=get_pair_name_by_id(debug[1]), ask_exchange=debug[2].exchange, ask_price=debug[2].bid,
+            sell_exchange=debug[3].exchange, sell_price=debug[3].ask)
         try:
             bot.send_message(chat_id=-218431137, text=str(msg), parse_mode=telegram.ParseMode.MARKDOWN)
         except Exception, e:
@@ -64,8 +64,8 @@ def inform_big_boss(info_to_report, pg_conn):
             sleep_for(POLL_PERIOD_SECONDS)
             bot = telegram.Bot(token='438844686:AAE8lS3VyMsNgtytR4I1uWy4DLUaot2e5hU')
             bot.send_message(chat_id=-218431137,
-                         text=str(msg),
-                         parse_mode=telegram.ParseMode.MARKDOWN)
+                             text=str(msg),
+                             parse_mode=telegram.ParseMode.MARKDOWN)
 
 
 def analyse_tickers():
