@@ -32,7 +32,7 @@ if __name__ == "__main__":
             print "Trade history size - {num}".format(num=len(trade_history))
 
         load_to_postgres(candles, CANDLE_TYPE_NAME, pg_conn)
-        load_to_postgres(order_book, ORDER_BOOK_TYPE_NAME, pg_conn)
+        load_to_postgres(order_book.values(), ORDER_BOOK_TYPE_NAME, pg_conn)
         load_to_postgres(trade_history, TRADE_HISTORY_TYPE_NAME, pg_conn)
 
         """save_to_file(all_tickers, "ticker.txt")
@@ -43,3 +43,4 @@ if __name__ == "__main__":
 
         print "Before sleep..."
         sleep_for(POLL_PERIOD_SECONDS)
+

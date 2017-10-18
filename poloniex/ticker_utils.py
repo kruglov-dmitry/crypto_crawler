@@ -13,7 +13,7 @@ def get_ticker_poloniex(currency, timest):
     err_msg = "get_ticker_poloniex called for {pair} at {timest}".format(pair=currency, timest=timest)
     r = send_request(final_url, err_msg)
 
-    if r is not None and currency in r:
+    if r is not None and currency in r and r[currency] is not None:
         return Ticker.from_poloniex(currency, timest, r[currency])
 
     return None

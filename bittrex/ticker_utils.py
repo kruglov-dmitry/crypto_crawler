@@ -14,7 +14,7 @@ def get_ticker_bittrex(currency, timest):
     err_msg = "get_ticker_bittrex called for {pair} at {timest}".format(pair=currency, timest=timest)
     r = send_request(final_url, err_msg)
 
-    if r is not None and "result" in r:
+    if r is not None and "result" in r and r["result"] is not None:
         return Ticker.from_bittrex(currency, timest, r["result"])
 
     return None
