@@ -24,13 +24,30 @@ POLL_PERIOD_SECONDS = 120
 # 4. take into account that we may need to change frequency of polling based on prospectivness of currency pair
 
 
-def init_deal(trade_to_perform, debug_msg):
-    # FIXME try catch with debug msg
+def balance_init():
+    # FIXME TODO
+    pass
 
-    if trade_to_perform.deal_type == DEAL_TYPE.SELL:
-        buy_by_exchange(trade_to_perform)
-    else:
-        sell_by_exchange(trade_to_perform)
+
+def balance_adjust(order_book_pairs, balance_adjust_threshold, balance):
+    # FIXME perform deal in case balance_adjust_threshold is reached
+    # do reverse deal here
+    pass
+
+
+def dummy_balance_init(currency_pairs, default_volume):
+    # FIXME
+    pass
+
+
+def init_deal(trade_to_perform, debug_msg):
+    try:
+        if trade_to_perform.deal_type == DEAL_TYPE.SELL:
+            buy_by_exchange(trade_to_perform)
+        else:
+            sell_by_exchange(trade_to_perform)
+    except Exception, e:
+        print "init_deal: failed with following exception: ", str(e), debug_msg
 
 
 def analyse_order_book(first_order_book, second_order_book, threshold, action_to_perform):
@@ -81,7 +98,7 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
         analyse_order_book(first_order_book, second_order_book, threshold, action_to_perform)
 
 
-def mega_analysis(order_book, threshold, action_to_perform):
+def mega_analysis(order_book, threshold, balance_adjust_threshold, balance, action_to_perform):
     """
     :param order_book: dict of lists with order book, where keys are exchange names within particular time window
             either request timeout or by timest window during playing within database
@@ -123,6 +140,10 @@ def mega_analysis(order_book, threshold, action_to_perform):
             first_order_book = order_book_by_exchange_by_currency[every_pair[0]]
             second_order_book = order_book_by_exchange_by_currency[every_pair[1]]
             analyse_order_book(second_order_book[0], first_order_book[0], threshold, action_to_perform)
+
+        balance.is_there_disbalance(every_currency, balance_adjust_threshold)
+        # Big question - when to perform reverse deal
+        balance_adjust(order_book_pairs, balance_adjust_threshold, balance)
 
 
 def print_possible_deal_info(file_name, trade):
@@ -191,33 +212,36 @@ def get_order_book_by_time(pg_conn, timest):
     return order_books
 
 
-def run_analysis_over_db():
+def run_analysis_over_db(deal_threshold, balance_adjust_threshold):
     # FIXME NOTE: accumulate profit
-    playable_threshold = 1.5  # Price difference, in percent
 
     pg_conn = init_pg_connection()
     time_entries = get_time_entries(pg_conn)
     time_entries_num = len(time_entries)
     print "Order_book num: ", time_entries_num 
     cnt = 0
+    DEFAULT_VOLUME = 100
+
+    current_balance = dummy_balance_init(CURRENCY_PAIR.values(), DEFAULT_VOLUME)
 
     for every_time_entry in time_entries:
         order_book_grouped_by_time = get_order_book_by_time(pg_conn, every_time_entry)
+
         # for x in order_book_grouped_by_time:
-        mega_analysis(order_book_grouped_by_time, playable_threshold, print_possible_deal_info)
+        mega_analysis(order_book_grouped_by_time, deal_threshold, balance_adjust_threshold, current_balance, print_possible_deal_info)
         cnt += 1
-	print "Processed ", cnt, " out of ", time_entries_num, " time entries"
+        print "Processed ", cnt, " out of ", time_entries_num, " time entries"
 
 
-def run_bot():
+def run_bot(deal_threshold, balance_adjust_threshold):
     load_keys("./secret_keys")
 
-    threshold = 1.5  # FIXME
+    current_balance = balance_init()
 
     while True:
         order_book = get_order_book()
 
-        mega_analysis(order_book, threshold, init_deal)
+        mega_analysis(order_book, deal_threshold, balance_adjust_threshold, current_balance, init_deal)
 
         load_to_postgres(order_book, ORDER_BOOK_TYPE_NAME, pg_conn)
 
@@ -228,4 +252,8 @@ def run_bot():
 if __name__ == "__main__":
     pg_conn = init_pg_connection()
 
-    run_analysis_over_db()
+    # FIXME - read from some config
+    deal_threshold = 1.5
+    balance_adjust_threshold = 5.0
+
+    run_analysis_over_db(deal_threshold, balance_adjust_threshold)
