@@ -115,6 +115,17 @@ def get_currency_id_from_kraken(currency_name):
     }[currency_name]
 
 
+def get_currency_name_for_kraken(currency_id):
+    return {
+        CURRENCY.DASH: 'DASH',
+        CURRENCY.BCC: 'BCH',
+        CURRENCY.XRP: 'XXRP',
+        CURRENCY.LTC: 'XLTC',
+        CURRENCY.ETC: 'XETC',
+        CURRENCY.ETH: 'XETH'
+    }[currency_id]
+
+
 def get_currency_id_from_bittrex(currency_name):
     return {
         'DASH': CURRENCY.DASH,
@@ -126,6 +137,17 @@ def get_currency_id_from_bittrex(currency_name):
     }[currency_name]
 
 
+def get_currency_name_for_bittrex(currency_id):
+    return {
+        CURRENCY.DASH: 'DASH',
+        CURRENCY.BCC: 'BCC',
+        CURRENCY.XRP: 'XRP',
+        CURRENCY.LTC: 'LTC',
+        CURRENCY.ETC: 'ETC',
+        CURRENCY.ETH: 'ETH'
+    }[currency_id]
+
+
 def get_currency_id_from_poloniex(currency_name):
     return {
         'DASH': CURRENCY.DASH,
@@ -135,3 +157,25 @@ def get_currency_id_from_poloniex(currency_name):
         'ETC': CURRENCY.ETC,
         'ETH': CURRENCY.ETH
     }[currency_name]
+
+
+def get_currency_name_for_poloniex(currency_id):
+    return {
+        CURRENCY.DASH: 'DASH',
+        CURRENCY.BCC: 'BCC',
+        CURRENCY.XRP: 'XRP',
+        CURRENCY.LTC: 'LTC',
+        CURRENCY.ETC: 'ETC',
+        CURRENCY.ETH: 'ETH'
+    }[currency_id]
+
+
+def get_currency_name_by_id(currency_id):
+    return {
+        CURRENCY.DASH: 'DASH',
+        CURRENCY.BCC: 'BCC',
+        CURRENCY.XRP: 'XRP',
+        CURRENCY.LTC: 'LTC',
+        CURRENCY.ETC: 'ETC',
+        CURRENCY.ETH: 'ETH'
+    }[currency_id]

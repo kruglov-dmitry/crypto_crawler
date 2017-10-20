@@ -24,3 +24,7 @@ def sleep_for(num_of_seconds):
 
 def get_date_time_from_epoch(ts_epoch):
     return datetime.fromtimestamp(1.0 * long(ts_epoch))
+
+
+def ts_to_string(timest_second_epoch):
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timest_second_epoch))

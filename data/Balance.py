@@ -2,7 +2,10 @@ from BaseData import BaseData
 import json
 from constants import ARBITRAGE_CURRENCY
 from enums.exchange import EXCHANGE
-from utils.currency_utils import get_currency_id_from_kraken, get_currency_id_from_bittrex, get_currency_id_from_poloniex
+from utils.currency_utils import get_currency_name_by_id, get_currency_id_from_kraken, \
+    get_currency_name_for_bittrex, get_currency_id_from_poloniex
+from utils.exchange_utils import get_exchange_name_by_id
+from utils.time_utils import ts_to_string
 
 """
 time_of_last_update,
@@ -19,6 +22,18 @@ class Balance(BaseData):
         self.exchange_id = exchange_id
         self.last_update = last_update
         self.balance = initial_balance
+
+    def __str__(self):
+        str_repr = "Exchange: {exch} Last updated: {dt} timest: {ts} %".format(
+            exch=get_exchange_name_by_id(self.exchange_id),
+            dt=ts_to_string(self.last_update),
+            ts=self.last_update)
+
+        str_repr += " Balance: "
+        for currency_id in self.balance:
+            str_repr += get_currency_name_by_id(currency_id) + " - " + str(self.balance[currency_id])
+
+        return str_repr
 
     @classmethod
     def from_poloniex(cls, last_update, json_document):
@@ -86,17 +101,13 @@ class Balance(BaseData):
         u'CryptoAddress': None},
         """
 
-        for entry in json_object:
-            currency_name = entry["Currency"]
-            currency_id = -1
-            try:
-                currency_id = get_currency_id_from_bittrex(currency_name)
-            except Exception, e:
-                print "Balance.Bittrex: Unknown currency: ", currency_name, str(e)
+        for currency_id in ARBITRAGE_CURRENCY:
+            currency_name = get_currency_name_for_bittrex(currency_id)
 
-            if currency_id in ARBITRAGE_CURRENCY:
-                volume = entry["Balance"]
-                initial_balance[currency_id] = volume
+            for entry in json_object:
+                if currency_name == entry["Currency"]:
+                    volume = entry["Balance"]
+                    initial_balance[currency_id] = volume
 
         return Balance(EXCHANGE.BITTREX, last_update, initial_balance)
 
