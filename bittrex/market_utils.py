@@ -113,9 +113,9 @@ def show_balance_bittrex(key):
 
     timest = get_now_seconds()
     r = send_post_request_with_header(final_url, headers, body, err_msg)
+
     res = None
     if "result" in r:
-        print r["result"]
         res = Balance.from_bittrex(timest, r["result"])
 
     return res

@@ -3,7 +3,7 @@ import json
 from constants import ARBITRAGE_CURRENCY
 from enums.exchange import EXCHANGE
 from utils.currency_utils import get_currency_name_by_id, get_currency_name_for_kraken, \
-    get_currency_name_for_bittrex, get_currency_id_from_poloniex
+    get_currency_name_for_bittrex, get_currency_name_for_poloniex
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.time_utils import ts_to_string
 
@@ -38,8 +38,6 @@ class Balance(BaseData):
     @classmethod
     def from_poloniex(cls, last_update, json_document):
 
-        json_object = json.load(json_document)
-
         initial_balance = {}
 
         """
@@ -49,17 +47,15 @@ class Balance(BaseData):
         """
 
         for currency_id in ARBITRAGE_CURRENCY:
-            currency_name = get_currency_name_for_kraken(currency_id)
-            if currency_name in json_object:
-                volume = json_object[currency_name]
+            currency_name = get_currency_name_for_poloniex(currency_id)
+            if currency_name in json_document:
+                volume = json_document[currency_name]
                 initial_balance[currency_id] = volume
 
         return Balance(EXCHANGE.POLONIEX, last_update, initial_balance)
 
     @classmethod
     def from_kraken(cls, last_update, json_document):
-
-        json_object = json.load(json_document)
 
         initial_balance = {}
 
@@ -69,8 +65,8 @@ class Balance(BaseData):
 
         for currency_id in ARBITRAGE_CURRENCY:
             currency_name = get_currency_name_for_kraken(currency_id)
-            if currency_name in json_object:
-                volume = json_object[currency_name]
+            if currency_name in json_document:
+                volume = json_document[currency_name]
                 initial_balance[currency_id] = volume
 
         return Balance(EXCHANGE.KRAKEN, last_update, initial_balance)

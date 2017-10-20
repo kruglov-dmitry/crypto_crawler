@@ -104,6 +104,4 @@ def show_balance_poloniex(key):
     timest = get_now_seconds()
     r = send_post_request_with_header(final_url, headers, body, err_msg)
 
-    res = Balance.from_poloniex(timest, r)
-
-    return res
+    return Balance.from_poloniex(timest, r)
