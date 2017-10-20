@@ -7,7 +7,7 @@ from utils.time_utils import get_now_seconds
 #
 
 from bittrex.constants import BITTREX_CURRENCIES
-from kraken.constants import KRAKEN_CURRENCIES
+from kraken.constants import KRAKEN_CURRENCY_PAIRS
 from poloniex.constants import POLONIEX_CURRENCIES
 
 from bittrex.ticker_utils import get_ticker_bittrex
@@ -26,11 +26,15 @@ from bittrex.history_utils import get_history_bittrex
 from kraken.history_utils import get_history_kraken
 from poloniex.history_utils import get_history_poloniex
 
-from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, cancel_order_bittrex, show_balance_bittrex
-from kraken.market_utils import add_buy_order_kraken, add_sell_order_kraken, cancel_order_kraken, show_balance_kraken
-from poloniex.market_utils import add_buy_order_poloniex, add_sell_order_poloniex, cancel_order_poloniex, show_balance_poloniex
+from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, cancel_order_bittrex, \
+    show_balance_bittrex
+from kraken.market_utils import add_buy_order_kraken, add_sell_order_kraken, cancel_order_kraken, \
+    get_balance_kraken
+from poloniex.market_utils import add_buy_order_poloniex, add_sell_order_poloniex, cancel_order_poloniex, \
+    show_balance_poloniex
 
-from utils.currency_utils import get_currency_pair_to_bittrex, get_currency_pair_to_kraken, get_currency_pair_to_poloniex
+from utils.currency_utils import get_currency_pair_to_bittrex, get_currency_pair_to_kraken, \
+    get_currency_pair_to_poloniex
 
 from enums.exchange import EXCHANGE
 from utils.key_utils import get_key_by_exchange
@@ -49,7 +53,7 @@ def get_ticker():
             bittrex_tickers[ticker.pair_id] = ticker
 
     kraken_tickers = {}
-    for currency in KRAKEN_CURRENCIES:
+    for currency in KRAKEN_CURRENCY_PAIRS:
         ticker = get_ticker_kraken(currency, timest)
         if ticker is not None:
             kraken_tickers[ticker.pair_id] = ticker
@@ -73,7 +77,7 @@ def get_ohlc():
         period = "thirtyMin"
         all_ohlc += get_ohlc_bittrex(currency, date_end, date_start, period)
 
-    for currency in KRAKEN_CURRENCIES:
+    for currency in KRAKEN_CURRENCY_PAIRS:
         period = 15
         all_ohlc += get_ohlc_kraken(currency, date_end, date_start, period)
 
@@ -95,7 +99,7 @@ def get_order_book():
         if order_book is not None:
             all_order_book[EXCHANGE.POLONIEX] = order_book
 
-    for currency in KRAKEN_CURRENCIES:
+    for currency in KRAKEN_CURRENCY_PAIRS:
         order_book = get_order_book_kraken(currency, timest)
         if order_book is not None:
             all_order_book[EXCHANGE.KRAKEN] = order_book
@@ -114,7 +118,7 @@ def get_history(prev_time, now_time):
     for currency in POLONIEX_CURRENCIES:
         all_history += get_history_poloniex(currency, prev_time, now_time)
 
-    for currency in KRAKEN_CURRENCIES:
+    for currency in KRAKEN_CURRENCY_PAIRS:
         all_history += get_history_kraken(currency, prev_time, now_time)
 
     for currency in BITTREX_CURRENCIES:
@@ -171,7 +175,7 @@ def show_balance_by_exchange(exchange_id):
     if exchange_id == EXCHANGE.BITTREX:
         res = show_balance_bittrex(key)
     elif exchange_id == EXCHANGE.KRAKEN:
-        res = show_balance_kraken(key)
+        res = get_balance_kraken(key)
     elif exchange_id == EXCHANGE.POLONIEX:
         res = show_balance_poloniex(key)
     else:

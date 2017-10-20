@@ -1,4 +1,5 @@
 from enums.currency_pair import CURRENCY_PAIR
+from enums.currency import CURRENCY
 
 
 def get_currency_pair_from_poloniex(currency):
@@ -94,3 +95,43 @@ def get_pair_name_by_id(pair_id):
         CURRENCY_PAIR.BTC_TO_XEM: "BTC_TO_XEM",
         CURRENCY_PAIR.BTC_TO_ARDR: "BTC_TO_ARDR"
     }[pair_id]
+
+
+"""
+    NOTE:   routine below is used only for balance retrieval
+            supported currencies are 
+            ARBITRAGE_CURRENCY = [CURRENCY.DASH, CURRENCY.BCC, CURRENCY.XRP, CURRENCY.LTC, CURRENCY.ETC, CURRENCY.ETH]
+"""
+
+
+def get_currency_id_from_kraken(currency_name):
+    return {
+        'DASH': CURRENCY.DASH,
+        'BCH': CURRENCY.BCC,
+        'XXRP': CURRENCY.XRP,
+        'XLTC': CURRENCY.LTC,
+        'XETC': CURRENCY.ETC,
+        'XETH': CURRENCY.ETH
+    }[currency_name]
+
+
+def get_currency_id_from_bittrex(currency_name):
+    return {
+        'DASH': CURRENCY.DASH,
+        'BCC': CURRENCY.BCC,
+        'XRP': CURRENCY.XRP,
+        'LTC': CURRENCY.LTC,
+        'ETC': CURRENCY.ETC,
+        'ETH': CURRENCY.ETH
+    }[currency_name]
+
+
+def get_currency_id_from_poloniex(currency_name):
+    return {
+        'DASH': CURRENCY.DASH,
+        'BCC': CURRENCY.BCC,
+        'XRP': CURRENCY.XRP,
+        'LTC': CURRENCY.LTC,
+        'ETC': CURRENCY.ETC,
+        'ETH': CURRENCY.ETH
+    }[currency_name]
