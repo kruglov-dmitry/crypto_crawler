@@ -44,7 +44,7 @@ class Balance(BaseData):
 
         """
          {u'XVC': u'0.00000000', u'SRCC': u'0.00000000', u'EXE': u'0.00000000',
-         
+
          FIXME NOTE: those bastards always return ALL coins not very efficient
         """
 
@@ -87,9 +87,7 @@ class Balance(BaseData):
         return Balance(EXCHANGE.KRAKEN, last_update, initial_balance)
 
     @classmethod
-    def from_bitriex(cls, last_update, json_document):
-
-        json_object = json.load(json_document)
+    def from_bittrex(cls, last_update, json_document):
 
         initial_balance = {}
 
@@ -104,7 +102,7 @@ class Balance(BaseData):
         for currency_id in ARBITRAGE_CURRENCY:
             currency_name = get_currency_name_for_bittrex(currency_id)
 
-            for entry in json_object:
+            for entry in json_document:
                 if currency_name == entry["Currency"]:
                     volume = entry["Balance"]
                     initial_balance[currency_id] = volume

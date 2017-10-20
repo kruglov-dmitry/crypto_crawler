@@ -115,6 +115,7 @@ def show_balance_bittrex(key):
     r = send_post_request_with_header(final_url, headers, body, err_msg)
     res = None
     if "result" in r:
-        res = Balance.from_kraken(timest, r["result"])
+        print r["result"]
+        res = Balance.from_bittrex(timest, r["result"])
 
     return res
