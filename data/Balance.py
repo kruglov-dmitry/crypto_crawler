@@ -2,7 +2,7 @@ from BaseData import BaseData
 import json
 from constants import ARBITRAGE_CURRENCY
 from enums.exchange import EXCHANGE
-from utils.currency_utils import get_currency_name_by_id, get_currency_id_from_kraken, \
+from utils.currency_utils import get_currency_name_by_id, get_currency_name_for_kraken, \
     get_currency_name_for_bittrex, get_currency_id_from_poloniex
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.time_utils import ts_to_string
@@ -24,14 +24,14 @@ class Balance(BaseData):
         self.balance = initial_balance
 
     def __str__(self):
-        str_repr = "Exchange: {exch} Last updated: {dt} timest: {ts} %".format(
+        str_repr = "Balance at Exchange: {exch} Last updated: {dt} timest: {ts} %".format(
             exch=get_exchange_name_by_id(self.exchange_id),
             dt=ts_to_string(self.last_update),
             ts=self.last_update)
 
-        str_repr += " Balance: "
+        str_repr += " Balance:"
         for currency_id in self.balance:
-            str_repr += get_currency_name_by_id(currency_id) + " - " + str(self.balance[currency_id])
+            str_repr += " " + get_currency_name_by_id(currency_id) + " - " + str(self.balance[currency_id])
 
         return str_repr
 
@@ -48,14 +48,9 @@ class Balance(BaseData):
          FIXME NOTE: those bastards always return ALL coins not very efficient
         """
 
-        for currency_name in json_object:
-            currency_id = -1
-            try:
-                currency_id = get_currency_id_from_poloniex(currency_name)
-            except Exception, e:
-                print "Balance.Poloniex: Unknown currency: ", currency_name, str(e)
-
-            if currency_id in ARBITRAGE_CURRENCY:
+        for currency_id in ARBITRAGE_CURRENCY:
+            currency_name = get_currency_name_for_kraken(currency_id)
+            if currency_name in json_object:
                 volume = json_object[currency_name]
                 initial_balance[currency_id] = volume
 
@@ -72,15 +67,9 @@ class Balance(BaseData):
         {u'DASH': u'33.2402410500', u'BCH': u'22.4980093900', ... }
         """
 
-        for currency_name in json_object:
-            currency_id = -1
-
-            try:
-                currency_id = get_currency_id_from_kraken(currency_name)
-            except Exception, e:
-                print "Balance.Kraken: Unknown currency: ", currency_name, str(e)
-
-            if currency_id in ARBITRAGE_CURRENCY:
+        for currency_id in ARBITRAGE_CURRENCY:
+            currency_name = get_currency_name_for_kraken(currency_id)
+            if currency_name in json_object:
                 volume = json_object[currency_name]
                 initial_balance[currency_id] = volume
 
