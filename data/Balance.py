@@ -1,5 +1,5 @@
 from BaseData import BaseData
-from constants import ARBITRAGE_CURRENCY
+from constants import ARBITRAGE_CURRENCY, ZERO_BALANCE
 from enums.exchange import EXCHANGE
 from utils.currency_utils import get_currency_name_by_id, get_currency_name_for_kraken, \
     get_currency_name_for_bittrex, get_currency_name_for_poloniex
@@ -46,6 +46,9 @@ class Balance(BaseData):
         """
 
         for currency_id in ARBITRAGE_CURRENCY:
+
+            initial_balance[currency_id] = ZERO_BALANCE
+
             currency_name = get_currency_name_for_poloniex(currency_id)
             if currency_name in json_document:
                 volume = json_document[currency_name]
@@ -63,6 +66,9 @@ class Balance(BaseData):
         """
 
         for currency_id in ARBITRAGE_CURRENCY:
+
+            initial_balance[currency_id] = ZERO_BALANCE
+
             currency_name = get_currency_name_for_kraken(currency_id)
             if currency_name in json_document:
                 volume = json_document[currency_name]
@@ -84,6 +90,9 @@ class Balance(BaseData):
         """
 
         for currency_id in ARBITRAGE_CURRENCY:
+
+            initial_balance[currency_id] = ZERO_BALANCE
+
             currency_name = get_currency_name_for_bittrex(currency_id)
 
             for entry in json_document:
