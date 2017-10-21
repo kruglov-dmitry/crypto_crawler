@@ -74,7 +74,7 @@ def cancel_order_bittrex(key, deal_id):
     print r
 
 
-def show_balance_bittrex(key):
+def get_balance_bittrex(key):
     """
         https://bittrex.com/api/v1.1/account/getbalances?apikey=8a2dd16465b0469197574ec0a516badb&nonce=1508507525325
         {'apisign': 'e6bfb1cc60dcd93d291542cf6c4084e942659be7c363633f710336338a3158b37eb3f999250e5113ffc9e48c18ebe24cf9f4d496f6348a319cbd7f1bc0fc680c'} {}

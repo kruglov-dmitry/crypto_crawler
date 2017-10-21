@@ -27,7 +27,7 @@ from kraken.history_utils import get_history_kraken
 from poloniex.history_utils import get_history_poloniex
 
 from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, cancel_order_bittrex, \
-    show_balance_bittrex
+    get_balance_bittrex
 from kraken.market_utils import add_buy_order_kraken, add_sell_order_kraken, cancel_order_kraken, \
     get_balance_kraken
 from poloniex.market_utils import add_buy_order_poloniex, add_sell_order_poloniex, cancel_order_poloniex, \
@@ -40,6 +40,8 @@ from enums.exchange import EXCHANGE
 from utils.key_utils import get_key_by_exchange
 
 from collections import defaultdict
+
+from data.BalanceState import BalanceState
 
 
 def get_ticker():
@@ -169,11 +171,12 @@ def cancel_by_exchange(trade):
         print "cancel_by_exchange - Unknown exchange! ", trade
 
 
-def show_balance_by_exchange(exchange_id):
-    res = ""
+def get_balance_by_exchange(exchange_id):
+    res = None
     key = get_key_by_exchange(exchange_id)
+
     if exchange_id == EXCHANGE.BITTREX:
-        res = show_balance_bittrex(key)
+        res = get_balance_bittrex(key)
     elif exchange_id == EXCHANGE.KRAKEN:
         res = get_balance_kraken(key)
     elif exchange_id == EXCHANGE.POLONIEX:
@@ -182,3 +185,12 @@ def show_balance_by_exchange(exchange_id):
         print "show_balance_by_exchange - Unknown exchange! ", exchange_id
 
     return res
+
+
+def balance_init(balance_adjust_threshold):
+    balance = {}
+
+    for exchange_id in EXCHANGE.values():
+        balance[exchange_id] = get_balance_by_exchange(exchange_id)
+
+    return BalanceState(balance, balance_adjust_threshold)

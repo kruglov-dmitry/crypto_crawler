@@ -1,5 +1,4 @@
 from BaseData import BaseData
-import json
 from constants import ARBITRAGE_CURRENCY
 from enums.exchange import EXCHANGE
 from utils.currency_utils import get_currency_name_by_id, get_currency_name_for_kraken, \
@@ -93,7 +92,3 @@ class Balance(BaseData):
                     initial_balance[currency_id] = volume
 
         return Balance(EXCHANGE.BITTREX, last_update, initial_balance)
-
-    def is_there_disbalance(self, pair_id, threshold):
-        # FIXME check accros all exchange
-        return True
