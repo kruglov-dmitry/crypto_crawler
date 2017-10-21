@@ -1,3 +1,6 @@
+import sys
+sys.setrecursionlimit(100000)
+
 from dao.dao import get_order_book, buy_by_exchange, sell_by_exchange, balance_init
 from data.OrderBook import ORDER_BOOK_TYPE_NAME
 
@@ -6,6 +9,8 @@ from file_parsing import init_pg_connection, load_to_postgres
 from utils.key_utils import load_keys
 from debug_utils import should_print_debug
 from utils.time_utils import sleep_for
+from utils.currency_utils import split_currency_pairs, get_pair_name_by_id
+from utils.exchange_utils import get_exchange_name_by_id
 
 from core.base_analysis import get_change
 from core.base_math import get_all_combination
@@ -48,7 +53,7 @@ def dummy_balance_init(timest, default_volume, balance_adjust_threshold):
         initial_balance[currency_id] = default_volume
 
     for exchange_id in EXCHANGE.values():
-        balance[exchange_id] = Balance(exchange_id, timest,initial_balance)
+        balance[exchange_id] = Balance(exchange_id, timest, initial_balance)
 
     return BalanceState(balance, balance_adjust_threshold)
 
@@ -86,14 +91,14 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
         if not disbalance_state.do_we_have_enough(first_order_book.pair_id,
                                                   first_order_book.exchange_id,
                                                   min_volume):
-            min_volume = disbalance_state.get_volume_by_pair_id(first_order_book.exchange_id,
-                                                                first_order_book.pair_id)
+            min_volume = disbalance_state.get_volume_by_pair_id(first_order_book.pair_id,
+                                                                first_order_book.exchange_id)
 
         if not disbalance_state.do_we_have_enough(second_order_book.pair_id,
                                                   second_order_book.exchange_id,
                                                   min_volume):
-            min_volume = disbalance_state.get_volume_by_pair_id(second_order_book.exchange_id,
-                                                                second_order_book.pair_id)
+            min_volume = disbalance_state.get_volume_by_pair_id(second_order_book.pair_id,
+                                                                second_order_book.exchange_id)
 
         trade_at_first_exchange = Trade(DEAL_TYPE.SELL,
                                         first_order_book.exchange_id,
@@ -123,6 +128,10 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
                                                    second_order_book.ask[0].price
                                                    )
 
+        if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0 or \
+           len(first_order_book.ask) == 0 or len(second_order_book.bid) == 0:
+            return
+
         # adjust volumes
         if first_order_book.bid[0].volume > min_volume:
             first_order_book.bid[0].volume = first_order_book.bid[0].volume - min_volume
@@ -133,7 +142,12 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
 
         if not stop_recursion:
             # continue processing remaining order book
-            analyse_order_book(first_order_book, second_order_book, threshold, action_to_perform, disbalance_state, stop_recursion)
+            analyse_order_book(first_order_book,
+                               second_order_book,
+                               threshold,
+                               action_to_perform,
+                               disbalance_state,
+                               stop_recursion)
 
 
 def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, action_to_perform):
@@ -149,6 +163,12 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
 
     # split on currencies
     for currency_id in CURRENCY_PAIR.values():
+
+        # we interested ONLY in arbitrage related coins
+        src_coin, dst_coin = split_currency_pairs(currency_id)
+        if src_coin not in ARBITRAGE_CURRENCY or \
+                dst_coin not in ARBITRAGE_CURRENCY:
+            continue
 
         order_book_by_exchange_by_currency = defaultdict(list)
 
@@ -175,9 +195,13 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
             first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
             second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
 
-            if len(first_order_book) > 1 or len(second_order_book) > 1:
-                print "Something severely wrong! ", len(first_order_book), len(second_order_book)
-            
+            if len(first_order_book) != 1 or len(second_order_book) != 1:
+                print "mega_analysis: Something severely wrong!", len(first_order_book), len(second_order_book)
+                print "For currency", get_pair_name_by_id(currency_id)
+                print "For exchanges", get_exchange_name_by_id(src_exchange_id)
+                print "For exchanges", get_exchange_name_by_id(dst_exchange_id)
+                continue
+
             analyse_order_book(first_order_book[0],
                                second_order_book[0],
                                threshold,
@@ -289,9 +313,10 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
     print "Order_book num: ", time_entries_num
 
     cnt = 0
-    DEFAULT_VOLUME = 100
-
-    current_balance = dummy_balance_init(DEFAULT_VOLUME, time_entries[0], balance_adjust_threshold)
+    DEFAULT_VOLUME = 100000
+    current_balance = dummy_balance_init(time_entries[0], DEFAULT_VOLUME, balance_adjust_threshold)
+    for exch_id in current_balance.balance_per_exchange:
+        print current_balance.balance_per_exchange[exch_id]
 
     for every_time_entry in time_entries:
         order_book_grouped_by_time = get_order_book_by_time(pg_conn, every_time_entry)

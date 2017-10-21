@@ -72,10 +72,8 @@ def get_diff_lowest_ask_vs_highest_bid(first_one, second_one, threshold):
     difference = get_change(first_one.ask, second_one.bid)
 
     if should_print_debug():
-        print "get_diff_lowest_ask_vs_highest_bid"
-        print "ASK: ", first_one.ask
-        print "BID: ", second_one.bid
-        print "DIFF: ", difference
+        print "get_diff_lowest_ask_vs_highest_bid: ASK = {ask} BID = {bid} DIFF={diff}".format(
+            ask=first_one.ask, bid=second_one.bid, diff=difference)
 
     if difference >= threshold:
         msg = "Lowest ask differ from highest bid more than {num} %".format(num=threshold)
@@ -85,7 +83,7 @@ def get_diff_lowest_ask_vs_highest_bid(first_one, second_one, threshold):
 
 
 def check_highest_bid_bigger_than_lowest_ask(first_one, second_one, threshold):
-    difference = get_change(first_one.bid, second_one.ask, provide_abs = False)
+    difference = get_change(first_one.bid, second_one.ask, provide_abs=False)
 
     if should_print_debug():
         print "check_highest_bid_bigger_than_lowest_ask"
@@ -100,7 +98,7 @@ def check_highest_bid_bigger_than_lowest_ask(first_one, second_one, threshold):
     return ()
 
 
-def get_change(current, previous, provide_abs = True):
+def get_change(current, previous, provide_abs=True):
     """
 
     :param current:
@@ -115,6 +113,9 @@ def get_change(current, previous, provide_abs = True):
     else:
         diff = current - previous
 
-    percent = ((diff / tot) * 100)
+    percent = 100.0
+
+    if tot != 0:
+        percent = ((diff / tot) * 100)
 
     return percent

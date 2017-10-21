@@ -16,8 +16,8 @@ class BalanceState(BaseData):
             return False
 
         # FIXME NOTE - add time checks here if it more than 2 minutes - should be at least some warning!
-        difference = get_change(self.balance_per_exchange[src_exchange_id][currency_id],
-                                self.balance_per_exchange[dst_exchange_id][currency_id],
+        difference = get_change(self.balance_per_exchange[src_exchange_id].balance[currency_id],
+                                self.balance_per_exchange[dst_exchange_id].balance[currency_id],
                                 provide_abs=False)
 
         if balance_threshold is None:
@@ -26,12 +26,12 @@ class BalanceState(BaseData):
         return difference > balance_threshold
 
     def add_balance(self, currency_id, exchange_id, volume):
-        prev_volume = self.balance_per_exchange[exchange_id][currency_id]
-        self.balance_per_exchange[exchange_id][currency_id] = volume + prev_volume
+        prev_volume = self.balance_per_exchange[exchange_id].balance[currency_id]
+        self.balance_per_exchange[exchange_id].balance[currency_id] = volume + prev_volume
 
     def substract_balance(self, currency_id, exchange_id, volume):
-        prev_volume = self.balance_per_exchange[exchange_id][currency_id]
-        self.balance_per_exchange[exchange_id][currency_id] = prev_volume - volume
+        prev_volume = self.balance_per_exchange[exchange_id].balance[currency_id]
+        self.balance_per_exchange[exchange_id].balance[currency_id] = prev_volume - volume
 
     def add_balance_by_pair(self, pair_id, exchange_id, volume, price):
         # i.e. we SELL src_currency_id for dst_currency_id
@@ -49,8 +49,8 @@ class BalanceState(BaseData):
         self.add_balance(src_currency_id, exchange_id, volume * price) # <<<==== bitcoin!
 
     def do_we_have_enough(self, currency_id, exchange_id, volume):
-        return self.balance_per_exchange[exchange_id][currency_id] <= volume
+        return self.balance_per_exchange[exchange_id].balance[currency_id] <= volume
 
     def get_volume_by_pair_id(self, pair_id, exchange_id):
         src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
-        return self.balance_per_exchange[exchange_id][src_currency_id]
+        return self.balance_per_exchange[exchange_id].balance[src_currency_id]

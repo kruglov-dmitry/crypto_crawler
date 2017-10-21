@@ -51,7 +51,7 @@ class Balance(BaseData):
 
             currency_name = get_currency_name_for_poloniex(currency_id)
             if currency_name in json_document:
-                volume = json_document[currency_name]
+                volume = float(json_document[currency_name])
                 initial_balance[currency_id] = volume
 
         return Balance(EXCHANGE.POLONIEX, last_update, initial_balance)
@@ -71,7 +71,7 @@ class Balance(BaseData):
 
             currency_name = get_currency_name_for_kraken(currency_id)
             if currency_name in json_document:
-                volume = json_document[currency_name]
+                volume = float(json_document[currency_name])
                 initial_balance[currency_id] = volume
 
         return Balance(EXCHANGE.KRAKEN, last_update, initial_balance)
@@ -97,7 +97,7 @@ class Balance(BaseData):
 
             for entry in json_document:
                 if currency_name == entry["Currency"]:
-                    volume = entry["Balance"]
+                    volume = float(entry["Balance"])
                     initial_balance[currency_id] = volume
 
         return Balance(EXCHANGE.BITTREX, last_update, initial_balance)

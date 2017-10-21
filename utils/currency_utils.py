@@ -114,13 +114,14 @@ def get_pair_name_by_id(pair_id):
 
 """
     NOTE:   routine below is used only for balance retrieval
-            supported currencies are 
+            supported currencies are
             ARBITRAGE_CURRENCY = [CURRENCY.DASH, CURRENCY.BCC, CURRENCY.XRP, CURRENCY.LTC, CURRENCY.ETC, CURRENCY.ETH]
 """
 
 
 def get_currency_id_from_kraken(currency_name):
     return {
+        'XXBT': CURRENCY.BITCOIN,
         'DASH': CURRENCY.DASH,
         'BCH': CURRENCY.BCC,
         'XXRP': CURRENCY.XRP,
@@ -132,6 +133,7 @@ def get_currency_id_from_kraken(currency_name):
 
 def get_currency_name_for_kraken(currency_id):
     return {
+        CURRENCY.BITCOIN: 'XXBT',
         CURRENCY.DASH: 'DASH',
         CURRENCY.BCC: 'BCH',
         CURRENCY.XRP: 'XXRP',
@@ -143,6 +145,7 @@ def get_currency_name_for_kraken(currency_id):
 
 def get_currency_id_from_bittrex(currency_name):
     return {
+        'BTC': CURRENCY.BITCOIN,
         'DASH': CURRENCY.DASH,
         'BCC': CURRENCY.BCC,
         'XRP': CURRENCY.XRP,
@@ -154,6 +157,7 @@ def get_currency_id_from_bittrex(currency_name):
 
 def get_currency_name_for_bittrex(currency_id):
     return {
+        CURRENCY.BITCOIN: 'BTC',
         CURRENCY.DASH: 'DASH',
         CURRENCY.BCC: 'BCC',
         CURRENCY.XRP: 'XRP',
@@ -165,6 +169,7 @@ def get_currency_name_for_bittrex(currency_id):
 
 def get_currency_id_from_poloniex(currency_name):
     return {
+        'BTC': CURRENCY.BITCOIN,
         'DASH': CURRENCY.DASH,
         'BCC': CURRENCY.BCC,
         'XRP': CURRENCY.XRP,
@@ -176,6 +181,7 @@ def get_currency_id_from_poloniex(currency_name):
 
 def get_currency_name_for_poloniex(currency_id):
     return {
+        CURRENCY.BITCOIN: 'BTC',
         CURRENCY.DASH: 'DASH',
         CURRENCY.BCC: 'BCC',
         CURRENCY.XRP: 'XRP',
@@ -187,6 +193,7 @@ def get_currency_name_for_poloniex(currency_id):
 
 def get_currency_name_by_id(currency_id):
     return {
+        CURRENCY.BITCOIN: 'BTC',
         CURRENCY.DASH: 'DASH',
         CURRENCY.BCC: 'BCC',
         CURRENCY.XRP: 'XRP',
