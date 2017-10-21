@@ -1,5 +1,6 @@
 from BaseData import BaseData
 from core.base_analysis import get_change
+from utils.currency_utils import split_currency_pairs
 
 
 class BalanceState(BaseData):
@@ -26,20 +27,20 @@ class BalanceState(BaseData):
         prev_volume = self.balance_per_exchange[exchange_id][currency_id]
         self.balance_per_exchange[exchange_id][currency_id] = prev_volume - volume
 
-
-    def add_balance_by_pair(self, pair_id, exchange_id, volume):
+    def add_balance_by_pair(self, pair_id, exchange_id, volume, price):
         # i.e. we SELL src_currency_id for dst_currency_id
         src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
-        self.substract_balance(src_currency_id, exchange_id, volume)  # <<<==== bitcoin!
-        # have to include bitcoin as well then!
-        self.add_balance(dst_currency_id, exchange_id, another_volume)
 
-    def substract_balance_by_pair(self, pair_id, exchange_id, volume):
+        self.substract_balance(src_currency_id, exchange_id, volume * price)  # <<<==== bitcoin!
+
+        self.add_balance(dst_currency_id, exchange_id, volume)
+
+    def substract_balance_by_pair(self, pair_id, exchange_id, volume, price):
         # i.e. we SELL src_currency_id for dst_currency_id
         src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
-        self.substract_balance(dst_currency_id, exchange_id, volume)  # <<<==== bitcoin!
-        # have to include bitcoin as well then!
-        self.add_balance(src_currency_id, exchange_id, another_volume)
+        self.substract_balance(dst_currency_id, exchange_id, volume)
+
+        self.add_balance(src_currency_id, exchange_id, volume * price) # <<<==== bitcoin!
 
     def do_we_have_enough(self, currency_id, exchange_id, volume):
         return self.balance_per_exchange[exchange_id][currency_id] <= volume

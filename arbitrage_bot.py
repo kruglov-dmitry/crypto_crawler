@@ -103,9 +103,11 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
         action_to_perform(trade_at_first_exchange, "history_trades.txt")
 
         # FIXME NOTE - should be performed ONLY after deal confirmation
-        disbalance_state.substract_balance_by_pair(first_order_book.pair_id,
-                                                   first_order_book.exchange_id,
-                                                   min_volume)
+        disbalance_state.add_balance_by_pair(first_order_book.pair_id,
+                                             first_order_book.exchange_id,
+                                             min_volume,
+                                             first_order_book.bid[0].price
+                                             )
 
         trade_at_second_exchange = Trade(DEAL_TYPE.BUY,
                                          second_order_book.exchange_id,
@@ -115,9 +117,11 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
         action_to_perform(trade_at_second_exchange, "history_trades.txt")
 
         # FIXME NOTE - should be performed ONLY after deal confirmation
-        disbalance_state.add_balance_by_pair(second_order_book.pair_id,
-                                             second_order_book.exchange_id,
-                                             min_volume)
+        disbalance_state.substract_balance_by_pair(second_order_book.pair_id,
+                                                   second_order_book.exchange_id,
+                                                   min_volume,
+                                                   second_order_book.ask[0].price
+                                                   )
 
         # adjust volumes
         if first_order_book.bid[0].volume > min_volume:
@@ -293,9 +297,18 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
         order_book_grouped_by_time = get_order_book_by_time(pg_conn, every_time_entry)
 
         # for x in order_book_grouped_by_time:
-        mega_analysis(order_book_grouped_by_time, deal_threshold, current_balance, treshold_reverse, print_possible_deal_info)
+        mega_analysis(order_book_grouped_by_time,
+                      deal_threshold,
+                      current_balance,
+                      treshold_reverse,
+                      print_possible_deal_info)
         cnt += 1
         print "Processed ", cnt, " out of ", time_entries_num, " time entries"
+
+    print "At the end of processing we have following balance:"
+    print "NOTE: supposedly all buy \ sell request were fullfilled"
+    for exch_id in current_balance.balance_per_exchange:
+        print current_balance.balance_per_exchange[exch_id]
 
 
 def run_bot(deal_threshold, balance_adjust_threshold, treshold_reverse):
