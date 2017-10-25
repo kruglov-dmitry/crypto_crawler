@@ -1,5 +1,5 @@
 import sys
-sys.setrecursionlimit(100)
+sys.setrecursionlimit(10000)
 
 from dao.dao import get_order_book, buy_by_exchange, sell_by_exchange, balance_init
 from dao.db import init_pg_connection, load_to_postgres, get_order_book_by_time, get_time_entries
@@ -123,11 +123,12 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
         action_to_perform(trade_at_first_exchange, "history_trades.txt")
 
         # FIXME NOTE - should be performed ONLY after deal confirmation
-        disbalance_state.add_balance_by_pair(first_order_book.pair_id,
+        disbalance_state.subtract_balance_by_pair(first_order_book.pair_id,
                                              first_order_book.exchange_id,
                                              min_volume,
                                              first_order_book.bid[FIRST].price
                                              )
+
 
         trade_at_second_exchange = Trade(DEAL_TYPE.BUY,
                                          second_order_book.exchange_id,
@@ -136,8 +137,9 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
                                          min_volume)
         action_to_perform(trade_at_second_exchange, "history_trades.txt")
 
+
         # FIXME NOTE - should be performed ONLY after deal confirmation
-        disbalance_state.substract_balance_by_pair(second_order_book.pair_id,
+        disbalance_state.add_balance_by_pair(second_order_book.pair_id,
                                                    second_order_book.exchange_id,
                                                    min_volume,
                                                    second_order_book.ask[LAST].price
@@ -259,8 +261,8 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
             # FIXME NOTE - here we treat order book as unchanged, but it may already be affected by previous deals
             # previous call change bids of first order book & asks of second order book
             # but here we use oposite - i.e. should be fine
-            first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
-            second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
+            # first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
+            # second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
 
             # disbalance_state, treshold_reverse
             if disbalance_state.is_there_disbalance(currency_id,
@@ -307,6 +309,8 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
                       print_possible_deal_info)
         cnt += 1
         print "Processed ", cnt, " out of ", time_entries_num, " time entries"
+        print current_balance
+        raise
 
     print "At the end of processing we have following balance:"
     print "NOTE: supposedly all buy \ sell request were fullfilled"
