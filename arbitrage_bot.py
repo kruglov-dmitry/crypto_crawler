@@ -73,12 +73,15 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
     if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0:
         return
 
-    difference = get_change(first_order_book.bid[0].price, second_order_book.ask[-1].price, provide_abs=False)
+    FIRST = 0
+    LAST = 0  # FIXME should be ZERO as it is already properly sorted
+
+    difference = get_change(first_order_book.bid[FIRST].price, second_order_book.ask[LAST].price, provide_abs=False)
 
     if should_print_debug():
         print "check_highest_bid_bigger_than_lowest_ask"
-        print "ASK: ", first_order_book.bid[0].price
-        print "BID: ", second_order_book.ask[-1].price
+        print "ASK: ", first_order_book.bid[FIRST].price
+        print "BID: ", second_order_book.ask[LAST].price
         print "DIFF: ", difference
 
     if difference >= threshold:
@@ -86,7 +89,12 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
 
         msg = "highest bid bigger than Lowest ask for more than {num} %".format(num=threshold)
 
-        min_volume = min(first_order_book.bid[0].volume, second_order_book.ask[0].volume)
+        min_volume = min(first_order_book.bid[FIRST].volume, second_order_book.ask[LAST].volume)
+        if min_volume < 0:
+            print min_volume
+            # print first_order_book
+            # print second_order_book
+            throw
 
         if not disbalance_state.do_we_have_enough_by_pair(first_order_book.pair_id,
                                                           first_order_book.exchange_id,
@@ -103,7 +111,7 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
         trade_at_first_exchange = Trade(DEAL_TYPE.SELL,
                                         first_order_book.exchange_id,
                                         first_order_book.pair_id,
-                                        first_order_book.bid[0].price,
+                                        first_order_book.bid[FIRST].price,
                                         min_volume)
         action_to_perform(trade_at_first_exchange, "history_trades.txt")
 
@@ -111,13 +119,13 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
         disbalance_state.add_balance_by_pair(first_order_book.pair_id,
                                              first_order_book.exchange_id,
                                              min_volume,
-                                             first_order_book.bid[0].price
+                                             first_order_book.bid[FIRST].price
                                              )
 
         trade_at_second_exchange = Trade(DEAL_TYPE.BUY,
                                          second_order_book.exchange_id,
                                          second_order_book.pair_id,
-                                         second_order_book.ask[0].price,
+                                         second_order_book.ask[LAST].price,
                                          min_volume)
         action_to_perform(trade_at_second_exchange, "history_trades.txt")
 
@@ -125,7 +133,7 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
         disbalance_state.substract_balance_by_pair(second_order_book.pair_id,
                                                    second_order_book.exchange_id,
                                                    min_volume,
-                                                   second_order_book.ask[0].price
+                                                   second_order_book.ask[LAST].price
                                                    )
 
         if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0 or \
@@ -133,11 +141,11 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
             return
 
         # adjust volumes
-        if first_order_book.bid[0].volume > min_volume:
-            first_order_book.bid[0].volume = first_order_book.bid[0].volume - min_volume
-            second_order_book.ask = second_order_book.ask[:-1]
-        elif second_order_book.ask[0].volume > min_volume:
-            second_order_book.ask[0].volume = first_order_book.ask[0].volume - min_volume
+        if first_order_book.bid[FIRST].volume > min_volume:
+            first_order_book.bid[FIRST].volume = first_order_book.bid[FIRST].volume - min_volume
+            second_order_book.ask = second_order_book.ask[1:]
+        elif second_order_book.ask[LAST].volume > min_volume:
+            second_order_book.ask[LAST].volume = second_order_book.ask[LAST].volume - min_volume
             first_order_book.bid = first_order_book.bid[1:]
 
         if not stop_recursion:
@@ -329,6 +337,7 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
                       print_possible_deal_info)
         cnt += 1
         print "Processed ", cnt, " out of ", time_entries_num, " time entries"
+        throw
 
     print "At the end of processing we have following balance:"
     print "NOTE: supposedly all buy \ sell request were fullfilled"
