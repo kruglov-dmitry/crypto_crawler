@@ -91,20 +91,24 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
 
         min_volume = min(first_order_book.bid[FIRST].volume, second_order_book.ask[LAST].volume)
         if min_volume < 0:
-            print min_volume
+            print "analyse_order_book - something severely wrong - NEGATIVE min price: ", min_volume
             # print first_order_book
             # print second_order_book
-            throw
+            raise
 
         if not disbalance_state.do_we_have_enough_by_pair(first_order_book.pair_id,
                                                           first_order_book.exchange_id,
-                                                          min_volume):
+                                                          min_volume,
+                                                          first_order_book.bid[FIRST].price
+                                                          ):
             min_volume = disbalance_state.get_volume_by_pair_id(first_order_book.pair_id,
                                                                 first_order_book.exchange_id)
 
         if not disbalance_state.do_we_have_enough_by_pair(second_order_book.pair_id,
                                                           second_order_book.exchange_id,
-                                                          min_volume):
+                                                          min_volume,
+                                                          second_order_book.ask[LAST].price
+                                                          ):
             min_volume = disbalance_state.get_volume_by_pair_id(second_order_book.pair_id,
                                                                 second_order_book.exchange_id)
 
@@ -230,8 +234,13 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
                                disbalance_state,
                                stop_recursion=False)
 
+
+            # FIXME NOTE - here we treat order book as unchanged, but it may already be affected by previous deals
+            # i.e. we have to at least update it with our own deals
+            # ideally - retrieve it once more time
             first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
             second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
+
             # disbalance_state, treshold_reverse
             if disbalance_state.is_there_disbalance(currency_id,
                                                     src_exchange_id,
@@ -239,6 +248,25 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
                     is_no_pending_order(currency_id, src_exchange_id, dst_exchange_id):
                 analyse_order_book(second_order_book[0],
                                    first_order_book[0],
+                                   treshold_reverse,
+                                   action_to_perform,
+                                   disbalance_state,
+                                   stop_recursion=True)
+
+            # FIXME NOTE - here we treat order book as unchanged, but it may already be affected by previous deals
+            # i.e. we have to at least update it with our own deals
+            # ideally - retrieve it once more time
+            first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
+            second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
+
+            # disbalance_state, treshold_reverse
+            if disbalance_state.is_there_disbalance(currency_id,
+                                                    dst_exchange_id,
+                                                    src_exchange_id
+                                                    ) and \
+                    is_no_pending_order(currency_id, dst_exchange_id, src_exchange_id):
+                analyse_order_book(first_order_book[0],
+                                   second_order_book[0],
                                    treshold_reverse,
                                    action_to_perform,
                                    disbalance_state,
@@ -337,7 +365,6 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
                       print_possible_deal_info)
         cnt += 1
         print "Processed ", cnt, " out of ", time_entries_num, " time entries"
-        throw
 
     print "At the end of processing we have following balance:"
     print "NOTE: supposedly all buy \ sell request were fullfilled"
