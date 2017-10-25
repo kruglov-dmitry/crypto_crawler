@@ -1,50 +1,22 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from utils.time_utils import sleep_for
 import telegram
-from dao.dao import get_ticker
-from core.base_analysis import compare_price, get_diff_lowest_ask_vs_highest_bid, check_highest_bid_bigger_than_lowest_ask
-from utils.currency_utils import get_pair_name_by_id
-from file_parsing import init_pg_connection, load_to_postgres
-from data.Ticker import TICKER_TYPE_NAME
-from utils.time_utils import get_date_time_from_epoch
 
+from core.base_analysis import compare_price, get_diff_lowest_ask_vs_highest_bid, \
+    check_highest_bid_bigger_than_lowest_ask
+from dao.dao import get_ticker
+from data.Ticker import TICKER_TYPE_NAME
+from utils.currency_utils import get_pair_name_by_id
+from dao.db import init_pg_connection, load_to_postgres
+from utils.time_utils import sleep_for
 
 # time to poll
 POLL_PERIOD_SECONDS = 120
 TRIGGER_THRESHOLD = 1.5 # 2 percents only
 
 
-def save_to_file(some_data, file_name):
-    with open(file_name, "a") as myfile:
-        for entry in some_data:
-            myfile.write("%s\n" % str(entry))
 
-
-def save_alarm_into_pg(src_ticker, dst_ticker, pg_conn):
-    cur = pg_conn.get_cursor()
-
-    PG_INSERT_QUERY = "insert into alarms(src_exchange_id, dst_exchange_id, src_pair_id, dst_pair_id, src_ask_price, dst_bid_price, timest, date_time) " \
-                      "values(%s, %s, %s, %s, %s, %s, %s, %s);"
-    args_list = (
-                src_ticker.exchange_id,
-                dst_ticker.exchange_id,
-                src_ticker.pair_id,
-                dst_ticker.pair_id,
-                src_ticker.ask,
-                dst_ticker.bid,
-                src_ticker.timest,
-                get_date_time_from_epoch(src_ticker.timest)
-                )
-
-    try:
-        cur.execute(PG_INSERT_QUERY, args_list)
-    except Exception, e:
-        print "save_alarm_into_pg insert data failed :(  ", str(e)
-        print "args: ", args_list
-    
-    pg_conn.commit()
 
 
 def inform_big_boss(info_to_report, pg_conn):

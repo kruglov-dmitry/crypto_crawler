@@ -1,10 +1,8 @@
 import sys
-sys.setrecursionlimit(100000)
+sys.setrecursionlimit(100)
 
 from dao.dao import get_order_book, buy_by_exchange, sell_by_exchange, balance_init
-from data.OrderBook import ORDER_BOOK_TYPE_NAME
-
-from file_parsing import init_pg_connection, load_to_postgres
+from dao.db import init_pg_connection, load_to_postgres, get_order_book_by_time, get_time_entries
 
 from utils.key_utils import load_keys
 from debug_utils import should_print_debug
@@ -17,13 +15,12 @@ from core.base_math import get_all_combination
 
 from enums.exchange import EXCHANGE
 from enums.currency_pair import CURRENCY_PAIR
-from enums.currency import CURRENCY
 from enums.deal_type import DEAL_TYPE
 
 from collections import defaultdict
 
+from data.OrderBook import ORDER_BOOK_TYPE_NAME
 from data.Trade import Trade
-from data.OrderBook import OrderBook
 from data.Balance import Balance
 from data.BalanceState import BalanceState
 
@@ -31,6 +28,13 @@ from constants import ARBITRAGE_CURRENCY
 
 # time to poll - 2 MINUTES
 POLL_PERIOD_SECONDS = 120
+
+
+# FIXME NOTE:
+# This is indexes for comparison bid\ask within order books
+# yeap, global constants is very bad
+FIRST = 0
+LAST = 0
 
 
 # FIXME NOTES:
@@ -68,49 +72,48 @@ def init_deal(trade_to_perform, debug_msg):
         print "init_deal: failed with following exception: ", str(e), debug_msg
 
 
+def determine_minimum_volume(first_order_book, second_order_book, disbalance_state):
+    min_volume = min(first_order_book.bid[FIRST].volume, second_order_book.ask[LAST].volume)
+    if min_volume < 0:
+        print "analyse_order_book - something severely wrong - NEGATIVE min price: ", min_volume
+        raise
+
+    if not disbalance_state.do_we_have_enough_by_pair(first_order_book.pair_id,
+                                                      first_order_book.exchange_id,
+                                                      min_volume,
+                                                      first_order_book.bid[FIRST].price
+                                                      ):
+        min_volume = disbalance_state.get_volume_by_pair_id(first_order_book.pair_id,
+                                                            first_order_book.exchange_id)
+
+    if not disbalance_state.do_we_have_enough_by_pair(second_order_book.pair_id,
+                                                      second_order_book.exchange_id,
+                                                      min_volume,
+                                                      second_order_book.ask[LAST].price
+                                                      ):
+        min_volume = disbalance_state.get_volume_by_pair_id(second_order_book.pair_id,
+                                                            second_order_book.exchange_id)
+
+    return min_volume
+
+
 def analyse_order_book(first_order_book, second_order_book, threshold, action_to_perform, disbalance_state, stop_recursion):
 
     if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0:
         return
 
-    FIRST = 0
-    LAST = 0  # FIXME should be ZERO as it is already properly sorted
-
     difference = get_change(first_order_book.bid[FIRST].price, second_order_book.ask[LAST].price, provide_abs=False)
 
     if should_print_debug():
-        print "check_highest_bid_bigger_than_lowest_ask"
-        print "ASK: ", first_order_book.bid[FIRST].price
-        print "BID: ", second_order_book.ask[LAST].price
-        print "DIFF: ", difference
+        print "check_highest_bid_bigger_than_lowest_ask: BID = {bid} ASK = {ask}  DIFF = {diff}".format(
+            bid=first_order_book.bid[FIRST].price, ask=second_order_book.ask[LAST].price, diff=difference)
 
     if difference >= threshold:
         # FIXME NOTE think about splitting on sub-methods for beatification
 
         msg = "highest bid bigger than Lowest ask for more than {num} %".format(num=threshold)
 
-        min_volume = min(first_order_book.bid[FIRST].volume, second_order_book.ask[LAST].volume)
-        if min_volume < 0:
-            print "analyse_order_book - something severely wrong - NEGATIVE min price: ", min_volume
-            # print first_order_book
-            # print second_order_book
-            raise
-
-        if not disbalance_state.do_we_have_enough_by_pair(first_order_book.pair_id,
-                                                          first_order_book.exchange_id,
-                                                          min_volume,
-                                                          first_order_book.bid[FIRST].price
-                                                          ):
-            min_volume = disbalance_state.get_volume_by_pair_id(first_order_book.pair_id,
-                                                                first_order_book.exchange_id)
-
-        if not disbalance_state.do_we_have_enough_by_pair(second_order_book.pair_id,
-                                                          second_order_book.exchange_id,
-                                                          min_volume,
-                                                          second_order_book.ask[LAST].price
-                                                          ):
-            min_volume = disbalance_state.get_volume_by_pair_id(second_order_book.pair_id,
-                                                                second_order_book.exchange_id)
+        min_volume = determine_minimum_volume(first_order_book, second_order_book, disbalance_state)
 
         trade_at_first_exchange = Trade(DEAL_TYPE.SELL,
                                         first_order_book.exchange_id,
@@ -140,9 +143,11 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
                                                    second_order_book.ask[LAST].price
                                                    )
 
-        if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0 or \
-           len(first_order_book.ask) == 0 or len(second_order_book.bid) == 0:
+        if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0:
             return
+        # if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0 or \
+        #   len(first_order_book.ask) == 0 or len(second_order_book.bid) == 0:
+        #    return
 
         # adjust volumes
         if first_order_book.bid[FIRST].volume > min_volume:
@@ -222,10 +227,10 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
                                stop_recursion=False)
 
             # FIXME NOTE - here we treat order book as unchanged, but it may already be affected by previous deals
-            # i.e. we have to at least update it with our own deals
-            # ideally - retrieve it once more time
-            first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
-            second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
+            # previous call change bids of first order book & asks of second order book
+            # but here we use oposite - i.e. should be fine
+            # first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
+            # second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
 
             analyse_order_book(second_order_book[0],
                                first_order_book[0],
@@ -234,10 +239,8 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
                                disbalance_state,
                                stop_recursion=False)
 
-
-            # FIXME NOTE - here we treat order book as unchanged, but it may already be affected by previous deals
-            # i.e. we have to at least update it with our own deals
-            # ideally - retrieve it once more time
+            # FIXME NOTE
+            # we need some mechanism to keep track of it!
             first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
             second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
 
@@ -254,8 +257,8 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
                                    stop_recursion=True)
 
             # FIXME NOTE - here we treat order book as unchanged, but it may already be affected by previous deals
-            # i.e. we have to at least update it with our own deals
-            # ideally - retrieve it once more time
+            # previous call change bids of first order book & asks of second order book
+            # but here we use oposite - i.e. should be fine
             first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
             second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
 
@@ -276,67 +279,6 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
 def print_possible_deal_info(trade, file_name):
     with open(file_name, 'a') as the_file:
         the_file.write(str(trade) + "\n")
-
-
-def get_time_entries(pg_conn):
-    time_entries = []
-
-    select_query = "select distinct timest from order_book"
-    cursor = pg_conn.get_cursor()
-
-    cursor.execute(select_query)
-
-    for row in cursor:
-        time_entries.append(long(row[0]))
-
-    return time_entries
-
-
-def get_order_book_asks(pg_conn, order_book_id):
-    order_books_asks = []
-
-    select_query = "select id, order_book_id, price, volume from order_book_ask where order_book_id = " + str(order_book_id)
-    cursor = pg_conn.get_cursor()
-
-    cursor.execute(select_query)
-
-    for row in cursor:
-        order_books_asks.append(row)
-
-    return order_books_asks
-
-
-def get_order_book_bids(pg_conn, order_book_id):
-    order_books_bids = []
-
-    select_query = "select id, order_book_id, price, volume from order_book_bid where order_book_id = " + str(order_book_id)
-    cursor = pg_conn.get_cursor()
-
-    cursor.execute(select_query)
-
-    for row in cursor:
-        order_books_bids.append(row)
-
-    return order_books_bids
-
-
-def get_order_book_by_time(pg_conn, timest):
-    order_books = defaultdict(list)
-
-    select_query = "select id, pair_id, exchange_id, timest from order_book where timest = " + str(timest)
-    cursor = pg_conn.get_cursor()
-
-    cursor.execute(select_query)
-
-    for row in cursor:
-        order_book_id = row[0]
-
-        order_book_asks = get_order_book_asks(pg_conn, order_book_id)
-        order_book_bids = get_order_book_bids(pg_conn, order_book_id)
-
-        order_books[int(row[2])].append(OrderBook.from_row(row, order_book_asks, order_book_bids))
-
-    return order_books
 
 
 def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reverse):

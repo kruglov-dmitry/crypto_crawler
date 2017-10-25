@@ -1,12 +1,10 @@
+from dao.dao import get_ohlc, get_history, get_order_book
 from data.Candle import CANDLE_TYPE_NAME
 from data.OrderBook import ORDER_BOOK_TYPE_NAME
 from data.OrderHistory import TRADE_HISTORY_TYPE_NAME
-
-from dao.dao import get_ohlc, get_history, get_order_book
-from file_parsing import init_pg_connection, load_to_postgres
-from utils.time_utils import get_now_seconds, sleep_for
 from debug_utils import should_print_debug
-
+from dao.db import init_pg_connection, load_to_postgres
+from utils.time_utils import get_now_seconds, sleep_for
 
 # time to poll - 15 minutes
 POLL_PERIOD_SECONDS = 900
@@ -27,9 +25,8 @@ if __name__ == "__main__":
         trade_history = get_history(prev_time, now_time)
 
         if should_print_debug():
-            print "Candle size - {num}".format(num=len(candles))
-            print "Order book size - {num}".format(num=len(order_book))
-            print "Trade history size - {num}".format(num=len(trade_history))
+            print "Candle size - {num} \nOrder book size - {num1} \nTrade history size - {num2}".format(
+                num=len(candles), num1=len(order_book), num2=len(trade_history))
 
         load_to_postgres(candles, CANDLE_TYPE_NAME, pg_conn)
         load_to_postgres(order_book.values(), ORDER_BOOK_TYPE_NAME, pg_conn)
