@@ -88,15 +88,15 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
 
         min_volume = min(first_order_book.bid[0].volume, second_order_book.ask[0].volume)
 
-        if not disbalance_state.do_we_have_enough(first_order_book.pair_id,
-                                                  first_order_book.exchange_id,
-                                                  min_volume):
+        if not disbalance_state.do_we_have_enough_by_pair(first_order_book.pair_id,
+                                                          first_order_book.exchange_id,
+                                                          min_volume):
             min_volume = disbalance_state.get_volume_by_pair_id(first_order_book.pair_id,
                                                                 first_order_book.exchange_id)
 
-        if not disbalance_state.do_we_have_enough(second_order_book.pair_id,
-                                                  second_order_book.exchange_id,
-                                                  min_volume):
+        if not disbalance_state.do_we_have_enough_by_pair(second_order_book.pair_id,
+                                                          second_order_book.exchange_id,
+                                                          min_volume):
             min_volume = disbalance_state.get_volume_by_pair_id(second_order_book.pair_id,
                                                                 second_order_book.exchange_id)
 
