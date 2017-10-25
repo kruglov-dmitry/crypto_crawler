@@ -20,7 +20,7 @@ class Balance(BaseData):
     def __init__(self, exchange_id, last_update, initial_balance):
         self.exchange_id = exchange_id
         self.last_update = last_update
-        self.balance = initial_balance
+        self.balance = initial_balance.copy()
 
     def __str__(self):
         str_repr = "Balance at Exchange: {exch} Last updated: {dt} timest: {ts} %".format(

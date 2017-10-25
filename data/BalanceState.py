@@ -6,8 +6,15 @@ from utils.currency_utils import split_currency_pairs
 
 class BalanceState(BaseData):
     def __init__(self, balance_per_exchange, balance_adjust_threshold):
-        self.balance_per_exchange = balance_per_exchange
+        self.balance_per_exchange = balance_per_exchange.copy()
         self.balance_adjust_threshold = balance_adjust_threshold
+
+    def __str__(self):
+        str_repr = ""
+        for b in self.balance_per_exchange:
+            str_repr += str(self.balance_per_exchange[b]) + "\n"
+
+        return str_repr
 
     def is_there_disbalance(self, currency_id, src_exchange_id, dst_exchange_id, balance_threshold=None):
 
@@ -29,22 +36,22 @@ class BalanceState(BaseData):
         prev_volume = self.balance_per_exchange[exchange_id].balance[currency_id]
         self.balance_per_exchange[exchange_id].balance[currency_id] = volume + prev_volume
 
-    def substract_balance(self, currency_id, exchange_id, volume):
+    def subtract_balance(self, currency_id, exchange_id, volume):
         prev_volume = self.balance_per_exchange[exchange_id].balance[currency_id]
         self.balance_per_exchange[exchange_id].balance[currency_id] = prev_volume - volume
 
     def add_balance_by_pair(self, pair_id, exchange_id, volume, price):
-        # i.e. we SELL src_currency_id for dst_currency_id
+        # i.e. we BUY dst_currency_id for src_currency_id
         src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
 
-        self.substract_balance(src_currency_id, exchange_id, volume * price)  # <<<==== bitcoin!
+        self.subtract_balance(src_currency_id, exchange_id, volume * price)  # <<<==== bitcoin!
 
         self.add_balance(dst_currency_id, exchange_id, volume)
 
-    def substract_balance_by_pair(self, pair_id, exchange_id, volume, price):
-        # i.e. we SELL src_currency_id for dst_currency_id
+    def subtract_balance_by_pair(self, pair_id, exchange_id, volume, price):
+        # i.e. we SELL dst_currency_id for src_currency_id
         src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
-        self.substract_balance(dst_currency_id, exchange_id, volume)
+        self.subtract_balance(dst_currency_id, exchange_id, volume)
 
         self.add_balance(src_currency_id, exchange_id, volume * price) # <<<==== bitcoin!
 
