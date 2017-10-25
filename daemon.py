@@ -8,15 +8,12 @@ from core.base_analysis import compare_price, get_diff_lowest_ask_vs_highest_bid
 from dao.dao import get_ticker
 from data.Ticker import TICKER_TYPE_NAME
 from utils.currency_utils import get_pair_name_by_id
-from dao.db import init_pg_connection, load_to_postgres
+from dao.db import init_pg_connection, load_to_postgres, save_alarm_into_pg
 from utils.time_utils import sleep_for
 
 # time to poll
 POLL_PERIOD_SECONDS = 120
 TRIGGER_THRESHOLD = 1.5 # 2 percents only
-
-
-
 
 
 def inform_big_boss(info_to_report, pg_conn):
