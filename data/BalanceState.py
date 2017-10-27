@@ -60,6 +60,10 @@ class BalanceState(BaseData):
     def do_we_have_enough(self, currency_id, exchange_id, volume):
         return self.balance_per_exchange[exchange_id].balance[currency_id] >= volume
 
-    def get_volume_by_pair_id(self, pair_id, exchange_id):
+    """def get_volume_by_pair_id(self, pair_id, exchange_id, price_mutliplicator):
         src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
-        return self.balance_per_exchange[exchange_id].balance[src_currency_id]
+        return self.balance_per_exchange[exchange_id].balance[src_currency_id] * price_mutliplicator
+        """
+
+    def get_volume_by_currency(self, currency_id, exchange_id):
+        return self.balance_per_exchange[exchange_id].balance[currency_id]

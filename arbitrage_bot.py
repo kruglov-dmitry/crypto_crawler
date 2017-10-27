@@ -72,27 +72,35 @@ def init_deal(trade_to_perform, debug_msg):
         print "init_deal: failed with following exception: ", str(e), debug_msg
 
 
-def determine_minimum_volume(first_order_book, second_order_book, disbalance_state):
+def determine_minimum_volume(first_order_book, second_order_book, balance_state):
+    """
+        we are going to SELL something at first exchange
+        we are going to BUY something at second exchange
+        This method determine maximum available volume of DST_CURRENCY on BOTH exchanges
+
+    :param first_order_book:
+    :param second_order_book:
+    :param balance_state:
+    :return:
+    """
+
     min_volume = min(first_order_book.bid[FIRST].volume, second_order_book.ask[LAST].volume)
     if min_volume < 0:
         print "analyse_order_book - something severely wrong - NEGATIVE min price: ", min_volume
         raise
 
-    if not disbalance_state.do_we_have_enough_by_pair(first_order_book.pair_id,
-                                                      first_order_book.exchange_id,
-                                                      min_volume,
-                                                      first_order_book.bid[FIRST].price
-                                                      ):
-        min_volume = disbalance_state.get_volume_by_pair_id(first_order_book.pair_id,
-                                                            first_order_book.exchange_id)
+    bitcoin_id, dst_currency_id = split_currency_pairs(first_order_book.pair_id)
 
-    if not disbalance_state.do_we_have_enough_by_pair(second_order_book.pair_id,
-                                                      second_order_book.exchange_id,
-                                                      min_volume,
-                                                      second_order_book.ask[LAST].price
-                                                      ):
-        min_volume = disbalance_state.get_volume_by_pair_id(second_order_book.pair_id,
-                                                            second_order_book.exchange_id)
+    if not balance_state.do_we_have_enough(dst_currency_id,
+                                           first_order_book.exchange_id,
+                                           min_volume):
+        min_volume = balance_state.get_volume_by_currency(dst_currency_id, first_order_book.exchange_id)
+
+    if not balance_state.do_we_have_enough_by_pair(first_order_book.pair_id,
+                                                   second_order_book.exchange_id,
+                                                   min_volume,
+                                                   second_order_book.ask[LAST].price):
+        min_volume = second_order_book.ask[LAST].price * balance_state.get_volume_by_currency(bitcoin_id, second_order_book.exchange_id)
 
     return min_volume
 
@@ -179,10 +187,10 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
     """
 
     # split on currencies
-    for currency_id in CURRENCY_PAIR.values():
+    for pair_id in CURRENCY_PAIR.values():
 
         # we interested ONLY in arbitrage related coins
-        src_coin, dst_coin = split_currency_pairs(currency_id)
+        src_coin, dst_coin = split_currency_pairs(pair_id)
         if src_coin not in ARBITRAGE_CURRENCY or \
                 dst_coin not in ARBITRAGE_CURRENCY:
             continue
@@ -191,7 +199,7 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
 
         for exchange_id in EXCHANGE.values():
             if exchange_id in order_book:
-                exchange_order_book = [x for x in order_book[exchange_id] if x.pair_id == currency_id]
+                exchange_order_book = [x for x in order_book[exchange_id] if x.pair_id == pair_id]
 
                 # sort bids ascending and asks descending by price
                 for x in exchange_order_book:
@@ -214,7 +222,7 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
 
             if len(first_order_book) != 1 or len(second_order_book) != 1:
                 print "mega_analysis: Something severely wrong!", len(first_order_book), len(second_order_book)
-                print "For currency", get_pair_name_by_id(currency_id)
+                print "For currency", get_pair_name_by_id(pair_id)
                 print "For exchanges", get_exchange_name_by_id(src_exchange_id)
                 print "For exchanges", get_exchange_name_by_id(dst_exchange_id)
                 continue
@@ -244,13 +252,17 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
             first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
             second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
 
+            src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
+
+            # TODO for every pair permutate and do
+
             # disbalance_state, treshold_reverse
-            if disbalance_state.is_there_disbalance(currency_id,
+            if disbalance_state.is_there_disbalance(dst_currency_id,
                                                     src_exchange_id,
                                                     dst_exchange_id) and \
-                    is_no_pending_order(currency_id, src_exchange_id, dst_exchange_id):
-                analyse_order_book(second_order_book[0],
-                                   first_order_book[0],
+                    is_no_pending_order(pair_id, src_exchange_id, dst_exchange_id):
+                analyse_order_book(first_order_book[0],
+                                   second_order_book[0],
                                    treshold_reverse,
                                    action_to_perform,
                                    disbalance_state,
@@ -263,13 +275,13 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
             second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
 
             # disbalance_state, treshold_reverse
-            if disbalance_state.is_there_disbalance(currency_id,
+            if disbalance_state.is_there_disbalance(dst_currency_id,
                                                     dst_exchange_id,
                                                     src_exchange_id
                                                     ) and \
-                    is_no_pending_order(currency_id, dst_exchange_id, src_exchange_id):
-                analyse_order_book(first_order_book[0],
-                                   second_order_book[0],
+                    is_no_pending_order(pair_id, dst_exchange_id, src_exchange_id):
+                analyse_order_book(second_order_book[0],
+                                   first_order_book[0],
                                    treshold_reverse,
                                    action_to_perform,
                                    disbalance_state,
