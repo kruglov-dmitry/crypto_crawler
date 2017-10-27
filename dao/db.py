@@ -82,7 +82,7 @@ def save_alarm_into_pg(src_ticker, dst_ticker, pg_conn):
 def get_time_entries(pg_conn):
     time_entries = []
 
-    select_query = "select distinct timest from order_book"
+    select_query = "select distinct timest from order_book order by timest desc"
     cursor = pg_conn.get_cursor()
 
     cursor.execute(select_query)
