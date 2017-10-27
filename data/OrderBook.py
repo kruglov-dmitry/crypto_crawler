@@ -19,8 +19,8 @@ ORDER_BOOK_INSERT_QUERY = "insert into order_book(pair_id, exchange_id, timest, 
                           "values(%s, %s, %s, %s) RETURNING id;"
 ORDER_BOOK_TYPE_NAME = "order_book"
 
-ORDER_BOOK_INSERT_BIDS = "insert into order_book_ask(order_book_id, price, volume) values (%s, %s, %s);"
-ORDER_BOOK_INSERT_ASKS = "insert into order_book_bid(order_book_id, price, volume) values (%s, %s, %s);"
+ORDER_BOOK_INSERT_BIDS = "insert into order_book_bid(order_book_id, price, volume) values (%s, %s, %s);"
+ORDER_BOOK_INSERT_ASKS = "insert into order_book_ask(order_book_id, price, volume) values (%s, %s, %s);"
 
 
 class OrderBook(BaseData):
@@ -121,11 +121,11 @@ class OrderBook(BaseData):
         """
 
         ask_bids = []
-        for b in json_document["buy"]:
+        for b in json_document["sell"]:
             ask_bids.append(Deal(b["Rate"], b["Quantity"]))
 
         sell_bids = []
-        for b in json_document["sell"]:
+        for b in json_document["buy"]:
             sell_bids.append(Deal(b["Rate"], b["Quantity"]))
 
         currency_pair = get_currency_pair_from_bittrex(currency)
