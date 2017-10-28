@@ -380,6 +380,7 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
         print current_balance.balance_per_exchange[exch_id]
 
     for every_time_entry in time_entries:
+        print every_time_entry
         order_book_grouped_by_time = get_order_book_by_time(pg_conn, every_time_entry)
 
         # for x in order_book_grouped_by_time:
@@ -389,9 +390,15 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
                       treshold_reverse,
                       print_possible_deal_info)
         cnt += 1
-        print "Processed ", cnt, " out of ", time_entries_num, " time entries"
-        print current_balance
-        raise
+        some_msg = "Processed order_book #{cnt} out of {total} time entries\n current_balance={balance}".format(
+            cnt=cnt, total=time_entries_num, balance=str(current_balance))
+
+        print some_msg
+
+        print_possible_deal_info(some_msg, "history_trades.txt")
+
+        if cnt == 1000:
+            raise
 
     print "At the end of processing we have following balance:"
     print "NOTE: supposedly all buy \ sell request were fullfilled"
