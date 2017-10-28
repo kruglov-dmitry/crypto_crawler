@@ -1,0 +1,2 @@
+telegram
+psycopg2
