@@ -373,7 +373,7 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
     cnt = 0
     # DEFAULT_VOLUME = 100000
     # current_balance = dummy_balance_init(time_entries[0], DEFAULT_VOLUME, balance_adjust_threshold)
-
+    MAX_ORDER_BOOK_COUNT = 1000
     current_balance = custom_balance_init(time_entries[0], balance_adjust_threshold)
 
     for exch_id in current_balance.balance_per_exchange:
@@ -397,7 +397,7 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
 
         print_possible_deal_info(some_msg, "history_trades.txt")
 
-        if cnt == 1000:
+        if cnt == MAX_ORDER_BOOK_COUNT:
             raise
 
     print "At the end of processing we have following balance:"
