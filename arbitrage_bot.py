@@ -21,6 +21,7 @@ from collections import defaultdict
 
 from data.OrderBook import ORDER_BOOK_TYPE_NAME
 from data.Trade import Trade
+from data.TradePair import TradePair
 from data.Balance import Balance
 from data.BalanceState import BalanceState
 
@@ -105,7 +106,19 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
     return min_volume
 
 
-def analyse_order_book(first_order_book, second_order_book, threshold, action_to_perform, disbalance_state, stop_recursion):
+def analyse_order_book(first_order_book, second_order_book, threshold, action_to_perform, disbalance_state,
+                       stop_recursion, type_of_deal):
+    """
+    FIXMR NOTE - add comments!
+    :param first_order_book:
+    :param second_order_book:
+    :param threshold:
+    :param action_to_perform:
+    :param disbalance_state:
+    :param stop_recursion:
+    :param type_of_deal:
+    :return:
+    """
 
     if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0:
         return
@@ -128,7 +141,7 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
                                         first_order_book.pair_id,
                                         first_order_book.bid[FIRST].price,
                                         min_volume)
-        action_to_perform(trade_at_first_exchange, "history_trades.txt")
+        # action_to_perform(trade_at_first_exchange, "history_trades.txt")
 
         # FIXME NOTE - should be performed ONLY after deal confirmation
         disbalance_state.subtract_balance_by_pair(first_order_book.pair_id,
@@ -141,7 +154,14 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
                                          second_order_book.pair_id,
                                          second_order_book.ask[LAST].price,
                                          min_volume)
-        action_to_perform(trade_at_second_exchange, "history_trades.txt")
+        # action_to_perform(trade_at_second_exchange, "history_trades.txt")
+
+        action_to_perform(TradePair(trade_at_first_exchange,
+                                    trade_at_second_exchange,
+                                    first_order_book.timest,
+                                    second_order_book.timest,
+                                    type_of_deal),
+                          "history_trades.txt")
 
         # FIXME NOTE - should be performed ONLY after deal confirmation
         disbalance_state.add_balance_by_pair(second_order_book.pair_id,
@@ -170,7 +190,8 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
                                threshold,
                                action_to_perform,
                                disbalance_state,
-                               stop_recursion)
+                               stop_recursion,
+                               type_of_deal)
 
 
 def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, action_to_perform):
@@ -230,7 +251,8 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
                                threshold,
                                action_to_perform,
                                disbalance_state,
-                               stop_recursion=False)
+                               stop_recursion=False,
+                               type_of_deal=DEAL_TYPE.ARBITRAGE)
 
             # FIXME NOTE - here we treat order book as unchanged, but it may already be affected by previous deals
             # previous call change bids of first order book & asks of second order book
@@ -243,7 +265,8 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
                                threshold,
                                action_to_perform,
                                disbalance_state,
-                               stop_recursion=False)
+                               stop_recursion=False,
+                               type_of_deal=DEAL_TYPE.ARBITRAGE)
 
             # FIXME NOTE
             # we need some mechanism to keep track of it!
@@ -264,7 +287,8 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
                                    treshold_reverse,
                                    action_to_perform,
                                    disbalance_state,
-                                   stop_recursion=True)
+                                   stop_recursion=True,
+                                   type_of_deal=DEAL_TYPE.REVERSE)
 
             # FIXME NOTE - here we treat order book as unchanged, but it may already be affected by previous deals
             # previous call change bids of first order book & asks of second order book
@@ -283,7 +307,8 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
                                    treshold_reverse,
                                    action_to_perform,
                                    disbalance_state,
-                                   stop_recursion=True)
+                                   stop_recursion=True,
+                                   type_of_deal=DEAL_TYPE.REVERSE)
 
 
 def print_possible_deal_info(trade, file_name):
