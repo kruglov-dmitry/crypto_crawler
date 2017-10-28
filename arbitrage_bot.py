@@ -342,8 +342,13 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
                       treshold_reverse,
                       print_possible_deal_info)
         cnt += 1
-        print "Processed ", cnt, " out of ", time_entries_num, " time entries"
-        print current_balance
+        some_msg = "Processed order_book #{cnt} out of {total} time entries\n current_balance={balance}".format(
+            cnt=cnt, total=time_entries_num, balance=str(current_balance))
+
+        print some_msg
+
+        print_possible_deal_info(some_msg, "history_trades.txt")
+
         if cnt == 1000:
             raise
 
