@@ -16,6 +16,7 @@ from core.base_math import get_all_combination
 from enums.exchange import EXCHANGE
 from enums.currency_pair import CURRENCY_PAIR
 from enums.deal_type import DEAL_TYPE
+from enums.currency import CURRENCY
 
 from collections import defaultdict
 
@@ -61,6 +62,50 @@ def dummy_balance_init(timest, default_volume, balance_adjust_threshold):
         balance[exchange_id] = Balance(exchange_id, timest, initial_balance)
 
     return BalanceState(balance, balance_adjust_threshold)
+
+
+def custom_balance_init(timest, balance_adjust_threshold):
+
+    # CURRENCY.BITCOIN, CURRENCY.DASH, CURRENCY.BCC, CURRENCY.XRP, CURRENCY.LTC, CURRENCY.ETC, CURRENCY.ETH
+    # EXCHANGE.POLONIEX_EXCHANGE, EXCHANGE.KRAKEN_EXCHANGE, EXCHANGE.BITTREX_EXCHANGE
+
+    balance = {}
+
+    poloniex_balance = {}
+    poloniex_balance[CURRENCY.BITCOIN] = 1.0
+    poloniex_balance[CURRENCY.DASH] = 1.0
+    poloniex_balance[CURRENCY.BCC] = 1.0
+    poloniex_balance[CURRENCY.XRP] = 1.0
+    poloniex_balance[CURRENCY.LTC] = 1.0
+    poloniex_balance[CURRENCY.ETC] = 1.0
+    poloniex_balance[CURRENCY.ETH] = 1.0
+
+    balance[EXCHANGE.POLONIEX_EXCHANGE] = Balance(EXCHANGE.POLONIEX_EXCHANGE, timest, poloniex_balance)
+
+    kraken_balance = {}
+    kraken_balance[CURRENCY.BITCOIN] = 1.0
+    kraken_balance[CURRENCY.DASH] = 1.0
+    kraken_balance[CURRENCY.BCC] = 1.0
+    kraken_balance[CURRENCY.XRP] = 1.0
+    kraken_balance[CURRENCY.LTC] = 1.0
+    kraken_balance[CURRENCY.ETC] = 1.0
+    kraken_balance[CURRENCY.ETH] = 1.0
+
+    balance[EXCHANGE.KRAKEN_EXCHANGE] = Balance(EXCHANGE.KRAKEN_EXCHANGE, timest, kraken_balance)
+
+    bittrex_balance = {}
+    bittrex_balance[CURRENCY.BITCOIN] = 1.0
+    bittrex_balance[CURRENCY.DASH] = 1.0
+    bittrex_balance[CURRENCY.BCC] = 1.0
+    bittrex_balance[CURRENCY.XRP] = 1.0
+    bittrex_balance[CURRENCY.LTC] = 1.0
+    bittrex_balance[CURRENCY.ETC] = 1.0
+    bittrex_balance[CURRENCY.ETH] = 1.0
+
+    balance[EXCHANGE.BITTREX_EXCHANGE] = Balance(EXCHANGE.BITTREX_EXCHANGE, timest, bittrex_balance)
+
+    return BalanceState(balance, balance_adjust_threshold)
+
 
 
 def init_deal(trade_to_perform, debug_msg):
@@ -326,8 +371,11 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
     print "Order_book num: ", time_entries_num
 
     cnt = 0
-    DEFAULT_VOLUME = 100000
-    current_balance = dummy_balance_init(time_entries[0], DEFAULT_VOLUME, balance_adjust_threshold)
+    # DEFAULT_VOLUME = 100000
+    # current_balance = dummy_balance_init(time_entries[0], DEFAULT_VOLUME, balance_adjust_threshold)
+
+    current_balance = custom_balance_init(time_entries[0], balance_adjust_threshold)
+
     for exch_id in current_balance.balance_per_exchange:
         print current_balance.balance_per_exchange[exch_id]
 
