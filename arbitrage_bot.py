@@ -364,7 +364,7 @@ def print_possible_deal_info(trade, file_name):
 def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reverse):
     # FIXME NOTE: accumulate profit
 
-    pg_conn = init_pg_connection(_db_host="PUT IP HERE")
+    pg_conn = init_pg_connection(_db_host="PUT IP HERE", _db_port=6666)
     time_entries = get_time_entries(pg_conn)
     time_entries_num = len(time_entries)
 

@@ -4,9 +4,9 @@ from data_access.postgres_connection import PostgresConnection
 from utils.time_utils import get_date_time_from_epoch
 
 
-def init_pg_connection(_db_host="192.168.1.106"):
+def init_pg_connection(_db_host="192.168.1.106", _db_port=5432):
     # FIXME NOTE hardcoding is baaad Dmitry! pass some config
-    pg_conn = PostgresConnection(db_host=_db_host, db_port=5432, db_name="postgres", db_user="postgres",
+    pg_conn = PostgresConnection(db_host=_db_host, db_port=_db_port, db_name="postgres", db_user="postgres",
                                  db_password="postgres")
     pg_conn.connect()
     return pg_conn
