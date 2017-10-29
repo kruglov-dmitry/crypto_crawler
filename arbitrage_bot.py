@@ -80,7 +80,7 @@ def custom_balance_init(timest, balance_adjust_threshold):
     poloniex_balance[CURRENCY.ETC] = 1.0
     poloniex_balance[CURRENCY.ETH] = 1.0
 
-    balance[EXCHANGE.POLONIEX_EXCHANGE] = Balance(EXCHANGE.POLONIEX_EXCHANGE, timest, poloniex_balance)
+    balance[EXCHANGE.POLONIEX] = Balance(EXCHANGE.POLONIEX, timest, poloniex_balance)
 
     kraken_balance = {}
     kraken_balance[CURRENCY.BITCOIN] = 1.0
@@ -91,7 +91,7 @@ def custom_balance_init(timest, balance_adjust_threshold):
     kraken_balance[CURRENCY.ETC] = 1.0
     kraken_balance[CURRENCY.ETH] = 1.0
 
-    balance[EXCHANGE.KRAKEN_EXCHANGE] = Balance(EXCHANGE.KRAKEN_EXCHANGE, timest, kraken_balance)
+    balance[EXCHANGE.KRAKEN] = Balance(EXCHANGE.KRAKEN, timest, kraken_balance)
 
     bittrex_balance = {}
     bittrex_balance[CURRENCY.BITCOIN] = 1.0
@@ -102,10 +102,9 @@ def custom_balance_init(timest, balance_adjust_threshold):
     bittrex_balance[CURRENCY.ETC] = 1.0
     bittrex_balance[CURRENCY.ETH] = 1.0
 
-    balance[EXCHANGE.BITTREX_EXCHANGE] = Balance(EXCHANGE.BITTREX_EXCHANGE, timest, bittrex_balance)
+    balance[EXCHANGE.BITTREX] = Balance(EXCHANGE.BITTREX, timest, bittrex_balance)
 
     return BalanceState(balance, balance_adjust_threshold)
-
 
 
 def init_deal(trade_to_perform, debug_msg):
