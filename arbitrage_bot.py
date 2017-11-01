@@ -71,36 +71,18 @@ def custom_balance_init(timest, balance_adjust_threshold):
 
     balance = {}
 
-    poloniex_balance = {}
-    poloniex_balance[CURRENCY.BITCOIN] = 1.0
-    poloniex_balance[CURRENCY.DASH] = 1.0
-    poloniex_balance[CURRENCY.BCC] = 1.0
-    poloniex_balance[CURRENCY.XRP] = 1.0
-    poloniex_balance[CURRENCY.LTC] = 1.0
-    poloniex_balance[CURRENCY.ETC] = 1.0
-    poloniex_balance[CURRENCY.ETH] = 1.0
+    poloniex_balance = {CURRENCY.BITCOIN: 10.0, CURRENCY.DASH: 15.0, CURRENCY.BCC: 13.0, CURRENCY.XRP: 30000.0,
+                        CURRENCY.LTC: 100.0, CURRENCY.ETC: 600.0, CURRENCY.ETH: 20.0}
 
     balance[EXCHANGE.POLONIEX] = Balance(EXCHANGE.POLONIEX, timest, poloniex_balance)
 
-    kraken_balance = {}
-    kraken_balance[CURRENCY.BITCOIN] = 1.0
-    kraken_balance[CURRENCY.DASH] = 1.0
-    kraken_balance[CURRENCY.BCC] = 1.0
-    kraken_balance[CURRENCY.XRP] = 1.0
-    kraken_balance[CURRENCY.LTC] = 1.0
-    kraken_balance[CURRENCY.ETC] = 1.0
-    kraken_balance[CURRENCY.ETH] = 1.0
+    kraken_balance = {CURRENCY.BITCOIN: 10.0, CURRENCY.DASH: 15.0, CURRENCY.BCC: 13.0, CURRENCY.XRP: 30000.0,
+                      CURRENCY.LTC: 100.0, CURRENCY.ETC: 600.0, CURRENCY.ETH: 20.0}
 
     balance[EXCHANGE.KRAKEN] = Balance(EXCHANGE.KRAKEN, timest, kraken_balance)
 
-    bittrex_balance = {}
-    bittrex_balance[CURRENCY.BITCOIN] = 1.0
-    bittrex_balance[CURRENCY.DASH] = 1.0
-    bittrex_balance[CURRENCY.BCC] = 1.0
-    bittrex_balance[CURRENCY.XRP] = 1.0
-    bittrex_balance[CURRENCY.LTC] = 1.0
-    bittrex_balance[CURRENCY.ETC] = 1.0
-    bittrex_balance[CURRENCY.ETH] = 1.0
+    bittrex_balance = {CURRENCY.BITCOIN: 10.0, CURRENCY.DASH: 15.0, CURRENCY.BCC: 13.0, CURRENCY.XRP: 30000.0,
+                       CURRENCY.LTC: 100.0, CURRENCY.ETC: 600.0, CURRENCY.ETH: 20.0}
 
     balance[EXCHANGE.BITTREX] = Balance(EXCHANGE.BITTREX, timest, bittrex_balance)
 
@@ -179,6 +161,10 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
         msg = "highest bid bigger than Lowest ask for more than {num} %".format(num=threshold)
 
         min_volume = determine_minimum_volume(first_order_book, second_order_book, disbalance_state)
+
+        if min_volume <= 0:
+            print "analyse_order_book - balance is ZERO!!! "
+            return
 
         trade_at_first_exchange = Trade(DEAL_TYPE.SELL,
                                         first_order_book.exchange_id,
