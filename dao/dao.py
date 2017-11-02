@@ -91,7 +91,7 @@ def get_ohlc():
 
 
 def get_order_book():
-    
+
     all_order_book = defaultdict(list)
 
     timest = get_now_seconds()
@@ -99,17 +99,17 @@ def get_order_book():
     for currency in POLONIEX_CURRENCIES:
         order_book = get_order_book_poloniex(currency, timest)
         if order_book is not None:
-            all_order_book[EXCHANGE.POLONIEX] = order_book
+            all_order_book[EXCHANGE.POLONIEX].append(order_book)
 
     for currency in KRAKEN_CURRENCY_PAIRS:
         order_book = get_order_book_kraken(currency, timest)
         if order_book is not None:
-            all_order_book[EXCHANGE.KRAKEN] = order_book
+            all_order_book[EXCHANGE.KRAKEN].append(order_book)
 
     for currency in BITTREX_CURRENCIES:
         order_book = get_order_book_bittrex(currency, timest)
         if order_book is not None:
-            all_order_book[EXCHANGE.BITTREX] = order_book
+            all_order_book[EXCHANGE.BITTREX].append(order_book)
 
     return all_order_book
 
