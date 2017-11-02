@@ -358,22 +358,22 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
     cnt = 0
     # DEFAULT_VOLUME = 100000
     # current_balance = dummy_balance_init(time_entries[0], DEFAULT_VOLUME, balance_adjust_threshold)
-    MAX_ORDER_BOOK_COUNT = 1000
+    MAX_ORDER_BOOK_COUNT = 10000
     current_balance = custom_balance_init(time_entries[0], balance_adjust_threshold)
 
     for exch_id in current_balance.balance_per_exchange:
         print current_balance.balance_per_exchange[exch_id]
 
     for every_time_entry in time_entries:
-        print every_time_entry
         order_book_grouped_by_time = get_order_book_by_time(pg_conn, every_time_entry)
 
-        # for x in order_book_grouped_by_time:
-        mega_analysis(order_book_grouped_by_time,
-                      deal_threshold,
-                      current_balance,
-                      treshold_reverse,
-                      print_possible_deal_info)
+        for x in order_book_grouped_by_time:
+            mega_analysis(order_book_grouped_by_time,
+                          deal_threshold,
+                          current_balance,
+                          treshold_reverse,
+                          print_possible_deal_info)
+
         cnt += 1
         some_msg = "Processed order_book #{cnt} out of {total} time entries\n current_balance={balance}".format(
             cnt=cnt, total=time_entries_num, balance=str(current_balance))
