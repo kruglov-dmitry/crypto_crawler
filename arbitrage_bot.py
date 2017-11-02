@@ -171,11 +171,9 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
                                         first_order_book.pair_id,
                                         first_order_book.bid[FIRST].price,
                                         min_volume)
-        # action_to_perform(trade_at_first_exchange, "history_trades.txt")
 
         # FIXME NOTE - should be performed ONLY after deal confirmation
-        disbalance_state.subtract_balance_by_pair(first_order_book.pair_id,
-                                                  first_order_book.exchange_id,
+        disbalance_state.subtract_balance_by_pair(first_order_book,
                                                   min_volume,
                                                   first_order_book.bid[FIRST].price)
 
@@ -194,8 +192,7 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
                           "history_trades.txt")
 
         # FIXME NOTE - should be performed ONLY after deal confirmation
-        disbalance_state.add_balance_by_pair(second_order_book.pair_id,
-                                             second_order_book.exchange_id,
+        disbalance_state.add_balance_by_pair(second_order_book,
                                              min_volume,
                                              second_order_book.ask[LAST].price)
 

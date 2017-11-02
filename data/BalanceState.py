@@ -40,20 +40,24 @@ class BalanceState(BaseData):
         prev_volume = self.balance_per_exchange[exchange_id].balance[currency_id]
         self.balance_per_exchange[exchange_id].balance[currency_id] = prev_volume - volume
 
-    def add_balance_by_pair(self, pair_id, exchange_id, volume, price):
+    def add_balance_by_pair(self, order_book, volume, price):
         # i.e. we BUY dst_currency_id for src_currency_id
-        src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
+        src_currency_id, dst_currency_id = split_currency_pairs(order_book.pair_id)
 
-        self.subtract_balance(src_currency_id, exchange_id, volume * price)  # <<<==== bitcoin!
+        self.subtract_balance(src_currency_id, order_book.exchange_id, volume * price)  # <<<==== bitcoin!
 
-        self.add_balance(dst_currency_id, exchange_id, volume)
+        self.add_balance(dst_currency_id, order_book.exchange_id, volume)
 
-    def subtract_balance_by_pair(self, pair_id, exchange_id, volume, price):
+        self.update_time(order_book.exchange_id, order_book.timest)
+
+    def subtract_balance_by_pair(self, order_book, volume, price):
         # i.e. we SELL dst_currency_id for src_currency_id
-        src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
-        self.subtract_balance(dst_currency_id, exchange_id, volume)
+        src_currency_id, dst_currency_id = split_currency_pairs(order_book.pair_id)
+        self.subtract_balance(dst_currency_id, order_book.exchange_id, volume)
 
-        self.add_balance(src_currency_id, exchange_id, volume * price) # <<<==== bitcoin!
+        self.add_balance(src_currency_id, order_book.exchange_id, volume * price) # <<<==== bitcoin!
+
+        self.update_time(order_book.exchange_id, order_book.timest)
 
     def do_we_have_enough_by_pair(self, pair_id, exchange_id, volume, price):
 
@@ -74,3 +78,6 @@ class BalanceState(BaseData):
 
     def get_volume_by_currency(self, currency_id, exchange_id):
         return self.balance_per_exchange[exchange_id].balance[currency_id]
+
+    def update_time(self, exchange_id, timest):
+        self.balance_per_exchange[exchange_id].last_update = timest
