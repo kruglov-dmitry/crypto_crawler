@@ -1,6 +1,7 @@
 from data.BaseData import BaseData
 from utils.other_utils import get_next_id
 from enums.deal_type import get_deal_type_by_id
+from utils.exchange_utils import get_fee_by_exchange
 
 
 class TradePair(BaseData):
@@ -28,5 +29,6 @@ class TradePair(BaseData):
 
     @staticmethod
     def compute_profit(deal_1, deal_2):
-        # FIXME NOTE internal magic numbers >_<
-        return deal_1.volume * deal_1.price * 0.9975 - deal_2.volume * deal_2.price * 1.0025
+        # FIXME Profit in BTC = vol*price_ex1*(1-fee1) - vol*price_ex2 - vol*fee2*avg_price ( We can take avg_price as (price_ex1+price_ex2)/2)
+        return deal_1.volume * deal_1.price * (100 - get_fee_by_exchange(deal_1.exchange_id)) - \
+               deal_2.volume * deal_2.price * (100 + get_fee_by_exchange(deal_2.exchange_id))

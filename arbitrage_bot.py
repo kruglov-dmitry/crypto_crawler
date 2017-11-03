@@ -41,9 +41,12 @@ LAST = 0
 
 
 # FIXME NOTES:
-# 2. load current deals set?
-# 3. integrate to bot commands to show active deal and be able to cancel them by command in chat?
-# 4. take into account that we may need to change frequency of polling based on prospectivness of currency pair
+# 1. load current deals set?
+# 2. integrate to bot commands to show active deal and be able to cancel them by command in chat?
+# 3. take into account that we may need to change frequency of polling based on prospectivness of currency pair
+
+# FIXME NOTE - global variables are VERY bad
+overall_profit_so_far = 0.0
 
 
 def is_no_pending_order(currency_id, src_exchange_id, dst_exchange_id):
@@ -112,7 +115,31 @@ def init_deal(trade_to_perform, debug_msg):
         else:
             sell_by_exchange(trade_to_perform)
     except Exception, e:
-        print "init_deal: failed with following exception: ", str(e), debug_msg
+        print "init_deal: FAILED ERROR WE ALL DIE with following exception: ", str(e), debug_msg
+
+
+def log_to_file(trade, file_name):
+    with open(file_name, 'a') as the_file:
+        the_file.write(str(trade) + "\n")
+
+
+def init_deals_with_logging(trade_pairs, file_name):
+    global overall_profit_so_far
+
+    # market routine
+    debug_msg = "Deals details: " + str(trade_pairs.deal_1)
+    init_deal(trade_pairs.deal_1, debug_msg)
+
+    debug_msg = "Deals details: " + str(trade_pairs.deal_2)
+    init_deal(trade_pairs.deal_2, debug_msg)
+
+    # Logging TODO save to postgres
+    log_to_file(trade_pairs, file_name)
+
+    overall_profit_so_far += trade_pairs.current_profit
+
+    print "Some deals sent to exchanges. Expected profit: {cur}. Overall: {tot}".format(cur=trade_pairs.current_profit,
+                                                                                        tot=overall_profit_so_far)
 
 
 def determine_minimum_volume(first_order_book, second_order_book, balance_state):
@@ -241,16 +268,18 @@ def analyse_order_book(first_order_book,
                                threshold,
                                action_to_perform,
                                balance_state,
+                               deal_cap,
                                stop_recursion,
                                type_of_deal)
 
 
-def mega_analysis(order_book, threshold, balance_state, treshold_reverse, action_to_perform, deal_cap):
+def mega_analysis(order_book, threshold, balance_state, deal_cap, treshold_reverse, action_to_perform):
     """
     :param order_book: dict of lists with order book, where keys are exchange names within particular time window
             either request timeout or by timest window during playing within database
     :param threshold: minimum difference of ask vs bid in percent that should trigger deal
     :param balance_state
+    :param deal_cap
     :param treshold_reverse
     :param action_to_perform: method, that take details of ask bid at two exchange and trigger deals
     :return:
@@ -368,11 +397,6 @@ def mega_analysis(order_book, threshold, balance_state, treshold_reverse, action
                                    type_of_deal=DEAL_TYPE.REVERSE)
 
 
-def print_possible_deal_info(trade, file_name):
-    with open(file_name, 'a') as the_file:
-        the_file.write(str(trade) + "\n")
-
-
 def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reverse):
     # FIXME NOTE: accumulate profit
 
@@ -387,6 +411,7 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
     # current_balance = dummy_balance_init(time_entries[0], DEFAULT_VOLUME, balance_adjust_threshold)
     MAX_ORDER_BOOK_COUNT = 10000
     current_balance = custom_balance_init(time_entries[0], balance_adjust_threshold)
+    deal_cap = common_cap_init()
 
     for exch_id in current_balance.balance_per_exchange:
         print current_balance.balance_per_exchange[exch_id]
@@ -399,7 +424,8 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
                           deal_threshold,
                           current_balance,
                           treshold_reverse,
-                          print_possible_deal_info)
+                          log_to_file,
+                          deal_cap)
 
         cnt += 1
         some_msg = "Processed order_book #{cnt} out of {total} time entries\n current_balance={balance}".format(
@@ -407,7 +433,7 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
 
         print some_msg
 
-        print_possible_deal_info(some_msg, "history_trades.txt")
+        log_to_file(some_msg, "history_trades.txt")
 
         if cnt == MAX_ORDER_BOOK_COUNT:
             raise
@@ -428,7 +454,7 @@ def run_bot(deal_threshold, balance_adjust_threshold, treshold_reverse):
 
         current_balance = balance_init(balance_adjust_threshold)
 
-        mega_analysis(order_book, deal_threshold, current_balance, treshold_reverse, init_deal, deal_cap)
+        mega_analysis(order_book, deal_threshold, current_balance, deal_cap, treshold_reverse, init_deals_with_logging)
 
         load_to_postgres(order_book, ORDER_BOOK_TYPE_NAME, pg_conn)
 
