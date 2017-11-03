@@ -139,7 +139,7 @@ def buy_by_exchange(trade):
         add_buy_order_kraken(key, currency, trade.price, trade.volume)
     elif trade.exchange_id == EXCHANGE.POLONIEX:
         currency = get_currency_pair_to_poloniex(trade.pair_id)
-        add_buy_order_poloniex(key, trade.pair_id, trade.price, trade.volume)
+        add_buy_order_poloniex(key, currency, trade.price, trade.volume)
     else:
         print "buy_by_exchange - Unknown exchange! ", trade
 

@@ -30,7 +30,7 @@ from data.MarketCap import MarketCap
 from constants import ARBITRAGE_CURRENCY
 
 # time to poll - 2 MINUTES
-POLL_PERIOD_SECONDS = 120
+POLL_PERIOD_SECONDS = 7
 
 import telegram
 
@@ -112,10 +112,10 @@ def common_cap_init():
 
 def init_deal(trade_to_perform, debug_msg):
     try:
-        if trade_to_perform.deal_type == DEAL_TYPE.SELL:
-            buy_by_exchange(trade_to_perform)
-        else:
+        if trade_to_perform.trade_type == DEAL_TYPE.SELL:
             sell_by_exchange(trade_to_perform)
+        else:
+            buy_by_exchange(trade_to_perform)
     except Exception, e:
         print "init_deal: FAILED ERROR WE ALL DIE with following exception: ", str(e), debug_msg
 
@@ -224,7 +224,7 @@ def analyse_order_book(first_order_book,
         min_volume = determine_minimum_volume(first_order_book, second_order_book, balance_state)
 
         if min_volume <= 0:
-            print "analyse_order_book - balance is ZERO!!! "
+            print "analyse_order_book - balance is ZERO!!! ", get_pair_name_by_id(first_order_book.pair_id), get_exchange_name_by_id(first_order_book.exchange_id), get_exchange_name_by_id(second_order_book.exchange_id)
             return
 
         min_volume = min(min_volume, deal_cap.get_max_volume_cap_by_dst(first_order_book.pair_id))
@@ -476,7 +476,8 @@ def run_bot(deal_threshold, balance_adjust_threshold, treshold_reverse):
 
         mega_analysis(order_book, deal_threshold, current_balance, deal_cap, treshold_reverse, init_deals_with_logging)
 
-        load_to_postgres(order_book, ORDER_BOOK_TYPE_NAME, pg_conn)
+        # for exchange_id in order_book:
+        #     load_to_postgres(order_book[exchange_id], ORDER_BOOK_TYPE_NAME, pg_conn)
 
         print "Before sleep..."
         sleep_for(POLL_PERIOD_SECONDS)
@@ -490,4 +491,5 @@ if __name__ == "__main__":
     treshold_reverse = 0.6
     balance_adjust_threshold = 5.0
 
-    run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reverse)
+    # run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reverse)
+    run_bot(deal_threshold, balance_adjust_threshold, treshold_reverse)
