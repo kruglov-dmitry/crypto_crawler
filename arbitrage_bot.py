@@ -25,6 +25,7 @@ from data.Trade import Trade
 from data.TradePair import TradePair
 from data.Balance import Balance
 from data.BalanceState import BalanceState
+from data.MarketCap import MarketCap
 
 from constants import ARBITRAGE_CURRENCY
 
@@ -89,6 +90,21 @@ def custom_balance_init(timest, balance_adjust_threshold):
     return BalanceState(balance, balance_adjust_threshold)
 
 
+def common_cap_init():
+
+    min_volume_cap = {CURRENCY.BITCOIN: 100500.0, CURRENCY.DASH: 0.03, CURRENCY.BCC: 100500.0, CURRENCY.XRP: 30.0,
+                        CURRENCY.LTC: 0.1, CURRENCY.ETC:  0.45, CURRENCY.ETH: 0.02}
+
+    max_volume_cap = {CURRENCY.BITCOIN: 100500.0, CURRENCY.DASH: 100500.0, CURRENCY.BCC: 100500.0, CURRENCY.XRP: 100500.0,
+                        CURRENCY.LTC: 100500.0, CURRENCY.ETC: 100500.0, CURRENCY.ETH: 100500.0}
+
+    min_price_cap = {CURRENCY.BITCOIN: 100500.0}
+
+    max_price_cap = {CURRENCY.BITCOIN: 100500.0}
+
+    return MarketCap(min_volume_cap, max_volume_cap, min_price_cap, max_price_cap)
+
+
 def init_deal(trade_to_perform, debug_msg):
     try:
         if trade_to_perform.deal_type == DEAL_TYPE.SELL:
@@ -132,15 +148,22 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
     return min_volume
 
 
-def analyse_order_book(first_order_book, second_order_book, threshold, action_to_perform, disbalance_state,
-                       stop_recursion, type_of_deal):
+def analyse_order_book(first_order_book,
+                       second_order_book,
+                       threshold,
+                       action_to_perform,
+                       balance_state,
+                       deal_cap,
+                       stop_recursion,
+                       type_of_deal):
     """
     FIXMR NOTE - add comments!
     :param first_order_book:
     :param second_order_book:
     :param threshold:
     :param action_to_perform:
-    :param disbalance_state:
+    :param balance_state:
+    :param deal_cap:
     :param stop_recursion:
     :param type_of_deal:
     :return:
@@ -160,47 +183,48 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
 
         msg = "highest bid bigger than Lowest ask for more than {num} %".format(num=threshold)
 
-        min_volume = determine_minimum_volume(first_order_book, second_order_book, disbalance_state)
+        min_volume = determine_minimum_volume(first_order_book, second_order_book, balance_state)
 
         if min_volume <= 0:
             print "analyse_order_book - balance is ZERO!!! "
             return
 
-        trade_at_first_exchange = Trade(DEAL_TYPE.SELL,
-                                        first_order_book.exchange_id,
-                                        first_order_book.pair_id,
-                                        first_order_book.bid[FIRST].price,
-                                        min_volume)
+        if deal_cap.is_deal_size_acceptable(pair_id=first_order_book.pair_id,
+                                            dst_currency_volume=min_volume,
+                                            sell_price=first_order_book.bid[FIRST].price,
+                                            buy_price=second_order_book.ask[LAST].price):
 
-        # FIXME NOTE - should be performed ONLY after deal confirmation
-        disbalance_state.subtract_balance_by_pair(first_order_book,
-                                                  min_volume,
-                                                  first_order_book.bid[FIRST].price)
+            trade_at_first_exchange = Trade(DEAL_TYPE.SELL,
+                                            first_order_book.exchange_id,
+                                            first_order_book.pair_id,
+                                            first_order_book.bid[FIRST].price,
+                                            min_volume)
 
-        trade_at_second_exchange = Trade(DEAL_TYPE.BUY,
-                                         second_order_book.exchange_id,
-                                         second_order_book.pair_id,
-                                         second_order_book.ask[LAST].price,
-                                         min_volume)
-        # action_to_perform(trade_at_second_exchange, "history_trades.txt")
+            # FIXME NOTE - should be performed ONLY after deal confirmation
+            balance_state.subtract_balance_by_pair(first_order_book,
+                                                   min_volume,
+                                                   first_order_book.bid[FIRST].price)
 
-        action_to_perform(TradePair(trade_at_first_exchange,
-                                    trade_at_second_exchange,
-                                    first_order_book.timest,
-                                    second_order_book.timest,
-                                    type_of_deal),
-                          "history_trades.txt")
+            trade_at_second_exchange = Trade(DEAL_TYPE.BUY,
+                                             second_order_book.exchange_id,
+                                             second_order_book.pair_id,
+                                             second_order_book.ask[LAST].price,
+                                             min_volume)
 
-        # FIXME NOTE - should be performed ONLY after deal confirmation
-        disbalance_state.add_balance_by_pair(second_order_book,
-                                             min_volume,
-                                             second_order_book.ask[LAST].price)
+            action_to_perform(TradePair(trade_at_first_exchange,
+                                        trade_at_second_exchange,
+                                        first_order_book.timest,
+                                        second_order_book.timest,
+                                        type_of_deal),
+                              "history_trades.txt")
+
+            # FIXME NOTE - should be performed ONLY after deal confirmation
+            balance_state.add_balance_by_pair(second_order_book,
+                                              min_volume,
+                                              second_order_book.ask[LAST].price)
 
         if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0:
             return
-        # if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0 or \
-        #   len(first_order_book.ask) == 0 or len(second_order_book.bid) == 0:
-        #    return
 
         # adjust volumes
         if first_order_book.bid[FIRST].volume > min_volume:
@@ -216,17 +240,17 @@ def analyse_order_book(first_order_book, second_order_book, threshold, action_to
                                second_order_book,
                                threshold,
                                action_to_perform,
-                               disbalance_state,
+                               balance_state,
                                stop_recursion,
                                type_of_deal)
 
 
-def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, action_to_perform):
+def mega_analysis(order_book, threshold, balance_state, treshold_reverse, action_to_perform, deal_cap):
     """
     :param order_book: dict of lists with order book, where keys are exchange names within particular time window
             either request timeout or by timest window during playing within database
     :param threshold: minimum difference of ask vs bid in percent that should trigger deal
-    :param disbalance_state
+    :param balance_state
     :param treshold_reverse
     :param action_to_perform: method, that take details of ask bid at two exchange and trigger deals
     :return:
@@ -267,17 +291,20 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
             second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
 
             if len(first_order_book) != 1 or len(second_order_book) != 1:
-                print "mega_analysis: Something severely wrong!", len(first_order_book), len(second_order_book)
-                print "For currency", get_pair_name_by_id(pair_id)
-                print "For exchanges", get_exchange_name_by_id(src_exchange_id)
-                print "For exchanges", get_exchange_name_by_id(dst_exchange_id)
+                print "Mega_analysis: Something severely wrong! First order book size - {size1} " \
+                      "Second order book size - {size2} For currency - {currency_name} for Exchanges " \
+                      "{exch1} and {exch2}".format(size1=len(first_order_book), size2=len(second_order_book),
+                                                   currency_name=get_pair_name_by_id(pair_id),
+                                                   exch1=get_exchange_name_by_id(src_exchange_id),
+                                                   exch2=get_exchange_name_by_id(dst_exchange_id))
                 continue
 
             analyse_order_book(first_order_book[0],
                                second_order_book[0],
                                threshold,
                                action_to_perform,
-                               disbalance_state,
+                               balance_state,
+                               deal_cap,
                                stop_recursion=False,
                                type_of_deal=DEAL_TYPE.ARBITRAGE)
 
@@ -291,7 +318,8 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
                                first_order_book[0],
                                threshold,
                                action_to_perform,
-                               disbalance_state,
+                               balance_state,
+                               deal_cap,
                                stop_recursion=False,
                                type_of_deal=DEAL_TYPE.ARBITRAGE)
 
@@ -305,15 +333,16 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
             # TODO for every pair permutate and do
 
             # disbalance_state, treshold_reverse
-            if disbalance_state.is_there_disbalance(dst_currency_id,
-                                                    src_exchange_id,
-                                                    dst_exchange_id) and \
+            if balance_state.is_there_disbalance(dst_currency_id,
+                                                 src_exchange_id,
+                                                 dst_exchange_id) and \
                     is_no_pending_order(pair_id, src_exchange_id, dst_exchange_id):
                 analyse_order_book(first_order_book[0],
                                    second_order_book[0],
                                    treshold_reverse,
                                    action_to_perform,
-                                   disbalance_state,
+                                   balance_state,
+                                   deal_cap,
                                    stop_recursion=True,
                                    type_of_deal=DEAL_TYPE.REVERSE)
 
@@ -324,16 +353,17 @@ def mega_analysis(order_book, threshold, disbalance_state, treshold_reverse, act
             # second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
 
             # disbalance_state, treshold_reverse
-            if disbalance_state.is_there_disbalance(dst_currency_id,
-                                                    dst_exchange_id,
-                                                    src_exchange_id
-                                                    ) and \
+            if balance_state.is_there_disbalance(dst_currency_id,
+                                                 dst_exchange_id,
+                                                 src_exchange_id
+                                                 ) and \
                     is_no_pending_order(pair_id, dst_exchange_id, src_exchange_id):
                 analyse_order_book(second_order_book[0],
                                    first_order_book[0],
                                    treshold_reverse,
                                    action_to_perform,
-                                   disbalance_state,
+                                   balance_state,
+                                   deal_cap,
                                    stop_recursion=True,
                                    type_of_deal=DEAL_TYPE.REVERSE)
 
@@ -391,12 +421,14 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
 def run_bot(deal_threshold, balance_adjust_threshold, treshold_reverse):
     load_keys("./secret_keys")
 
+    deal_cap = common_cap_init()
+
     while True:
         order_book = get_order_book()
 
         current_balance = balance_init(balance_adjust_threshold)
 
-        mega_analysis(order_book, deal_threshold, current_balance, treshold_reverse, init_deal)
+        mega_analysis(order_book, deal_threshold, current_balance, treshold_reverse, init_deal, deal_cap)
 
         load_to_postgres(order_book, ORDER_BOOK_TYPE_NAME, pg_conn)
 
