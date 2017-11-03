@@ -32,6 +32,8 @@ from constants import ARBITRAGE_CURRENCY
 # time to poll - 2 MINUTES
 POLL_PERIOD_SECONDS = 120
 
+import telegram
+
 
 # FIXME NOTE:
 # This is indexes for comparison bid\ask within order books
@@ -98,7 +100,7 @@ def common_cap_init():
     min_volume_cap = {CURRENCY.BITCOIN: 0.0, CURRENCY.DASH: 0.03, CURRENCY.BCC: 0.008, CURRENCY.XRP: 30.0,
                         CURRENCY.LTC: 0.1, CURRENCY.ETC:  0.45, CURRENCY.ETH: 0.02}
 
-    max_volume_cap = {CURRENCY.BITCOIN: 100500.0, CURRENCY.DASH: 100500.0, CURRENCY.BCC: 100500.0, CURRENCY.XRP: 100500.0,
+    max_volume_cap = {CURRENCY.BITCOIN: 0.01, CURRENCY.DASH: 100500.0, CURRENCY.BCC: 100500.0, CURRENCY.XRP: 100500.0,
                         CURRENCY.LTC: 100500.0, CURRENCY.ETC: 100500.0, CURRENCY.ETH: 100500.0}
 
     min_price_cap = {CURRENCY.BITCOIN: 100500.0}
@@ -138,9 +140,17 @@ def init_deals_with_logging(trade_pairs, file_name):
 
     overall_profit_so_far += trade_pairs.current_profit
 
-    print "Some deals sent to exchanges. Expected profit: {cur}. Overall: {tot}".format(cur=trade_pairs.current_profit,
-                                                                                        tot=overall_profit_so_far)
+    msg = "Some deals sent to exchanges. Expected profit: {cur}. Overall: {tot} Deal details: {deal}".format(
+        cur=trade_pairs.current_profit, tot=overall_profit_so_far, deal=str(trade_pairs))
 
+    print msg
+
+    bot = telegram.Bot(token='438844686:AAE8lS3VyMsNgtytR4I1uWy4DLUaot2e5hU')
+    try:
+        bot.send_message(chat_id=-218431137, text=str(msg), parse_mode=telegram.ParseMode.MARKDOWN)
+    except Exception, e:
+        # FIXME still can die
+        print "init_deals_with_logging: ", str(e)
 
 def determine_minimum_volume(first_order_book, second_order_book, balance_state):
     """
@@ -468,8 +478,8 @@ if __name__ == "__main__":
     pg_conn = init_pg_connection()
 
     # FIXME - read from some config
-    deal_threshold = 1.5
-    treshold_reverse = 1.0
+    deal_threshold = 0.6
+    treshold_reverse = 0.6
     balance_adjust_threshold = 5.0
 
     run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reverse)
