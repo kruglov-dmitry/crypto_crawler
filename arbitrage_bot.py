@@ -95,7 +95,7 @@ def custom_balance_init(timest, balance_adjust_threshold):
 
 def common_cap_init():
 
-    min_volume_cap = {CURRENCY.BITCOIN: 100500.0, CURRENCY.DASH: 0.03, CURRENCY.BCC: 100500.0, CURRENCY.XRP: 30.0,
+    min_volume_cap = {CURRENCY.BITCOIN: 0.0, CURRENCY.DASH: 0.03, CURRENCY.BCC: 0.008, CURRENCY.XRP: 30.0,
                         CURRENCY.LTC: 0.1, CURRENCY.ETC:  0.45, CURRENCY.ETH: 0.02}
 
     max_volume_cap = {CURRENCY.BITCOIN: 100500.0, CURRENCY.DASH: 100500.0, CURRENCY.BCC: 100500.0, CURRENCY.XRP: 100500.0,
@@ -220,6 +220,8 @@ def analyse_order_book(first_order_book,
                                             dst_currency_volume=min_volume,
                                             sell_price=first_order_book.bid[FIRST].price,
                                             buy_price=second_order_book.ask[LAST].price):
+
+            min_volume = min(min_volume, deal_cap.get_max_volume_cap_by_dst(first_order_book.pair_id))
 
             trade_at_first_exchange = Trade(DEAL_TYPE.SELL,
                                             first_order_book.exchange_id,

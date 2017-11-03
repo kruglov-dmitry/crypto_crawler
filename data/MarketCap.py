@@ -2,6 +2,7 @@ from BaseData import BaseData
 from utils.currency_utils import get_currency_name_by_id
 from utils.currency_utils import split_currency_pairs
 
+
 class MarketCap(BaseData):
     def __init__(self, min_volume_cap, max_volume_cap, min_price_cap, max_price_cap):
         self.max_volume_cap = max_volume_cap.copy()
@@ -51,5 +52,10 @@ class MarketCap(BaseData):
 
     def is_deal_volume_within_cap(self, currency_id, volume):
         return self.min_volume_cap[currency_id] < volume < self.max_volume_cap[currency_id]
+
+    def get_max_volume_cap_by_dst(self, pair_id):
+        bitcoin_id, dst_currency_id = split_currency_pairs(pair_id)
+        return self.max_volume_cap[dst_currency_id]
+
 
 
