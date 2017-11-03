@@ -152,6 +152,7 @@ def init_deals_with_logging(trade_pairs, file_name):
         # FIXME still can die
         print "init_deals_with_logging: ", str(e)
 
+
 def determine_minimum_volume(first_order_book, second_order_book, balance_state):
     """
         we are going to SELL something at first exchange
@@ -232,6 +233,12 @@ def analyse_order_book(first_order_book,
                                             buy_price=second_order_book.ask[LAST].price):
 
             min_volume = min(min_volume, deal_cap.get_max_volume_cap_by_dst(first_order_book.pair_id))
+
+            # Maximum cost of price: neither sell or buy for more than X Bitcoin
+            if min_volume * first_order_book.bid[FIRST].price > deal_cap.max_price_cap[CURRENCY.BITCOIN]:
+                min_volume = deal_cap.max_price_cap[CURRENCY.BITCOIN] / float(first_order_book.bid[FIRST].price)
+            if min_volume * second_order_book.ask[LAST].price > deal_cap.max_price_cap[CURRENCY.BITCOIN]:
+                min_volume = deal_cap.max_price_cap[CURRENCY.BITCOIN] / float(second_order_book.ask[LAST].price)
 
             trade_at_first_exchange = Trade(DEAL_TYPE.SELL,
                                             first_order_book.exchange_id,

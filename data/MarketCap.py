@@ -38,13 +38,14 @@ class MarketCap(BaseData):
 
         bitcoin_id, dst_currency_id = split_currency_pairs(pair_id)
 
-        total_deal_cost_within_cap = self.is_total_deal_cost_within_cap(bitcoin_id, dst_currency_volume, buy_price) and \
-                                     self.is_total_deal_cost_within_cap(dst_currency_id, dst_currency_volume, sell_price)
+        # total_deal_cost_within_cap = self.is_total_deal_cost_within_cap(bitcoin_id, dst_currency_volume, buy_price) and \
+        #                             self.is_total_deal_cost_within_cap(dst_currency_id, dst_currency_volume, sell_price)
 
         volume_within_cap = self.is_deal_volume_within_cap(dst_currency_id, dst_currency_volume) and \
                             self.is_deal_volume_within_cap(bitcoin_id, dst_currency_volume * buy_price)
 
-        return total_deal_cost_within_cap and volume_within_cap
+        #return total_deal_cost_within_cap and volume_within_cap
+        return volume_within_cap
 
     def is_total_deal_cost_within_cap(self, bitcoin_id, volume, price):
         deal_value = volume * price
