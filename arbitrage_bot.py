@@ -100,12 +100,12 @@ def common_cap_init():
     min_volume_cap = {CURRENCY.BITCOIN: 0.0, CURRENCY.DASH: 0.03, CURRENCY.BCC: 0.008, CURRENCY.XRP: 30.0,
                         CURRENCY.LTC: 0.1, CURRENCY.ETC:  0.45, CURRENCY.ETH: 0.02}
 
-    max_volume_cap = {CURRENCY.BITCOIN: 0.01, CURRENCY.DASH: 100500.0, CURRENCY.BCC: 100500.0, CURRENCY.XRP: 100500.0,
+    max_volume_cap = {CURRENCY.BITCOIN: 100500.0, CURRENCY.DASH: 100500.0, CURRENCY.BCC: 100500.0, CURRENCY.XRP: 100500.0,
                         CURRENCY.LTC: 100500.0, CURRENCY.ETC: 100500.0, CURRENCY.ETH: 100500.0}
 
-    min_price_cap = {CURRENCY.BITCOIN: 100500.0}
+    min_price_cap = {CURRENCY.BITCOIN: 0.0}
 
-    max_price_cap = {CURRENCY.BITCOIN: 100500.0}
+    max_price_cap = {CURRENCY.BITCOIN: 0.01}
 
     return MarketCap(min_volume_cap, max_volume_cap, min_price_cap, max_price_cap)
 
@@ -227,47 +227,48 @@ def analyse_order_book(first_order_book,
             print "analyse_order_book - balance is ZERO!!! "
             return
 
-        if deal_cap.is_deal_size_acceptable(pair_id=first_order_book.pair_id,
+        min_volume = min(min_volume, deal_cap.get_max_volume_cap_by_dst(first_order_book.pair_id))
+
+        """if deal_cap.is_deal_size_acceptable(pair_id=first_order_book.pair_id,
                                             dst_currency_volume=min_volume,
                                             sell_price=first_order_book.bid[FIRST].price,
-                                            buy_price=second_order_book.ask[LAST].price):
+                                            buy_price=second_order_book.ask[LAST].price):"""
 
-            min_volume = min(min_volume, deal_cap.get_max_volume_cap_by_dst(first_order_book.pair_id))
+        if True:
+                # Maximum cost of price: neither sell or buy for more than X Bitcoin
+                if min_volume * first_order_book.bid[FIRST].price > deal_cap.max_price_cap[CURRENCY.BITCOIN]:
+                    min_volume = deal_cap.max_price_cap[CURRENCY.BITCOIN] / float(first_order_book.bid[FIRST].price)
+                if min_volume * second_order_book.ask[LAST].price > deal_cap.max_price_cap[CURRENCY.BITCOIN]:
+                    min_volume = deal_cap.max_price_cap[CURRENCY.BITCOIN] / float(second_order_book.ask[LAST].price)
 
-            # Maximum cost of price: neither sell or buy for more than X Bitcoin
-            if min_volume * first_order_book.bid[FIRST].price > deal_cap.max_price_cap[CURRENCY.BITCOIN]:
-                min_volume = deal_cap.max_price_cap[CURRENCY.BITCOIN] / float(first_order_book.bid[FIRST].price)
-            if min_volume * second_order_book.ask[LAST].price > deal_cap.max_price_cap[CURRENCY.BITCOIN]:
-                min_volume = deal_cap.max_price_cap[CURRENCY.BITCOIN] / float(second_order_book.ask[LAST].price)
+                trade_at_first_exchange = Trade(DEAL_TYPE.SELL,
+                                                first_order_book.exchange_id,
+                                                first_order_book.pair_id,
+                                                first_order_book.bid[FIRST].price,
+                                                min_volume)
 
-            trade_at_first_exchange = Trade(DEAL_TYPE.SELL,
-                                            first_order_book.exchange_id,
-                                            first_order_book.pair_id,
-                                            first_order_book.bid[FIRST].price,
-                                            min_volume)
+                # FIXME NOTE - should be performed ONLY after deal confirmation
+                balance_state.subtract_balance_by_pair(first_order_book,
+                                                       min_volume,
+                                                       first_order_book.bid[FIRST].price)
 
-            # FIXME NOTE - should be performed ONLY after deal confirmation
-            balance_state.subtract_balance_by_pair(first_order_book,
-                                                   min_volume,
-                                                   first_order_book.bid[FIRST].price)
+                trade_at_second_exchange = Trade(DEAL_TYPE.BUY,
+                                                 second_order_book.exchange_id,
+                                                 second_order_book.pair_id,
+                                                 second_order_book.ask[LAST].price,
+                                                 min_volume)
 
-            trade_at_second_exchange = Trade(DEAL_TYPE.BUY,
-                                             second_order_book.exchange_id,
-                                             second_order_book.pair_id,
-                                             second_order_book.ask[LAST].price,
-                                             min_volume)
+                action_to_perform(TradePair(trade_at_first_exchange,
+                                            trade_at_second_exchange,
+                                            first_order_book.timest,
+                                            second_order_book.timest,
+                                            type_of_deal),
+                                  "history_trades.txt")
 
-            action_to_perform(TradePair(trade_at_first_exchange,
-                                        trade_at_second_exchange,
-                                        first_order_book.timest,
-                                        second_order_book.timest,
-                                        type_of_deal),
-                              "history_trades.txt")
-
-            # FIXME NOTE - should be performed ONLY after deal confirmation
-            balance_state.add_balance_by_pair(second_order_book,
-                                              min_volume,
-                                              second_order_book.ask[LAST].price)
+                # FIXME NOTE - should be performed ONLY after deal confirmation
+                balance_state.add_balance_by_pair(second_order_book,
+                                                  min_volume,
+                                                  second_order_book.ask[LAST].price)
 
         if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0:
             return
