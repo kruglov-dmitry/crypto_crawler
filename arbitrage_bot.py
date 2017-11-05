@@ -9,6 +9,7 @@ from debug_utils import should_print_debug
 from utils.time_utils import sleep_for
 from utils.currency_utils import split_currency_pairs, get_pair_name_by_id
 from utils.exchange_utils import get_exchange_name_by_id
+from utils.file_utils import log_to_file
 
 from core.base_analysis import get_change
 from core.base_math import get_all_combination
@@ -17,6 +18,7 @@ from enums.exchange import EXCHANGE
 from enums.currency_pair import CURRENCY_PAIR
 from enums.deal_type import DEAL_TYPE
 from enums.currency import CURRENCY
+from enums.status import STATUS
 
 from collections import defaultdict
 
@@ -29,8 +31,7 @@ from data.MarketCap import MarketCap
 
 from constants import ARBITRAGE_CURRENCY
 
-# time to poll - 2 MINUTES
-POLL_PERIOD_SECONDS = 7
+from multiprocessing import Pool
 
 import telegram
 
@@ -41,6 +42,8 @@ import telegram
 FIRST = 0
 LAST = 0
 
+# time to poll - 2 MINUTES
+POLL_PERIOD_SECONDS = 7
 
 # FIXME NOTES:
 # 1. load current deals set?
@@ -111,18 +114,17 @@ def common_cap_init():
 
 
 def init_deal(trade_to_perform, debug_msg):
+    res = STATUS.FAILURE
     try:
         if trade_to_perform.trade_type == DEAL_TYPE.SELL:
             sell_by_exchange(trade_to_perform)
         else:
             buy_by_exchange(trade_to_perform)
+        res = STATUS.SUCCESS
     except Exception, e:
         print "init_deal: FAILED ERROR WE ALL DIE with following exception: ", str(e), debug_msg
 
-
-def log_to_file(trade, file_name):
-    with open(file_name, 'a') as the_file:
-        the_file.write(str(trade) + "\n")
+    return res
 
 
 def init_deals_with_logging(trade_pairs, file_name):
@@ -130,13 +132,16 @@ def init_deals_with_logging(trade_pairs, file_name):
 
     # market routine
     debug_msg = "Deals details: " + str(trade_pairs.deal_1)
-    init_deal(trade_pairs.deal_1, debug_msg)
+    result_1 = init_deal(trade_pairs.deal_1, debug_msg)
 
     debug_msg = "Deals details: " + str(trade_pairs.deal_2)
-    init_deal(trade_pairs.deal_2, debug_msg)
+    result_2 = init_deal(trade_pairs.deal_2, debug_msg)
 
-    # Logging TODO save to postgres
-    log_to_file(trade_pairs, file_name)
+    if not result_1 or not result_2:
+        msg = "Failing of adding deals! {deal_pair}".format(deal_pair=str(trade_pairs))
+        print msg
+        log_to_file(msg, file_name)
+        return STATUS.FAILURE
 
     overall_profit_so_far += trade_pairs.current_profit
 
@@ -144,6 +149,8 @@ def init_deals_with_logging(trade_pairs, file_name):
         cur=trade_pairs.current_profit, tot=overall_profit_so_far, deal=str(trade_pairs))
 
     print msg
+    # Logging TODO save to postgres
+    log_to_file(trade_pairs, file_name)
 
     bot = telegram.Bot(token='438844686:AAE8lS3VyMsNgtytR4I1uWy4DLUaot2e5hU')
     try:
@@ -151,6 +158,8 @@ def init_deals_with_logging(trade_pairs, file_name):
     except Exception, e:
         # FIXME still can die
         print "init_deals_with_logging: ", str(e)
+
+    return STATUS.SUCCESS
 
 
 def determine_minimum_volume(first_order_book, second_order_book, balance_state):
@@ -166,7 +175,7 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
     """
 
     min_volume = min(first_order_book.bid[FIRST].volume, second_order_book.ask[LAST].volume)
-    if min_volume < 0:
+    if min_volume <= 0:
         print "analyse_order_book - something severely wrong - NEGATIVE min price: ", min_volume
         raise
 
@@ -182,6 +191,24 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
                                                    min_volume,
                                                    second_order_book.ask[LAST].price):
         min_volume = second_order_book.ask[LAST].price * balance_state.get_volume_by_currency(bitcoin_id, second_order_book.exchange_id)
+
+    return min_volume
+
+
+def determine_minimum_volume_by_price(first_order_book, second_order_book, deal_cap, min_volume):
+    if min_volume <= 0:
+        return min_volume
+
+    min_volume = min(min_volume, deal_cap.get_max_volume_cap_by_dst(first_order_book.pair_id))
+
+    """if deal_cap.is_deal_size_acceptable(pair_id=first_order_book.pair_id, dst_currency_volume=min_volume, 
+    sell_price=first_order_book.bid[FIRST].price, buy_price=second_order_book.ask[LAST].price):"""
+
+    # Maximum cost of price: neither sell or buy for more than X Bitcoin
+    if min_volume * first_order_book.bid[FIRST].price > deal_cap.max_price_cap[CURRENCY.BITCOIN]:
+        min_volume = deal_cap.max_price_cap[CURRENCY.BITCOIN] / float(first_order_book.bid[FIRST].price)
+    if min_volume * second_order_book.ask[LAST].price > deal_cap.max_price_cap[CURRENCY.BITCOIN]:
+        min_volume = deal_cap.max_price_cap[CURRENCY.BITCOIN] / float(second_order_book.ask[LAST].price)
 
     return min_volume
 
@@ -217,58 +244,32 @@ def analyse_order_book(first_order_book,
             bid=first_order_book.bid[FIRST].price, ask=second_order_book.ask[LAST].price, diff=difference)
 
     if difference >= threshold:
-        # FIXME NOTE think about splitting on sub-methods for beatification
-
-        msg = "highest bid bigger than Lowest ask for more than {num} %".format(num=threshold)
 
         min_volume = determine_minimum_volume(first_order_book, second_order_book, balance_state)
 
+        min_volume = determine_minimum_volume_by_price(first_order_book, second_order_book, deal_cap, min_volume)
+
         if min_volume <= 0:
-            print "analyse_order_book - balance is ZERO!!! ", get_pair_name_by_id(first_order_book.pair_id), get_exchange_name_by_id(first_order_book.exchange_id), get_exchange_name_by_id(second_order_book.exchange_id)
+            print "analyse_order_book - balance is ZERO!!! ", get_pair_name_by_id(first_order_book.pair_id), \
+                get_exchange_name_by_id(first_order_book.exchange_id), get_exchange_name_by_id(second_order_book.exchange_id)
             return
 
-        min_volume = min(min_volume, deal_cap.get_max_volume_cap_by_dst(first_order_book.pair_id))
+        trade_at_first_exchange = Trade(DEAL_TYPE.SELL, first_order_book.exchange_id, first_order_book.pair_id,
+                                        first_order_book.bid[FIRST].price, min_volume)
 
-        """if deal_cap.is_deal_size_acceptable(pair_id=first_order_book.pair_id,
-                                            dst_currency_volume=min_volume,
-                                            sell_price=first_order_book.bid[FIRST].price,
-                                            buy_price=second_order_book.ask[LAST].price):"""
+        trade_at_second_exchange = Trade(DEAL_TYPE.BUY, second_order_book.exchange_id, second_order_book.pair_id,
+                                         second_order_book.ask[LAST].price, min_volume)
 
-        if True:
-                # Maximum cost of price: neither sell or buy for more than X Bitcoin
-                if min_volume * first_order_book.bid[FIRST].price > deal_cap.max_price_cap[CURRENCY.BITCOIN]:
-                    min_volume = deal_cap.max_price_cap[CURRENCY.BITCOIN] / float(first_order_book.bid[FIRST].price)
-                if min_volume * second_order_book.ask[LAST].price > deal_cap.max_price_cap[CURRENCY.BITCOIN]:
-                    min_volume = deal_cap.max_price_cap[CURRENCY.BITCOIN] / float(second_order_book.ask[LAST].price)
+        deal_status = action_to_perform(TradePair(trade_at_first_exchange, trade_at_second_exchange,
+                                                 first_order_book.timest, second_order_book.timest, type_of_deal),
+                                       "history_trades.txt")
 
-                trade_at_first_exchange = Trade(DEAL_TYPE.SELL,
-                                                first_order_book.exchange_id,
-                                                first_order_book.pair_id,
-                                                first_order_book.bid[FIRST].price,
-                                                min_volume)
+        if deal_status == STATUS.FAILURE:
+            return
 
-                # FIXME NOTE - should be performed ONLY after deal confirmation
-                balance_state.subtract_balance_by_pair(first_order_book,
-                                                       min_volume,
-                                                       first_order_book.bid[FIRST].price)
-
-                trade_at_second_exchange = Trade(DEAL_TYPE.BUY,
-                                                 second_order_book.exchange_id,
-                                                 second_order_book.pair_id,
-                                                 second_order_book.ask[LAST].price,
-                                                 min_volume)
-
-                action_to_perform(TradePair(trade_at_first_exchange,
-                                            trade_at_second_exchange,
-                                            first_order_book.timest,
-                                            second_order_book.timest,
-                                            type_of_deal),
-                                  "history_trades.txt")
-
-                # FIXME NOTE - should be performed ONLY after deal confirmation
-                balance_state.add_balance_by_pair(second_order_book,
-                                                  min_volume,
-                                                  second_order_book.ask[LAST].price)
+        # FIXME NOTE - should be performed ONLY after deal confirmation
+        balance_state.subtract_balance_by_pair(first_order_book, min_volume, first_order_book.bid[FIRST].price)
+        balance_state.add_balance_by_pair(second_order_book, min_volume, second_order_book.ask[LAST].price)
 
         if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0:
             return
@@ -293,6 +294,75 @@ def analyse_order_book(first_order_book,
                                type_of_deal)
 
 
+def adjust_currency_balance(first_order_book, second_order_book, treshold_reverse, action_to_perform,
+                            balance_state, deal_cap):
+
+    pair_id = first_order_book.pair_id
+    src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
+    src_exchange_id = first_order_book.exchange_id
+    dst_exchange_id = second_order_book.exchange_id
+
+    # disbalance_state, treshold_reverse
+    if balance_state.is_there_disbalance(dst_currency_id, src_exchange_id, dst_exchange_id) and \
+            is_no_pending_order(pair_id, src_exchange_id, dst_exchange_id):
+
+        analyse_order_book(first_order_book,
+                           second_order_book,
+                           treshold_reverse,
+                           action_to_perform,
+                           balance_state,
+                           deal_cap,
+                           stop_recursion=True,
+                           type_of_deal=DEAL_TYPE.REVERSE)
+
+    # FIXME NOTE - here we treat order book as unchanged, but it may already be affected by previous deals
+    # previous call change bids of first order book & asks of second order book
+    # but here we use oposite - i.e. should be fine
+
+    # disbalance_state, treshold_reverse
+    if balance_state.is_there_disbalance(dst_currency_id, dst_exchange_id,src_exchange_id) and \
+            is_no_pending_order(pair_id, dst_exchange_id, src_exchange_id):
+        analyse_order_book(second_order_book,
+                           first_order_book,
+                           treshold_reverse,
+                           action_to_perform,
+                           balance_state,
+                           deal_cap,
+                           stop_recursion=True,
+                           type_of_deal=DEAL_TYPE.REVERSE)
+
+
+def search_for_arbitrage(first_order_book,
+                         second_order_book,
+                         threshold,
+                         action_to_perform,
+                         balance_state,
+                         deal_cap):
+    # FIXME NOTE - recursion will change them so we need to re-init it to apply vise-wersa processing
+
+    analyse_order_book(first_order_book,
+                       second_order_book,
+                       threshold,
+                       action_to_perform,
+                       balance_state,
+                       deal_cap,
+                       stop_recursion=False,
+                       type_of_deal=DEAL_TYPE.ARBITRAGE)
+
+    # FIXME NOTE - here we treat order book as unchanged, but it may already be affected by previous deals
+    # previous call change bids of first order book & asks of second order book
+    # but here we use oposite - i.e. should be fine
+
+    analyse_order_book(second_order_book,
+                       first_order_book,
+                       threshold,
+                       action_to_perform,
+                       balance_state,
+                       deal_cap,
+                       stop_recursion=False,
+                       type_of_deal=DEAL_TYPE.ARBITRAGE)
+
+
 def mega_analysis(order_book, threshold, balance_state, deal_cap, treshold_reverse, action_to_perform):
     """
     :param order_book: dict of lists with order book, where keys are exchange names within particular time window
@@ -304,6 +374,9 @@ def mega_analysis(order_book, threshold, balance_state, deal_cap, treshold_rever
     :param action_to_perform: method, that take details of ask bid at two exchange and trigger deals
     :return:
     """
+
+    # FIXME - compute size!
+    process_pool = Pool()
 
     # split on currencies
     for pair_id in CURRENCY_PAIR.values():
@@ -331,11 +404,7 @@ def mega_analysis(order_book, threshold, balance_state, deal_cap, treshold_rever
         order_book_pairs = get_all_combination(order_book_by_exchange_by_currency, 2)
 
         for every_pair in order_book_pairs:
-            src_exchange_id = every_pair[0]
-            dst_exchange_id = every_pair[1]
-
-            # FIXME NOTE - recursion will change them so we need to re-init it to apply vise-wersa processing
-
+            src_exchange_id, dst_exchange_id = every_pair
             first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
             second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
 
@@ -348,73 +417,13 @@ def mega_analysis(order_book, threshold, balance_state, deal_cap, treshold_rever
                                                    exch2=get_exchange_name_by_id(dst_exchange_id))
                 continue
 
-            analyse_order_book(first_order_book[0],
-                               second_order_book[0],
-                               threshold,
-                               action_to_perform,
-                               balance_state,
-                               deal_cap,
-                               stop_recursion=False,
-                               type_of_deal=DEAL_TYPE.ARBITRAGE)
+            # Orkay, spawn a new process to have fun within
+            # it will create deep copy of order book
+            process_pool.apply_async(search_for_arbitrage, first_order_book[0], second_order_book[0], threshold, action_to_perform, balance_state, deal_cap)
+            process_pool.apply_async(adjust_currency_balance, first_order_book[0], second_order_book[0], treshold_reverse, action_to_perform, balance_state, deal_cap)
 
-            # FIXME NOTE - here we treat order book as unchanged, but it may already be affected by previous deals
-            # previous call change bids of first order book & asks of second order book
-            # but here we use oposite - i.e. should be fine
-            # first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
-            # second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
-
-            analyse_order_book(second_order_book[0],
-                               first_order_book[0],
-                               threshold,
-                               action_to_perform,
-                               balance_state,
-                               deal_cap,
-                               stop_recursion=False,
-                               type_of_deal=DEAL_TYPE.ARBITRAGE)
-
-            # FIXME NOTE
-            # we need some mechanism to keep track of it!
-            first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
-            second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
-
-            src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
-
-            # TODO for every pair permutate and do
-
-            # disbalance_state, treshold_reverse
-            if balance_state.is_there_disbalance(dst_currency_id,
-                                                 src_exchange_id,
-                                                 dst_exchange_id) and \
-                    is_no_pending_order(pair_id, src_exchange_id, dst_exchange_id):
-                analyse_order_book(first_order_book[0],
-                                   second_order_book[0],
-                                   treshold_reverse,
-                                   action_to_perform,
-                                   balance_state,
-                                   deal_cap,
-                                   stop_recursion=True,
-                                   type_of_deal=DEAL_TYPE.REVERSE)
-
-            # FIXME NOTE - here we treat order book as unchanged, but it may already be affected by previous deals
-            # previous call change bids of first order book & asks of second order book
-            # but here we use oposite - i.e. should be fine
-            # first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
-            # second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
-
-            # disbalance_state, treshold_reverse
-            if balance_state.is_there_disbalance(dst_currency_id,
-                                                 dst_exchange_id,
-                                                 src_exchange_id
-                                                 ) and \
-                    is_no_pending_order(pair_id, dst_exchange_id, src_exchange_id):
-                analyse_order_book(second_order_book[0],
-                                   first_order_book[0],
-                                   treshold_reverse,
-                                   action_to_perform,
-                                   balance_state,
-                                   deal_cap,
-                                   stop_recursion=True,
-                                   type_of_deal=DEAL_TYPE.REVERSE)
+    process_pool.close()
+    process_pool.join()
 
 
 def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reverse):
