@@ -1,12 +1,12 @@
 import sys
 sys.setrecursionlimit(10000)
 
-from dao.dao import get_order_book, buy_by_exchange, sell_by_exchange, balance_init
+from dao.dao import get_order_book, buy_by_exchange, sell_by_exchange, get_updated_balance
 from dao.db import init_pg_connection, load_to_postgres, get_order_book_by_time, get_time_entries
 
 from utils.key_utils import load_keys
 from debug_utils import should_print_debug
-from utils.time_utils import sleep_for
+from utils.time_utils import sleep_for, get_now_seconds
 from utils.currency_utils import split_currency_pairs, get_pair_name_by_id
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.file_utils import log_to_file
@@ -52,6 +52,10 @@ POLL_PERIOD_SECONDS = 7
 
 # FIXME NOTE - global variables are VERY bad
 overall_profit_so_far = 0.0
+
+
+pool_size = len(ARBITRAGE_CURRENCY) * len(EXCHANGE.values()) * 2
+process_pool = Pool(pool_size)
 
 
 def is_no_pending_order(currency_id, src_exchange_id, dst_exchange_id):
@@ -114,13 +118,12 @@ def common_cap_init():
 
 
 def init_deal(trade_to_perform, debug_msg):
-    res = STATUS.FAILURE
+    res = STATUS.FAILURE, None
     try:
         if trade_to_perform.trade_type == DEAL_TYPE.SELL:
-            sell_by_exchange(trade_to_perform)
+            res = sell_by_exchange(trade_to_perform)
         else:
-            buy_by_exchange(trade_to_perform)
-        res = STATUS.SUCCESS
+            res = buy_by_exchange(trade_to_perform)
     except Exception, e:
         print "init_deal: FAILED ERROR WE ALL DIE with following exception: ", str(e), debug_msg
 
@@ -130,14 +133,22 @@ def init_deal(trade_to_perform, debug_msg):
 def init_deals_with_logging(trade_pairs, file_name):
     global overall_profit_so_far
 
+    first_deal = trade_pairs.deal_1
+    second_deal = trade_pairs.deal_2
+
+    if second_deal.exchange_id == EXCHANGE.KRAKEN:
+        # It is hilarious but if deal at kraken will not succeeded no need to bother with second exchange
+        first_deal = trade_pairs.deal_2
+        second_deal = trade_pairs.deal_1
+
     # market routine
-    debug_msg = "Deals details: " + str(trade_pairs.deal_1)
-    result_1 = init_deal(trade_pairs.deal_1, debug_msg)
+    debug_msg = "Deals details: " + str(first_deal)
+    result_1 = init_deal(first_deal, debug_msg)
 
-    debug_msg = "Deals details: " + str(trade_pairs.deal_2)
-    result_2 = init_deal(trade_pairs.deal_2, debug_msg)
+    debug_msg = "Deals details: " + str(second_deal)
+    result_2 = init_deal(second_deal, debug_msg)
 
-    if not result_1 or not result_2:
+    if result_1[0] != STATUS.SUCCESS or not result_2[0] != STATUS.SUCCESS:
         msg = "Failing of adding deals! {deal_pair}".format(deal_pair=str(trade_pairs))
         print msg
         log_to_file(msg, file_name)
@@ -235,7 +246,7 @@ def analyse_order_book(first_order_book,
     """
 
     if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0:
-        return
+        return STATUS.SUCCESS
 
     difference = get_change(first_order_book.bid[FIRST].price, second_order_book.ask[LAST].price, provide_abs=False)
 
@@ -265,14 +276,18 @@ def analyse_order_book(first_order_book,
                                        "history_trades.txt")
 
         if deal_status == STATUS.FAILURE:
-            return
+            # We are going to stop recursion here due to simple reason
+            # we have 3 to 5 re-tries within placing orders
+            # if for any reason they not succeeded - it mean we already spend more than one minute
+            # and our orderbook is expired already so we should stop recursive calls
+            return STATUS.FAILURE
 
         # FIXME NOTE - should be performed ONLY after deal confirmation
         balance_state.subtract_balance_by_pair(first_order_book, min_volume, first_order_book.bid[FIRST].price)
         balance_state.add_balance_by_pair(second_order_book, min_volume, second_order_book.ask[LAST].price)
 
         if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0:
-            return
+            return STATUS.SUCCESS
 
         # adjust volumes
         if first_order_book.bid[FIRST].volume > min_volume:
@@ -284,14 +299,14 @@ def analyse_order_book(first_order_book,
 
         if not stop_recursion:
             # continue processing remaining order book
-            analyse_order_book(first_order_book,
-                               second_order_book,
-                               threshold,
-                               action_to_perform,
-                               balance_state,
-                               deal_cap,
-                               stop_recursion,
-                               type_of_deal)
+            return analyse_order_book(first_order_book,
+                                      second_order_book,
+                                      threshold,
+                                      action_to_perform,
+                                      balance_state,
+                                      deal_cap,
+                                      stop_recursion,
+                                      type_of_deal)
 
 
 def adjust_currency_balance(first_order_book, second_order_book, treshold_reverse, action_to_perform,
@@ -302,26 +317,27 @@ def adjust_currency_balance(first_order_book, second_order_book, treshold_revers
     src_exchange_id = first_order_book.exchange_id
     dst_exchange_id = second_order_book.exchange_id
 
+    order_book_expired = STATUS.SUCCESS
     # disbalance_state, treshold_reverse
     if balance_state.is_there_disbalance(dst_currency_id, src_exchange_id, dst_exchange_id) and \
             is_no_pending_order(pair_id, src_exchange_id, dst_exchange_id):
 
-        analyse_order_book(first_order_book,
-                           second_order_book,
-                           treshold_reverse,
-                           action_to_perform,
-                           balance_state,
-                           deal_cap,
-                           stop_recursion=True,
-                           type_of_deal=DEAL_TYPE.REVERSE)
+        order_book_expired = analyse_order_book(first_order_book,
+                                                second_order_book,
+                                                treshold_reverse,
+                                                action_to_perform,
+                                                balance_state,
+                                                deal_cap,
+                                                stop_recursion=True,
+                                                type_of_deal=DEAL_TYPE.REVERSE)
 
     # FIXME NOTE - here we treat order book as unchanged, but it may already be affected by previous deals
     # previous call change bids of first order book & asks of second order book
     # but here we use oposite - i.e. should be fine
 
     # disbalance_state, treshold_reverse
-    if balance_state.is_there_disbalance(dst_currency_id, dst_exchange_id,src_exchange_id) and \
-            is_no_pending_order(pair_id, dst_exchange_id, src_exchange_id):
+    if order_book_expired == STATUS.SUCCESS and balance_state.is_there_disbalance(dst_currency_id, dst_exchange_id,src_exchange_id) \
+            and is_no_pending_order(pair_id, dst_exchange_id, src_exchange_id):
         analyse_order_book(second_order_book,
                            first_order_book,
                            treshold_reverse,
@@ -340,27 +356,28 @@ def search_for_arbitrage(first_order_book,
                          deal_cap):
     # FIXME NOTE - recursion will change them so we need to re-init it to apply vise-wersa processing
 
-    analyse_order_book(first_order_book,
-                       second_order_book,
-                       threshold,
-                       action_to_perform,
-                       balance_state,
-                       deal_cap,
-                       stop_recursion=False,
-                       type_of_deal=DEAL_TYPE.ARBITRAGE)
+    order_book_expired = analyse_order_book(first_order_book,
+                                            second_order_book,
+                                            threshold,
+                                            action_to_perform,
+                                            balance_state,
+                                            deal_cap,
+                                            stop_recursion=False,
+                                            type_of_deal=DEAL_TYPE.ARBITRAGE)
 
     # FIXME NOTE - here we treat order book as unchanged, but it may already be affected by previous deals
     # previous call change bids of first order book & asks of second order book
     # but here we use oposite - i.e. should be fine
 
-    analyse_order_book(second_order_book,
-                       first_order_book,
-                       threshold,
-                       action_to_perform,
-                       balance_state,
-                       deal_cap,
-                       stop_recursion=False,
-                       type_of_deal=DEAL_TYPE.ARBITRAGE)
+    if order_book_expired == STATUS.SUCCESS:
+        analyse_order_book(second_order_book,
+                           first_order_book,
+                           threshold,
+                           action_to_perform,
+                           balance_state,
+                           deal_cap,
+                           stop_recursion=False,
+                           type_of_deal=DEAL_TYPE.ARBITRAGE)
 
 
 def mega_analysis(order_book, threshold, balance_state, deal_cap, treshold_reverse, action_to_perform):
@@ -374,9 +391,6 @@ def mega_analysis(order_book, threshold, balance_state, deal_cap, treshold_rever
     :param action_to_perform: method, that take details of ask bid at two exchange and trigger deals
     :return:
     """
-
-    # FIXME - compute size!
-    process_pool = Pool()
 
     # split on currencies
     for pair_id in CURRENCY_PAIR.values():
@@ -475,13 +489,14 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
 
 def run_bot(deal_threshold, balance_adjust_threshold, treshold_reverse):
     load_keys("./secret_keys")
-
     deal_cap = common_cap_init()
+    cur_timest = get_now_seconds()
+    current_balance = dummy_balance_init(cur_timest, 0, balance_adjust_threshold)
 
     while True:
         order_book = get_order_book()
 
-        current_balance = balance_init(balance_adjust_threshold)
+        current_balance = get_updated_balance(balance_adjust_threshold, current_balance)
 
         mega_analysis(order_book, deal_threshold, current_balance, deal_cap, treshold_reverse, init_deals_with_logging)
 
