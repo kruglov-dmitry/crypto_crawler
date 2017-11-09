@@ -15,6 +15,10 @@ def get_ticker_bittrex(currency, timest):
     r = send_request(final_url, err_msg)
 
     if r is not None and "result" in r and r["result"] is not None:
-        return Ticker.from_bittrex(currency, timest, r["result"])
+        try:
+            return Ticker.from_bittrex(currency, timest, r["result"])
+        except Exception, e:
+            print "Error get ticket bitrex", str(e), "for data"
+            print r["result"]
 
     return None
