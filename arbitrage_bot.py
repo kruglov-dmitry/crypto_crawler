@@ -221,6 +221,9 @@ def determine_minimum_volume_by_price(first_order_book, second_order_book, deal_
     if min_volume * second_order_book.ask[LAST].price > deal_cap.max_price_cap[CURRENCY.BITCOIN]:
         min_volume = deal_cap.max_price_cap[CURRENCY.BITCOIN] / float(second_order_book.ask[LAST].price)
 
+    if min_volume < deal_cap.get_min_volume_cap_by_dst(first_order_book.pair_id):
+        min_volume = -1 # Yeap, no need to even bother
+
     return min_volume
 
 
