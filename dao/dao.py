@@ -31,12 +31,13 @@ from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, 
 from kraken.market_utils import add_buy_order_kraken, add_sell_order_kraken, cancel_order_kraken, \
     get_balance_kraken
 from poloniex.market_utils import add_buy_order_poloniex, add_sell_order_poloniex, cancel_order_poloniex, \
-    show_balance_poloniex
+    get_balance_poloniex
 
 from utils.currency_utils import get_currency_pair_to_bittrex, get_currency_pair_to_kraken, \
     get_currency_pair_to_poloniex
 
 from enums.exchange import EXCHANGE
+from enums.status import STATUS
 from utils.key_utils import get_key_by_exchange
 
 from collections import defaultdict
@@ -130,49 +131,62 @@ def get_history(prev_time, now_time):
 
 
 def buy_by_exchange(trade):
+    res = STATUS.FAILURE, None
+
     key = get_key_by_exchange(trade.exchange_id)
     if trade.exchange_id == EXCHANGE.BITTREX:
         currency = get_currency_pair_to_bittrex(trade.pair_id)
-        add_buy_order_bittrex(key, currency, trade.price, trade.volume)
+        res = add_buy_order_bittrex(key, currency, trade.price, trade.volume)
     elif trade.exchange_id == EXCHANGE.KRAKEN:
         currency = get_currency_pair_to_kraken(trade.pair_id)
-        add_buy_order_kraken(key, currency, trade.price, trade.volume)
+        res = add_buy_order_kraken(key, currency, trade.price, trade.volume)
     elif trade.exchange_id == EXCHANGE.POLONIEX:
         currency = get_currency_pair_to_poloniex(trade.pair_id)
-        add_buy_order_poloniex(key, currency, trade.price, trade.volume)
+        res = add_buy_order_poloniex(key, currency, trade.price, trade.volume)
     else:
         print "buy_by_exchange - Unknown exchange! ", trade
 
+    return res
+
 
 def sell_by_exchange(trade):
+    res = STATUS.FAILURE, None
+
     key = get_key_by_exchange(trade.exchange_id)
     if trade.exchange_id == EXCHANGE.BITTREX:
         currency = get_currency_pair_to_bittrex(trade.pair_id)
-        add_sell_order_bittrex(key, currency, trade.price, trade.volume)
+        res = add_sell_order_bittrex(key, currency, trade.price, trade.volume)
     elif trade.exchange_id == EXCHANGE.KRAKEN:
         currency = get_currency_pair_to_kraken(trade.pair_id)
-        add_sell_order_kraken(key, currency, trade.price, trade.volume)
+        res = add_sell_order_kraken(key, currency, trade.price, trade.volume)
     elif trade.exchange_id == EXCHANGE.POLONIEX:
         currency = get_currency_pair_to_poloniex(trade.pair_id)
-        add_sell_order_poloniex(key, currency, trade.price, trade.volume)
+        res = add_sell_order_poloniex(key, currency, trade.price, trade.volume)
     else:
         print "sell_by_exchange - Unknown exchange! ", trade
 
+    return res
+
 
 def cancel_by_exchange(trade):
+    res = STATUS.FAILURE, None
+
     key = get_key_by_exchange(trade.exchange_id)
     if trade.exchange_id == EXCHANGE.BITTREX:
-        cancel_order_bittrex(key, trade.deal_id)
+        res = cancel_order_bittrex(key, trade.deal_id)
     elif trade.exchange_id == EXCHANGE.KRAKEN:
-        cancel_order_kraken(key, trade.deal_id)
+        res = cancel_order_kraken(key, trade.deal_id)
     elif trade.exchange_id == EXCHANGE.POLONIEX:
-        cancel_order_poloniex(key, trade.deal_id)
+        res = cancel_order_poloniex(key, trade.deal_id)
     else:
         print "cancel_by_exchange - Unknown exchange! ", trade
 
+    return res
+
 
 def get_balance_by_exchange(exchange_id):
-    res = None
+    res = STATUS.FAILURE, None
+
     key = get_key_by_exchange(exchange_id)
 
     if exchange_id == EXCHANGE.BITTREX:
@@ -180,17 +194,20 @@ def get_balance_by_exchange(exchange_id):
     elif exchange_id == EXCHANGE.KRAKEN:
         res = get_balance_kraken(key)
     elif exchange_id == EXCHANGE.POLONIEX:
-        res = show_balance_poloniex(key)
+        res = get_balance_poloniex(key)
     else:
         print "show_balance_by_exchange - Unknown exchange! ", exchange_id
 
     return res
 
 
-def balance_init(balance_adjust_threshold):
+def get_updated_balance(balance_adjust_threshold, prev_balance):
     balance = {}
 
     for exchange_id in EXCHANGE.values():
-        balance[exchange_id] = get_balance_by_exchange(exchange_id)
+        balance[exchange_id] = prev_balance[exchange_id].deepcopy()
+        status_code, new_balance_value = get_balance_by_exchange(exchange_id)
+        if status_code == STATUS.SUCCESS:
+            balance[exchange_id] = new_balance_value
 
     return BalanceState(balance, balance_adjust_threshold)

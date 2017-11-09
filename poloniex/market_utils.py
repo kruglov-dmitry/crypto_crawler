@@ -4,6 +4,7 @@ from data_access.internet import send_post_request_with_header
 from debug_utils import should_print_debug
 from data.Balance import Balance
 from utils.time_utils import get_now_seconds
+from enums.status import STATUS
 
 
 def add_buy_order_poloniex(key, pair_name, price, amount):
@@ -24,8 +25,12 @@ def add_buy_order_poloniex(key, pair_name, price, amount):
 
     err_msg = "add_buy_order poloniex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    r = send_post_request_with_header(final_url, headers, body, err_msg)
-    print r
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+
+    if should_print_debug():
+        print res
+
+    return res
 
 
 def add_sell_order_poloniex(key, pair_name, price, amount):
@@ -47,8 +52,12 @@ def add_sell_order_poloniex(key, pair_name, price, amount):
 
     err_msg = "add_sell_order poloniex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    r = send_post_request_with_header(final_url, headers, body, err_msg)
-    print r
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+
+    if should_print_debug():
+        print res
+
+    return res
 
 
 def cancel_order_poloniex(key, deal_id):
@@ -68,11 +77,15 @@ def cancel_order_poloniex(key, deal_id):
 
     err_msg = "cancel poloniex called for {deal_id}".format(deal_id=deal_id)
 
-    r = send_post_request_with_header(final_url, headers, body, err_msg)
-    print r
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+
+    if should_print_debug():
+        print res
+
+    return res
 
 
-def show_balance_poloniex(key):
+def get_balance_poloniex(key):
     """
     https://poloniex.com/tradingApi
     {'Key': 'QN6SDFQG-XVG2CGG3-WDDG2WDV-VXZ7MYL3',
@@ -102,6 +115,9 @@ def show_balance_poloniex(key):
     err_msg = "check poloniex balance called"
 
     timest = get_now_seconds()
-    r = send_post_request_with_header(final_url, headers, body, err_msg)
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
 
-    return Balance.from_poloniex(timest, r)
+    if res[0] == STATUS.SUCCESS:
+        res = STATUS.SUCCESS, Balance.from_poloniex(timest, res[1])
+
+    return res

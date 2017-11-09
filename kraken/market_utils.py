@@ -4,6 +4,7 @@ from debug_utils import should_print_debug
 from utils.key_utils import generate_nonce, sign_kraken
 from data.Balance import Balance
 from utils.time_utils import get_now_seconds
+from enums.status import STATUS
 
 
 def float_to_str(f):
@@ -43,9 +44,12 @@ def add_buy_order_kraken(key, pair_name, price, amount):
 
     err_msg = "add_buy_order kraken called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    r = send_post_request_with_header(final_url, headers, body, err_msg)
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
 
-    print r
+    if should_print_debug():
+        print res
+
+    return res
 
 
 def add_sell_order_kraken(key, pair_name, price, amount):
@@ -70,9 +74,12 @@ def add_sell_order_kraken(key, pair_name, price, amount):
 
     err_msg = "add_sell_order kraken called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    r = send_post_request_with_header(final_url, headers, body, err_msg)
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
 
-    print r
+    if should_print_debug():
+        print res
+
+    return res
 
 
 def cancel_order_kraken(key, deal_id):
@@ -91,9 +98,12 @@ def cancel_order_kraken(key, deal_id):
 
     err_msg = "cancel kraken called for {deal_id}".format(deal_id=deal_id)
 
-    r = send_post_request_with_header(final_url, headers, body, err_msg)
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
 
-    print r
+    if should_print_debug():
+        print res
+
+    return res
 
 
 def get_balance_kraken(key):
@@ -123,11 +133,10 @@ def get_balance_kraken(key):
     err_msg = "check kraken balance called"
 
     timest = get_now_seconds()
-    r = send_post_request_with_header(final_url, headers, body, err_msg)
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
 
-    res = None
-    if "result" in r:
-        res = Balance.from_kraken(timest, r["result"])
+    if res[0] == STATUS.SUCCESS and "result" in res[1]:
+        res = STATUS.SUCCESS, Balance.from_kraken(timest, res[1]["result"])
 
     return res
 

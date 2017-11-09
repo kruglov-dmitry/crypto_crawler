@@ -34,10 +34,15 @@ def load_data_from_file(every_file, pattern_name):
     return array
 
 
-def save_to_file(some_data, file_name):
+def save_list_to_file(some_data, file_name):
     with open(file_name, "a") as myfile:
         for entry in some_data:
             myfile.write("%s\n" % str(entry))
+
+
+def log_to_file(trade, file_name):
+    with open(file_name, 'a') as the_file:
+        the_file.write(str(trade) + "\n")
 
 
 def load_crap_from_folder(folder_name, pattern_name, pg_conn):

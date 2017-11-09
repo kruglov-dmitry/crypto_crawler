@@ -5,6 +5,7 @@ from data_access.internet import send_post_request_with_header
 from urllib import urlencode as _urlencode
 from data.Balance import Balance
 from utils.time_utils import get_now_seconds
+from enums.status import STATUS
 
 
 def add_buy_order_bittrex(key, pair_name, price, amount):
@@ -26,8 +27,12 @@ def add_buy_order_bittrex(key, pair_name, price, amount):
 
     err_msg = "add_buy_order bittrex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    r = send_post_request_with_header(final_url, headers, body, err_msg)
-    print r
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+
+    if should_print_debug():
+        print res
+
+    return res
 
 
 def add_sell_order_bittrex(key, pair_name, price, amount):
@@ -49,8 +54,12 @@ def add_sell_order_bittrex(key, pair_name, price, amount):
 
     err_msg = "add_sell_order bittrex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    r = send_post_request_with_header(final_url, headers, body, err_msg)
-    print r
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+
+    if should_print_debug():
+        print res
+
+    return res
 
 
 def cancel_order_bittrex(key, deal_id):
@@ -70,8 +79,12 @@ def cancel_order_bittrex(key, deal_id):
 
     err_msg = "cancel bittrex order with id {id}".format(id=deal_id)
 
-    r = send_post_request_with_header(final_url, headers, body, err_msg)
-    print r
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+
+    if should_print_debug():
+        print res
+
+    return res
 
 
 def get_balance_bittrex(key):
@@ -112,10 +125,10 @@ def get_balance_bittrex(key):
     err_msg = "check bittrex balance called"
 
     timest = get_now_seconds()
-    r = send_post_request_with_header(final_url, headers, body, err_msg)
 
-    res = None
-    if "result" in r:
-        res = Balance.from_bittrex(timest, r["result"])
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+
+    if res[0] == STATUS.SUCCESS and "result" in res[1]:
+        res = STATUS.SUCCESS, Balance.from_bittrex(timest, res[1]["result"])
 
     return res
