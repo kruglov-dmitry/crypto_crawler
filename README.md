@@ -1,3 +1,6 @@
+How to kill all processes:
+ps -ef | grep arbitrage | awk '{print $2}' | xargs kill -9 $1
+
 Postgres related stuff:
 pg_dump -h 192.168.1.106 -p 5432 -U postgres -F c -b -v -f "/home/dima/full_DDMMYYYY"
 pg_dump -h 192.168.1.106 -p 5432 -U postgres -s public
