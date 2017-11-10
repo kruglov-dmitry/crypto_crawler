@@ -115,9 +115,9 @@ def get_balance_poloniex(key):
     err_msg = "check poloniex balance called"
 
     timest = get_now_seconds()
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+    error_code, res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
 
-    if res[0] == STATUS.SUCCESS:
-        res = STATUS.SUCCESS, Balance.from_poloniex(timest, res[1])
+    if error_code == STATUS.SUCCESS:
+        res = STATUS.SUCCESS, Balance.from_poloniex(timest, res)
 
-    return res
+    return error_code, res
