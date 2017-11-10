@@ -2,6 +2,7 @@ from constants import POLONIEX_GET_TICKER
 from data.Ticker import Ticker
 from debug_utils import should_print_debug
 from data_access.internet import send_request
+from enums.status import STATUS
 
 
 def get_ticker_poloniex(currency, timest):
@@ -11,9 +12,9 @@ def get_ticker_poloniex(currency, timest):
         print final_url
 
     err_msg = "get_ticker_poloniex called for {pair} at {timest}".format(pair=currency, timest=timest)
-    r = send_request(final_url, err_msg)
+    error_code, r = send_request(final_url, err_msg)
 
-    if r is not None and currency in r and r[currency] is not None:
+    if error_code == STATUS.SUCCESS and r is not None and currency in r and r[currency] is not None:
         return Ticker.from_poloniex(currency, timest, r[currency])
 
     return None
