@@ -44,6 +44,8 @@ from collections import defaultdict
 
 from data.BalanceState import BalanceState
 
+import copy
+
 
 def get_ticker():
 
@@ -205,7 +207,7 @@ def get_updated_balance(balance_adjust_threshold, prev_balance):
     balance = {}
 
     for exchange_id in EXCHANGE.values():
-        balance[exchange_id] = prev_balance[exchange_id].deepcopy()
+        balance[exchange_id] = copy.deepcopy(prev_balance.balance_per_exchange[exchange_id])
         status_code, new_balance_value = get_balance_by_exchange(exchange_id)
         if status_code == STATUS.SUCCESS:
             balance[exchange_id] = new_balance_value

@@ -118,6 +118,6 @@ def get_balance_poloniex(key):
     error_code, res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
 
     if error_code == STATUS.SUCCESS:
-        res = STATUS.SUCCESS, Balance.from_poloniex(timest, res)
+        res = Balance.from_poloniex(timest, res)
 
     return error_code, res

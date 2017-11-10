@@ -24,22 +24,26 @@ def send_post_request_with_header(final_url, header, body, error_msg, max_tries)
 
     try_number = 0
     while try_number < max_tries:
+        try_number += 1
         try:
             response = requests.post(final_url, data=body, headers=header, timeout=HTTP_TIMEOUT_SECONDS).json()
-
+            str_repr = json.dumps(response)
             # try to deal with problem - i.e. just wait an retry
-            if "timeout" in response or "Service:Unavailable" in response:
+            if "EOrder" in str_repr or "Unavailable" in str_repr or "Busy" in str_repr or "ETrade" in str_repr or "EGeneral:Invalid" in str_repr \
+                    or "timeout" in str_repr:
                 sleep_for(1)
-                try_number += 1
             else:
+                print "YEAH, ", str_repr
                 # NOTE: Consider it as success then, if not - extend possible checks above
                 return STATUS.SUCCESS, response
 
+            print "SOME ERROR: ", response
             res = STATUS.FAILURE, response
 
         except Exception, e:
             res = STATUS.FAILURE, error_msg + str(e)
-            print error_msg, str(e)
+            print "send_post_request_with_header: ", error_msg, str(e)
+            sleep_for(1)
 
     return res
 

@@ -136,7 +136,7 @@ def get_balance_kraken(key):
     error_code, res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
 
     if error_code == STATUS.SUCCESS and "result" in res:
-        res = STATUS.SUCCESS, Balance.from_kraken(timest, res["result"])
+        res = Balance.from_kraken(timest, res["result"])
 
     return error_code, res
 

@@ -54,7 +54,7 @@ POLL_PERIOD_SECONDS = 7
 overall_profit_so_far = 0.0
 
 
-pool_size = len(ARBITRAGE_CURRENCY) * len(EXCHANGE.values()) * 2
+pool_size = 1 # len(ARBITRAGE_CURRENCY) * len(EXCHANGE.values()) * 2
 process_pool = Pool(pool_size)
 
 
@@ -131,6 +131,7 @@ def init_deal(trade_to_perform, debug_msg):
 
 
 def init_deals_with_logging(trade_pairs, file_name):
+
     global overall_profit_so_far
 
     first_deal = trade_pairs.deal_1
@@ -145,8 +146,18 @@ def init_deals_with_logging(trade_pairs, file_name):
     debug_msg = "Deals details: " + str(first_deal)
     result_1 = init_deal(first_deal, debug_msg)
 
+    first_deal.execute_time = get_now_seconds()
+
+    if result_1[0] != STATUS.SUCCESS:
+        msg = "Failing of adding FIRST deal! {deal}".format(deal=str(first_deal))
+        print msg
+        log_to_file(msg, file_name)
+        return STATUS.FAILURE
+
     debug_msg = "Deals details: " + str(second_deal)
     result_2 = init_deal(second_deal, debug_msg)
+
+    second_deal.execute_time = get_now_seconds()
 
     if result_1[0] != STATUS.SUCCESS or not result_2[0] != STATUS.SUCCESS:
         msg = "Failing of adding deals! {deal_pair}".format(deal_pair=str(trade_pairs))
@@ -212,7 +223,7 @@ def determine_minimum_volume_by_price(first_order_book, second_order_book, deal_
 
     min_volume = min(min_volume, deal_cap.get_max_volume_cap_by_dst(first_order_book.pair_id))
 
-    """if deal_cap.is_deal_size_acceptable(pair_id=first_order_book.pair_id, dst_currency_volume=min_volume, 
+    """if deal_cap.is_deal_size_acceptable(pair_id=first_order_book.pair_id, dst_currency_volume=min_volume,
     sell_price=first_order_book.bid[FIRST].price, buy_price=second_order_book.ask[LAST].price):"""
 
     # Maximum cost of price: neither sell or buy for more than X Bitcoin
@@ -268,11 +279,12 @@ def analyse_order_book(first_order_book,
                 get_exchange_name_by_id(first_order_book.exchange_id), get_exchange_name_by_id(second_order_book.exchange_id)
             return
 
+        create_time = get_now_seconds()
         trade_at_first_exchange = Trade(DEAL_TYPE.SELL, first_order_book.exchange_id, first_order_book.pair_id,
-                                        first_order_book.bid[FIRST].price, min_volume)
+                                        first_order_book.bid[FIRST].price, min_volume, create_time)
 
         trade_at_second_exchange = Trade(DEAL_TYPE.BUY, second_order_book.exchange_id, second_order_book.pair_id,
-                                         second_order_book.ask[LAST].price, min_volume)
+                                         second_order_book.ask[LAST].price, min_volume, create_time)
 
         deal_status = action_to_perform(TradePair(trade_at_first_exchange, trade_at_second_exchange,
                                                  first_order_book.timest, second_order_book.timest, type_of_deal),
@@ -433,11 +445,13 @@ def mega_analysis(order_book, threshold, balance_state, deal_cap, treshold_rever
                                                    exch1=get_exchange_name_by_id(src_exchange_id),
                                                    exch2=get_exchange_name_by_id(dst_exchange_id))
                 continue
+            search_for_arbitrage(first_order_book[0], second_order_book[0], threshold, action_to_perform, balance_state, deal_cap)
+            adjust_currency_balance(first_order_book[0], second_order_book[0], treshold_reverse, action_to_perform, balance_state, deal_cap)
 
             # Orkay, spawn a new process to have fun within
             # it will create deep copy of order book
-            process_pool.apply_async(search_for_arbitrage, first_order_book[0], second_order_book[0], threshold, action_to_perform, balance_state, deal_cap)
-            process_pool.apply_async(adjust_currency_balance, first_order_book[0], second_order_book[0], treshold_reverse, action_to_perform, balance_state, deal_cap)
+            # process_pool.apply_async(search_for_arbitrage, args=(first_order_book[0], second_order_book[0], threshold, action_to_perform, balance_state, deal_cap))
+            # process_pool.apply_async(adjust_currency_balance, args=(first_order_book[0], second_order_book[0], treshold_reverse, action_to_perform, balance_state, deal_cap))
 
     process_pool.close()
     process_pool.join()
