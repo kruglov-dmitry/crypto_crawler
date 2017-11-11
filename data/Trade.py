@@ -2,7 +2,7 @@ from Deal import Deal
 
 from enums.deal_type import get_deal_type_by_id
 
-from utils.currency_utils import get_currency_name_by_id, get_currency_pair_to_kraken
+from utils.currency_utils import get_currency_name_by_id, get_currency_pair_from_kraken
 from utils.exchange_utils import get_exchange_name_by_id
 
 from enums.deal_type import DEAL_TYPE
@@ -80,6 +80,11 @@ class Trade(Deal):
 
         pair_name = json_doc["descr"]["pair"]
 
-        pair_id = get_currency_pair_to_kraken(pair_name)
+        try:
+            pair_id = get_currency_pair_from_kraken(pair_name)
 
-        return Trade(trade_type, EXCHANGE.KRAKEN, pair_id, price, volume, order_book_time, create_time)
+            return Trade(trade_type, EXCHANGE.KRAKEN, pair_id, price, volume, order_book_time, create_time)
+        except Exception, e:
+            print "NON supported currency?", pair_name, str(e)
+
+        return None

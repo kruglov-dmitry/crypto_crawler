@@ -280,7 +280,7 @@ def get_closed_orders_kraken(key):
 
     closed_orders = []
     if error_code == STATUS.SUCCESS and "result" in res:
-        if "open" in res["result"]:
+        if "closed" in res["result"]:
             for order_id in res["result"]["closed"]:
                 new_order = Trade.from_kraken(order_id, res["result"]["closed"][order_id])
                 if new_order is not None:
