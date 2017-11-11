@@ -14,7 +14,7 @@ def send_request(final_url, error_msg):
         res = STATUS.SUCCESS, responce
     except Exception, e:
         res = STATUS.FAILURE, error_msg + str(e)
-        print "send_request ERROR: ", error_msg, str(e), responce
+        print "send_request ERROR: ", error_msg, str(e)
 
     return res
 

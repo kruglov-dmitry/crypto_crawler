@@ -34,9 +34,9 @@ def add_buy_order_kraken(key, pair_name, price, amount, order_state):
 
         # check whether we have added new deals
 
-        new_order_state = get_orders_kraken(key)
+        error_code, new_order_state = get_orders_kraken(key)
 
-        if prev_num_of_orders < new_order_state.get_total_num_of_orders():
+        if error_code == STATUS.SUCCESS and prev_num_of_orders < new_order_state.get_total_num_of_orders():
             # FIXME well, ideally we have to look for pair_name, price and amount
             # But for now lets conclude that This crap did it!
 
@@ -96,9 +96,9 @@ def add_sell_order_kraken(key, pair_name, price, amount, order_state):
 
         # check whether we have added new deals
 
-        new_order_state = get_orders_kraken(key)
+        error_code, new_order_state = get_orders_kraken(key)
 
-        if prev_num_of_orders < new_order_state.get_total_num_of_orders():
+        if error_code == STATUS.SUCCESS and prev_num_of_orders < new_order_state.get_total_num_of_orders():
             # FIXME well, ideally we have to look for pair_name, price and amount
             # But for now lets conclude that This crap did it!
 
@@ -110,7 +110,7 @@ def add_sell_order_kraken(key, pair_name, price, amount, order_state):
     return error_code, res
 
 
-def add_sell_order_kraken_impl(key, pair_name, price, amount, order_state):
+def add_sell_order_kraken_impl(key, pair_name, price, amount):
     # https://api.kraken.com/0/private/AddOrder
     final_url = KRAKEN_BASE_API_URL + KRAKEN_SELL_ORDER
 
@@ -132,7 +132,7 @@ def add_sell_order_kraken_impl(key, pair_name, price, amount, order_state):
 
     err_msg = "add_sell_order kraken called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=1)
 
     if should_print_debug():
         print res

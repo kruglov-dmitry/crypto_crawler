@@ -166,7 +166,7 @@ def buy_by_exchange(trade, order_state):
         res = add_buy_order_bittrex(key, currency, trade.price, trade.volume)
     elif trade.exchange_id == EXCHANGE.KRAKEN:
         currency = get_currency_pair_to_kraken(trade.pair_id)
-        res = add_buy_order_kraken(key, currency, trade.price, trade.volume, order_state)
+        res = add_buy_order_kraken(key, currency, trade.price, trade.volume, order_state[EXCHANGE.KRAKEN])
     elif trade.exchange_id == EXCHANGE.POLONIEX:
         currency = get_currency_pair_to_poloniex(trade.pair_id)
         res = add_buy_order_poloniex(key, currency, trade.price, trade.volume)
@@ -185,7 +185,7 @@ def sell_by_exchange(trade, order_state):
         res = add_sell_order_bittrex(key, currency, trade.price, trade.volume)
     elif trade.exchange_id == EXCHANGE.KRAKEN:
         currency = get_currency_pair_to_kraken(trade.pair_id)
-        res = add_sell_order_kraken(key, currency, trade.price, trade.volume, order_state)
+        res = add_sell_order_kraken(key, currency, trade.price, trade.volume, order_state[EXCHANGE.KRAKEN])
     elif trade.exchange_id == EXCHANGE.POLONIEX:
         currency = get_currency_pair_to_poloniex(trade.pair_id)
         res = add_sell_order_poloniex(key, currency, trade.price, trade.volume)

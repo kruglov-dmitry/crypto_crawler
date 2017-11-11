@@ -301,13 +301,11 @@ def analyse_order_book(first_order_book,
         trade_at_second_exchange = Trade(DEAL_TYPE.BUY, second_order_book.exchange_id, second_order_book.pair_id,
                                          second_order_book.ask[LAST].price, min_volume, second_order_book.timest, create_time)
 
-        # WTF WTF WTF
-        # deal_status = action_to_perform(TradePair(trade_at_first_exchange, trade_at_second_exchange,
-        #                                          first_order_book.timest, second_order_book.timest, type_of_deal),
-        #                                           order_state,
-        #                                "history_trades.txt")
+        deal_status = action_to_perform(TradePair(trade_at_first_exchange, trade_at_second_exchange,
+                                                  first_order_book.timest, second_order_book.timest, type_of_deal),
+                                        order_state,
+                                        "history_trades.txt")
 
-        deal_status = STATUS.FAILURE   # FIXME
         if deal_status == STATUS.FAILURE:
             # We are going to stop recursion here due to simple reason
             # we have 3 to 5 re-tries within placing orders
