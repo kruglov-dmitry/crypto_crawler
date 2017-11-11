@@ -338,6 +338,7 @@ def analyse_order_book(first_order_book,
                                       action_to_perform,
                                       balance_state,
                                       deal_cap,
+                                      order_state,
                                       stop_recursion,
                                       type_of_deal)
 
