@@ -1,29 +1,51 @@
 from constants import KRAKEN_BASE_API_URL, KRAKEN_CANCEL_ORDER, KRAKEN_BUY_ORDER, KRAKEN_SELL_ORDER, \
     KRAKEN_CHECK_BALANCE, KRAKEN_GET_CLOSE_ORDERS, KRAKEN_GET_OPEN_ORDERS
+
 from data_access.internet import send_post_request_with_header
+
 from debug_utils import should_print_debug
 from utils.key_utils import generate_nonce, sign_kraken
-from data.Balance import Balance
-from utils.time_utils import get_now_seconds
+from utils.time_utils import get_now_seconds, sleep_for
+from utils.string_utils import float_to_str
+
+from enums.exchange import EXCHANGE
 from enums.status import STATUS
 
-
-def float_to_str(f):
-    float_string = repr(f)
-    if 'e' in float_string:  # detect scientific notation
-        digits, exp = float_string.split('e')
-        digits = digits.replace('.', '').replace('-', '')
-        exp = int(exp)
-        zero_padding = '0' * (abs(int(exp)) - 1)  # minus 1 for decimal point in the sci notation
-        sign = '-' if f < 0 else ''
-        if exp > 0:
-            float_string = '{}{}{}.0'.format(sign, digits, zero_padding)
-        else:
-            float_string = '{}0.{}{}'.format(sign, zero_padding, digits)
-    return float_string
+from data.Balance import Balance
+from data.OrderState import OrderState
+from data.Trade import Trade
 
 
-def add_buy_order_kraken(key, pair_name, price, amount):
+def add_buy_order_kraken(key, pair_name, price, amount, order_state):
+    max_retry_num = 13
+    retry_num = 0
+
+    error_code, res = STATUS.FAILURE, None
+
+    prev_num_of_orders = order_state.get_total_num_of_orders()
+
+    while retry_num < max_retry_num:
+        retry_num += 1
+
+        error_code, res = add_buy_order_kraken_impl(key, pair_name, price, amount)
+
+        if STATUS.FAILURE != error_code:
+            return error_code, res
+
+        # check whether we have added new deals
+
+        = OrderState()
+
+        if :
+            # This crap do it
+            break
+
+
+        sleep_for(3)
+
+    return error_code, res
+
+def add_buy_order_kraken_impl(key, pair_name, price, amount):
     # https://api.kraken.com/0/private/AddOrder
     final_url = KRAKEN_BASE_API_URL + KRAKEN_BUY_ORDER
 
@@ -45,7 +67,7 @@ def add_buy_order_kraken(key, pair_name, price, amount):
 
     err_msg = "add_buy_order kraken called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=1)     # FailFast motherfucker!
 
     if should_print_debug():
         print res
@@ -53,7 +75,7 @@ def add_buy_order_kraken(key, pair_name, price, amount):
     return res
 
 
-def add_sell_order_kraken(key, pair_name, price, amount):
+def add_sell_order_kraken(key, pair_name, price, amount, order_state):
     # https://api.kraken.com/0/private/AddOrder
     final_url = KRAKEN_BASE_API_URL + KRAKEN_SELL_ORDER
 
@@ -143,6 +165,40 @@ def get_balance_kraken(key):
 
 
 def ger_open_orders_kraken(key):
+    """
+     {
+ 	"result": {
+ 		"open": {
+ 			"OHBQIW-6R6XD-DKOE5J": {
+ 				"status": "open",
+ 				"fee": "0.00000000",
+ 				"expiretm": 0,
+ 				"descr": {
+ 					"leverage": "none",
+ 					"ordertype": "limit",
+ 					"price": "0.0002100",
+ 					"pair": "EOSXBT",
+ 					"price2": "0",
+ 					"type": "sell",
+ 					"order": "sell 1250.88000000 EOSXBT @ limit 0.0002100"
+ 				},
+ 				"vol": "1250.88000000",
+ 				"cost": "0.00000000",
+ 				"misc": "",
+ 				"price": "0.00000000",
+ 				"starttm": 0,
+ 				"userref": null,
+ 				"vol_exec": "0.00000000",
+ 				"oflags": "fciq",
+ 				"refid": null,
+ 				"opentm": 1509592448.2296
+ 			},
+ 		}
+ 	}
+ }
+    """
+
+
     final_url = KRAKEN_BASE_API_URL + KRAKEN_GET_OPEN_ORDERS
 
     body = {
@@ -159,10 +215,15 @@ def ger_open_orders_kraken(key):
     timest = get_now_seconds()
     error_code, res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
 
-    # if error_code == STATUS.SUCCESS and "result" in res:
-    #     res = Balance.from_kraken(timest, res["result"])
+    open_orders = []
+    if error_code == STATUS.SUCCESS and "result" in res:
+        if "open" in res["result"]:
+            for order_id in res["result"]["open"]:
+                new_order = Trade.from_kraken(order_id, res["result"]["open"][order_id])
+                if new_order is not None:
+                    open_orders.append(new_order)
 
-    return error_code, res
+    return error_code, open_orders
 
 
 def get_closed_orders_kraken(key):
@@ -182,12 +243,24 @@ def get_closed_orders_kraken(key):
     timest = get_now_seconds()
     error_code, res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
 
-    # if error_code == STATUS.SUCCESS and "result" in res:
-    #     res = Balance.from_kraken(timest, res["result"])
+    closed_orders = []
+    if error_code == STATUS.SUCCESS and "result" in res:
+        if "open" in res["result"]:
+            for order_id in res["result"]["closed"]:
+                new_order = Trade.from_kraken(order_id, res["result"]["closed"][order_id])
+                if new_order is not None:
+                    closed_orders.append(new_order)
 
-    return error_code, res
+    return error_code, closed_orders
 
 
 def get_orders_kraken(key):
-    ger_open_orders_kraken(key)
-    get_closed_orders_kraken(key)
+
+    timest = get_now_seconds()
+    error_code_1, open_orders = ger_open_orders_kraken(key)
+    error_code_2, closed_orders = get_closed_orders_kraken(key)
+
+    if error_code_1 == STATUS.FAILURE or error_code_2 == STATUS.FAILURE:
+        return STATUS.FAILURE, None
+
+    return OrderState(EXCHANGE.KRAKEN, timest, open_orders, closed_orders)

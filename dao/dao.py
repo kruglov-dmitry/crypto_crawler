@@ -157,7 +157,7 @@ def get_history(prev_time, now_time):
     return all_history
 
 
-def buy_by_exchange(trade):
+def buy_by_exchange(trade, order_state):
     res = STATUS.FAILURE, None
 
     key = get_key_by_exchange(trade.exchange_id)
@@ -166,7 +166,7 @@ def buy_by_exchange(trade):
         res = add_buy_order_bittrex(key, currency, trade.price, trade.volume)
     elif trade.exchange_id == EXCHANGE.KRAKEN:
         currency = get_currency_pair_to_kraken(trade.pair_id)
-        res = add_buy_order_kraken(key, currency, trade.price, trade.volume)
+        res = add_buy_order_kraken(key, currency, trade.price, trade.volume, order_state)
     elif trade.exchange_id == EXCHANGE.POLONIEX:
         currency = get_currency_pair_to_poloniex(trade.pair_id)
         res = add_buy_order_poloniex(key, currency, trade.price, trade.volume)
@@ -176,7 +176,7 @@ def buy_by_exchange(trade):
     return res
 
 
-def sell_by_exchange(trade):
+def sell_by_exchange(trade, order_state):
     res = STATUS.FAILURE, None
 
     key = get_key_by_exchange(trade.exchange_id)
@@ -185,7 +185,7 @@ def sell_by_exchange(trade):
         res = add_sell_order_bittrex(key, currency, trade.price, trade.volume)
     elif trade.exchange_id == EXCHANGE.KRAKEN:
         currency = get_currency_pair_to_kraken(trade.pair_id)
-        res = add_sell_order_kraken(key, currency, trade.price, trade.volume)
+        res = add_sell_order_kraken(key, currency, trade.price, trade.volume, order_state)
     elif trade.exchange_id == EXCHANGE.POLONIEX:
         currency = get_currency_pair_to_poloniex(trade.pair_id)
         res = add_sell_order_poloniex(key, currency, trade.price, trade.volume)

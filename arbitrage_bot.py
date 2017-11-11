@@ -28,6 +28,7 @@ from data.TradePair import TradePair
 from data.Balance import Balance
 from data.BalanceState import BalanceState
 from data.MarketCap import MarketCap
+from data.OrderState import OrderState
 
 from constants import ARBITRAGE_CURRENCY, ARBITRAGE_PAIRS
 
@@ -77,6 +78,18 @@ def dummy_balance_init(timest, default_volume, balance_adjust_threshold):
     return BalanceState(balance, balance_adjust_threshold)
 
 
+def dummy_order_state_init():
+    order_state_by_exchange = {}
+
+    open_orders = defaultdict(list)
+    closed_orders = defaultdict(list)
+
+    timest = get_now_seconds()
+
+    for exchange_id in EXCHANGE.values():
+        order_state_by_exchange[exchange_id] = OrderState(exchange_id, timest, open_orders, closed_orders)
+
+
 def custom_balance_init(timest, balance_adjust_threshold):
 
     # CURRENCY.BITCOIN, CURRENCY.DASH, CURRENCY.BCC, CURRENCY.XRP, CURRENCY.LTC, CURRENCY.ETC, CURRENCY.ETH
@@ -117,20 +130,20 @@ def common_cap_init():
     return MarketCap(min_volume_cap, max_volume_cap, min_price_cap, max_price_cap)
 
 
-def init_deal(trade_to_perform, debug_msg):
+def init_deal(trade_to_perform, order_state, debug_msg):
     res = STATUS.FAILURE, None
     try:
         if trade_to_perform.trade_type == DEAL_TYPE.SELL:
-            res = sell_by_exchange(trade_to_perform)
+            res = sell_by_exchange(trade_to_perform, order_state)
         else:
-            res = buy_by_exchange(trade_to_perform)
+            res = buy_by_exchange(trade_to_perform, order_state)
     except Exception, e:
         print "init_deal: FAILED ERROR WE ALL DIE with following exception: ", str(e), debug_msg
 
     return res
 
 
-def init_deals_with_logging(trade_pairs, file_name):
+def init_deals_with_logging(trade_pairs, order_state,  file_name):
 
     global overall_profit_so_far
 
@@ -144,7 +157,7 @@ def init_deals_with_logging(trade_pairs, file_name):
 
     # market routine
     debug_msg = "Deals details: " + str(first_deal)
-    result_1 = init_deal(first_deal, debug_msg)
+    result_1 = init_deal(first_deal, order_state, debug_msg)
 
     first_deal.execute_time = get_now_seconds()
 
@@ -155,7 +168,7 @@ def init_deals_with_logging(trade_pairs, file_name):
         return STATUS.FAILURE
 
     debug_msg = "Deals details: " + str(second_deal)
-    result_2 = init_deal(second_deal, debug_msg)
+    result_2 = init_deal(second_deal, order_state, debug_msg)
 
     second_deal.execute_time = get_now_seconds()
 
@@ -395,7 +408,7 @@ def search_for_arbitrage(first_order_book,
                            type_of_deal=DEAL_TYPE.ARBITRAGE)
 
 
-def mega_analysis(order_book, threshold, balance_state, deal_cap, treshold_reverse, action_to_perform):
+def mega_analysis(order_book, threshold, balance_state, order_state,  deal_cap, treshold_reverse, action_to_perform):
     """
     :param order_book: dict of lists with order book, where keys are exchange names within particular time window
             either request timeout or by timest window during playing within database
@@ -473,6 +486,8 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
     current_balance = custom_balance_init(time_entries[0], balance_adjust_threshold)
     deal_cap = common_cap_init()
 
+    order_state = dummy_order_state_init()
+
     for exch_id in current_balance.balance_per_exchange:
         print current_balance.balance_per_exchange[exch_id]
 
@@ -483,6 +498,7 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
             mega_analysis(order_book_grouped_by_time,
                           deal_threshold,
                           current_balance,
+                          order_state,
                           treshold_reverse,
                           log_to_file,
                           deal_cap)
@@ -509,17 +525,19 @@ def run_bot(deal_threshold, balance_adjust_threshold, treshold_reverse):
     deal_cap = common_cap_init()
     cur_timest = get_now_seconds()
     current_balance = dummy_balance_init(cur_timest, 0, balance_adjust_threshold)
+    order_state = dummy_order_state_init()
 
     while True:
 
         current_balance = get_updated_balance(balance_adjust_threshold, current_balance)
+        order_state = get_updated_order_state(order_state)
 
         for pair_id in ARBITRAGE_PAIRS:
             order_book = get_order_book_by_pair(pair_id)
 
             # TODO: move this to single thread
             # process_pool.apply_async(
-            # mega_analysis(order_book, deal_threshold, current_balance, deal_cap, treshold_reverse, init_deals_with_logging)
+            # mega_analysis(order_book, deal_threshold, current_balance, order_state, deal_cap, treshold_reverse, init_deals_with_logging)
 
             # for exchange_id in order_book:
             #     load_to_postgres(order_book[exchange_id], ORDER_BOOK_TYPE_NAME, pg_conn)

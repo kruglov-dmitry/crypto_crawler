@@ -1,7 +1,12 @@
 from Deal import Deal
+
 from enums.deal_type import get_deal_type_by_id
-from utils.currency_utils import get_currency_name_by_id
+
+from utils.currency_utils import get_currency_name_by_id, get_currency_pair_to_kraken
 from utils.exchange_utils import get_exchange_name_by_id
+
+from enums.deal_type import DEAL_TYPE
+from enums.exchange import EXCHANGE
 
 
 class Trade(Deal):
@@ -33,5 +38,48 @@ class Trade(Deal):
         self.deal_id = deal_id
 
     @classmethod
-    def load_from_market(cls):
-        pass
+    def from_kraken(cls, trade_id, json_doc):
+        """
+        "OMO3YX-5HSZM-26CQ36": {
+ 				"status": "open",
+ 				"fee": "0.000000",
+ 				"expiretm": 0,
+ 				"descr": {
+ 					"leverage": "none",
+ 					"ordertype": "limit",
+ 					"price": "0.003310",
+ 					"pair": "REPXBT",
+ 					"price2": "0",
+ 					"type": "sell",
+ 					"order": "sell 349.78000000 REPXBT @ limit 0.003310"
+ 				},
+ 				"vol": "349.78000000",
+ 				"cost": "0.000000",
+ 				"misc": "",
+ 				"price": "0.000000",
+ 				"starttm": 0,
+ 				"userref": null,
+ 				"vol_exec": "0.00000000",
+ 				"oflags": "fciq",
+ 				"refid": null,
+ 				"opentm": 1509591188.429
+ 			}
+        """
+
+        price = float(json_doc["descr"]["price"])
+        volume = float(json_doc["vol"])
+
+        create_time = long(json_doc["opentm"])
+        order_book_time = create_time # Because at this stage we do not really know it
+
+        trade_type_str = json_doc["descr"]["type"]
+
+        trade_type = DEAL_TYPE.BUY
+        if "sell" in trade_type_str:
+            trade_type = DEAL_TYPE.SELL
+
+        pair_name = json_doc["descr"]["pair"]
+
+        pair_id = get_currency_pair_to_kraken(pair_name)
+
+        return Trade(trade_type, EXCHANGE.KRAKEN, pair_id, price, volume, order_book_time, create_time)
