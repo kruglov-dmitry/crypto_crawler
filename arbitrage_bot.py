@@ -511,10 +511,10 @@ def run_bot(deal_threshold, balance_adjust_threshold, treshold_reverse):
     current_balance = dummy_balance_init(cur_timest, 0, balance_adjust_threshold)
 
     while True:
+        current_balance = get_updated_balance(balance_adjust_threshold, current_balance)
         for pair_id in ARBITRAGE_PAIRS:
             order_book = get_order_book_by_pair(pair_id)
 
-            current_balance = get_updated_balance(balance_adjust_threshold, current_balance)
 
             # TODO: move this to single thread
             # process_pool.apply_async(
