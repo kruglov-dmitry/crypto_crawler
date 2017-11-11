@@ -1,7 +1,7 @@
 import sys
 sys.setrecursionlimit(10000)
 
-from dao.dao import get_order_book, buy_by_exchange, sell_by_exchange, get_updated_balance
+from dao.dao import get_order_book, buy_by_exchange, sell_by_exchange, get_updated_balance, get_order_book_by_pair
 from dao.db import init_pg_connection, load_to_postgres, get_order_book_by_time, get_time_entries
 
 from utils.key_utils import load_keys
@@ -29,7 +29,7 @@ from data.Balance import Balance
 from data.BalanceState import BalanceState
 from data.MarketCap import MarketCap
 
-from constants import ARBITRAGE_CURRENCY
+from constants import ARBITRAGE_CURRENCY, ARBITRAGE_PAIRS
 
 from multiprocessing import Pool
 
@@ -281,10 +281,10 @@ def analyse_order_book(first_order_book,
 
         create_time = get_now_seconds()
         trade_at_first_exchange = Trade(DEAL_TYPE.SELL, first_order_book.exchange_id, first_order_book.pair_id,
-                                        first_order_book.bid[FIRST].price, min_volume, create_time)
+                                        first_order_book.bid[FIRST].price, min_volume, first_order_book.timest, create_time)
 
         trade_at_second_exchange = Trade(DEAL_TYPE.BUY, second_order_book.exchange_id, second_order_book.pair_id,
-                                         second_order_book.ask[LAST].price, min_volume, create_time)
+                                         second_order_book.ask[LAST].price, min_volume, second_order_book.timest, create_time)
 
         deal_status = action_to_perform(TradePair(trade_at_first_exchange, trade_at_second_exchange,
                                                  first_order_book.timest, second_order_book.timest, type_of_deal),
@@ -511,14 +511,17 @@ def run_bot(deal_threshold, balance_adjust_threshold, treshold_reverse):
     current_balance = dummy_balance_init(cur_timest, 0, balance_adjust_threshold)
 
     while True:
-        order_book = get_order_book()
+        for pair_id in ARBITRAGE_PAIRS:
+            order_book = get_order_book_by_pair(pair_id)
 
-        current_balance = get_updated_balance(balance_adjust_threshold, current_balance)
+            current_balance = get_updated_balance(balance_adjust_threshold, current_balance)
 
-        mega_analysis(order_book, deal_threshold, current_balance, deal_cap, treshold_reverse, init_deals_with_logging)
+            # TODO: move this to single thread
+            # process_pool.apply_async(
+            # mega_analysis(order_book, deal_threshold, current_balance, deal_cap, treshold_reverse, init_deals_with_logging)
 
-        # for exchange_id in order_book:
-        #     load_to_postgres(order_book[exchange_id], ORDER_BOOK_TYPE_NAME, pg_conn)
+            # for exchange_id in order_book:
+            #     load_to_postgres(order_book[exchange_id], ORDER_BOOK_TYPE_NAME, pg_conn)
 
         print "Before sleep..."
         sleep_for(POLL_PERIOD_SECONDS)

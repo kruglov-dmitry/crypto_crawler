@@ -3,6 +3,7 @@ from enums.currency import CURRENCY
 
 
 def split_currency_pairs(pair_id):
+    #         CURRENCY_PAIR.BTC_TO_BCH: {CURRENCY.BITCOIN, CURRENCY.BCH}
     return {
         CURRENCY_PAIR.BTC_TO_DASH: (CURRENCY.BITCOIN, CURRENCY.DASH),
         CURRENCY_PAIR.BTC_TO_ETH: (CURRENCY.BITCOIN, CURRENCY.ETH),
@@ -27,7 +28,8 @@ def get_currency_pair_from_poloniex(currency):
         'BTC_SC': CURRENCY_PAIR.BTC_TO_SC,
         'BTC_DGB' : CURRENCY_PAIR.BTC_TO_DGB,
         'BTC_XEM': CURRENCY_PAIR.BTC_TO_XEM,
-        'BTC_ARDR': CURRENCY_PAIR.BTC_TO_ARDR
+        'BTC_ARDR': CURRENCY_PAIR.BTC_TO_ARDR,
+        'BTC_BCH': CURRENCY_PAIR.BTC_TO_BCC
     }[currency]
 
 
@@ -67,7 +69,8 @@ def get_currency_pair_to_poloniex(currency):
         CURRENCY_PAIR.BTC_TO_SC: 'BTC_SC',
         CURRENCY_PAIR.BTC_TO_DGB : 'BTC_DGB',
         CURRENCY_PAIR.BTC_TO_XEM: 'BTC_XEM',
-        CURRENCY_PAIR.BTC_TO_ARDR: 'BTC_ARDR'
+        CURRENCY_PAIR.BTC_TO_ARDR: 'BTC_ARDR',
+        CURRENCY_PAIR.BTC_TO_BCC: 'BTC_BCH'
     }[currency]
 
 
@@ -171,7 +174,7 @@ def get_currency_id_from_poloniex(currency_name):
     return {
         'BTC': CURRENCY.BITCOIN,
         'DASH': CURRENCY.DASH,
-        'BCC': CURRENCY.BCC,
+        'BCH': CURRENCY.BCC,
         'XRP': CURRENCY.XRP,
         'LTC': CURRENCY.LTC,
         'ETC': CURRENCY.ETC,
@@ -183,7 +186,7 @@ def get_currency_name_for_poloniex(currency_id):
     return {
         CURRENCY.BITCOIN: 'BTC',
         CURRENCY.DASH: 'DASH',
-        CURRENCY.BCC: 'BCC',
+        CURRENCY.BCC: 'BCH',
         CURRENCY.XRP: 'XRP',
         CURRENCY.LTC: 'LTC',
         CURRENCY.ETC: 'ETC',
@@ -195,7 +198,7 @@ def get_currency_name_by_id(currency_id):
     return {
         CURRENCY.BITCOIN: 'BTC',
         CURRENCY.DASH: 'DASH',
-        CURRENCY.BCC: 'BCC',
+        CURRENCY.BCC: 'BCH',
         CURRENCY.XRP: 'XRP',
         CURRENCY.LTC: 'LTC',
         CURRENCY.ETC: 'ETC',

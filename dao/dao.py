@@ -44,6 +44,8 @@ from collections import defaultdict
 
 from data.BalanceState import BalanceState
 
+from utils.currency_utils import get_currency_pair_from_bittrex, get_currency_pair_from_kraken, get_currency_pair_from_poloniex
+
 import copy
 
 
@@ -113,6 +115,29 @@ def get_order_book():
         order_book = get_order_book_bittrex(currency, timest)
         if order_book is not None:
             all_order_book[EXCHANGE.BITTREX].append(order_book)
+
+    return all_order_book
+
+
+def get_order_book_by_pair(pair_id):
+    all_order_book = defaultdict(list)
+
+    timest = get_now_seconds()
+
+    poloniex_pair_name = get_currency_pair_from_poloniex(pair_id)
+    order_book = get_order_book_poloniex(poloniex_pair_name, timest)
+    if order_book is not None:
+        all_order_book[EXCHANGE.POLONIEX].append(order_book)
+
+    kraken_pair_name = get_currency_pair_from_kraken(pair_id)
+    order_book = get_order_book_kraken(kraken_pair_name, timest)
+    if order_book is not None:
+        all_order_book[EXCHANGE.KRAKEN].append(order_book)
+
+    bittrex_pair_name = get_currency_pair_from_bittrex(pair_id)
+    order_book = get_order_book_bittrex(bittrex_pair_name, timest)
+    if order_book is not None:
+        all_order_book[EXCHANGE.BITTREX].append(order_book)
 
     return all_order_book
 

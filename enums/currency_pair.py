@@ -9,9 +9,11 @@ class CURRENCY_PAIR:
     BTC_TO_DGB = 8
     BTC_TO_XEM = 9
     BTC_TO_ARDR = 10
+    # BTC_TO_BCH = 11
 
     @classmethod
     def values(cls):
+        # , CURRENCY_PAIR.BTC_TO_BCH
         return [CURRENCY_PAIR.BTC_TO_DASH,
                 CURRENCY_PAIR.BTC_TO_ETH,
                 CURRENCY_PAIR.BTC_TO_LTC,
