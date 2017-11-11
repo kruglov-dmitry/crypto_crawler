@@ -258,6 +258,7 @@ def analyse_order_book(first_order_book,
                        action_to_perform,
                        balance_state,
                        deal_cap,
+                       order_state,
                        stop_recursion,
                        type_of_deal):
     """
@@ -303,8 +304,10 @@ def analyse_order_book(first_order_book,
         # WTF WTF WTF
         # deal_status = action_to_perform(TradePair(trade_at_first_exchange, trade_at_second_exchange,
         #                                          first_order_book.timest, second_order_book.timest, type_of_deal),
+        #                                           order_state,
         #                                "history_trades.txt")
 
+        deal_status = STATUS.FAILURE   # FIXME
         if deal_status == STATUS.FAILURE:
             # We are going to stop recursion here due to simple reason
             # we have 3 to 5 re-tries within placing orders
@@ -340,7 +343,7 @@ def analyse_order_book(first_order_book,
 
 
 def adjust_currency_balance(first_order_book, second_order_book, treshold_reverse, action_to_perform,
-                            balance_state, deal_cap):
+                            balance_state, deal_cap, order_state):
 
     pair_id = first_order_book.pair_id
     src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
@@ -358,6 +361,7 @@ def adjust_currency_balance(first_order_book, second_order_book, treshold_revers
                                                 action_to_perform,
                                                 balance_state,
                                                 deal_cap,
+                                                order_state,
                                                 stop_recursion=True,
                                                 type_of_deal=DEAL_TYPE.REVERSE)
 
@@ -374,6 +378,7 @@ def adjust_currency_balance(first_order_book, second_order_book, treshold_revers
                            action_to_perform,
                            balance_state,
                            deal_cap,
+                           order_state,
                            stop_recursion=True,
                            type_of_deal=DEAL_TYPE.REVERSE)
 
@@ -383,7 +388,8 @@ def search_for_arbitrage(first_order_book,
                          threshold,
                          action_to_perform,
                          balance_state,
-                         deal_cap):
+                         deal_cap,
+                         order_state):
     # FIXME NOTE - recursion will change them so we need to re-init it to apply vise-wersa processing
 
     order_book_expired = analyse_order_book(first_order_book,
@@ -392,6 +398,7 @@ def search_for_arbitrage(first_order_book,
                                             action_to_perform,
                                             balance_state,
                                             deal_cap,
+                                            order_state,
                                             stop_recursion=False,
                                             type_of_deal=DEAL_TYPE.ARBITRAGE)
 
@@ -406,6 +413,7 @@ def search_for_arbitrage(first_order_book,
                            action_to_perform,
                            balance_state,
                            deal_cap,
+                           order_state,
                            stop_recursion=False,
                            type_of_deal=DEAL_TYPE.ARBITRAGE)
 
@@ -421,8 +429,16 @@ def mega_analysis(order_book, threshold, balance_state, order_state,  deal_cap, 
     :param action_to_perform: method, that take details of ask bid at two exchange and trigger deals
     :return:
     """
-    search_for_arbitrage(first_order_book[0], second_order_book[0], threshold, action_to_perform, balance_state, deal_cap)
-    adjust_currency_balance(first_order_book[0], second_order_book[0], treshold_reverse, action_to_perform, balance_state, deal_cap)
+
+    order_book_pairs = get_all_combination(order_book, 2)
+
+    for every_pair in order_book_pairs:
+        src_exchange_id, dst_exchange_id = every_pair
+        first_order_book = order_book[src_exchange_id]
+        second_order_book = order_book[dst_exchange_id]
+
+        search_for_arbitrage(first_order_book[0], second_order_book[0], threshold, action_to_perform, balance_state, deal_cap, order_state)
+        adjust_currency_balance(first_order_book[0], second_order_book[0], treshold_reverse, action_to_perform, balance_state, deal_cap, order_state)
 
     # # split on currencies
     # for pair_id in CURRENCY_PAIR.values():
