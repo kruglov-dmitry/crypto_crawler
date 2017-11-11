@@ -29,7 +29,7 @@ from poloniex.history_utils import get_history_poloniex
 from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, cancel_order_bittrex, \
     get_balance_bittrex
 from kraken.market_utils import add_buy_order_kraken, add_sell_order_kraken, cancel_order_kraken, \
-    get_balance_kraken
+    get_balance_kraken, get_orders_kraken
 from poloniex.market_utils import add_buy_order_poloniex, add_sell_order_poloniex, cancel_order_poloniex, \
     get_balance_poloniex
 
@@ -238,3 +238,14 @@ def get_updated_balance(balance_adjust_threshold, prev_balance):
             balance[exchange_id] = new_balance_value
 
     return BalanceState(balance, balance_adjust_threshold)
+
+
+def get_updated_order_state(order_state):
+    new_order_state = {EXCHANGE.BITTREX: None, EXCHANGE.POLONIEX: None, EXCHANGE.KRAKEN: order_state[EXCHANGE.KRAKEN]}
+
+    krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
+    error_code, res = get_orders_kraken(krak_key)
+    if error_code == STATUS.SUCCESS:
+        new_order_state[EXCHANGE.KRAKEN] = res
+
+    return new_order_state

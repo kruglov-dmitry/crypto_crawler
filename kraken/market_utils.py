@@ -298,4 +298,4 @@ def get_orders_kraken(key):
     if error_code_1 == STATUS.FAILURE or error_code_2 == STATUS.FAILURE:
         return STATUS.FAILURE, None
 
-    return OrderState(EXCHANGE.KRAKEN, timest, open_orders, closed_orders)
+    return STATUS.SUCCESS, OrderState(EXCHANGE.KRAKEN, timest, open_orders, closed_orders)

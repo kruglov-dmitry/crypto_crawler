@@ -1,7 +1,7 @@
 import sys
 sys.setrecursionlimit(10000)
 
-from dao.dao import get_order_book, buy_by_exchange, sell_by_exchange, get_updated_balance, get_order_book_by_pair
+from dao.dao import get_order_book, buy_by_exchange, sell_by_exchange, get_updated_balance, get_order_book_by_pair, get_updated_order_state
 from dao.db import init_pg_connection, load_to_postgres, get_order_book_by_time, get_time_entries
 
 from utils.key_utils import load_keys
