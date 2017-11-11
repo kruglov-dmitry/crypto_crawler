@@ -55,8 +55,8 @@ POLL_PERIOD_SECONDS = 7
 overall_profit_so_far = 0.0
 
 
-pool_size = 1 # len(ARBITRAGE_CURRENCY) * len(EXCHANGE.values()) * 2
-process_pool = Pool(pool_size)
+# pool_size = 1 # len(ARBITRAGE_CURRENCY) * len(EXCHANGE.values()) * 2
+# process_pool = Pool(pool_size)
 
 
 def is_no_pending_order(currency_id, src_exchange_id, dst_exchange_id):
@@ -87,8 +87,9 @@ def dummy_order_state_init():
     timest = get_now_seconds()
 
     for exchange_id in EXCHANGE.values():
-        order_state_by_exchange[exchange_id] = OrderState(exchange_id, timest, open_orders, closed_orders)
+        order_state_by_exchange[exchange_id] = None
 
+    return order_state_by_exchange
 
 def custom_balance_init(timest, balance_adjust_threshold):
 
@@ -299,9 +300,10 @@ def analyse_order_book(first_order_book,
         trade_at_second_exchange = Trade(DEAL_TYPE.BUY, second_order_book.exchange_id, second_order_book.pair_id,
                                          second_order_book.ask[LAST].price, min_volume, second_order_book.timest, create_time)
 
-        deal_status = action_to_perform(TradePair(trade_at_first_exchange, trade_at_second_exchange,
-                                                 first_order_book.timest, second_order_book.timest, type_of_deal),
-                                       "history_trades.txt")
+        # WTF WTF WTF
+        # deal_status = action_to_perform(TradePair(trade_at_first_exchange, trade_at_second_exchange,
+        #                                          first_order_book.timest, second_order_book.timest, type_of_deal),
+        #                                "history_trades.txt")
 
         if deal_status == STATUS.FAILURE:
             # We are going to stop recursion here due to simple reason
@@ -419,55 +421,57 @@ def mega_analysis(order_book, threshold, balance_state, order_state,  deal_cap, 
     :param action_to_perform: method, that take details of ask bid at two exchange and trigger deals
     :return:
     """
+    search_for_arbitrage(first_order_book[0], second_order_book[0], threshold, action_to_perform, balance_state, deal_cap)
+    adjust_currency_balance(first_order_book[0], second_order_book[0], treshold_reverse, action_to_perform, balance_state, deal_cap)
 
-    # split on currencies
-    for pair_id in CURRENCY_PAIR.values():
+    # # split on currencies
+    # for pair_id in CURRENCY_PAIR.values():
 
-        # we interested ONLY in arbitrage related coins
-        src_coin, dst_coin = split_currency_pairs(pair_id)
-        if src_coin not in ARBITRAGE_CURRENCY or \
-                dst_coin not in ARBITRAGE_CURRENCY:
-            continue
+    #     # we interested ONLY in arbitrage related coins
+    #     src_coin, dst_coin = split_currency_pairs(pair_id)
+    #     if src_coin not in ARBITRAGE_CURRENCY or \
+    #             dst_coin not in ARBITRAGE_CURRENCY:
+    #         continue
 
-        order_book_by_exchange_by_currency = defaultdict(list)
+    #     order_book_by_exchange_by_currency = defaultdict(list)
 
-        for exchange_id in EXCHANGE.values():
-            if exchange_id in order_book:
-                exchange_order_book = [x for x in order_book[exchange_id] if x.pair_id == pair_id]
+    #     for exchange_id in EXCHANGE.values():
+    #         if exchange_id in order_book:
+    #             exchange_order_book = [x for x in order_book[exchange_id] if x.pair_id == pair_id]
 
-                # sort bids ascending and asks descending by price
-                for x in exchange_order_book:
-                    x.sort_by_price()
+    #             # sort bids ascending and asks descending by price
+    #             for x in exchange_order_book:
+    #                 x.sort_by_price()
 
-                order_book_by_exchange_by_currency[exchange_id] = exchange_order_book
-            else:
-                print "{0} exchange not present within order_book!".format(exchange_id)
+    #             order_book_by_exchange_by_currency[exchange_id] = exchange_order_book
+    #         else:
+    #             print "{0} exchange not present within order_book!".format(exchange_id)
 
-        order_book_pairs = get_all_combination(order_book_by_exchange_by_currency, 2)
+    #     order_book_pairs = get_all_combination(order_book_by_exchange_by_currency, 2)
 
-        for every_pair in order_book_pairs:
-            src_exchange_id, dst_exchange_id = every_pair
-            first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
-            second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
+    #     for every_pair in order_book_pairs:
+    #         src_exchange_id, dst_exchange_id = every_pair
+    #         first_order_book = order_book_by_exchange_by_currency[src_exchange_id]
+    #         second_order_book = order_book_by_exchange_by_currency[dst_exchange_id]
 
-            if len(first_order_book) != 1 or len(second_order_book) != 1:
-                print "Mega_analysis: Something severely wrong! First order book size - {size1} " \
-                      "Second order book size - {size2} For currency - {currency_name} for Exchanges " \
-                      "{exch1} and {exch2}".format(size1=len(first_order_book), size2=len(second_order_book),
-                                                   currency_name=get_pair_name_by_id(pair_id),
-                                                   exch1=get_exchange_name_by_id(src_exchange_id),
-                                                   exch2=get_exchange_name_by_id(dst_exchange_id))
-                continue
-            search_for_arbitrage(first_order_book[0], second_order_book[0], threshold, action_to_perform, balance_state, deal_cap)
-            adjust_currency_balance(first_order_book[0], second_order_book[0], treshold_reverse, action_to_perform, balance_state, deal_cap)
+    #         if len(first_order_book) != 1 or len(second_order_book) != 1:
+    #             print "Mega_analysis: Something severely wrong! First order book size - {size1} " \
+    #                   "Second order book size - {size2} For currency - {currency_name} for Exchanges " \
+    #                   "{exch1} and {exch2}".format(size1=len(first_order_book), size2=len(second_order_book),
+    #                                                currency_name=get_pair_name_by_id(pair_id),
+    #                                                exch1=get_exchange_name_by_id(src_exchange_id),
+    #                                                exch2=get_exchange_name_by_id(dst_exchange_id))
+    #             continue
+    #         search_for_arbitrage(first_order_book[0], second_order_book[0], threshold, action_to_perform, balance_state, deal_cap)
+    #         adjust_currency_balance(first_order_book[0], second_order_book[0], treshold_reverse, action_to_perform, balance_state, deal_cap)
 
-            # Orkay, spawn a new process to have fun within
-            # it will create deep copy of order book
-            # process_pool.apply_async(search_for_arbitrage, args=(first_order_book[0], second_order_book[0], threshold, action_to_perform, balance_state, deal_cap))
-            # process_pool.apply_async(adjust_currency_balance, args=(first_order_book[0], second_order_book[0], treshold_reverse, action_to_perform, balance_state, deal_cap))
+    #         # Orkay, spawn a new process to have fun within
+    #         # it will create deep copy of order book
+    #         # process_pool.apply_async(search_for_arbitrage, args=(first_order_book[0], second_order_book[0], threshold, action_to_perform, balance_state, deal_cap))
+    #         # process_pool.apply_async(adjust_currency_balance, args=(first_order_book[0], second_order_book[0], treshold_reverse, action_to_perform, balance_state, deal_cap))
 
-    process_pool.close()
-    process_pool.join()
+    # # process_pool.close()
+    # # process_pool.join()
 
 
 def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reverse):
@@ -537,7 +541,7 @@ def run_bot(deal_threshold, balance_adjust_threshold, treshold_reverse):
 
             # TODO: move this to single thread
             # process_pool.apply_async(
-            # mega_analysis(order_book, deal_threshold, current_balance, order_state, deal_cap, treshold_reverse, init_deals_with_logging)
+            mega_analysis(order_book, deal_threshold, current_balance, order_state, deal_cap, treshold_reverse, init_deals_with_logging)
 
             # for exchange_id in order_book:
             #     load_to_postgres(order_book[exchange_id], ORDER_BOOK_TYPE_NAME, pg_conn)
