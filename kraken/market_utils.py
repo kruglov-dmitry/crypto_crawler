@@ -1,4 +1,5 @@
-from constants import KRAKEN_BASE_API_URL, KRAKEN_CANCEL_ORDER, KRAKEN_BUY_ORDER, KRAKEN_SELL_ORDER, KRAKEN_CHECK_BALANCE
+from constants import KRAKEN_BASE_API_URL, KRAKEN_CANCEL_ORDER, KRAKEN_BUY_ORDER, KRAKEN_SELL_ORDER, \
+    KRAKEN_CHECK_BALANCE, KRAKEN_GET_CLOSE_ORDERS, KRAKEN_GET_OPEN_ORDERS
 from data_access.internet import send_post_request_with_header
 from debug_utils import should_print_debug
 from utils.key_utils import generate_nonce, sign_kraken
@@ -140,3 +141,53 @@ def get_balance_kraken(key):
 
     return error_code, res
 
+
+def ger_open_orders_kraken(key):
+    final_url = KRAKEN_BASE_API_URL + KRAKEN_GET_OPEN_ORDERS
+
+    body = {
+        "nonce": generate_nonce()
+    }
+
+    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_GET_OPEN_ORDERS, key.secret)}
+
+    if should_print_debug():
+        print final_url, headers, body
+
+    err_msg = "check kraken open orders called"
+
+    timest = get_now_seconds()
+    error_code, res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
+
+    # if error_code == STATUS.SUCCESS and "result" in res:
+    #     res = Balance.from_kraken(timest, res["result"])
+
+    return error_code, res
+
+
+def get_closed_orders_kraken(key):
+    final_url = KRAKEN_BASE_API_URL + KRAKEN_GET_CLOSE_ORDERS
+
+    body = {
+        "nonce": generate_nonce()
+    }
+
+    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_GET_CLOSE_ORDERS, key.secret)}
+
+    if should_print_debug():
+        print final_url, headers, body
+
+    err_msg = "check kraken closed orders called"
+
+    timest = get_now_seconds()
+    error_code, res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
+
+    # if error_code == STATUS.SUCCESS and "result" in res:
+    #     res = Balance.from_kraken(timest, res["result"])
+
+    return error_code, res
+
+
+def get_orders_kraken(key):
+    ger_open_orders_kraken(key)
+    get_closed_orders_kraken(key)

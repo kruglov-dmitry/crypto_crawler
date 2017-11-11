@@ -21,3 +21,6 @@ KRAKEN_CANCEL_ORDER = "/0/private/CancelOrder"
 KRAKEN_BUY_ORDER = "/0/private/AddOrder"
 KRAKEN_SELL_ORDER = "/0/private/AddOrder"
 KRAKEN_CHECK_BALANCE = "/0/private/Balance"
+
+KRAKEN_GET_OPEN_ORDERS = "/0/private/OpenOrders"
+KRAKEN_GET_CLOSE_ORDERS = "/0/private/ClosedOrders"
