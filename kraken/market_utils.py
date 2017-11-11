@@ -34,16 +34,19 @@ def add_buy_order_kraken(key, pair_name, price, amount, order_state):
 
         # check whether we have added new deals
 
-        = OrderState()
+        new_order_state = get_orders_kraken(key)
 
-        if :
-            # This crap do it
-            break
+        if prev_num_of_orders < new_order_state.get_total_num_of_orders():
+            # FIXME well, ideally we have to look for pair_name, price and amount
+            # But for now lets conclude that This crap did it!
 
+            return STATUS.SUCCESS, res
 
+        # otherwise - repeat
         sleep_for(3)
 
     return error_code, res
+
 
 def add_buy_order_kraken_impl(key, pair_name, price, amount):
     # https://api.kraken.com/0/private/AddOrder
@@ -76,6 +79,38 @@ def add_buy_order_kraken_impl(key, pair_name, price, amount):
 
 
 def add_sell_order_kraken(key, pair_name, price, amount, order_state):
+    max_retry_num = 13
+    retry_num = 0
+
+    error_code, res = STATUS.FAILURE, None
+
+    prev_num_of_orders = order_state.get_total_num_of_orders()
+
+    while retry_num < max_retry_num:
+        retry_num += 1
+
+        error_code, res = add_sell_order_kraken_impl(key, pair_name, price, amount)
+
+        if STATUS.FAILURE != error_code:
+            return error_code, res
+
+        # check whether we have added new deals
+
+        new_order_state = get_orders_kraken(key)
+
+        if prev_num_of_orders < new_order_state.get_total_num_of_orders():
+            # FIXME well, ideally we have to look for pair_name, price and amount
+            # But for now lets conclude that This crap did it!
+
+            return STATUS.SUCCESS, res
+
+        # otherwise - repeat
+        sleep_for(3)
+
+    return error_code, res
+
+
+def add_sell_order_kraken_impl(key, pair_name, price, amount, order_state):
     # https://api.kraken.com/0/private/AddOrder
     final_url = KRAKEN_BASE_API_URL + KRAKEN_SELL_ORDER
 
