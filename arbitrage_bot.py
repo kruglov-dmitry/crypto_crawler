@@ -81,8 +81,8 @@ def dummy_balance_init(timest, default_volume, balance_adjust_threshold):
 def dummy_order_state_init():
     order_state_by_exchange = {}
 
-    open_orders = defaultdict(list)
-    closed_orders = defaultdict(list)
+    open_orders = []
+    closed_orders = []
 
     timest = get_now_seconds()
 

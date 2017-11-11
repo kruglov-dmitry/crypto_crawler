@@ -10,18 +10,10 @@ class OrderState(BaseData):
         self.closed_orders = copy.deepcopy(closed_orders)
 
     def get_num_of_open_orders(self):
-        cnt = 0
-        for k in self.open_orders:
-            cnt += len(self.open_orders[k])
-
-        return cnt
+        return len(self.open_orders)
 
     def get_num_of_closed_orders(self):
-        cnt = 0
-        for k in self.closed_orders:
-            cnt += len(self.closed_orders[k])
-
-        return cnt
+        return len(self.closed_orders)
 
     def get_total_num_of_orders(self):
         return self.get_num_of_closed_orders() + self.get_num_of_open_orders()
