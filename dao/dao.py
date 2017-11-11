@@ -124,17 +124,17 @@ def get_order_book_by_pair(pair_id):
 
     timest = get_now_seconds()
 
-    poloniex_pair_name = get_currency_pair_from_poloniex(pair_id)
+    poloniex_pair_name = get_currency_pair_to_poloniex(pair_id)
     order_book = get_order_book_poloniex(poloniex_pair_name, timest)
     if order_book is not None:
         all_order_book[EXCHANGE.POLONIEX].append(order_book)
 
-    kraken_pair_name = get_currency_pair_from_kraken(pair_id)
+    kraken_pair_name = get_currency_pair_to_kraken(pair_id)
     order_book = get_order_book_kraken(kraken_pair_name, timest)
     if order_book is not None:
         all_order_book[EXCHANGE.KRAKEN].append(order_book)
 
-    bittrex_pair_name = get_currency_pair_from_bittrex(pair_id)
+    bittrex_pair_name = get_currency_pair_to_bittrex(pair_id)
     order_book = get_order_book_bittrex(bittrex_pair_name, timest)
     if order_book is not None:
         all_order_book[EXCHANGE.BITTREX].append(order_book)
