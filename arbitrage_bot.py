@@ -437,7 +437,7 @@ def mega_analysis(order_book, threshold, balance_state, order_state,  deal_cap, 
         second_order_book = order_book[dst_exchange_id]
 
         search_for_arbitrage(first_order_book[0], second_order_book[0], threshold, action_to_perform, balance_state, deal_cap, order_state)
-        adjust_currency_balance(first_order_book[0], second_order_book[0], treshold_reverse, action_to_perform, balance_state, deal_cap, order_state)
+        adjust_currency_balance(second_order_book[0], first_order_book[0], treshold_reverse, action_to_perform, balance_state, deal_cap, order_state)
 
     # # split on currencies
     # for pair_id in CURRENCY_PAIR.values():
