@@ -173,7 +173,7 @@ def init_deals_with_logging(trade_pairs, order_state,  file_name):
 
     second_deal.execute_time = get_now_seconds()
 
-    if result_1[0] != STATUS.SUCCESS or not result_2[0] != STATUS.SUCCESS:
+    if result_1[0] == STATUS.FAILURE or result_2[0] == STATUS.FAILURE:
         msg = "Failing of adding deals! {deal_pair}".format(deal_pair=str(trade_pairs))
         print msg
         log_to_file(msg, file_name)
