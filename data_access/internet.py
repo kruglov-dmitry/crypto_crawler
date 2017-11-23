@@ -5,6 +5,7 @@ import hmac
 import hashlib
 from enums.status import STATUS
 from utils.time_utils import sleep_for
+from utils.file_utils import log_to_file
 
 
 def send_request(final_url, error_msg):
@@ -14,7 +15,9 @@ def send_request(final_url, error_msg):
         res = STATUS.SUCCESS, responce
     except Exception, e:
         res = STATUS.FAILURE, error_msg + str(e)
-        print "send_request ERROR: ", error_msg, str(e)
+        msg = "send_request ERROR: {excp} MSG: {e_msg}".format(e_msg=error_msg, excp=str(e))
+        print msg
+        log_to_file(msg, "debug.txt")
 
     return res
 
@@ -33,16 +36,23 @@ def send_post_request_with_header(final_url, header, body, error_msg, max_tries)
                     or "timeout" in str_repr:
                 sleep_for(1)
             else:
-                print "YEAH, ", str_repr
+                msg = "YEAH, RESULT: {res}".format(res=str_repr)
+                print msg
+                log_to_file(msg, "debug.txt")
                 # NOTE: Consider it as success then, if not - extend possible checks above
                 return STATUS.SUCCESS, response
 
-            print "SOME ERROR: ", response
+            msg = "SOME ERROR: RESULT: {res}".format(res=response)
+            print msg
+            log_to_file(msg, "debug.txt")
+
             res = STATUS.FAILURE, response
 
         except Exception, e:
             res = STATUS.FAILURE, error_msg + str(e)
-            print "send_post_request_with_header: ", error_msg, str(e)
+            msg = "send_post_request_with_header: Exception: {excp} Msg: {msg}".format(excp=error_msg, msg=str(e))
+            print msg
+            log_to_file(msg, "debug.txt")
             sleep_for(1)
 
     return res
