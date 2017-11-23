@@ -33,6 +33,9 @@ def add_buy_order_kraken(key, pair_name, price, amount, order_state):
             return error_code, res
 
         # check whether we have added new deals
+        # kraken may actually do it with some delay
+        # lets try wait a bit to verify that they will not update it
+        sleep_for(2)
 
         order_error_code, new_order_state = get_orders_kraken(key)
 
@@ -43,7 +46,7 @@ def add_buy_order_kraken(key, pair_name, price, amount, order_state):
             return STATUS.SUCCESS, res
 
         # otherwise - repeat
-        sleep_for(3)
+        sleep_for(1)
 
     return error_code, res
 
