@@ -139,7 +139,9 @@ def init_deal(trade_to_perform, order_state, debug_msg):
         else:
             res = buy_by_exchange(trade_to_perform, order_state)
     except Exception, e:
-        print "init_deal: FAILED ERROR WE ALL DIE with following exception: ", str(e), debug_msg
+        msg = "init_deal: FAILED ERROR WE ALL DIE with following exception: {excp} {dbg}".format(excp=str(e), dbg=debug_msg)
+        print msg
+        log_to_file(msg, "debug.txt")
 
     return res
 
@@ -212,7 +214,9 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
 
     min_volume = min(first_order_book.bid[FIRST].volume, second_order_book.ask[LAST].volume)
     if min_volume <= 0:
-        print "analyse_order_book - something severely wrong - NEGATIVE min price: ", min_volume
+        msg = "analyse_order_book - something severely wrong - NEGATIVE min price: {pr}".format(pr=min_volume)
+        print msg
+        log_to_file(msg, "debug.txt")
         raise
 
     bitcoin_id, dst_currency_id = split_currency_pairs(first_order_book.pair_id)
@@ -280,8 +284,10 @@ def analyse_order_book(first_order_book,
     difference = get_change(first_order_book.bid[FIRST].price, second_order_book.ask[LAST].price, provide_abs=False)
 
     if should_print_debug():
-        print "check_highest_bid_bigger_than_lowest_ask: BID = {bid} ASK = {ask}  DIFF = {diff}".format(
+        msg = "check_highest_bid_bigger_than_lowest_ask: BID = {bid} ASK = {ask}  DIFF = {diff}".format(
             bid=first_order_book.bid[FIRST].price, ask=second_order_book.ask[LAST].price, diff=difference)
+        print msg
+        log_to_file(msg, "debug.txt")
 
     if difference >= threshold:
 
@@ -290,8 +296,14 @@ def analyse_order_book(first_order_book,
         min_volume = determine_minimum_volume_by_price(first_order_book, second_order_book, deal_cap, min_volume)
 
         if min_volume <= 0:
-            print "analyse_order_book - balance is ZERO!!! ", get_pair_name_by_id(first_order_book.pair_id), \
-                get_exchange_name_by_id(first_order_book.exchange_id), get_exchange_name_by_id(second_order_book.exchange_id)
+            msg = "analyse_order_book - balance is ZERO!!! {pair_name} first_exchange: {first_exchange} " \
+                  "second_exchange: {second_exchange}".format(
+                pair_name=get_pair_name_by_id(first_order_book.pair_id),
+                first_exchange=get_exchange_name_by_id(first_order_book.exchange_id),
+                second_exchange=get_exchange_name_by_id(second_order_book.exchange_id))
+            print msg
+            log_to_file(msg, "debug.txt")
+
             return
 
         create_time = get_now_seconds()

@@ -33,17 +33,20 @@ def add_buy_order_kraken(key, pair_name, price, amount, order_state):
             return error_code, res
 
         # check whether we have added new deals
+        # kraken may actually do it with some delay
+        # lets try wait a bit to verify that they will not update it
+        sleep_for(2)
 
-        error_code, new_order_state = get_orders_kraken(key)
+        order_error_code, new_order_state = get_orders_kraken(key)
 
-        if error_code == STATUS.SUCCESS and prev_num_of_orders < new_order_state.get_total_num_of_orders():
+        if order_error_code == STATUS.SUCCESS and prev_num_of_orders < new_order_state.get_total_num_of_orders():
             # FIXME well, ideally we have to look for pair_name, price and amount
             # But for now lets conclude that This crap did it!
 
             return STATUS.SUCCESS, res
 
         # otherwise - repeat
-        sleep_for(3)
+        sleep_for(1)
 
     return error_code, res
 
@@ -96,9 +99,9 @@ def add_sell_order_kraken(key, pair_name, price, amount, order_state):
 
         # check whether we have added new deals
 
-        error_code, new_order_state = get_orders_kraken(key)
+        order_error_code, new_order_state = get_orders_kraken(key)
 
-        if error_code == STATUS.SUCCESS and prev_num_of_orders < new_order_state.get_total_num_of_orders():
+        if order_error_code == STATUS.SUCCESS and prev_num_of_orders < new_order_state.get_total_num_of_orders():
             # FIXME well, ideally we have to look for pair_name, price and amount
             # But for now lets conclude that This crap did it!
 
