@@ -17,7 +17,7 @@ from data.Trade import Trade
 
 
 def add_buy_order_kraken(key, pair_name, price, amount, order_state):
-    max_retry_num = 13
+    max_retry_num = 3
     retry_num = 0
 
     error_code, res = STATUS.FAILURE, None
