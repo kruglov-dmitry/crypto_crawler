@@ -10,7 +10,7 @@ from enums.exchange import EXCHANGE
 
 
 class Trade(Deal):
-    def __init__(self, trade_type, exchange_id, pair_id, price, volume, order_book_time, create_time, execute_time=None):
+    def __init__(self, trade_type, exchange_id, pair_id, price, volume, order_book_time, create_time, execute_time=None, deal_id=None):
         self.trade_type = trade_type
         self.exchange_id = exchange_id
         self.pair_id = pair_id
@@ -19,10 +19,11 @@ class Trade(Deal):
         self.order_book_time = order_book_time
         self.create_time = create_time
         self.execute_time = execute_time
+        self.deal_id = deal_id
 
     def __str__(self):
         str_repr = "Trade at Exchange: {exch} type: {deal_type} pair: {pair} for volume {vol} with price {price} " \
-                   "order_book_time {ob_time} create_time {ct_time} execute_time {ex_time}".format(
+                   "order_book_time {ob_time} create_time {ct_time} execute_time {ex_time} deal_id {deal_id}".format(
             exch=get_exchange_name_by_id(self.exchange_id),
             deal_type=get_deal_type_by_id(self.trade_type),
             pair=get_currency_name_by_id(self.pair_id),
@@ -30,7 +31,8 @@ class Trade(Deal):
             price=self.price,
             ob_time=self.order_book_time,
             ct_time=self.create_time,
-            ex_time=self.execute_time)
+            ex_time=self.execute_time,
+            deal_id=self.deal_id)
 
         return str_repr
 
