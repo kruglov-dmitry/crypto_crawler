@@ -6,6 +6,7 @@ from data.OrderBook import OrderBook, ORDER_BOOK_TYPE_NAME
 from data.OrderHistory import OrderHistory, TRADE_HISTORY_TYPE_NAME
 from data.Ticker import Ticker, TICKER_TYPE_NAME
 from dao.db import insert_data, init_pg_connection
+from utils.time_utils import get_now_seconds
 
 
 def constructor_selector(class_name, string_repr):
@@ -42,7 +43,8 @@ def save_list_to_file(some_data, file_name):
 
 def log_to_file(trade, file_name):
     with open(file_name, 'a') as the_file:
-        the_file.write(str(trade) + "\n")
+        ts = get_now_seconds()
+        the_file.write(str(ts) + ":" + str(trade) + "\n")
 
 
 def load_crap_from_folder(folder_name, pattern_name, pg_conn):
