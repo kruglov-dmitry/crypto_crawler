@@ -85,7 +85,8 @@ class Trade(Deal):
         try:
             pair_id = get_currency_pair_from_kraken(pair_name)
 
-            return Trade(trade_type, EXCHANGE.KRAKEN, pair_id, price, volume, order_book_time, create_time)
+            return Trade(trade_type, EXCHANGE.KRAKEN, pair_id, price, volume, order_book_time, create_time,
+                         execute_time=create_time, deal_id=trade_id)
         except Exception, e:
             print "NON supported currency?", pair_name, str(e)
 

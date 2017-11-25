@@ -10,8 +10,6 @@ class CURRENCY:
     DGB = 8
     XEM = 9
     ARDR = 10
-    # BCH = 11,
-    # CURRENCY.BCH
 
     @classmethod
     def values(cls):
