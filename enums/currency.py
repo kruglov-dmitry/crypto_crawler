@@ -12,6 +12,7 @@ class CURRENCY:
     ARDR = 10
     OMG = 11
     ZEC = 12
+    REP = 13
     USD = 1000
 
     @classmethod
@@ -30,5 +31,6 @@ class CURRENCY:
                 CURRENCY.ARDR,
                 CURRENCY.OMG,
                 CURRENCY.ZEC,
+                CURRENCY.REP,
                 CURRENCY.USD
                 ]
