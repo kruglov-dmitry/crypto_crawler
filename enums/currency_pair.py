@@ -12,6 +12,7 @@ class CURRENCY_PAIR:
     BTC_TO_OMG = 11
     BTC_TO_ZEC = 12
     BTC_TO_REP = 13
+    BTC_TO_XMR = 14
 
     ETH_TO_DASH = 1001
     ETH_TO_BTC = 1002       # NOT EXIST ON kraken, poloniex, bittrex
@@ -26,6 +27,7 @@ class CURRENCY_PAIR:
     ETH_TO_OMG = 1011
     ETH_TO_ZEC = 1012
     ETH_TO_REP = 1013
+    ETH_TO_XMR = 1014
 
     USD_TO_DASH = 2001
     USD_TO_ETH = 2002
@@ -41,6 +43,7 @@ class CURRENCY_PAIR:
     USD_TO_BTC = 2011
     USD_TO_ZEC = 2012
     USD_TO_REP = 2013
+    USD_TO_XMR = 2014
 
     @classmethod
     def values(cls):
@@ -57,6 +60,7 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.BTC_TO_OMG,
                 CURRENCY_PAIR.BTC_TO_ZEC,
                 CURRENCY_PAIR.BTC_TO_REP,
+                CURRENCY_PAIR.BTC_TO_XMR,
                 CURRENCY_PAIR.ETH_TO_DASH,
                 CURRENCY_PAIR.ETH_TO_LTC,
                 CURRENCY_PAIR.ETH_TO_XRP,
@@ -68,6 +72,7 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.ETH_TO_OMG,
                 CURRENCY_PAIR.ETH_TO_ZEC,
                 CURRENCY_PAIR.ETH_TO_REP,
+                CURRENCY_PAIR.ETH_TO_XMR,
                 CURRENCY_PAIR.USD_TO_DASH,
                 CURRENCY_PAIR.USD_TO_BTC,
                 CURRENCY_PAIR.USD_TO_LTC,
@@ -76,5 +81,6 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.USD_TO_ETC,
                 CURRENCY_PAIR.USD_TO_ETH,
                 CURRENCY_PAIR.USD_TO_ZEC,
-                CURRENCY_PAIR.USD_TO_REP
+                CURRENCY_PAIR.USD_TO_REP,
+                CURRENCY_PAIR.USD_TO_XMR
                 ]

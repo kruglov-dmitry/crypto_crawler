@@ -17,6 +17,7 @@ def split_currency_pairs(pair_id):
         CURRENCY_PAIR.BTC_TO_OMG: (CURRENCY.BITCOIN, CURRENCY.OMG),
         CURRENCY_PAIR.BTC_TO_ZEC: (CURRENCY.BITCOIN, CURRENCY.ZEC),
         CURRENCY_PAIR.BTC_TO_REP: (CURRENCY.BITCOIN, CURRENCY.REP),
+        CURRENCY_PAIR.BTC_TO_XMR: (CURRENCY.BITCOIN, CURRENCY.XMR),
         CURRENCY_PAIR.ETH_TO_DASH: (CURRENCY.ETH, CURRENCY.DASH),
         CURRENCY_PAIR.ETH_TO_LTC: (CURRENCY.ETH, CURRENCY.LTC),
         CURRENCY_PAIR.ETH_TO_XRP: (CURRENCY.ETH, CURRENCY.XRP),
@@ -28,6 +29,7 @@ def split_currency_pairs(pair_id):
         CURRENCY_PAIR.ETH_TO_OMG: (CURRENCY.ETH, CURRENCY.OMG),
         CURRENCY_PAIR.ETH_TO_ZEC: (CURRENCY.ETH, CURRENCY.ZEC),
         CURRENCY_PAIR.ETH_TO_REP: (CURRENCY.ETH, CURRENCY.REP),
+        CURRENCY_PAIR.ETH_TO_XMR: (CURRENCY.ETH, CURRENCY.XMR),
         CURRENCY_PAIR.USD_TO_DASH: (CURRENCY.USD, CURRENCY.DASH),
         CURRENCY_PAIR.USD_TO_BTC: (CURRENCY.USD, CURRENCY.BITCOIN),
         CURRENCY_PAIR.USD_TO_LTC: (CURRENCY.USD, CURRENCY.LTC),
@@ -36,7 +38,8 @@ def split_currency_pairs(pair_id):
         CURRENCY_PAIR.USD_TO_ETC: (CURRENCY.USD, CURRENCY.ETC),
         CURRENCY_PAIR.USD_TO_ETH: (CURRENCY.USD, CURRENCY.ETH),
         CURRENCY_PAIR.USD_TO_ZEC: (CURRENCY.USD, CURRENCY.ZEC),
-        CURRENCY_PAIR.USD_TO_REP: (CURRENCY.USD, CURRENCY.REP)
+        CURRENCY_PAIR.USD_TO_REP: (CURRENCY.USD, CURRENCY.REP),
+        CURRENCY_PAIR.USD_TO_XMR: (CURRENCY.USD, CURRENCY.XMR)
     }[pair_id]
 
 
@@ -55,6 +58,7 @@ def get_currency_pair_from_poloniex(pair_name):
         'BTC_OMG': CURRENCY_PAIR.BTC_TO_OMG,
         'BTC_ZEC': CURRENCY_PAIR.BTC_TO_ZEC,
         'BTC_REP': CURRENCY_PAIR.BTC_TO_REP,
+        'BTC_XMR': CURRENCY_PAIR.BTC_TO_XMR,
         'ETH_ETC': CURRENCY_PAIR.ETH_TO_ETC,
         'ETH_BCH': CURRENCY_PAIR.ETH_TO_BCC,
         'ETH_OMG': CURRENCY_PAIR.ETH_TO_OMG,
@@ -67,7 +71,8 @@ def get_currency_pair_from_poloniex(pair_name):
         'USDT_ETC': CURRENCY_PAIR.USD_TO_ETC,
         'USDT_BCH': CURRENCY_PAIR.USD_TO_BCC,
         'USDT_ZEC': CURRENCY_PAIR.USD_TO_ZEC,
-        'USDT_REP': CURRENCY_PAIR.USD_TO_REP
+        'USDT_REP': CURRENCY_PAIR.USD_TO_REP,
+        'USDT_XMR': CURRENCY_PAIR.USD_TO_XMR
     }[pair_name]
 
 
@@ -82,6 +87,7 @@ def get_currency_pair_from_kraken(pair_name):
         'XXDGXXBT': CURRENCY_PAIR.BTC_TO_DGB,
         'XZECXXBT': CURRENCY_PAIR.BTC_TO_ZEC,
         'XREPXXBT': CURRENCY_PAIR.BTC_TO_REP,
+        'XXMRXXBT': CURRENCY_PAIR.BTC_TO_XMR,
         'XETCXETH': CURRENCY_PAIR.ETH_TO_ETC,
         'XREPXETH': CURRENCY_PAIR.ETH_TO_REP,
         'DASHUSD': CURRENCY_PAIR.USD_TO_DASH,
@@ -90,7 +96,8 @@ def get_currency_pair_from_kraken(pair_name):
         'XXRPZUSD': CURRENCY_PAIR.USD_TO_XRP,
         'BCHUSD': CURRENCY_PAIR.USD_TO_BCC,
         'XETCZUSD': CURRENCY_PAIR.USD_TO_ETC,
-        'XZECZUSD': CURRENCY_PAIR.USD_TO_ZEC
+        'XZECZUSD': CURRENCY_PAIR.USD_TO_ZEC,
+        'XXMRZUSD': CURRENCY_PAIR.USD_TO_XMR
     }[pair_name]
 
 
@@ -109,6 +116,7 @@ def get_currency_pair_from_bittrex(pair_name):
         'BTC-OMG': CURRENCY_PAIR.BTC_TO_OMG,
         'BTC-ZEC': CURRENCY_PAIR.BTC_TO_ZEC,
         'BTC-REP': CURRENCY_PAIR.BTC_TO_REP,
+        'BTC-XMR': CURRENCY_PAIR.BTC_TO_XMR,
         'ETH-DASH': CURRENCY_PAIR.ETH_TO_DASH,
         'ETH-LTC': CURRENCY_PAIR.ETH_TO_LTC,
         'ETH-XRP': CURRENCY_PAIR.ETH_TO_XRP,
@@ -120,6 +128,7 @@ def get_currency_pair_from_bittrex(pair_name):
         'ETH-OMG': CURRENCY_PAIR.ETH_TO_OMG,
         'ETH-ZEC': CURRENCY_PAIR.ETH_TO_ZEC,
         'ETH-REP': CURRENCY_PAIR.ETH_TO_REP,
+        'ETH-XMR': CURRENCY_PAIR.ETH_TO_XMR,
         'USDT-DASH': CURRENCY_PAIR.USD_TO_DASH,
         'USDT-BTC': CURRENCY_PAIR.USD_TO_BTC,
         'USDT-LTC': CURRENCY_PAIR.USD_TO_LTC,
@@ -127,7 +136,8 @@ def get_currency_pair_from_bittrex(pair_name):
         'USDT-BCC': CURRENCY_PAIR.USD_TO_BCC,
         'USDT-ETC': CURRENCY_PAIR.USD_TO_ETC,
         'USDT-ETH': CURRENCY_PAIR.USD_TO_ETH,
-        'USDT-ZEC': CURRENCY_PAIR.USD_TO_ZEC
+        'USDT-ZEC': CURRENCY_PAIR.USD_TO_ZEC,
+        'USDT-XMR': CURRENCY_PAIR.USD_TO_XMR
     }[pair_name]
 
 
@@ -146,6 +156,7 @@ def get_currency_pair_to_poloniex(pair_id):
         CURRENCY_PAIR.BTC_TO_BCC: 'BTC_BCH',
         CURRENCY_PAIR.BTC_TO_ZEC: 'BTC_ZEC',
         CURRENCY_PAIR.BTC_TO_REP: 'BTC_REP',
+        CURRENCY_PAIR.BTC_TO_XMR: 'BTC_XMR',
         CURRENCY_PAIR.ETH_TO_ETC: 'ETH_ETC',
         CURRENCY_PAIR.ETH_TO_BCC: 'ETH_BCH',
         CURRENCY_PAIR.ETH_TO_OMG: 'ETH_OMG',
@@ -158,7 +169,8 @@ def get_currency_pair_to_poloniex(pair_id):
         CURRENCY_PAIR.USD_TO_ETC: 'USDT_ETC',
         CURRENCY_PAIR.USD_TO_BCC: 'USDT_BCH',
         CURRENCY_PAIR.USD_TO_ZEC: 'USDT_ZEC',
-        CURRENCY_PAIR.USD_TO_REP: 'USDT_REP'
+        CURRENCY_PAIR.USD_TO_REP: 'USDT_REP',
+        CURRENCY_PAIR.USD_TO_XMR: 'USDT_XMR'
     }[pair_id]
 
 
@@ -172,6 +184,7 @@ def get_currency_pair_to_kraken(pair_id):
         CURRENCY_PAIR.BTC_TO_ETC: 'XETCXXBT',
         CURRENCY_PAIR.BTC_TO_ZEC: 'XZECXXBT',
         CURRENCY_PAIR.BTC_TO_REP: 'XREPXXBT',
+        CURRENCY_PAIR.BTC_TO_XMR: 'XXMRXXBT',
         CURRENCY_PAIR.ETH_TO_ETC: 'XETCXETH',
         CURRENCY_PAIR.ETH_TO_REP:'XREPXETH',
         CURRENCY_PAIR.USD_TO_DASH: 'DASHUSD',
@@ -180,7 +193,8 @@ def get_currency_pair_to_kraken(pair_id):
         CURRENCY_PAIR.USD_TO_XRP: 'XXRPZUSD',
         CURRENCY_PAIR.USD_TO_BCC: 'BCHUSD',
         CURRENCY_PAIR.USD_TO_ETC: 'XETCZUSD',
-        CURRENCY_PAIR.USD_TO_ZEC: 'XZECZUSD'
+        CURRENCY_PAIR.USD_TO_ZEC: 'XZECZUSD',
+        CURRENCY_PAIR.USD_TO_XMR: 'XXMRZUSD'
     }[pair_id]
 
 
@@ -199,6 +213,7 @@ def get_currency_pair_to_bittrex(pair_id):
         CURRENCY_PAIR.BTC_TO_OMG: 'BTC-OMG',
         CURRENCY_PAIR.BTC_TO_ZEC: 'BTC-ZEC',
         CURRENCY_PAIR.BTC_TO_REP: 'BTC-REP',
+        CURRENCY_PAIR.BTC_TO_XMR: 'BTC-XMR',
         CURRENCY_PAIR.ETH_TO_DASH: 'ETH-DASH',
         CURRENCY_PAIR.ETH_TO_LTC: 'ETH-LTC',
         CURRENCY_PAIR.ETH_TO_XRP: 'ETH-XRP',
@@ -210,6 +225,7 @@ def get_currency_pair_to_bittrex(pair_id):
         CURRENCY_PAIR.ETH_TO_OMG: 'ETH-OMG',
         CURRENCY_PAIR.ETH_TO_ZEC: 'ETH-ZEC',
         CURRENCY_PAIR.ETH_TO_REP: 'ETH-REP',
+        CURRENCY_PAIR.ETH_TO_XMR: 'ETH-XMR',
         CURRENCY_PAIR.USD_TO_DASH: 'USDT-DASH',
         CURRENCY_PAIR.USD_TO_BTC: 'USDT-BTC',
         CURRENCY_PAIR.USD_TO_LTC: 'USDT-LTC',
@@ -217,7 +233,8 @@ def get_currency_pair_to_bittrex(pair_id):
         CURRENCY_PAIR.USD_TO_BCC: 'USDT-BCC',
         CURRENCY_PAIR.USD_TO_ETC: 'USDT-ETC',
         CURRENCY_PAIR.USD_TO_ETH: 'USDT-ETH',
-        CURRENCY_PAIR.USD_TO_ZEC: 'USDT-ZEC'
+        CURRENCY_PAIR.USD_TO_ZEC: 'USDT-ZEC',
+        CURRENCY_PAIR.USD_TO_XMR: 'USDT-XMR'
     }[pair_id]
 
 
@@ -236,6 +253,7 @@ def get_pair_name_by_id(pair_id):
         CURRENCY_PAIR.BTC_TO_OMG: "BTC_TO_OMG",
         CURRENCY_PAIR.BTC_TO_ZEC: "BTC_TO_ZEC",
         CURRENCY_PAIR.BTC_TO_REP: "BTC_TO_REP",
+        CURRENCY_PAIR.BTC_TO_XMR: "BTC_TO_XMR",
         CURRENCY_PAIR.ETH_TO_DASH: "ETH_TO_DASH",
         CURRENCY_PAIR.ETH_TO_LTC: "ETH_TO_LTC",
         CURRENCY_PAIR.ETH_TO_XRP: "ETH_TO_XRP",
@@ -247,6 +265,7 @@ def get_pair_name_by_id(pair_id):
         CURRENCY_PAIR.ETH_TO_OMG: "ETH_TO_OMG",
         CURRENCY_PAIR.ETH_TO_ZEC: "ETH_TO_ZEC",
         CURRENCY_PAIR.ETH_TO_REP: "ETH_TO_REP",
+        CURRENCY_PAIR.ETH_TO_XMR: "ETH_TO_XMR",
         CURRENCY_PAIR.USD_TO_DASH: "USD_TO_DASH",
         CURRENCY_PAIR.USD_TO_BTC: "USD_TO_BTC",
         CURRENCY_PAIR.USD_TO_LTC: "USD_TO_LTC",
@@ -255,7 +274,8 @@ def get_pair_name_by_id(pair_id):
         CURRENCY_PAIR.USD_TO_ETC: "USD_TO_ETC",
         CURRENCY_PAIR.USD_TO_ETH: "USD_TO_ETH",
         CURRENCY_PAIR.USD_TO_ZEC: "USD_TO_ZEC",
-        CURRENCY_PAIR.USD_TO_REP: "USD_TO_REP"
+        CURRENCY_PAIR.USD_TO_REP: "USD_TO_REP",
+        CURRENCY_PAIR.USD_TO_XMR: "USD_TO_XMR"
     }[pair_id]
 
 
@@ -279,7 +299,8 @@ def get_currency_id_from_kraken(currency_name):
         'ZUSD': CURRENCY.USD,
         'USD': CURRENCY.USD,
         'XZEC': CURRENCY.ZEC,
-        'XREP': CURRENCY.REP
+        'XREP': CURRENCY.REP,
+        'XXMR': CURRENCY.XMR
     }[currency_name]
 
 
@@ -296,7 +317,8 @@ def get_currency_name_for_kraken(currency_id):
         CURRENCY.USD: 'ZUSD',
         CURRENCY.USD: 'USD',
         CURRENCY.ZEC: 'XZEC',
-        CURRENCY.REP: 'XREP'
+        CURRENCY.REP: 'XREP',
+        CURRENCY.XMR: 'XXMR'
     }[currency_id]
 
 
@@ -316,6 +338,7 @@ def get_currency_id_from_bittrex(currency_name):
         'OMG': CURRENCY.OMG,
         'ZEC': CURRENCY.ZEC,
         'REP': CURRENCY.REP,
+        'XMR': CURRENCY.XMR,
         'USD': CURRENCY.USD
     }[currency_name]
 
@@ -336,6 +359,7 @@ def get_currency_name_for_bittrex(currency_id):
         CURRENCY.OMG: 'OMG',
         CURRENCY.ZEC: 'ZEC',
         CURRENCY.REP: 'REP',
+        CURRENCY.XMR: 'XMR',
         CURRENCY.USD: 'USD'
     }[currency_id]
 
@@ -356,6 +380,7 @@ def get_currency_id_from_poloniex(currency_name):
         'OMG': CURRENCY.OMG,
         'ZEC': CURRENCY.ZEC,
         'REP': CURRENCY.REP,
+        'XMR': CURRENCY.XMR,
         'USD': CURRENCY.USD
     }[currency_name]
 
@@ -375,6 +400,7 @@ def get_currency_name_for_poloniex(currency_id):
         CURRENCY.ARDR: 'ARDR',
         CURRENCY.ZEC: 'ZEC',
         CURRENCY.REP: 'REP',
+        CURRENCY.XMR: 'XMR',
         CURRENCY.USD: 'USD'
     }[currency_id]
 
@@ -395,5 +421,6 @@ def get_currency_name_by_id(currency_id):
         CURRENCY.OMG: 'OMG',
         CURRENCY.ZEC: 'ZEC',
         CURRENCY.REP: 'REP',
+        CURRENCY.XMR: 'XMR',
         CURRENCY.USD: 'USD'
     }[currency_id]

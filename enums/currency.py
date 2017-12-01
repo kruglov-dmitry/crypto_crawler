@@ -13,6 +13,7 @@ class CURRENCY:
     OMG = 11
     ZEC = 12
     REP = 13
+    XMR = 14
     USD = 1000
 
     @classmethod
@@ -32,5 +33,6 @@ class CURRENCY:
                 CURRENCY.OMG,
                 CURRENCY.ZEC,
                 CURRENCY.REP,
+                CURRENCY.XMR,
                 CURRENCY.USD
                 ]
