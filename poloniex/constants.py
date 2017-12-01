@@ -13,7 +13,10 @@ POLONIEX_GET_ORDER_BOOK = "https://poloniex.com/public?command=returnOrderBook&c
 POLONIEX_GET_HISTORY = "https://poloniex.com/public?command=returnTradeHistory&currencyPair="
 
 POLONIEX_CURRENCIES = ["BTC_DASH", "BTC_ETH", "BTC_LTC", "BTC_XRP", "BTC_ETC", "BTC_SC", "BTC_DGB", "BTC_XEM",
-                       "BTC_ARDR", "BTC_BCH"]
+                       "BTC_ARDR", "BTC_BCH",
+                       "ETH_ETC", "ETH_BCH",
+                       "USDT_DASH", "USDT_ETH", "USDT_LTC", "USDT_XRP", "USDT_ETC", "USDT_BCH",
+                       ]
 
 POLONIEX_TRADING_API = "https://poloniex.com/tradingApi"
 

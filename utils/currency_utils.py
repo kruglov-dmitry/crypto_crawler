@@ -48,7 +48,15 @@ def get_currency_pair_from_poloniex(pair_name):
         'BTC_DGB' : CURRENCY_PAIR.BTC_TO_DGB,
         'BTC_XEM': CURRENCY_PAIR.BTC_TO_XEM,
         'BTC_ARDR': CURRENCY_PAIR.BTC_TO_ARDR,
-        'BTC_BCH': CURRENCY_PAIR.BTC_TO_BCC
+        'BTC_BCH': CURRENCY_PAIR.BTC_TO_BCC,
+        'ETH_ETC': CURRENCY_PAIR.ETH_TO_ETC,
+        'ETH_BCH': CURRENCY_PAIR.ETH_TO_BCC,
+        'USDT_DASH': CURRENCY_PAIR.USD_TO_DASH,
+        'USDT_ETH': CURRENCY_PAIR.USD_TO_ETH,
+        'USDT_LTC': CURRENCY_PAIR.USD_TO_LTC,
+        'USDT_XRP': CURRENCY_PAIR.USD_TO_XRP,
+        'USDT_ETC': CURRENCY_PAIR.USD_TO_ETC,
+        'USDT_BCH': CURRENCY_PAIR.USD_TO_BCC
     }[pair_name]
 
 
@@ -104,7 +112,15 @@ def get_currency_pair_to_poloniex(pair_id):
         CURRENCY_PAIR.BTC_TO_DGB : 'BTC_DGB',
         CURRENCY_PAIR.BTC_TO_XEM: 'BTC_XEM',
         CURRENCY_PAIR.BTC_TO_ARDR: 'BTC_ARDR',
-        CURRENCY_PAIR.BTC_TO_BCC: 'BTC_BCH'
+        CURRENCY_PAIR.BTC_TO_BCC: 'BTC_BCH',
+        CURRENCY_PAIR.ETH_TO_ETC: 'ETH_ETC',
+        CURRENCY_PAIR.ETH_TO_BCC: 'ETH_BCH',
+        CURRENCY_PAIR.USD_TO_DASH: 'USDT_DASH',
+        CURRENCY_PAIR.USD_TO_ETH: 'USDT_ETH',
+        CURRENCY_PAIR.USD_TO_LTC: 'USDT_LTC',
+        CURRENCY_PAIR.USD_TO_XRP: 'USDT_XRP',
+        CURRENCY_PAIR.USD_TO_ETC: 'USDT_ETC',
+        CURRENCY_PAIR.USD_TO_BCC: 'USDT_BCH'
     }[pair_id]
 
 
@@ -258,7 +274,12 @@ def get_currency_id_from_poloniex(currency_name):
         'XRP': CURRENCY.XRP,
         'LTC': CURRENCY.LTC,
         'ETC': CURRENCY.ETC,
-        'ETH': CURRENCY.ETH
+        'ETH': CURRENCY.ETH,
+        'SC': CURRENCY.SC,
+        'DGB': CURRENCY.DGB,
+        'XEM': CURRENCY.XEM,
+        'ARDR': CURRENCY.ARDR,
+        'USD': CURRENCY.USD
     }[currency_name]
 
 
@@ -270,7 +291,12 @@ def get_currency_name_for_poloniex(currency_id):
         CURRENCY.XRP: 'XRP',
         CURRENCY.LTC: 'LTC',
         CURRENCY.ETC: 'ETC',
-        CURRENCY.ETH: 'ETH'
+        CURRENCY.ETH: 'ETH',
+        CURRENCY.SC: 'SC',
+        CURRENCY.DGB: 'DGB',
+        CURRENCY.XEM: 'XEM',
+        CURRENCY.ARDR: 'ARDR',
+        CURRENCY.USD: 'USD'
     }[currency_id]
 
 
