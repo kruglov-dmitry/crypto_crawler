@@ -10,6 +10,7 @@ class CURRENCY:
     DGB = 8
     XEM = 9
     ARDR = 10
+    OMG = 11
     USD = 1000
 
     @classmethod
@@ -26,5 +27,6 @@ class CURRENCY:
                 CURRENCY.DGB,
                 CURRENCY.XEM,
                 CURRENCY.ARDR,
+                CURRENCY.OMG,
                 CURRENCY.USD
                 ]

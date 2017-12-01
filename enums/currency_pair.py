@@ -9,6 +9,7 @@ class CURRENCY_PAIR:
     BTC_TO_DGB = 8
     BTC_TO_XEM = 9
     BTC_TO_ARDR = 10
+    BTC_TO_OMG = 11
 
     ETH_TO_DASH = 1001
     ETH_TO_BTC = 1002       # NOT EXIST ON kraken, poloniex, bittrex
@@ -20,6 +21,7 @@ class CURRENCY_PAIR:
     ETH_TO_DGB = 1008
     ETH_TO_XEM = 1009
     ETH_TO_ARDR = 1010      # NOT EXIST ON kraken, poloniex, bittrex
+    ETH_TO_OMG = 1011
 
     USD_TO_DASH = 2001
     USD_TO_ETH = 2002
@@ -45,6 +47,7 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.BTC_TO_DGB,
                 CURRENCY_PAIR.BTC_TO_XEM,
                 CURRENCY_PAIR.BTC_TO_ARDR,
+                CURRENCY_PAIR.BTC_TO_OMG,
                 CURRENCY_PAIR.ETH_TO_DASH,
                 CURRENCY_PAIR.ETH_TO_LTC,
                 CURRENCY_PAIR.ETH_TO_XRP,
@@ -53,6 +56,7 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.ETH_TO_SC,
                 CURRENCY_PAIR.ETH_TO_DGB,
                 CURRENCY_PAIR.ETH_TO_XEM,
+                CURRENCY_PAIR.ETH_TO_OMG,
                 CURRENCY_PAIR.USD_TO_DASH,
                 CURRENCY_PAIR.USD_TO_BTC,
                 CURRENCY_PAIR.USD_TO_LTC,
