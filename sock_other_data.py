@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
         if should_print_debug():
             msg = "Sock other data:\n Candle size - {num} \nOrder book size - {num1} Order book asks - {num10} Order book bids - {num20} \nTrade history size - {num2}".format(
-                num=len(candles), num1=len(order_book_size), num2=len(trade_history), num10=order_book_ask_size, num20=order_book_bid_size)
+                num=len(candles), num1=order_book_size, num2=len(trade_history), num10=order_book_ask_size, num20=order_book_bid_size)
             print msg
             log_to_file(msg, "sock_other_data.txt")
 
