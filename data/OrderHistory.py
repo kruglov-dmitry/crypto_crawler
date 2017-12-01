@@ -30,7 +30,7 @@ class OrderHistory(BaseData):
         self.deal_type = deal_type
         self.price = float(price)
         self.amount = float(amount)
-        self.total = long(total)
+        self.total = float(total)
         self.exchange_id = int(exchange_id)
         self.exchange = get_exchange_name_by_id(self.exchange_id)
 
