@@ -1,4 +1,4 @@
-from utils.time_utils import get_now_seconds
+from utils.time_utils import get_now_seconds_utc, get_now_seconds_local
 
 #
 #       FIXME NOTE
@@ -51,7 +51,7 @@ import copy
 
 def get_ticker():
 
-    timest = get_now_seconds()
+    timest = get_now_seconds_local()
 
     bittrex_tickers = {}
     for currency in BITTREX_CURRENCIES:
@@ -74,23 +74,20 @@ def get_ticker():
     return bittrex_tickers, kraken_tickers, poloniex_tickers
 
 
-def get_ohlc():
+def get_ohlc(date_start, date_end):
     all_ohlc = []
-
-    date_end = get_now_seconds()
-    date_start = date_end
 
     for currency in BITTREX_CURRENCIES:
         period = "thirtyMin"
-        all_ohlc += get_ohlc_bittrex(currency, date_end, date_start, period)
+        all_ohlc += get_ohlc_bittrex(currency, date_start, date_end, period)
 
     for currency in KRAKEN_CURRENCY_PAIRS:
         period = 15
-        all_ohlc += get_ohlc_kraken(currency, date_end, date_start, period)
+        all_ohlc += get_ohlc_kraken(currency, date_start, date_end, period)
 
     for currency in POLONIEX_CURRENCIES:
         period = 14400
-        all_ohlc += get_ohlc_poloniex(currency, date_end, date_start, period)
+        all_ohlc += get_ohlc_poloniex(currency, date_start, date_end, period)
 
     return all_ohlc
 
@@ -99,7 +96,7 @@ def get_order_book():
 
     all_order_book = defaultdict(list)
 
-    timest = get_now_seconds()
+    timest = get_now_seconds_local()
 
     for currency in POLONIEX_CURRENCIES:
         order_book = get_order_book_poloniex(currency, timest)
@@ -122,7 +119,7 @@ def get_order_book():
 def get_order_book_by_pair(pair_id):
     all_order_book = defaultdict(list)
 
-    timest = get_now_seconds()
+    timest = get_now_seconds_local()
 
     poloniex_pair_name = get_currency_pair_to_poloniex(pair_id)
     order_book = get_order_book_poloniex(poloniex_pair_name, timest)

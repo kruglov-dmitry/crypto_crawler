@@ -4,7 +4,8 @@ from debug_utils import should_print_debug
 from data_access.internet import send_request
 from enums.status import STATUS
 
-def get_ohlc_bittrex(currency, date_end, date_start, period):
+
+def get_ohlc_bittrex(currency, date_start, date_end, period):
     result_set = []
     # https://bittrex.com/Api/v2.0/pub/market/GetTicks?tickInterval=oneMin&marketName=BTC-ETH&_=timest
 

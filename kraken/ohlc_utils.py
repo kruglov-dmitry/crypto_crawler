@@ -5,7 +5,7 @@ from data_access.internet import send_request
 from enums.status import STATUS
 
 
-def get_ohlc_kraken(currency, date_end, date_start, period):
+def get_ohlc_kraken(currency, date_start, date_end, period):
     result_set = []
     # https://api.kraken.com/0/public/OHLC?pair=XXRPXXBT&since=1501520850&interval=15
     final_url = KRAKEN_GET_OHLC + currency + "&since=" + str(date_start) + \

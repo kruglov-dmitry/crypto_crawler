@@ -3,7 +3,7 @@ from constants import POLONIEX_CANCEL_ORDER, POLONIEX_BUY_ORDER, POLONIEX_SELL_O
 from data_access.internet import send_post_request_with_header
 from debug_utils import should_print_debug
 from data.Balance import Balance
-from utils.time_utils import get_now_seconds
+from utils.time_utils import get_now_seconds_local
 from enums.status import STATUS
 
 
@@ -114,7 +114,7 @@ def get_balance_poloniex(key):
 
     err_msg = "check poloniex balance called"
 
-    timest = get_now_seconds()
+    timest = get_now_seconds_local()
     error_code, res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
 
     if error_code == STATUS.SUCCESS:

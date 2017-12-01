@@ -14,8 +14,12 @@ def convert_to_epoch_midnight(some_string):
     return long(seconds_since_midnight)
 
 
-def get_now_seconds():
+def get_now_seconds_local():
     return long((datetime.now() - datetime(1970, 1, 1)).total_seconds())
+
+
+def get_now_seconds_utc():
+    return long((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds())
 
 
 def sleep_for(num_of_seconds):

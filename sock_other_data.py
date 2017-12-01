@@ -4,7 +4,7 @@ from data.OrderBook import ORDER_BOOK_TYPE_NAME
 from data.OrderHistory import TRADE_HISTORY_TYPE_NAME
 from debug_utils import should_print_debug
 from dao.db import init_pg_connection, load_to_postgres
-from utils.time_utils import get_now_seconds, sleep_for
+from utils.time_utils import get_now_seconds_local, get_now_seconds_utc, sleep_for
 
 # time to poll - 15 minutes
 POLL_PERIOD_SECONDS = 900
@@ -18,11 +18,12 @@ if __name__ == "__main__":
         #   First, we grab tickers only to trigger alerts if any
         #
 
-        now_time = get_now_seconds()
-        prev_time = now_time - POLL_PERIOD_SECONDS
-        candles = get_ohlc()
+        end_time = get_now_seconds_utc()
+        start_time = end_time - POLL_PERIOD_SECONDS
+
+        candles = get_ohlc(start_time, end_time)
         order_book = get_order_book()
-        trade_history = get_history(prev_time, now_time)
+        trade_history = get_history(start_time, end_time)
 
         if should_print_debug():
             print "Candle size - {num} \nOrder book size - {num1} \nTrade history size - {num2}".format(

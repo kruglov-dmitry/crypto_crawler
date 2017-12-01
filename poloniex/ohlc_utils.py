@@ -5,7 +5,7 @@ from data_access.internet import send_request
 from enums.status import STATUS
 
 
-def get_ohlc_poloniex(currency, date_end, date_start, period):
+def get_ohlc_poloniex(currency, date_start, date_end, period):
     result_set = []
     final_url = POLONIEX_GET_OHLC + currency + "&start=" + str(date_start) + \
                 "&end=" + str(date_end) + "&period=" + str(period)
