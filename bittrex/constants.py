@@ -13,9 +13,10 @@ BITTREX_GET_ORDER_BOOK = "https://bittrex.com/api/v1.1/public/getorderbook?type=
 BITTREX_GET_HISTORY = "https://bittrex.com/api/v1.1/public/getmarkethistory?market="
 
 BITTREX_CURRENCIES = ["BTC-DASH", "BTC-ETH", "BTC-LTC", "BTC-XRP", "BTC-BCC", "BTC-ETC", "BTC-SC", "BTC-DGB",
-                      "BTC-XEM", "BTC-ARDR", "BTC-OMG",
+                      "BTC-XEM", "BTC-ARDR", "BTC-OMG", "BTC-ZEC",
                       "ETH-DASH", "ETH-LTC", "ETH-XRP", "ETH-BCC", "ETH-ETC", "ETH-SC", "ETH-DGB", "ETH-XEM", "ETH-OMG",
-                      "USDT-DASH", "USDT-BTC", "USDT-LTC", "USDT-XRP", "USDT-BCC", "USDT-ETC", "USDT-ETH"
+                      "ETH-ZEC",
+                      "USDT-DASH", "USDT-BTC", "USDT-LTC", "USDT-XRP", "USDT-BCC", "USDT-ETC", "USDT-ETH", "USDT-ZEC"
                       ]
 
 # https://bittrex.com/api/v1.1/market/buylimit?apikey=API_KEY&market=BTC-LTC&quantity=1.2&rate=1.3

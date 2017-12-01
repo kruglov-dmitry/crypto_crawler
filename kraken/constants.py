@@ -10,12 +10,12 @@ KRAKEN_GET_ORDER_BOOK = "https://api.kraken.com/0/public/Depth?pair="
 # https://api.kraken.com/0/public/Trades?pair=XETHXXBT&since=1501693512
 KRAKEN_GET_HISTORY = "https://api.kraken.com/0/public/Trades?pair="
 
-KRAKEN_CURRENCY_PAIRS = ["DASHXBT", "XETHXXBT", "XLTCXXBT", "XXRPXXBT", "BCHXBT", "XETCXXBT", "XXDGXXBT",
+KRAKEN_CURRENCY_PAIRS = ["DASHXBT", "XETHXXBT", "XLTCXXBT", "XXRPXXBT", "BCHXBT", "XETCXXBT", "XXDGXXBT", "XZECXXBT",
                          "XETCXETH",
-                         "DASHUSD", "XETHZUSD", "XLTCZUSD", "XXRPZUSD", "BCHUSD", "XETCZUSD"
+                         "DASHUSD", "XETHZUSD", "XLTCZUSD", "XXRPZUSD", "BCHUSD", "XETCZUSD", "XZECZUSD"
                          ]
 
-KRAKEN_CURRENCIES = ["DASH", "BCH", "ZUSD", "XXBT", "EOS", "USDT", "XXRP", "XREP", "XETC", "XETH", "XXDG"]
+KRAKEN_CURRENCIES = ["DASH", "BCH", "ZUSD", "XXBT", "EOS", "USDT", "XXRP", "XREP", "XETC", "XETH", "XXDG", "XZEC"]
 
 
 KRAKEN_BASE_API_URL = "https://api.kraken.com"

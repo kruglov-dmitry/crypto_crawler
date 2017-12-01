@@ -100,6 +100,8 @@ INSERT INTO public.pair (id, pair) VALUES (7, 'BTC_TO_SC');
 INSERT INTO public.pair (id, pair) VALUES (8, 'BTC_TO_DGB');
 INSERT INTO public.pair (id, pair) VALUES (9, 'BTC_TO_XEM');
 INSERT INTO public.pair (id, pair) VALUES (10, 'BTC_TO_ARDR');
+INSERT INTO public.pair (id, pair) VALUES (11, 'BTC_TO_OMG');
+INSERT INTO public.pair (id, pair) VALUES (12, 'BTC_TO_ZEC');
 INSERT INTO public.pair (id, pair) VALUES (1001, 'ETH_TO_DASH');
 INSERT INTO public.pair (id, pair) VALUES (1002, 'ETH_TO_BTC');
 INSERT INTO public.pair (id, pair) VALUES (1003, 'ETH_TO_LTC');
@@ -110,6 +112,8 @@ INSERT INTO public.pair (id, pair) VALUES (1007, 'ETH_TO_SC');
 INSERT INTO public.pair (id, pair) VALUES (1008, 'ETH_TO_DGB');
 INSERT INTO public.pair (id, pair) VALUES (1009, 'ETH_TO_XEM');
 INSERT INTO public.pair (id, pair) VALUES (1010, 'ETH_TO_ARDR');
+INSERT INTO public.pair (id, pair) VALUES (1011, 'ETH_TO_OMG');
+INSERT INTO public.pair (id, pair) VALUES (1012, 'ETH_TO_ZEC');
 INSERT INTO public.pair (id, pair) VALUES (2001, 'USD_TO_DASH');
 INSERT INTO public.pair (id, pair) VALUES (2002, 'USD_TO_ETH');
 INSERT INTO public.pair (id, pair) VALUES (2003, 'USD_TO_LTC');
@@ -121,6 +125,7 @@ INSERT INTO public.pair (id, pair) VALUES (2008, 'USD_TO_DGB');
 INSERT INTO public.pair (id, pair) VALUES (2009, 'USD_TO_XEM');
 INSERT INTO public.pair (id, pair) VALUES (2010, 'USD_TO_ARDR');
 INSERT INTO public.pair (id, pair) VALUES (2011, 'USD_TO_BTC');
+INSERT INTO public.pair (id, pair) VALUES (2012, 'USD_TO_ZEC');
 
 CREATE TABLE public.tickers
 (

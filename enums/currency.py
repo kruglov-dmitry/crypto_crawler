@@ -11,6 +11,7 @@ class CURRENCY:
     XEM = 9
     ARDR = 10
     OMG = 11
+    ZEC = 12
     USD = 1000
 
     @classmethod
@@ -28,5 +29,6 @@ class CURRENCY:
                 CURRENCY.XEM,
                 CURRENCY.ARDR,
                 CURRENCY.OMG,
+                CURRENCY.ZEC,
                 CURRENCY.USD
                 ]
