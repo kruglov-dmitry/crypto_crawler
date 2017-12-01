@@ -12,7 +12,7 @@ from poloniex.constants import POLONIEX_CURRENCIES
 
 from bittrex.ticker_utils import get_ticker_bittrex
 from kraken.ticker_utils import get_ticker_kraken
-from poloniex.ticker_utils import get_ticker_poloniex
+from poloniex.ticker_utils import get_tickers_poloniex
 
 from bittrex.ohlc_utils import get_ohlc_bittrex
 from kraken.ohlc_utils import get_ohlc_kraken
@@ -44,8 +44,6 @@ from collections import defaultdict
 
 from data.BalanceState import BalanceState
 
-from utils.currency_utils import get_currency_pair_from_bittrex, get_currency_pair_from_kraken, get_currency_pair_from_poloniex
-
 import copy
 
 
@@ -65,11 +63,8 @@ def get_ticker():
         if ticker is not None:
             kraken_tickers[ticker.pair_id] = ticker
 
-    poloniex_tickers = {}
-    for currency in POLONIEX_CURRENCIES:
-        ticker = get_ticker_poloniex(currency, timest)
-        if ticker is not None:
-            poloniex_tickers[ticker.pair_id] = ticker
+    # NOTE: poloniex return all tickers by single call
+    poloniex_tickers = get_tickers_poloniex(POLONIEX_CURRENCIES, timest)
 
     return bittrex_tickers, kraken_tickers, poloniex_tickers
 

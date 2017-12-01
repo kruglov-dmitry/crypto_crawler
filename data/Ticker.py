@@ -16,6 +16,7 @@ TICKERS_INSERT_QUERY = "insert into tickers(pair_id, exchange_id, lowest_ask, hi
                              "timest, date_time) values(%s, %s, %s, %s, %s, %s);"
 TICKER_TYPE_NAME = "ticker"
 
+
 class Ticker(BaseData):
     insert_query = TICKERS_INSERT_QUERY
     type = TICKER_TYPE_NAME
@@ -39,7 +40,7 @@ class Ticker(BaseData):
                 )
 
     @classmethod
-    def from_poloniex(cls, currency, timest, json_document):
+    def from_poloniex(cls, pair_name, timest, json_document):
         """
         BTC_BCN":{"id": 7, "last": "0.00000047", "lowestAsk": "0.00000048", "highestBid": "0.00000047",
                    "percentChange": "-0.09615384", "baseVolume": "105.01337711", "quoteVolume": "217142084.64192474",
@@ -48,12 +49,12 @@ class Ticker(BaseData):
         lowest_ask = json_document["lowestAsk"]
         highest_bid = json_document["highestBid"]
 
-        currency_pair = get_currency_pair_from_poloniex(currency)
+        currency_pair = get_currency_pair_from_poloniex(pair_name)
 
         return Ticker(currency_pair, lowest_ask, highest_bid, timest, EXCHANGE.POLONIEX)
 
     @classmethod
-    def from_kraken(cls, currency, timest, json_document):
+    def from_kraken(cls, pair_name, timest, json_document):
         """{"error":[],"result":{"DASHXBT":
         {"a":["0.06295700","1","1.000"],
         "b":["0.06230800","113","113.000"],
@@ -79,19 +80,19 @@ class Ticker(BaseData):
         lowest_ask = json_document["a"][0]
         highest_bid = json_document["b"][0]
 
-        currency_pair = get_currency_pair_from_kraken(currency)
+        currency_pair = get_currency_pair_from_kraken(pair_name)
 
         return Ticker(currency_pair, lowest_ask, highest_bid, timest, EXCHANGE.KRAKEN)
 
     @classmethod
-    def from_bittrex(cls, currency, timest, json_document):
+    def from_bittrex(cls, pair_name, timest, json_document):
         """
             {"success":true,"message":"","result":{"Bid":0.01490996,"Ask":0.01491000,"Last":0.01490996}}
         """
         lowest_ask = json_document["Ask"]
         highest_bid = json_document["Bid"]
 
-        currency_pair = get_currency_pair_from_bittrex(currency)
+        currency_pair = get_currency_pair_from_bittrex(pair_name)
 
         return Ticker(currency_pair, lowest_ask, highest_bid, timest, EXCHANGE.BITTREX)
 
