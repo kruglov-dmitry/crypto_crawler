@@ -5,6 +5,7 @@ from data.OrderHistory import TRADE_HISTORY_TYPE_NAME
 from debug_utils import should_print_debug
 from dao.db import init_pg_connection, load_to_postgres
 from utils.time_utils import get_now_seconds_local, get_now_seconds_utc, sleep_for
+from utils.file_utils import import log_to_file
 
 # time to poll - 15 minutes
 POLL_PERIOD_SECONDS = 900
@@ -43,7 +44,7 @@ if __name__ == "__main__":
 
         if should_print_debug():
             msg = "Sock other data:\n Candle size - {num} \nOrder book size - {num1} Order book asks - {num10} Order book bids - {num20} \nTrade history size - {num2}".format(
-                num=len(candles), num1=len(order_book_size), num2=len(trade_history), num10=order_book_ask_size, num20=order_book_bid_size)
+                num=len(candles), num1=order_book_size, num2=len(trade_history), num10=order_book_ask_size, num20=order_book_bid_size)
             print msg
             log_to_file(msg, "sock_other_data.txt")
 
