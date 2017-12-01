@@ -23,11 +23,11 @@ if __name__ == "__main__":
 
         candles = get_ohlc(start_time, end_time)
         order_book = get_order_book()
-        trade_history = get_history(start_time, end_time)
+        order_book_size = 0
+        order_book_ask_size = 0
+        order_book_bid_size = 0
 
-        if should_print_debug():
-            print "Candle size - {num} \nOrder book size - {num1} \nTrade history size - {num2}".format(
-                num=len(candles), num1=len(order_book), num2=len(trade_history))
+        trade_history = get_history(start_time, end_time)
 
         load_to_postgres(candles, CANDLE_TYPE_NAME, pg_conn)
 
@@ -35,12 +35,17 @@ if __name__ == "__main__":
             load_to_postgres(order_book[exchange_id], ORDER_BOOK_TYPE_NAME, pg_conn)
         load_to_postgres(trade_history, TRADE_HISTORY_TYPE_NAME, pg_conn)
 
-        """save_to_file(all_tickers, "ticker.txt")
-        save_to_file(candles, "ohlc.txt")
-        save_to_file(order_book, "order_book.txt")
-        save_to_file(trade_history, "trade_history.txt")
-        """
+        for exchange_id in order_book:
+            order_book_size += len(order_book[exchange_id])
+            for entry in order_book[exchange_id]:
+                order_book_ask_size += len(entry.ask)
+                order_book_bid_size += len(entry.bid)
+
+        if should_print_debug():
+            msg = "Sock other data:\n Candle size - {num} \nOrder book size - {num1} Order book asks - {num10} Order book bids - {num20} \nTrade history size - {num2}".format(
+                num=len(candles), num1=len(order_book_size), num2=len(trade_history), num10=order_book_ask_size, num20=order_book_bid_size)
+            print msg
+            log_to_file(msg, "sock_other_data.txt")
 
         print "Before sleep..."
         sleep_for(POLL_PERIOD_SECONDS)
-
