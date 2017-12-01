@@ -9,11 +9,41 @@ class CURRENCY_PAIR:
     BTC_TO_DGB = 8
     BTC_TO_XEM = 9
     BTC_TO_ARDR = 10
-    # BTC_TO_BCH = 11
 
+    ETH_TO_DASH = 1001
+    # ETH_TO_BTC = 1002
+    ETH_TO_LTC = 1003
+    ETH_TO_XRP = 1004
+    ETH_TO_BCC = 1005
+    ETH_TO_ETC = 1006
+    ETH_TO_SC = 1007
+    ETH_TO_DGB = 1008
+    ETH_TO_XEM = 1009
+    ETH_TO_ARDR = 1010
+
+    USD_TO_DASH = 2001
+    USD_TO_BTC = 2002
+    USD_TO_LTC = 2003
+    USD_TO_XRP = 2004
+    USD_TO_BCC = 2005
+    USD_TO_ETC = 2006
+    USD_TO_SC = 2007
+    USD_TO_DGB = 2008
+    USD_TO_XEM = 2009
+    USD_TO_ARDR = 2010
+    USD_TO_ETH = 2011
+
+    # bittrex
+    # CURRENCY_PAIR.ETH_TO_BTC,
+    # CURRENCY_PAIR.ETH_TO_ARDR,
+    # CURRENCY_PAIR.USD_TO_SC,
+    # CURRENCY_PAIR.USD_TO_DGB,
+    # CURRENCY_PAIR.USD_TO_XEM,
+    # CURRENCY_PAIR.USD_TO_ARDR,
+    # Poloniex:
+    #
     @classmethod
     def values(cls):
-        # , CURRENCY_PAIR.BTC_TO_BCH
         return [CURRENCY_PAIR.BTC_TO_DASH,
                 CURRENCY_PAIR.BTC_TO_ETH,
                 CURRENCY_PAIR.BTC_TO_LTC,
@@ -23,5 +53,20 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.BTC_TO_SC,
                 CURRENCY_PAIR.BTC_TO_DGB,
                 CURRENCY_PAIR.BTC_TO_XEM,
-                CURRENCY_PAIR.BTC_TO_ARDR
+                CURRENCY_PAIR.BTC_TO_ARDR,
+                CURRENCY_PAIR.ETH_TO_DASH,
+                CURRENCY_PAIR.ETH_TO_LTC,
+                CURRENCY_PAIR.ETH_TO_XRP,
+                CURRENCY_PAIR.ETH_TO_BCC,
+                CURRENCY_PAIR.ETH_TO_ETC,
+                CURRENCY_PAIR.ETH_TO_SC,
+                CURRENCY_PAIR.ETH_TO_DGB,
+                CURRENCY_PAIR.ETH_TO_XEM,
+                CURRENCY_PAIR.USD_TO_DASH,
+                CURRENCY_PAIR.USD_TO_BTC,
+                CURRENCY_PAIR.USD_TO_LTC,
+                CURRENCY_PAIR.USD_TO_XRP,
+                CURRENCY_PAIR.USD_TO_BCC,
+                CURRENCY_PAIR.USD_TO_ETC,
+                CURRENCY_PAIR.USD_TO_ETH
                 ]
