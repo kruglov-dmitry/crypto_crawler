@@ -1,8 +1,8 @@
 import sys
 sys.setrecursionlimit(10000)
 
-from dao.dao import get_order_book, buy_by_exchange, sell_by_exchange, get_updated_balance, get_order_book_by_pair, get_updated_order_state
-from dao.db import init_pg_connection, load_to_postgres, get_order_book_by_time, get_time_entries
+from dao.dao import buy_by_exchange, sell_by_exchange, get_updated_balance, get_order_book_by_pair, get_updated_order_state
+from dao.db import init_pg_connection, get_order_book_by_time, get_time_entries
 
 from utils.key_utils import load_keys
 from debug_utils import should_print_debug
@@ -15,20 +15,15 @@ from core.base_analysis import get_change
 from core.base_math import get_all_combination
 
 from enums.exchange import EXCHANGE
-from enums.currency_pair import CURRENCY_PAIR
 from enums.deal_type import DEAL_TYPE
 from enums.currency import CURRENCY
 from enums.status import STATUS
 
-from collections import defaultdict
-
-from data.OrderBook import ORDER_BOOK_TYPE_NAME
 from data.Trade import Trade
 from data.TradePair import TradePair
 from data.Balance import Balance
 from data.BalanceState import BalanceState
 from data.MarketCap import MarketCap
-from data.OrderState import OrderState
 
 from constants import ARBITRAGE_CURRENCY, ARBITRAGE_PAIRS
 

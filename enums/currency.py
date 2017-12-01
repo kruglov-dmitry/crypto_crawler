@@ -10,6 +10,7 @@ class CURRENCY:
     DGB = 8
     XEM = 9
     ARDR = 10
+    USD = 1000
 
     @classmethod
     def values(cls):
@@ -24,5 +25,6 @@ class CURRENCY:
                 CURRENCY.SC,
                 CURRENCY.DGB,
                 CURRENCY.XEM,
-                CURRENCY.ARDR
+                CURRENCY.ARDR,
+                CURRENCY.USD
                 ]
