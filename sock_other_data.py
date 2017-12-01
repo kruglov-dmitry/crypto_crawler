@@ -5,7 +5,7 @@ from data.OrderHistory import TRADE_HISTORY_TYPE_NAME
 from debug_utils import should_print_debug
 from dao.db import init_pg_connection, load_to_postgres
 from utils.time_utils import get_now_seconds_local, get_now_seconds_utc, sleep_for
-from utils.file_utils import import log_to_file
+from utils.file_utils import log_to_file
 
 # time to poll - 15 minutes
 POLL_PERIOD_SECONDS = 900
