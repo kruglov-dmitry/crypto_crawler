@@ -67,7 +67,15 @@ def get_currency_pair_from_kraken(pair_name):
         'XLTCXXBT': CURRENCY_PAIR.BTC_TO_LTC,
         'XXRPXXBT': CURRENCY_PAIR.BTC_TO_XRP,
         'BCHXBT': CURRENCY_PAIR.BTC_TO_BCC,
-        'XETCXXBT': CURRENCY_PAIR.BTC_TO_ETC
+        'XETCXXBT': CURRENCY_PAIR.BTC_TO_ETC,
+        'XXDGXXBT': CURRENCY_PAIR.BTC_TO_DGB,
+        'XETCXETH': CURRENCY_PAIR.ETH_TO_ETC,
+        'DASHUSD': CURRENCY_PAIR.USD_TO_DASH,
+        'XETHZUSD': CURRENCY_PAIR.USD_TO_ETH,
+        'XLTCZUSD': CURRENCY_PAIR.USD_TO_LTC,
+        'XXRPZUSD': CURRENCY_PAIR.USD_TO_XRP,
+        'BCHUSD': CURRENCY_PAIR.USD_TO_BCC,
+        'XETCZUSD': CURRENCY_PAIR.USD_TO_ETC
     }[pair_name]
 
 
@@ -131,7 +139,14 @@ def get_currency_pair_to_kraken(pair_id):
         CURRENCY_PAIR.BTC_TO_LTC: 'XLTCXXBT',
         CURRENCY_PAIR.BTC_TO_XRP: 'XXRPXXBT',
         CURRENCY_PAIR.BTC_TO_BCC: 'BCHXBT',
-        CURRENCY_PAIR.BTC_TO_ETC: 'XETCXXBT'
+        CURRENCY_PAIR.BTC_TO_ETC: 'XETCXXBT',
+        CURRENCY_PAIR.ETH_TO_ETC: 'XETCXETH',
+        CURRENCY_PAIR.USD_TO_DASH: 'DASHUSD',
+        CURRENCY_PAIR.USD_TO_ETH: 'XETHZUSD',
+        CURRENCY_PAIR.USD_TO_LTC: 'XLTCZUSD',
+        CURRENCY_PAIR.USD_TO_XRP: 'XXRPZUSD',
+        CURRENCY_PAIR.USD_TO_BCC: 'BCHUSD',
+        CURRENCY_PAIR.USD_TO_ETC: 'XETCZUSD'
     }[pair_id]
 
 
@@ -216,7 +231,10 @@ def get_currency_id_from_kraken(currency_name):
         'XXRP': CURRENCY.XRP,
         'XLTC': CURRENCY.LTC,
         'XETC': CURRENCY.ETC,
-        'XETH': CURRENCY.ETH
+        'XETH': CURRENCY.ETH,
+        'XXDG': CURRENCY.DGB,
+        'ZUSD': CURRENCY.USD,
+        'USD': CURRENCY.USD
     }[currency_name]
 
 
@@ -228,7 +246,10 @@ def get_currency_name_for_kraken(currency_id):
         CURRENCY.XRP: 'XXRP',
         CURRENCY.LTC: 'XLTC',
         CURRENCY.ETC: 'XETC',
-        CURRENCY.ETH: 'XETH'
+        CURRENCY.ETH: 'XETH',
+        CURRENCY.DGB: 'XXDG',
+        CURRENCY.USD: 'ZUSD',
+        CURRENCY.USD: 'USD'
     }[currency_id]
 
 
