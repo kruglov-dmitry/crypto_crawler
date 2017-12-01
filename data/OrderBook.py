@@ -121,12 +121,14 @@ class OrderBook(BaseData):
         """
 
         ask_bids = []
-        for b in json_document["sell"]:
-            ask_bids.append(Deal(b["Rate"], b["Quantity"]))
+        if "sell" in json_document:
+            for b in json_document["sell"]:
+                ask_bids.append(Deal(b["Rate"], b["Quantity"]))
 
         sell_bids = []
-        for b in json_document["buy"]:
-            sell_bids.append(Deal(b["Rate"], b["Quantity"]))
+        if "buy" in json_document:
+            for b in json_document["buy"]:
+                sell_bids.append(Deal(b["Rate"], b["Quantity"]))
 
         currency_pair = get_currency_pair_from_bittrex(currency)
 

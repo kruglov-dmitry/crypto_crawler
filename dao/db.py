@@ -28,6 +28,7 @@ def insert_data(some_object, pg_conn, dummy_flag):
     try:
         cur.execute(PG_INSERT_QUERY, args_list)
     except Exception, e:
+        print PG_INSERT_QUERY, args_list
         print "insert data failed :(  ", str(e)
 
     # Yeap, this crap I am not the biggest fun of!
