@@ -1,7 +1,8 @@
 import sys
 sys.setrecursionlimit(10000)
 
-from dao.dao import buy_by_exchange, sell_by_exchange, get_updated_balance, get_order_book_by_pair, get_updated_order_state
+from dao.dao import buy_by_exchange, sell_by_exchange, get_updated_balance, get_order_book_by_pair, \
+    get_updated_order_state
 from dao.db import init_pg_connection, get_order_book_by_time, get_time_entries
 
 from utils.key_utils import load_keys
@@ -21,15 +22,14 @@ from enums.status import STATUS
 
 from data.Trade import Trade
 from data.TradePair import TradePair
-from data.Balance import Balance
-from data.BalanceState import BalanceState
-from data.MarketCap import MarketCap
 
-from constants import ARBITRAGE_CURRENCY, ARBITRAGE_PAIRS
+from constants import ARBITRAGE_PAIRS
+
+from data_access.telegram_notifications import send_single_message
+
+from core.backtest import common_cap_init, dummy_balance_init, dummy_order_state_init, custom_balance_init
 
 from multiprocessing import Pool
-
-import telegram
 
 
 # FIXME NOTE:
@@ -57,73 +57,6 @@ overall_profit_so_far = 0.0
 def is_no_pending_order(currency_id, src_exchange_id, dst_exchange_id):
     # FIXME - have to load active deals per exchange >_<
     return True
-
-
-def dummy_balance_init(timest, default_volume, balance_adjust_threshold):
-    balance = {}
-
-    initial_balance = {}
-
-    for currency_id in ARBITRAGE_CURRENCY:
-        initial_balance[currency_id] = default_volume
-
-    for exchange_id in EXCHANGE.values():
-        balance[exchange_id] = Balance(exchange_id, timest, initial_balance)
-
-    return BalanceState(balance, balance_adjust_threshold)
-
-
-def dummy_order_state_init():
-    order_state_by_exchange = {}
-
-    open_orders = []
-    closed_orders = []
-
-    timest = get_now_seconds_local()
-
-    for exchange_id in EXCHANGE.values():
-        order_state_by_exchange[exchange_id] = None
-
-    return order_state_by_exchange
-
-def custom_balance_init(timest, balance_adjust_threshold):
-
-    # CURRENCY.BITCOIN, CURRENCY.DASH, CURRENCY.BCC, CURRENCY.XRP, CURRENCY.LTC, CURRENCY.ETC, CURRENCY.ETH
-    # EXCHANGE.POLONIEX_EXCHANGE, EXCHANGE.KRAKEN_EXCHANGE, EXCHANGE.BITTREX_EXCHANGE
-
-    balance = {}
-
-    poloniex_balance = {CURRENCY.BITCOIN: 10.0, CURRENCY.DASH: 15.0, CURRENCY.BCC: 13.0, CURRENCY.XRP: 30000.0,
-                        CURRENCY.LTC: 100.0, CURRENCY.ETC: 600.0, CURRENCY.ETH: 20.0}
-
-    balance[EXCHANGE.POLONIEX] = Balance(EXCHANGE.POLONIEX, timest, poloniex_balance)
-
-    kraken_balance = {CURRENCY.BITCOIN: 10.0, CURRENCY.DASH: 15.0, CURRENCY.BCC: 13.0, CURRENCY.XRP: 30000.0,
-                      CURRENCY.LTC: 100.0, CURRENCY.ETC: 600.0, CURRENCY.ETH: 20.0}
-
-    balance[EXCHANGE.KRAKEN] = Balance(EXCHANGE.KRAKEN, timest, kraken_balance)
-
-    bittrex_balance = {CURRENCY.BITCOIN: 10.0, CURRENCY.DASH: 15.0, CURRENCY.BCC: 13.0, CURRENCY.XRP: 30000.0,
-                       CURRENCY.LTC: 100.0, CURRENCY.ETC: 600.0, CURRENCY.ETH: 20.0}
-
-    balance[EXCHANGE.BITTREX] = Balance(EXCHANGE.BITTREX, timest, bittrex_balance)
-
-    return BalanceState(balance, balance_adjust_threshold)
-
-
-def common_cap_init():
-
-    min_volume_cap = {CURRENCY.BITCOIN: 0.0, CURRENCY.DASH: 0.03, CURRENCY.BCC: 0.008, CURRENCY.XRP: 30.0,
-                        CURRENCY.LTC: 0.1, CURRENCY.ETC:  0.45, CURRENCY.ETH: 0.02}
-
-    max_volume_cap = {CURRENCY.BITCOIN: 100500.0, CURRENCY.DASH: 100500.0, CURRENCY.BCC: 100500.0, CURRENCY.XRP: 100500.0,
-                        CURRENCY.LTC: 100500.0, CURRENCY.ETC: 100500.0, CURRENCY.ETH: 100500.0}
-
-    min_price_cap = {CURRENCY.BITCOIN: 0.0}
-
-    max_price_cap = {CURRENCY.BITCOIN: 0.01}
-
-    return MarketCap(min_volume_cap, max_volume_cap, min_price_cap, max_price_cap)
 
 
 def init_deal(trade_to_perform, order_state, debug_msg):
@@ -185,12 +118,7 @@ def init_deals_with_logging(trade_pairs, order_state,  file_name):
     # Logging TODO save to postgres
     log_to_file(trade_pairs, file_name)
 
-    bot = telegram.Bot(token='438844686:AAE8lS3VyMsNgtytR4I1uWy4DLUaot2e5hU')
-    try:
-        bot.send_message(chat_id=-218431137, text=str(msg), parse_mode=telegram.ParseMode.MARKDOWN)
-    except Exception, e:
-        # FIXME still can die
-        print "init_deals_with_logging: ", str(e)
+    send_single_message(msg)
 
     return STATUS.SUCCESS
 
@@ -298,6 +226,7 @@ def analyse_order_book(first_order_book,
                 second_exchange=get_exchange_name_by_id(second_order_book.exchange_id))
             print msg
             log_to_file(msg, "debug.txt")
+            send_single_message(msg)
 
             return
 
@@ -506,8 +435,6 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
     print "Order_book num: ", time_entries_num
 
     cnt = 0
-    # DEFAULT_VOLUME = 100000
-    # current_balance = dummy_balance_init(time_entries[0], DEFAULT_VOLUME, balance_adjust_threshold)
     MAX_ORDER_BOOK_COUNT = 10000
     current_balance = custom_balance_init(time_entries[0], balance_adjust_threshold)
     deal_cap = common_cap_init()
@@ -563,10 +490,8 @@ def run_bot(deal_threshold, balance_adjust_threshold, treshold_reverse):
 
             # TODO: move this to single thread
             # process_pool.apply_async(
-            mega_analysis(order_book, deal_threshold, current_balance, order_state, deal_cap, treshold_reverse, init_deals_with_logging)
-
-            # for exchange_id in order_book:
-            #     load_to_postgres(order_book[exchange_id], ORDER_BOOK_TYPE_NAME, pg_conn)
+            mega_analysis(order_book, deal_threshold, current_balance, order_state, deal_cap, treshold_reverse,
+                          init_deals_with_logging)
 
         print "Before sleep..."
         sleep_for(POLL_PERIOD_SECONDS)

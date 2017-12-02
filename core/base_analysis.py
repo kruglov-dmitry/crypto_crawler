@@ -101,6 +101,7 @@ def check_highest_bid_bigger_than_lowest_ask(first_one, second_one, threshold):
 def get_change(current, previous, provide_abs=True):
     """
 
+    :param provide_abs:
     :param current:
     :param previous:
     :return: difference in percentage between current & previous
