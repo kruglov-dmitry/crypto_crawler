@@ -443,6 +443,7 @@ def get_currency_name_for_poloniex(currency_id):
         CURRENCY.DGB: 'DGB',
         CURRENCY.XEM: 'XEM',
         CURRENCY.ARDR: 'ARDR',
+        CURRENCY.OMG: 'OMG',
         CURRENCY.ZEC: 'ZEC',
         CURRENCY.REP: 'REP',
         CURRENCY.XMR: 'XMR',
