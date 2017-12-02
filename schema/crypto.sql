@@ -133,7 +133,20 @@ INSERT INTO public.pair (id, pair) VALUES (2011, 'USD_TO_BTC');
 INSERT INTO public.pair (id, pair) VALUES (2012, 'USD_TO_ZEC');
 INSERT INTO public.pair (id, pair) VALUES (2013, 'USD_TO_REP');
 INSERT INTO public.pair (id, pair) VALUES (2014, 'USD_TO_XMR');
-
+INSERT INTO public.pair (id, pair) VALUES (3001, 'USDT_TO_DASH');
+INSERT INTO public.pair (id, pair) VALUES (3002, 'USDT_TO_ETH');
+INSERT INTO public.pair (id, pair) VALUES (3003, 'USDT_TO_LTC');
+INSERT INTO public.pair (id, pair) VALUES (3004, 'USDT_TO_XRP');
+INSERT INTO public.pair (id, pair) VALUES (3005, 'USDT_TO_BCC');
+INSERT INTO public.pair (id, pair) VALUES (3006, 'USDT_TO_ETC');
+INSERT INTO public.pair (id, pair) VALUES (3007, 'USDT_TO_SC');
+INSERT INTO public.pair (id, pair) VALUES (3008, 'USDT_TO_DGB');
+INSERT INTO public.pair (id, pair) VALUES (3009, 'USDT_TO_XEM');
+INSERT INTO public.pair (id, pair) VALUES (3010, 'USDT_TO_ARDR');
+INSERT INTO public.pair (id, pair) VALUES (3011, 'USDT_TO_BTC');
+INSERT INTO public.pair (id, pair) VALUES (3012, 'USDT_TO_ZEC');
+INSERT INTO public.pair (id, pair) VALUES (3013, 'USDT_TO_REP');
+INSERT INTO public.pair (id, pair) VALUES (3014, 'USDT_TO_XMR');
 
 
 CREATE TABLE public.tickers

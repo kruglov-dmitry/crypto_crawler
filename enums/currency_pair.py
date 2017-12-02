@@ -46,6 +46,24 @@ class CURRENCY_PAIR:
     USD_TO_REP = 2013
     USD_TO_XMR = 2014
 
+    USDT_TO_DASH = 3001
+    USDT_TO_ETH = 3002
+    USDT_TO_LTC = 3003
+    USDT_TO_XRP = 3004
+    USDT_TO_BCC = 3005
+    USDT_TO_ETC = 3006
+    USDT_TO_SC = 3007        # NOT EXIST ON kraken, poloniex, bittrex
+    USDT_TO_DGB = 3008       # NOT EXIST ON kraken, poloniex, bittrex
+    USDT_TO_XEM = 3009
+    USDT_TO_ARDR = 3010      # NOT EXIST ON kraken, poloniex, bittrex
+    # NOTE: NO OMG!
+    USDT_TO_BTC = 3011
+    USDT_TO_ZEC = 3012
+    USDT_TO_REP = 3013
+    USDT_TO_XMR = 3014
+
+    USD_TO_USDT = 4000      # kraken only
+
     @classmethod
     def values(cls):
         return [CURRENCY_PAIR.BTC_TO_DASH,
@@ -84,5 +102,20 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.USD_TO_ETH,
                 CURRENCY_PAIR.USD_TO_ZEC,
                 CURRENCY_PAIR.USD_TO_REP,
-                CURRENCY_PAIR.USD_TO_XMR
+                CURRENCY_PAIR.USD_TO_XMR,
+                CURRENCY_PAIR.USDT_TO_DASH,
+                CURRENCY_PAIR.USDT_TO_ETH,
+                CURRENCY_PAIR.USDT_TO_LTC,
+                CURRENCY_PAIR.USDT_TO_XRP,
+                CURRENCY_PAIR.USDT_TO_BCC,
+                CURRENCY_PAIR.USDT_TO_ETC,
+                CURRENCY_PAIR.USDT_TO_SC,
+                CURRENCY_PAIR.USDT_TO_DGB,
+                CURRENCY_PAIR.USDT_TO_XEM,
+                CURRENCY_PAIR.USDT_TO_ARDR,
+                CURRENCY_PAIR.USDT_TO_BTC,
+                CURRENCY_PAIR.USDT_TO_ZEC,
+                CURRENCY_PAIR.USDT_TO_REP,
+                CURRENCY_PAIR.USDT_TO_XMR,
+                CURRENCY_PAIR.USD_TO_USDT
                 ]
