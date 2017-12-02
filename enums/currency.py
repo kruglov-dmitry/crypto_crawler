@@ -15,6 +15,7 @@ class CURRENCY:
     REP = 13
     XMR = 14
     DOGE = 15
+    DCR = 16
 
     USD = 1000
     USDT = 1001
@@ -38,6 +39,7 @@ class CURRENCY:
                 CURRENCY.REP,
                 CURRENCY.XMR,
                 CURRENCY.DOGE,
+                CURRENCY.DCR,
                 CURRENCY.USD,
                 CURRENCY.USDT
                 ]

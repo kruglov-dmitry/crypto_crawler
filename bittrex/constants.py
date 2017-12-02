@@ -16,7 +16,7 @@ BITTREX_CURRENCIES = ["BTC-DASH", "BTC-ETH", "BTC-LTC", "BTC-XRP", "BTC-BCC", "B
                       "BTC-XEM", "BTC-ARDR", "BTC-OMG", "BTC-ZEC", "BTC-REP", "BTC-XMR", "BTC-DOGE",
                       "ETH-DASH", "ETH-LTC", "ETH-XRP", "ETH-BCC", "ETH-ETC", "ETH-SC", "ETH-DGB", "ETH-XEM", "ETH-OMG",
                       "ETH-ZEC", "ETH-REP", "ETH-XMR",
-                      "USDT-DASH", "USDT-BTC", "USDT-LTC", "USDT-XRP", "USDT-BCC", "USDT-ETC", "USDT-ETH", "USDT-ZEC", "USDT-XMR"
+                      "USDT-DASH", "USDT-BTC", "USDT-ETH", "USDT-LTC", "USDT-XRP", "USDT-ETC", "USDT-BCC", "USDT-ZEC", "USDT-XMR"
                       ]
 
 # https://bittrex.com/api/v1.1/market/buylimit?apikey=API_KEY&market=BTC-LTC&quantity=1.2&rate=1.3
