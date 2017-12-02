@@ -121,10 +121,10 @@ def get_order_book_by_pair(pair_id):
     if order_book is not None:
         all_order_book[EXCHANGE.POLONIEX].append(order_book)
 
-    kraken_pair_name = get_currency_pair_to_kraken(pair_id)
-    order_book = get_order_book_kraken(kraken_pair_name, timest)
-    if order_book is not None:
-        all_order_book[EXCHANGE.KRAKEN].append(order_book)
+    # kraken_pair_name = get_currency_pair_to_kraken(pair_id)
+    # order_book = get_order_book_kraken(kraken_pair_name, timest)
+    # if order_book is not None:
+    #    all_order_book[EXCHANGE.KRAKEN].append(order_book)
 
     bittrex_pair_name = get_currency_pair_to_bittrex(pair_id)
     order_book = get_order_book_bittrex(bittrex_pair_name, timest)
@@ -235,9 +235,9 @@ def get_updated_balance(balance_adjust_threshold, prev_balance):
 def get_updated_order_state(order_state):
     new_order_state = {EXCHANGE.BITTREX: None, EXCHANGE.POLONIEX: None, EXCHANGE.KRAKEN: order_state[EXCHANGE.KRAKEN]}
 
-    krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
-    error_code, res = get_orders_kraken(krak_key)
-    if error_code == STATUS.SUCCESS:
-        new_order_state[EXCHANGE.KRAKEN] = res
+    # krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
+    # error_code, res = get_orders_kraken(krak_key)
+    # if error_code == STATUS.SUCCESS:
+    #    new_order_state[EXCHANGE.KRAKEN] = res
 
     return new_order_state
