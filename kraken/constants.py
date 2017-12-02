@@ -12,7 +12,8 @@ KRAKEN_GET_HISTORY = "https://api.kraken.com/0/public/Trades?pair="
 
 KRAKEN_CURRENCY_PAIRS = ["DASHXBT", "XETHXXBT", "XLTCXXBT", "XXRPXXBT", "BCHXBT", "XETCXXBT", "XXDGXXBT", "XZECXXBT", "XREPXXBT", "XXMRXXBT",
                          "XETCXETH", "XREPXETH",
-                         "DASHUSD", "XETHZUSD", "XLTCZUSD", "XXRPZUSD", "BCHUSD", "XETCZUSD", "XZECZUSD", "XXMRZUSD"
+                         "DASHUSD", "XETHZUSD", "XLTCZUSD", "XXRPZUSD", "BCHUSD", "XETCZUSD", "XZECZUSD", "XXMRZUSD",
+                         "USDTZUSD"
                          ]
 
 KRAKEN_CURRENCIES = ["DASH", "BCH", "ZUSD", "XXBT", "EOS", "USDT", "XXRP", "XREP", "XETC", "XETH", "XXDG", "XZEC",

@@ -13,6 +13,7 @@ class CURRENCY_PAIR:
     BTC_TO_ZEC = 12
     BTC_TO_REP = 13
     BTC_TO_XMR = 14
+    BTC_TO_DOGE = 15
 
     ETH_TO_DASH = 1001
     ETH_TO_BTC = 1002       # NOT EXIST ON kraken, poloniex, bittrex
@@ -61,6 +62,7 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.BTC_TO_ZEC,
                 CURRENCY_PAIR.BTC_TO_REP,
                 CURRENCY_PAIR.BTC_TO_XMR,
+                CURRENCY_PAIR.BTC_TO_DOGE,
                 CURRENCY_PAIR.ETH_TO_DASH,
                 CURRENCY_PAIR.ETH_TO_LTC,
                 CURRENCY_PAIR.ETH_TO_XRP,

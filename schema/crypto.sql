@@ -104,6 +104,7 @@ INSERT INTO public.pair (id, pair) VALUES (11, 'BTC_TO_OMG');
 INSERT INTO public.pair (id, pair) VALUES (12, 'BTC_TO_ZEC');
 INSERT INTO public.pair (id, pair) VALUES (13, 'BTC_TO_REP');
 INSERT INTO public.pair (id, pair) VALUES (14, 'BTC_TO_XMR');
+INSERT INTO public.pair (id, pair) VALUES (15, 'BTC_TO_DOGE');
 INSERT INTO public.pair (id, pair) VALUES (1001, 'ETH_TO_DASH');
 INSERT INTO public.pair (id, pair) VALUES (1002, 'ETH_TO_BTC');
 INSERT INTO public.pair (id, pair) VALUES (1003, 'ETH_TO_LTC');

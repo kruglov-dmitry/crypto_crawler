@@ -14,7 +14,10 @@ class CURRENCY:
     ZEC = 12
     REP = 13
     XMR = 14
+    DOGE = 15
+
     USD = 1000
+    USDT = 1001
 
     @classmethod
     def values(cls):
@@ -34,5 +37,7 @@ class CURRENCY:
                 CURRENCY.ZEC,
                 CURRENCY.REP,
                 CURRENCY.XMR,
-                CURRENCY.USD
+                CURRENCY.DOGE,
+                CURRENCY.USD,
+                CURRENCY.USDT
                 ]
