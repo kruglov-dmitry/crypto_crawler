@@ -84,6 +84,6 @@ def common_cap_init():
 
     min_price_cap = {CURRENCY.BITCOIN: 0.0}
 
-    max_price_cap = {CURRENCY.BITCOIN: 0.01}
+    max_price_cap = {CURRENCY.BITCOIN: 1.0}
 
     return MarketCap(min_volume_cap, max_volume_cap, min_price_cap, max_price_cap)
