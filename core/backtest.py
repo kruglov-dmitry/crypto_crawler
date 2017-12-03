@@ -39,6 +39,9 @@ def dummy_order_state_init():
 
 def custom_balance_init(timest, balance_adjust_threshold):
 
+    print "core/custom_balance_init should be updated"
+    raise
+
     # CURRENCY.BITCOIN, CURRENCY.DASH, CURRENCY.BCC, CURRENCY.XRP, CURRENCY.LTC, CURRENCY.ETC, CURRENCY.ETH
     # EXCHANGE.POLONIEX_EXCHANGE, EXCHANGE.KRAKEN_EXCHANGE, EXCHANGE.BITTREX_EXCHANGE
 
@@ -67,15 +70,17 @@ def common_cap_init():
     min_volume_cap = {CURRENCY.BITCOIN: 0.0, CURRENCY.DASH: 0.03,
                       CURRENCY.BCC: 0.008, CURRENCY.XRP: 30.0,
                       CURRENCY.LTC: 0.1, CURRENCY.ETC:  0.45, CURRENCY.ETH: 0.02,
-                      CURRENCY.XEM: 0.0, CURRENCY.DGB: 0.0, CURRENCY.ARDR: 0.0,
-                      CURRENCY.OMG: 0.0, CURRENCY.USDT: 0.0, CURRENCY.DCR: 0.0
+                      CURRENCY.XEM: 40.0, CURRENCY.DGB: 800.0, CURRENCY.ARDR: 25.0,
+                      CURRENCY.OMG: 1.25, CURRENCY.USDT: 12.0, CURRENCY.DCR: 0.25,
+                      CURRENCY.REP: 0.35
                       }
 
     max_volume_cap = {CURRENCY.BITCOIN: 100500.0, CURRENCY.DASH: 100500.0,
                       CURRENCY.BCC: 100500.0, CURRENCY.XRP: 100500.0,
                       CURRENCY.LTC: 100500.0, CURRENCY.ETC: 100500.0, CURRENCY.ETH: 100500.0,
                       CURRENCY.XEM: 100500.0, CURRENCY.DGB: 100500.0, CURRENCY.ARDR: 100500.0,
-                      CURRENCY.OMG: 100500.0, CURRENCY.USDT: 100500.0, CURRENCY.DCR: 100500.0}
+                      CURRENCY.OMG: 100500.0, CURRENCY.USDT: 100500.0, CURRENCY.DCR: 100500.0,
+                      CURRENCY.REP: 100500.0}
 
     min_price_cap = {CURRENCY.BITCOIN: 0.0}
 
