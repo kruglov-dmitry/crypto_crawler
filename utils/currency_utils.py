@@ -452,6 +452,51 @@ def get_currency_name_for_poloniex(currency_id):
     }[currency_id]
 
 
+def get_currency_name_for_binance(currency_id):
+    return {
+        CURRENCY.BITCOIN: 'BTC',
+        CURRENCY.DASH: 'DASH',
+        CURRENCY.BCC: 'BCC',
+        CURRENCY.XRP: 'XRP',
+        CURRENCY.LTC: 'LTC',
+        CURRENCY.ETC: 'ETC',
+        CURRENCY.ETH: 'ETH',
+        CURRENCY.SC: 'SC',
+        CURRENCY.DGB: 'DGB',
+        CURRENCY.XEM: 'XEM',
+        CURRENCY.ARDR: 'ARDR',
+        CURRENCY.OMG: 'OMG',
+        CURRENCY.ZEC: 'ZEC',
+        CURRENCY.REP: 'REP',
+        CURRENCY.XMR: 'XMR',
+        CURRENCY.DOGE: 'DOGE',
+        CURRENCY.DCR: 'DCR',
+        CURRENCY.USDT: 'USDT'
+    }[currency_id]
+
+
+def get_currency_id_from_binance(currency_name):
+    return {
+        'BTC': CURRENCY.BITCOIN,
+        'DASH': CURRENCY.DASH,
+        'BCC': CURRENCY.BCC,
+        'XRP': CURRENCY.XRP,
+        'LTC': CURRENCY.LTC,
+        'ETC': CURRENCY.ETC,
+        'ETH': CURRENCY.ETH,
+        'SC': CURRENCY.SC,
+        'DGB': CURRENCY.DGB,
+        'XEM': CURRENCY.XEM,
+        'ARDR': CURRENCY.ARDR,
+        'OMG': CURRENCY.OMG,
+        'ZEC': CURRENCY.ZEC,
+        'REP': CURRENCY.REP,
+        'XMR': CURRENCY.XMR,
+        'DOGE': CURRENCY.DOGE,
+        'DCR': CURRENCY.DCR,
+        'USDT': CURRENCY.USDT
+    }[currency_name]
+
 def get_currency_name_by_id(currency_id):
     return {
         CURRENCY.BITCOIN: 'BTC',

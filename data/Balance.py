@@ -2,7 +2,7 @@ from BaseData import BaseData
 from constants import ARBITRAGE_CURRENCY, ZERO_BALANCE
 from enums.exchange import EXCHANGE
 from utils.currency_utils import get_currency_name_by_id, get_currency_name_for_kraken, \
-    get_currency_name_for_bittrex, get_currency_name_for_poloniex
+    get_currency_name_for_bittrex, get_currency_name_for_poloniex, get_currency_name_for_binance
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.time_utils import ts_to_string
 
@@ -98,6 +98,40 @@ class Balance(BaseData):
             for entry in json_document:
                 if currency_name == entry["Currency"]:
                     volume = float(entry["Balance"])
+                    initial_balance[currency_id] = volume
+
+        return Balance(EXCHANGE.BITTREX, last_update, initial_balance)
+
+    @classmethod
+    def from_binance(cls, last_update, json_document):
+
+        initial_balance = {}
+
+        """
+            "makerCommission": 15,
+		  "takerCommission": 15,
+		  "buyerCommission": 0,
+		  "sellerCommission": 0,
+		  "canTrade": true,
+		  "canWithdraw": true,
+		  "canDeposit": true,
+		  "balances": [
+		    {
+		      "asset": "BTC",
+		      "free": "4723846.89208129",
+		      "locked": "0.00000000"
+		    },
+        """
+
+        for currency_id in ARBITRAGE_CURRENCY:
+
+            initial_balance[currency_id] = ZERO_BALANCE
+
+            currency_name = get_currency_name_for_binance(currency_id)
+
+            for entry in json_document["balances"]:
+                if currency_name == entry["asset"]:
+                    volume = float(entry["free"])
                     initial_balance[currency_id] = volume
 
         return Balance(EXCHANGE.BITTREX, last_update, initial_balance)
