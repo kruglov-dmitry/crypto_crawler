@@ -493,15 +493,15 @@ def run_bot(deal_threshold, balance_adjust_threshold, treshold_reverse):
             mega_analysis(order_book, deal_threshold, current_balance, order_state, deal_cap, treshold_reverse,
                           init_deals_with_logging)
 
-        print "Before sleep..."
-        sleep_for(POLL_PERIOD_SECONDS)
+        # print "Before sleep..."
+        # sleep_for(POLL_PERIOD_SECONDS)
 
 
 if __name__ == "__main__":
     pg_conn = init_pg_connection()
 
     # FIXME - read from some config
-    deal_threshold = 0.6
+    deal_threshold = 1.5
     treshold_reverse = 0.6
     balance_adjust_threshold = 5.0
 

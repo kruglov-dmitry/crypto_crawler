@@ -19,7 +19,7 @@ def inform_big_boss(info_to_report, pg_conn, error_timeout):
             pair_name=get_pair_name_by_id(debug[1]), ask_exchange=debug[2].exchange, ask_price=debug[2].bid,
             sell_exchange=debug[3].exchange, sell_price=debug[3].ask)
 
-        error_code, msg = send_single_message(msg)
+        error_code = send_single_message(msg)
 
         if STATUS.SUCCESS != error_code:
             print "inform_big_boss can't send message to telegram. Lets try one more time after timeout."
