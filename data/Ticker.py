@@ -1,6 +1,7 @@
 import re
 from utils.currency_utils import get_pair_name_by_id, get_currency_pair_from_bittrex, \
-    get_currency_pair_from_kraken, get_currency_pair_from_poloniex
+    get_currency_pair_from_kraken, get_currency_pair_from_poloniex, \
+    get_currency_pair_from_binance
 
 from BaseData import BaseData
 from enums.exchange import EXCHANGE
@@ -101,9 +102,9 @@ class Ticker(BaseData):
         lowest_ask = json_document["askPrice"]
         highest_bid = json_document["bidPrice"]
 
-        currency_pair_id = get_currency_pair_from_bittrex(pair_name)
+        currency_pair_id = get_currency_pair_from_binance(pair_name)
 
-        return Ticker(currency_pair_id, lowest_ask, highest_bid, timest, EXCHANGE.BITTREX)
+        return Ticker(currency_pair_id, lowest_ask, highest_bid, timest, EXCHANGE.BINANCE)
 
     @classmethod
     def from_string(cls, some_string):

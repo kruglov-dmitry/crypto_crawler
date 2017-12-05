@@ -2,7 +2,8 @@ from datetime import datetime
 import re
 
 from utils.currency_utils import get_pair_name_by_id, get_currency_pair_from_bittrex, \
-    get_currency_pair_from_kraken, get_currency_pair_from_poloniex
+    get_currency_pair_from_kraken, get_currency_pair_from_binance, \
+    get_currency_pair_from_poloniex
 
 from BaseData import BaseData
 from enums.exchange import EXCHANGE
@@ -109,14 +110,13 @@ class Candle(BaseData):
     	    ]
         :return:
         """
-        utc_time = datetime.strptime(json_document[0], "%Y-%m-%dT%H:%M:%S")
-        timest = (utc_time - datetime(1970, 1, 1)).total_seconds()
+        timest = json_document[0]
         price_high = json_document[2]
         price_low = json_document[3]
         price_open = json_document[1]
         price_close = json_document[4]
 
-        currency_pair = get_currency_pair_from_bittrex(currency)
+        currency_pair = get_currency_pair_from_binance(currency)
 
         return Candle(currency_pair, timest, price_high, price_low, price_open, price_close, EXCHANGE.BINANCE)
 

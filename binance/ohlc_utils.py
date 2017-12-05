@@ -8,8 +8,9 @@ from enums.status import STATUS
 def get_ohlc_binance(currency, date_start, date_end, period):
     result_set = []
 
+    date_start_ms = 1000 * date_start
     # https://api.binance.com/api/v1/klines?symbol=XMRETH&interval=15m&startTime=
-    final_url = BINANCE_GET_OHLC + currency + "&interval=" + period + "&startTime=" + str(date_start)
+    final_url = BINANCE_GET_OHLC + currency + "&interval=" + period + "&startTime=" + str(date_start_ms)
 
     if should_print_debug():
         print final_url
