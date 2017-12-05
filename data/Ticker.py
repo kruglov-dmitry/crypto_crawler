@@ -80,9 +80,9 @@ class Ticker(BaseData):
         lowest_ask = json_document["a"][0]
         highest_bid = json_document["b"][0]
 
-        currency_pair = get_currency_pair_from_kraken(pair_name)
+        currency_pair_id = get_currency_pair_from_kraken(pair_name)
 
-        return Ticker(currency_pair, lowest_ask, highest_bid, timest, EXCHANGE.KRAKEN)
+        return Ticker(currency_pair_id, lowest_ask, highest_bid, timest, EXCHANGE.KRAKEN)
 
     @classmethod
     def from_bittrex(cls, pair_name, timest, json_document):
@@ -92,9 +92,18 @@ class Ticker(BaseData):
         lowest_ask = json_document["Ask"]
         highest_bid = json_document["Bid"]
 
-        currency_pair = get_currency_pair_from_bittrex(pair_name)
+        currency_pair_id = get_currency_pair_from_bittrex(pair_name)
 
-        return Ticker(currency_pair, lowest_ask, highest_bid, timest, EXCHANGE.BITTREX)
+        return Ticker(currency_pair_id, lowest_ask, highest_bid, timest, EXCHANGE.BITTREX)
+
+    @classmethod
+    def from_binance(cls, pair_name, timest, json_document):
+        lowest_ask = json_document["askPrice"]
+        highest_bid = json_document["bidPrice"]
+
+        currency_pair_id = get_currency_pair_from_bittrex(pair_name)
+
+        return Ticker(currency_pair_id, lowest_ask, highest_bid, timest, EXCHANGE.BITTREX)
 
     @classmethod
     def from_string(cls, some_string):

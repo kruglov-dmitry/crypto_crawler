@@ -4,6 +4,7 @@ from debug_utils import should_print_debug
 from data_access.internet import send_request
 from enums.status import STATUS
 
+
 def get_history_bittrex(currency, prev_time, now_time):
     all_history_records = []
 

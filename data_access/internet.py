@@ -58,6 +58,41 @@ def send_post_request_with_header(final_url, header, body, error_msg, max_tries)
     return res
 
 
+def send_delete_request_with_header(final_url, header, body, error_msg, max_tries):
+    res = STATUS.FAILURE, None
+
+    try_number = 0
+    while try_number < max_tries:
+        try_number += 1
+        try:
+            response = requests.delete(final_url, data=body, headers=header, timeout=HTTP_TIMEOUT_SECONDS).json()
+            str_repr = json.dumps(response)
+            # try to deal with problem - i.e. just wait an retry
+            if "EOrder" in str_repr or "Unavailable" in str_repr or "Busy" in str_repr or "ETrade" in str_repr or "EGeneral:Invalid" in str_repr \
+                    or "timeout" in str_repr:
+                sleep_for(1)
+            else:
+                msg = "YEAH, RESULT: {res}".format(res=str_repr)
+                print msg
+                log_to_file(msg, "debug.txt")
+                # NOTE: Consider it as success then, if not - extend possible checks above
+                return STATUS.SUCCESS, response
+
+            msg = "SOME ERROR: RESULT: {res}".format(res=response)
+            print msg
+            log_to_file(msg, "debug.txt")
+
+            res = STATUS.FAILURE, response
+
+        except Exception, e:
+            res = STATUS.FAILURE, error_msg + str(e)
+            msg = "send_post_request_with_header: Exception: {excp} Msg: {msg}".format(excp=error_msg, msg=str(e))
+            print msg
+            log_to_file(msg, "debug.txt")
+            sleep_for(1)
+
+    return res
+
 def send_post_request_signed(final_url, header, body, secret, nonce, error_msg):
     request = requests.Request('POST', final_url, params=body, headers=header)
     signature = hmac.new(secret, request.body, digestmod=hashlib.sha512)

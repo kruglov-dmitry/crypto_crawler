@@ -91,6 +91,36 @@ class Candle(BaseData):
         return Candle(currency_pair, timest, price_high, price_low, price_open, price_close, EXCHANGE.BITTREX)
 
     @classmethod
+    def from_binance(cls, json_document, currency):
+        """
+        [
+    		1499040000000,      // Open time
+    		"0.01634790",       // Open
+    		"0.80000000",       // High
+    		"0.01575800",       // Low
+    		"0.01577100",       // Close
+    		"148976.11427815",  // Volume
+    		1499644799999,      // Close time
+    		"2434.19055334",    // Quote asset volume
+    		308,                // Number of trades
+    		"1756.87402397",    // Taker buy base asset volume
+    		"28.46694368",      // Taker buy quote asset volume
+    		"17928899.62484339" // Can be ignored
+    	    ]
+        :return:
+        """
+        utc_time = datetime.strptime(json_document[0], "%Y-%m-%dT%H:%M:%S")
+        timest = (utc_time - datetime(1970, 1, 1)).total_seconds()
+        price_high = json_document[2]
+        price_low = json_document[3]
+        price_open = json_document[1]
+        price_close = json_document[4]
+
+        currency_pair = get_currency_pair_from_bittrex(currency)
+
+        return Candle(currency_pair, timest, price_high, price_low, price_open, price_close, EXCHANGE.BINANCE)
+
+    @classmethod
     def from_string(cls, some_string):
         #[close - 0.07019143 exchange - BITTREX exchange_id - 3 high - 0.07031782 low - 0.06912551 open - 0.06912551
         # pair - BTC_TO_DASH pair_id - 1 timest - 1499000400]
@@ -119,4 +149,3 @@ class Candle(BaseData):
         exchange_id = db_row[2]
 
         return Candle(currency_pair_id, timest, price_high, price_low, price_open, price_close, exchange_id)
-

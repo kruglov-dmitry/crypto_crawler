@@ -1,6 +1,6 @@
 import re
 from utils.currency_utils import get_pair_name_by_id, get_currency_pair_from_bittrex, \
-    get_currency_pair_from_kraken, get_currency_pair_from_poloniex
+    get_currency_pair_from_kraken, get_currency_pair_from_poloniex, get_currency_pair_from_binance
 
 from BaseData import BaseData
 from Deal import Deal
@@ -133,6 +133,26 @@ class OrderBook(BaseData):
         currency_pair = get_currency_pair_from_bittrex(currency)
 
         return OrderBook(currency_pair, timest, ask_bids, sell_bids, EXCHANGE.BITTREX)
+
+    @classmethod
+    def from_binance(cls, json_document, currency, timest):
+        """
+        "lastUpdateId":1668114,"bids":[["0.40303000","22.00000000",[]],],"asks":[["0.41287000","1.00000000",[]]
+        """
+
+        ask_bids = []
+        if "asks" in json_document:
+            for b in json_document["asks"]:
+                ask_bids.append(Deal(price=b[0], volume=b[1]))
+
+        sell_bids = []
+        if "bids" in json_document:
+            for b in json_document["bids"]:
+                sell_bids.append(Deal(price=b[0], volume=b[1]))
+
+        currency_pair = get_currency_pair_from_binance(currency)
+
+        return OrderBook(currency_pair, timest, ask_bids, sell_bids, EXCHANGE.BINANCE)
 
     @classmethod
     def from_string(cls, some_string):
