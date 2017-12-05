@@ -90,17 +90,14 @@ def get_balance_poloniex(key):
     https://poloniex.com/tradingApi
     {'Key': 'QN6SDFQG-XVG2CGG3-WDDG2WDV-VXZ7MYL3',
     'Sign': '368a800fcd4bc0f0d95151ed29c9f84ddf6cae6bc366d3105db1560318da72aa82281b5ea52f4d4ec929dd0eabc7339fe0e7dc824bf0f1c64e099344cd6e74d0'}
-    {'nonce': 1508507033330, 'command': 'returnBalances'}
+    {'nonce': 1508507033330, 'command': 'returnCompleteBalances'}
 
-    {u'XVC': u'0.00000000', u'SRCC': u'0.00000000', u'EXE': u'0.00000000', u'WC': u'0.00000000', u'MIL': u'0.00000000',
-                                                        ....
-     u'UNITY': u'0.00000000', u'XST': u'0.00000000', u'EBT': u'0.00000000', u'ARDR': u'26712.05233871', u'eTOK': u'0.00000000',
-     u'SDC': u'0.00000000', u'NRS': u'0.00000000', u'TRUST': u'0.00000000', u'POT': u'0.00000000', u'PIGGY': u'0.00000000'}
+    {"LTC":{"available":"5.015","onOrders":"1.0025","btcValue":"0.078"},"NXT:{...} ... }
 
     """
 
     body = {
-        'command': 'returnBalances',
+        'command': 'returnCompleteBalances',
         'nonce': generate_nonce()
     }
 

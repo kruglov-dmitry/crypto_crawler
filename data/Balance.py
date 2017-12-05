@@ -17,10 +17,11 @@ time_of_last_update,
 
 
 class Balance(BaseData):
-    def __init__(self, exchange_id, last_update, initial_balance):
+    def __init__(self, exchange_id, last_update, available_balance, total_balance):
         self.exchange_id = exchange_id
         self.last_update = last_update
-        self.balance = initial_balance.copy()
+        self.available_balance = available_balance.copy()
+        self.total_balance = total_balance.copy()
 
     def __str__(self):
         str_repr = "Balance at Exchange: {exch} Last updated: {dt} timest: {ts} %".format(
@@ -28,37 +29,46 @@ class Balance(BaseData):
             dt=ts_to_string(self.last_update),
             ts=self.last_update)
 
-        str_repr += " Balance:"
-        for currency_id in self.balance:
-            str_repr += " " + get_currency_name_by_id(currency_id) + " - " + str(self.balance[currency_id])
+        str_repr += " Available balance:"
+        for currency_id in self.available_balance:
+            str_repr += " " + get_currency_name_by_id(currency_id) + " - " + str(self.available_balance[currency_id])
+
+        str_repr += " Total balance:"
+        for currency_id in self.total_balance:
+            str_repr += " " + get_currency_name_by_id(currency_id) + " - " + str(self.total_balance[currency_id])
 
         return str_repr
 
     @classmethod
     def from_poloniex(cls, last_update, json_document):
 
-        initial_balance = {}
+        total_balance = {}
+        available_balance = {}
 
         """
-         {u'XVC': u'0.00000000', u'SRCC': u'0.00000000', u'EXE': u'0.00000000',
-
+         {"LTC":{"available":"5.015","onOrders":"1.0025","btcValue":"0.078"},"NXT:{...} ... }
+         
          FIXME NOTE: those bastards always return ALL coins not very efficient
         """
 
         for currency_id in ARBITRAGE_CURRENCY:
 
-            initial_balance[currency_id] = ZERO_BALANCE
+            available_balance[currency_id] = ZERO_BALANCE
 
             currency_name = get_currency_name_for_poloniex(currency_id)
             if currency_name in json_document:
-                volume = float(json_document[currency_name])
-                initial_balance[currency_id] = volume
+                volume = float(json_document[currency_name]["available"])
+                available_balance[currency_id] = volume
 
-        return Balance(EXCHANGE.POLONIEX, last_update, initial_balance)
+                locked_volume = float(json_document[currency_name]["onOrders"])
+                total_balance[currency_id] = locked_volume + volume
+
+        return Balance(EXCHANGE.POLONIEX, last_update, available_balance, total_balance)
 
     @classmethod
     def from_kraken(cls, last_update, json_document):
 
+        # FIXME re-review
         initial_balance = {}
 
         """
@@ -74,12 +84,13 @@ class Balance(BaseData):
                 volume = float(json_document[currency_name])
                 initial_balance[currency_id] = volume
 
-        return Balance(EXCHANGE.KRAKEN, last_update, initial_balance)
+        return Balance(EXCHANGE.KRAKEN, last_update, initial_balance, initial_balance)
 
     @classmethod
     def from_bittrex(cls, last_update, json_document):
 
-        initial_balance = {}
+        total_balance = {}
+        available_balance = {}
 
         """
         [{u'Available': 21300.0, u'Currency': u'ARDR', u'Balance': 21300.0, u'Pending': 0.0,
@@ -91,21 +102,25 @@ class Balance(BaseData):
 
         for currency_id in ARBITRAGE_CURRENCY:
 
-            initial_balance[currency_id] = ZERO_BALANCE
+            total_balance[currency_id] = ZERO_BALANCE
+            available_balance[currency_id] = ZERO_BALANCE
 
             currency_name = get_currency_name_for_bittrex(currency_id)
 
             for entry in json_document:
                 if currency_name == entry["Currency"]:
                     volume = float(entry["Balance"])
-                    initial_balance[currency_id] = volume
+                    total_balance[currency_id] = volume
+                    volume = float(entry["Available"])
+                    available_balance[currency_id] = volume
 
-        return Balance(EXCHANGE.BITTREX, last_update, initial_balance)
+        return Balance(EXCHANGE.BITTREX, last_update, available_balance, total_balance)
 
     @classmethod
     def from_binance(cls, last_update, json_document):
 
-        initial_balance = {}
+        total_balance = {}
+        available_balance = {}
 
         """
             "makerCommission": 15,
@@ -125,13 +140,15 @@ class Balance(BaseData):
 
         for currency_id in ARBITRAGE_CURRENCY:
 
-            initial_balance[currency_id] = ZERO_BALANCE
+            available_balance[currency_id] = ZERO_BALANCE
 
             currency_name = get_currency_name_for_binance(currency_id)
 
             for entry in json_document["balances"]:
                 if currency_name == entry["asset"]:
                     volume = float(entry["free"])
-                    initial_balance[currency_id] = volume
+                    available_balance[currency_id] = volume
+                    locked_volume = float(entry["locked"])
+                    total_balance[currency_id] = locked_volume + volume
 
-        return Balance(EXCHANGE.BITTREX, last_update, initial_balance)
+        return Balance(EXCHANGE.BITTREX, last_update, available_balance, total_balance)

@@ -23,8 +23,8 @@ class BalanceState(BaseData):
             return False
 
         # FIXME NOTE - add time checks here if it more than 2 minutes - should be at least some warning!
-        difference = get_change(self.balance_per_exchange[src_exchange_id].balance[currency_id],
-                                self.balance_per_exchange[dst_exchange_id].balance[currency_id],
+        difference = get_change(self.balance_per_exchange[src_exchange_id].total_balance[currency_id],
+                                self.balance_per_exchange[dst_exchange_id].total_balance[currency_id],
                                 provide_abs=False)
 
         if balance_threshold is None:
@@ -33,12 +33,14 @@ class BalanceState(BaseData):
         return difference > balance_threshold
 
     def add_balance(self, currency_id, exchange_id, volume):
-        prev_volume = self.balance_per_exchange[exchange_id].balance[currency_id]
-        self.balance_per_exchange[exchange_id].balance[currency_id] = volume + prev_volume
+        prev_volume = self.balance_per_exchange[exchange_id].available_balance[currency_id]
+        self.balance_per_exchange[exchange_id].available_balance[currency_id] = volume + prev_volume
+        # FIXME NOTE: total_balance ?
 
     def subtract_balance(self, currency_id, exchange_id, volume):
-        prev_volume = self.balance_per_exchange[exchange_id].balance[currency_id]
-        self.balance_per_exchange[exchange_id].balance[currency_id] = prev_volume - volume
+        prev_volume = self.balance_per_exchange[exchange_id].available_balance[currency_id]
+        self.balance_per_exchange[exchange_id].available_balance[currency_id] = prev_volume - volume
+        # FIXME NOTE: total_balance ?
 
     def add_balance_by_pair(self, order_book, volume, price):
         # i.e. we BUY dst_currency_id for src_currency_id
@@ -69,15 +71,15 @@ class BalanceState(BaseData):
         return self.do_we_have_enough(src_currency_id, exchange_id, volume * price)
 
     def do_we_have_enough(self, currency_id, exchange_id, volume):
-        return self.balance_per_exchange[exchange_id].balance[currency_id] >= volume
+        return self.balance_per_exchange[exchange_id].available_balance[currency_id] >= volume
 
     """def get_volume_by_pair_id(self, pair_id, exchange_id, price_mutliplicator):
         src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
         return self.balance_per_exchange[exchange_id].balance[src_currency_id] * price_mutliplicator
         """
 
-    def get_volume_by_currency(self, currency_id, exchange_id):
-        return self.balance_per_exchange[exchange_id].balance[currency_id]
+    def get_available_volume_by_currency(self, currency_id, exchange_id):
+        return self.balance_per_exchange[exchange_id].available_balance[currency_id]
 
     def update_time(self, exchange_id, timest):
         self.balance_per_exchange[exchange_id].last_update = timest

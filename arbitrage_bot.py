@@ -147,13 +147,13 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
     if not balance_state.do_we_have_enough(dst_currency_id,
                                            first_order_book.exchange_id,
                                            min_volume):
-        min_volume = balance_state.get_volume_by_currency(dst_currency_id, first_order_book.exchange_id)
+        min_volume = balance_state.get_available_volume_by_currency(dst_currency_id, first_order_book.exchange_id)
 
     if not balance_state.do_we_have_enough_by_pair(first_order_book.pair_id,
                                                    second_order_book.exchange_id,
                                                    min_volume,
                                                    second_order_book.ask[LAST].price):
-        min_volume = second_order_book.ask[LAST].price * balance_state.get_volume_by_currency(bitcoin_id, second_order_book.exchange_id)
+        min_volume = second_order_book.ask[LAST].price * balance_state.get_available_volume_by_currency(bitcoin_id, second_order_book.exchange_id)
 
     return min_volume
 
