@@ -9,22 +9,27 @@ from utils.time_utils import get_now_seconds_utc, get_now_seconds_local
 from bittrex.constants import BITTREX_CURRENCIES
 from kraken.constants import KRAKEN_CURRENCY_PAIRS
 from poloniex.constants import POLONIEX_CURRENCIES
+from binance.constants import BINANCE_CURRENCIES
 
 from bittrex.ticker_utils import get_ticker_bittrex
 from kraken.ticker_utils import get_ticker_kraken
 from poloniex.ticker_utils import get_tickers_poloniex
+from binance.ticker_utils import get_tickers_binance
 
 from bittrex.ohlc_utils import get_ohlc_bittrex
 from kraken.ohlc_utils import get_ohlc_kraken
 from poloniex.ohlc_utils import get_ohlc_poloniex
+from binance.ohlc_utils import get_ohlc_binance
 
 from bittrex.order_book_utils import get_order_book_bittrex
 from kraken.order_book_utils import get_order_book_kraken
 from poloniex.order_book_utils import get_order_book_poloniex
+from binance.order_book_utils import get_order_book_binance
 
 from bittrex.history_utils import get_history_bittrex
 from kraken.history_utils import get_history_kraken
 from poloniex.history_utils import get_history_poloniex
+# NO HISTORY FOR POLONIEX
 
 from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, cancel_order_bittrex, \
     get_balance_bittrex
@@ -32,9 +37,11 @@ from kraken.market_utils import add_buy_order_kraken, add_sell_order_kraken, can
     get_balance_kraken, get_orders_kraken
 from poloniex.market_utils import add_buy_order_poloniex, add_sell_order_poloniex, cancel_order_poloniex, \
     get_balance_poloniex
+from binance.market_utils import add_buy_order_binance, add_sell_order_binance, cancel_order_binance, \
+    get_balance_binance
 
 from utils.currency_utils import get_currency_pair_to_bittrex, get_currency_pair_to_kraken, \
-    get_currency_pair_to_poloniex
+    get_currency_pair_to_poloniex, get_currency_pair_to_binance
 
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
@@ -66,7 +73,10 @@ def get_ticker():
     # NOTE: poloniex return all tickers by single call
     poloniex_tickers = get_tickers_poloniex(POLONIEX_CURRENCIES, timest)
 
-    return bittrex_tickers, kraken_tickers, poloniex_tickers
+    # NOTE: binance return all tickers by single call
+    binance_tickers = get_tickers_binance(BINANCE_CURRENCIES, timest)
+
+    return bittrex_tickers, kraken_tickers, poloniex_tickers, binance_tickers
 
 
 def get_ohlc(date_start, date_end):
@@ -83,6 +93,10 @@ def get_ohlc(date_start, date_end):
     for currency in POLONIEX_CURRENCIES:
         period = 14400
         all_ohlc += get_ohlc_poloniex(currency, date_start, date_end, period)
+
+    for currency in BINANCE_CURRENCIES:
+        period = "15m"
+        all_ohlc += get_ohlc_binance(currency, date_start, date_end, period)
 
     return all_ohlc
 
@@ -108,10 +122,21 @@ def get_order_book():
         if order_book is not None:
             all_order_book[EXCHANGE.BITTREX].append(order_book)
 
+    for currency in BINANCE_CURRENCIES:
+        order_book = get_order_book_binance(currency, timest)
+        if order_book is not None:
+            all_order_book[EXCHANGE.BINANCE].append(order_book)
+
     return all_order_book
 
 
 def get_order_book_by_pair(pair_id):
+    """
+        Used for arbitrage bot.
+
+    :param pair_id:
+    :return:
+    """
     all_order_book = defaultdict(list)
 
     timest = get_now_seconds_local()
@@ -146,6 +171,8 @@ def get_history(prev_time, now_time):
     for currency in BITTREX_CURRENCIES:
         all_history += get_history_bittrex(currency, prev_time, now_time)
 
+    # FIXME NOTE: not found binance history ???
+
     return all_history
 
 
@@ -162,6 +189,9 @@ def buy_by_exchange(trade, order_state):
     elif trade.exchange_id == EXCHANGE.POLONIEX:
         currency = get_currency_pair_to_poloniex(trade.pair_id)
         res = add_buy_order_poloniex(key, currency, trade.price, trade.volume)
+    elif trade.exchange_id == EXCHANGE.BINANCE:
+        currency = get_currency_pair_to_binance(trade.pair_id)
+        res = add_buy_order_binance(key, currency, trade.price, trade.volume)
     else:
         print "buy_by_exchange - Unknown exchange! ", trade
 
@@ -181,6 +211,9 @@ def sell_by_exchange(trade, order_state):
     elif trade.exchange_id == EXCHANGE.POLONIEX:
         currency = get_currency_pair_to_poloniex(trade.pair_id)
         res = add_sell_order_poloniex(key, currency, trade.price, trade.volume)
+    elif trade.exchange_id == EXCHANGE.BINANCE:
+        currency = get_currency_pair_to_binance(trade.pair_id)
+        res = add_sell_order_binance(key, currency, trade.price, trade.volume)
     else:
         print "sell_by_exchange - Unknown exchange! ", trade
 
@@ -197,6 +230,9 @@ def cancel_by_exchange(trade):
         res = cancel_order_kraken(key, trade.deal_id)
     elif trade.exchange_id == EXCHANGE.POLONIEX:
         res = cancel_order_poloniex(key, trade.deal_id)
+    elif trade.exchange_id == EXCHANGE.BINANCE:
+        pair_name = get_currency_pair_to_binance(trade.pair_id)
+        res = cancel_order_binance(key, pair_name, trade.deal_id)
     else:
         print "cancel_by_exchange - Unknown exchange! ", trade
 
@@ -214,6 +250,8 @@ def get_balance_by_exchange(exchange_id):
         res = get_balance_kraken(key)
     elif exchange_id == EXCHANGE.POLONIEX:
         res = get_balance_poloniex(key)
+    elif exchange_id == EXCHANGE.BINANCE:
+        res = get_balance_binance(key)
     else:
         print "show_balance_by_exchange - Unknown exchange! ", exchange_id
 
@@ -235,7 +273,10 @@ def get_updated_balance(balance_adjust_threshold, prev_balance):
 
 
 def get_updated_order_state(order_state):
-    new_order_state = {EXCHANGE.BITTREX: None, EXCHANGE.POLONIEX: None, EXCHANGE.KRAKEN: order_state[EXCHANGE.KRAKEN]}
+    new_order_state = {EXCHANGE.BITTREX: None,
+                       EXCHANGE.POLONIEX: None,
+                       EXCHANGE.KRAKEN: order_state[EXCHANGE.KRAKEN],
+                       EXCHANGE.BINANCE: None}
 
     # krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
     # error_code, res = get_orders_kraken(krak_key)

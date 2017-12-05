@@ -1,4 +1,4 @@
-from constants import BITTREX_GET_HISTORY
+from constants import BINANCE_GET_HISTORY
 from data.OrderHistory import OrderHistory
 from debug_utils import should_print_debug
 from data_access.internet import send_request

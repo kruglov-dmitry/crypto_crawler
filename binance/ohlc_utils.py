@@ -5,7 +5,7 @@ from data_access.internet import send_request
 from enums.status import STATUS
 
 
-def get_ohlc_bittrex(currency, date_start, date_end, period):
+def get_ohlc_binance(currency, date_start, date_end, period):
     result_set = []
 
     # https://api.binance.com/api/v1/klines?symbol=XMRETH&interval=15m&startTime=
