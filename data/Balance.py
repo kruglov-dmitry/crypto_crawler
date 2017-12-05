@@ -5,6 +5,7 @@ from utils.currency_utils import get_currency_name_by_id, get_currency_name_for_
     get_currency_name_for_bittrex, get_currency_name_for_poloniex
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.time_utils import ts_to_string
+from utils.file_utils import log_to_file
 
 """
 time_of_last_update,
@@ -69,10 +70,16 @@ class Balance(BaseData):
 
             initial_balance[currency_id] = ZERO_BALANCE
 
-            currency_name = get_currency_name_for_kraken(currency_id)
-            if currency_name in json_document:
-                volume = float(json_document[currency_name])
-                initial_balance[currency_id] = volume
+            try:
+                currency_name = get_currency_name_for_kraken(currency_id)
+                if currency_name in json_document:
+                    volume = float(json_document[currency_name])
+                    initial_balance[currency_id] = volume
+            except Exception, e:
+                error_msg = "Can't find currency_id - {id}".format(id=currency_id)
+                msg = "Balance.from_kraken Exception: {excp} {msg}".format(excp=error_msg, msg=str(e))
+                print msg
+                log_to_file(msg, "error.txt")
 
         return Balance(EXCHANGE.KRAKEN, last_update, initial_balance)
 
