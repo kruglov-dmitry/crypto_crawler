@@ -31,16 +31,26 @@ def add_buy_order_binance(key, pair_name, price, amount):
         "price": price
     }
 
+    signature = signed_body_256(body, key.secret)
+
+    body["signature"] = signature
+
     final_url += _urlencode(body)
 
-    headers = {"X-MBX-APIKEY": key.api_key, "signature": signed_body_256(body, key.secret)}
+    headers = {"X-MBX-APIKEY": key.api_key}
 
     if should_print_debug():
         print final_url, headers, body
 
     err_msg = "add_buy_order_binance  called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+    res = send_post_request_with_header(final_url, headers, {}, err_msg, max_tries=3)
+
+    """
+    {"orderId": 1373289, "clientOrderId": "Is7wGaKBtLBK7JjDkNAJwn", "origQty": "10.00000000", "symbol": "RDNBTC", "side": "BUY", "timeInForce": "GTC", "status": "NEW", "transactTime": 1512581468544, "type": "LIMIT", "price": "0.00022220", "executedQty": "0.00000000"}
+
+    """
+
 
     if should_print_debug():
         print res
@@ -63,16 +73,25 @@ def add_sell_order_binance(key, pair_name, price, amount):
         "price": price
     }
 
+    signature = signed_body_256(body, key.secret)
+
+    body["signature"] = signature
+
     final_url += _urlencode(body)
 
-    headers = {"X-MBX-APIKEY": key.api_key, "signature": signed_body_256(final_url, key.secret)}
+    headers = {"X-MBX-APIKEY": key.api_key}
 
     if should_print_debug():
         print final_url, headers, body
 
     err_msg = "add_sell_order binance called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+    res = send_post_request_with_header(final_url, headers, {}, err_msg, max_tries=3)
+
+    """
+    {"orderId": 1373492, "clientOrderId": "e04JGgCpafdrR6O1lOLwgD", "origQty": "1.00000000", "symbol": "RDNBTC", "side": "SELL", "timeInForce": "GTC", "status": "NEW", "transactTime": 1512581721384, "type": "LIMIT", "price": "1.00022220", "executedQty": "0.00000000"}`:w
+
+    """
 
     if should_print_debug():
         print res
@@ -91,16 +110,20 @@ def cancel_order_binance(key, pair_name, deal_id):
         "orderId": deal_id
     }
 
+    signature = signed_body_256(body, key.secret)
+
+    body["signature"] = signature
+
     final_url += _urlencode(body)
 
-    headers = {"X-MBX-APIKEY": key.api_key, "signature": signed_body_256(final_url, key.secret)}
+    headers = {"X-MBX-APIKEY": key.api_key}
 
     if should_print_debug():
         print final_url, headers, body
 
     err_msg = "cancel binance order with id {id}".format(id=deal_id)
 
-    res = send_delete_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+    res = send_delete_request_with_header(final_url, headers, {}, err_msg, max_tries=3)
 
     if should_print_debug():
         print res
@@ -120,9 +143,13 @@ def get_balance_binance(key):
         "recvWindow": 5000
     }
 
+    signature = signed_body_256(body, key.secret)
+
+    body["signature"] = signature
+
     final_url += _urlencode(body)
 
-    headers = {"X-MBX-APIKEY": key.api_key, "signature": signed_body_256(body, key.secret)}
+    headers = {"X-MBX-APIKEY": key.api_key}
 
     if should_print_debug():
         print final_url, headers, body
