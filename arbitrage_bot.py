@@ -477,7 +477,7 @@ def run_bot(deal_threshold, balance_adjust_threshold, treshold_reverse):
     load_keys("./secret_keys")
     deal_cap = common_cap_init()
     cur_timest = get_now_seconds_local()
-    current_balance = dummy_balance_init(cur_timest, 0, balance_adjust_threshold)
+    current_balance = dummy_balance_init(cur_timest, 0, 0, balance_adjust_threshold)
     order_state = dummy_order_state_init()
 
     while True:
