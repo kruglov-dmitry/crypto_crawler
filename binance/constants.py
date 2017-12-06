@@ -24,15 +24,15 @@ BINANCE_CURRENCIES = ["DASHBTC", "ETHBTC", "LTCBTC", "XRPBTC", "BCCBTC", "ETCBTC
 # BUY | SELL
 
 # POST symbol side type timeInForce quantity price
-BINANCE_BUY_ORDER = "https://api.binance.com/api/v3/order"
+BINANCE_BUY_ORDER = "https://api.binance.com/api/v3/order?"
 
 # POST symbol side type timeInForce quantity price
-BINANCE_SELL_ORDER = "https://api.binance.com/api/v3/order"
+BINANCE_SELL_ORDER = "https://api.binance.com/api/v3/order?"
 
 # DELETE symbol orderId
-BINANCE_CANCEL_ORDER = "https://api.binance.com/api/v3/order"
+BINANCE_CANCEL_ORDER = "https://api.binance.com/api/v3/order?"
 
 # timestamp
-BINANCE_CHECK_BALANCE = "https://api.binance.com/api/v3/account"
+BINANCE_CHECK_BALANCE = "https://api.binance.com/api/v3/account?"
 
-BINANCE_GET_ALL_ORDERS = "https://api.binance.com/api/v3/allOrders"
+BINANCE_GET_ALL_ORDERS = "https://api.binance.com/api/v3/allOrders?"

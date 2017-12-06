@@ -34,7 +34,7 @@ def compare_price(bittrex_tickers, kraken_tickers, poloniex_tickers, binance_tic
             binance_ticker = binance_tickers[every_currency]
 
         # FIXME combinations
-        current_result = check_all_combinations(bittrex_ticker, kraken_ticker, poloniex_ticker, binance_tickers, threshold, predicate)
+        current_result = check_all_combinations(bittrex_ticker, kraken_ticker, poloniex_ticker, binance_ticker, threshold, predicate)
         if current_result:
             res += current_result
 

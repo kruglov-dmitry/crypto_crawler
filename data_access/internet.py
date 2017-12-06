@@ -22,6 +22,20 @@ def send_request(final_url, error_msg):
     return res
 
 
+def send_get_request_with_header(final_url, header, error_msg):
+    res = STATUS.FAILURE, None
+    try:
+        responce = requests.get(final_url, headers=header, timeout=HTTP_TIMEOUT_SECONDS).json()
+        res = STATUS.SUCCESS, responce
+    except Exception, e:
+        res = STATUS.FAILURE, error_msg + str(e)
+        msg = "send_get_request_with_header ERROR: {excp} MSG: {e_msg}".format(e_msg=error_msg, excp=str(e))
+        print msg
+        log_to_file(msg, "debug.txt")
+
+    return res
+
+
 def send_post_request_with_header(final_url, header, body, error_msg, max_tries):
     res = STATUS.FAILURE, None
 

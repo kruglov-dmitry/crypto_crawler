@@ -40,6 +40,14 @@ def signed_body(body, secret):
     return payload
 
 
+def signed_body_256(body, secret):
+    #  The query's POST data signed by your key's "secret" according to the
+    #  HMAC-SHA512 method.
+    payload = hmac.new(secret.encode('utf-8'), _urlencode(body).encode('utf-8'), hashlib.sha256).hexdigest()
+
+    return payload
+
+
 def signed_string(body, secret):
     #  The query's POST data signed by your key's "secret" according to the HMAC-SHA512 method.
     payload = hmac.new(secret, body, hashlib.sha512).hexdigest()

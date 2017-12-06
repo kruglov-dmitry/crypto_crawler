@@ -110,7 +110,7 @@ class Candle(BaseData):
     	    ]
         :return:
         """
-        timest = json_document[0]
+        timest = 0.001 * long(json_document[0])
         price_high = json_document[2]
         price_low = json_document[3]
         price_open = json_document[1]
