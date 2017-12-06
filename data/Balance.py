@@ -48,7 +48,7 @@ class Balance(BaseData):
 
         """
          {"LTC":{"available":"5.015","onOrders":"1.0025","btcValue":"0.078"},"NXT:{...} ... }
-         
+
          FIXME NOTE: those bastards always return ALL coins not very efficient
         """
 
@@ -158,4 +158,4 @@ class Balance(BaseData):
                     locked_volume = float(entry["locked"])
                     total_balance[currency_id] = locked_volume + volume
 
-        return Balance(EXCHANGE.BITTREX, last_update, available_balance, total_balance)
+        return Balance(EXCHANGE.BINANCE, last_update, available_balance, total_balance)
