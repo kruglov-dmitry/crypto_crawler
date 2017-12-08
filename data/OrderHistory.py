@@ -95,7 +95,7 @@ class OrderHistory(BaseData):
 
         currency_pair = get_currency_pair_from_kraken(pair)
 
-        return OrderHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.POLONIEX)
+        return OrderHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.KRAKEN)
 
 
     @classmethod
@@ -141,7 +141,7 @@ class OrderHistory(BaseData):
 
         currency_pair = get_currency_pair_from_bittrex(pair)
 
-        return OrderHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.POLONIEX)
+        return OrderHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.BITTREX)
 
     @classmethod
     def from_string(cls, some_string):
