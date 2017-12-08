@@ -126,8 +126,10 @@ def init_deals_with_logging(trade_pairs, order_state,  file_name):
 def determine_minimum_volume(first_order_book, second_order_book, balance_state):
     """
         we are going to SELL something at first exchange
-        we are going to BUY something at second exchange
-        This method determine maximum available volume of DST_CURRENCY on BOTH exchanges
+        we are going to BUY something at second exchange using BASE_CURRENCY
+
+        This method determine maximum available volume of DST_CURRENCY on 1ST exchanges
+        This method determine maximum available volume according to amount of available BASE_CURRENCY on 2ND exchanges
 
     :param first_order_book:
     :param second_order_book:
@@ -135,6 +137,7 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
     :return:
     """
 
+    # 1st stage: What is minimum amount of volume according to order book
     min_volume = min(first_order_book.bid[FIRST].volume, second_order_book.ask[LAST].volume)
     if min_volume <= 0:
         msg = "analyse_order_book - something severely wrong - NEGATIVE min price: {pr}".format(pr=min_volume)
@@ -142,37 +145,25 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
         log_to_file(msg, "debug.txt")
         raise
 
-    bitcoin_id, dst_currency_id = split_currency_pairs(first_order_book.pair_id)
+    base_currency_id, dst_currency_id = split_currency_pairs(first_order_book.pair_id)
 
+    # 2nd stage: What is maximum volume we can SELL at first exchange
     if not balance_state.do_we_have_enough(dst_currency_id,
                                            first_order_book.exchange_id,
                                            min_volume):
         min_volume = balance_state.get_available_volume_by_currency(dst_currency_id, first_order_book.exchange_id)
 
+    # 3rd stage: what is maximum volume we can buy
     if not balance_state.do_we_have_enough_by_pair(first_order_book.pair_id,
                                                    second_order_book.exchange_id,
                                                    min_volume,
                                                    second_order_book.ask[LAST].price):
-        min_volume = second_order_book.ask[LAST].price * balance_state.get_available_volume_by_currency(bitcoin_id, second_order_book.exchange_id)
+        min_volume = second_order_book.ask[LAST].price * balance_state.get_available_volume_by_currency(base_currency_id, second_order_book.exchange_id)
 
     return min_volume
 
 
-def determine_minimum_volume_by_price(first_order_book, second_order_book, deal_cap, min_volume):
-    if min_volume <= 0:
-        return min_volume
-
-    min_volume = min(min_volume, deal_cap.get_max_volume_cap_by_dst(first_order_book.pair_id))
-
-    """if deal_cap.is_deal_size_acceptable(pair_id=first_order_book.pair_id, dst_currency_volume=min_volume,
-    sell_price=first_order_book.bid[FIRST].price, buy_price=second_order_book.ask[LAST].price):"""
-
-    # Maximum cost of price: neither sell or buy for more than X Bitcoin
-    if min_volume * first_order_book.bid[FIRST].price > deal_cap.max_price_cap[CURRENCY.BITCOIN]:
-        min_volume = deal_cap.max_price_cap[CURRENCY.BITCOIN] / float(first_order_book.bid[FIRST].price)
-    if min_volume * second_order_book.ask[LAST].price > deal_cap.max_price_cap[CURRENCY.BITCOIN]:
-        min_volume = deal_cap.max_price_cap[CURRENCY.BITCOIN] / float(second_order_book.ask[LAST].price)
-
+def adjust_minimum_volume_by_trading_cap(first_order_book, second_order_book, deal_cap, min_volume):
     if min_volume < deal_cap.get_min_volume_cap_by_dst(first_order_book.pair_id):
         min_volume = -1 # Yeap, no need to even bother
 
@@ -216,7 +207,7 @@ def analyse_order_book(first_order_book,
 
         min_volume = determine_minimum_volume(first_order_book, second_order_book, balance_state)
 
-        min_volume = determine_minimum_volume_by_price(first_order_book, second_order_book, deal_cap, min_volume)
+        min_volume = adjust_minimum_volume_by_trading_cap(first_order_book, second_order_book, deal_cap, min_volume)
 
         if min_volume <= 0:
             msg = "analyse_order_book - balance is ZERO!!! {pair_name} first_exchange: {first_exchange} " \

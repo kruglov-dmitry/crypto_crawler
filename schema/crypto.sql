@@ -35,6 +35,7 @@ CREATE UNIQUE INDEX exchange_id_uindex ON public.exchange (id);
 INSERT INTO public.exchange (id, name) VALUES (1, 'poloniex');
 INSERT INTO public.exchange (id, name) VALUES (2, 'kraken');
 INSERT INTO public.exchange (id, name) VALUES (3, 'bittrex');
+INSERT INTO public.exchange (id, name) VALUES (4, 'binance');
 
 CREATE TABLE public.order_book
 (

@@ -23,9 +23,15 @@ class MarketCap(BaseData):
         return str_repr
 
     def get_max_volume_cap_by_dst(self, pair_id):
-        bitcoin_id, dst_currency_id = split_currency_pairs(pair_id)
+        base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
         return self.max_volume_cap[dst_currency_id]
 
     def get_min_volume_cap_by_dst(self, pair_id):
-        bitcoin_id, dst_currency_id = split_currency_pairs(pair_id)
+        base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
         return self.min_volume_cap[dst_currency_id]
+
+    def get_max_volume_by_currency_id(self, currency_id):
+        return self.max_volume_cap[currency_id]
+
+    def get_min_volume_by_currency_id(self, currency_id):
+        return self.min_volume_cap[currency_id]
