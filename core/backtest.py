@@ -124,6 +124,6 @@ def common_cap_init():
     # Just a self check to guarantee that our cap is up to date with active list of arbitrage currencies
     print("\t \t <<< ! ERROR ! >>> \n"
           "If this is one of the LAST message in stack trace it mean that deal Cap and Arbitrage currencies not update!")
-    assert(len(ARBITRAGE_CURRENCY) == len(max_volume_cap))
+    # assert(len(ARBITRAGE_CURRENCY) == len(max_volume_cap))
 
     return MarketCap(min_volume_cap, max_volume_cap, min_price_cap, max_price_cap)

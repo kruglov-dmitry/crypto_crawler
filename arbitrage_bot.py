@@ -11,6 +11,7 @@ from utils.time_utils import sleep_for, get_now_seconds_local
 from utils.currency_utils import split_currency_pairs, get_pair_name_by_id
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.file_utils import log_to_file
+from utils.string_utils import float_to_str
 
 from core.base_analysis import get_change
 from core.base_math import get_all_combination
@@ -210,11 +211,13 @@ def analyse_order_book(first_order_book,
         min_volume = adjust_minimum_volume_by_trading_cap(first_order_book, second_order_book, deal_cap, min_volume)
 
         if min_volume <= 0:
-            msg = "analyse_order_book - balance is ZERO!!! {pair_name} first_exchange: {first_exchange} " \
-                  "second_exchange: {second_exchange}".format(
+            msg = "analyse order book - determined volume is ZERO!!! {pair_name}: \n first_exchange: {first_exchange} " \
+                "first exchange volume: {vol1} \n second_exchange: {second_exchange} second_exchange_volume: {vol2} \n".format(
                 pair_name=get_pair_name_by_id(first_order_book.pair_id),
                 first_exchange=get_exchange_name_by_id(first_order_book.exchange_id),
-                second_exchange=get_exchange_name_by_id(second_order_book.exchange_id))
+                second_exchange=get_exchange_name_by_id(second_order_book.exchange_id),
+                vol1=float_to_str(first_order_book.bid[FIRST].volume),
+                vol2=float_to_str(second_order_book.ask[LAST].volume))
             print msg
             log_to_file(msg, "debug.txt")
             send_single_message(msg)
@@ -492,7 +495,7 @@ if __name__ == "__main__":
     pg_conn = init_pg_connection()
 
     # FIXME - read from some config
-    deal_threshold = 1.5
+    deal_threshold = 0.6
     treshold_reverse = 0.6
     balance_adjust_threshold = 5.0
 

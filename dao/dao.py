@@ -46,6 +46,7 @@ from utils.currency_utils import get_currency_pair_to_bittrex, get_currency_pair
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
 from utils.key_utils import get_key_by_exchange
+from utils.file_utils import log_to_file
 
 from collections import defaultdict
 
@@ -262,12 +263,13 @@ def get_updated_balance(balance_adjust_threshold, prev_balance):
     balance = {}
 
     for exchange_id in EXCHANGE.values():
-        if exchange_id == EXCHANGE.KRAKEN:
+        if exchange_id == EXCHANGE.KRAKEN or exchange_id == EXCHANGE.BINANCE:
             continue
         balance[exchange_id] = copy.deepcopy(prev_balance.balance_per_exchange[exchange_id])
         status_code, new_balance_value = get_balance_by_exchange(exchange_id)
         if status_code == STATUS.SUCCESS:
             balance[exchange_id] = new_balance_value
+            log_to_file(new_balance_value, "debug.txt")
 
     return BalanceState(balance, balance_adjust_threshold)
 
