@@ -168,6 +168,9 @@ def get_ohlc_speedup(date_start, date_end):
         for pair_id in CURRENCY_PAIR.values():
 
             pair_name = get_currency_name_by_exchange_id(pair_id, exchange_id)
+            if pair_name is None:
+                continue
+
             period = get_period_by_exchange_id(exchange_id)
             method_for_url = get_ohlc_url_by_echange_id(exchange_id)
             request_url = method_for_url(pair_name, date_start, date_end, period)

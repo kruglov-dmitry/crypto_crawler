@@ -22,7 +22,7 @@ def get_currency_name_for_bittrex(currency_id):
         CURRENCY.DOGE: 'DOGE',
         CURRENCY.DCR: 'DCR',
         CURRENCY.USDT: 'USDT'
-    }[currency_id]
+    }.get(currency_id)
 
 
 def get_currency_id_from_bittrex(currency_name):
@@ -45,7 +45,7 @@ def get_currency_id_from_bittrex(currency_name):
         'DOGE': CURRENCY.DOGE,
         'DCR': CURRENCY.DCR,
         'USDT': CURRENCY.USDT
-    }[currency_name]
+    }.get(currency_name)
 
 
 def get_currency_pair_to_bittrex(pair_id):
@@ -87,7 +87,7 @@ def get_currency_pair_to_bittrex(pair_id):
         CURRENCY_PAIR.USDT_TO_ETH: 'USDT-ETH',
         CURRENCY_PAIR.USDT_TO_ZEC: 'USDT-ZEC',
         CURRENCY_PAIR.USDT_TO_XMR: 'USDT-XMR'
-    }[pair_id]
+    }.get(pair_id)
 
 
 def get_currency_pair_from_bittrex(pair_name):
@@ -129,4 +129,4 @@ def get_currency_pair_from_bittrex(pair_name):
         'USDT-ETH': CURRENCY_PAIR.USDT_TO_ETH,
         'USDT-ZEC': CURRENCY_PAIR.USDT_TO_ZEC,
         'USDT-XMR': CURRENCY_PAIR.USDT_TO_XMR
-    }[pair_name]
+    }.get(pair_name)

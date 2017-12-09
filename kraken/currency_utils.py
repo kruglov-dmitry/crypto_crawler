@@ -17,7 +17,7 @@ def get_currency_id_from_kraken(currency_name):
         'XZEC': CURRENCY.ZEC,
         'XREP': CURRENCY.REP,
         'XXMR': CURRENCY.XMR
-    }[currency_name]
+    }.get(currency_name)
 
 
 def get_currency_name_for_kraken(currency_id):
@@ -35,7 +35,7 @@ def get_currency_name_for_kraken(currency_id):
         CURRENCY.ZEC: 'XZEC',
         CURRENCY.REP: 'XREP',
         CURRENCY.XMR: 'XXMR'
-    }[currency_id]
+    }.get(currency_id)
 
 
 def get_currency_pair_from_kraken(pair_name):
@@ -61,7 +61,7 @@ def get_currency_pair_from_kraken(pair_name):
         'XZECZUSD': CURRENCY_PAIR.USD_TO_ZEC,
         'XXMRZUSD': CURRENCY_PAIR.USD_TO_XMR,
         'USDTZUSD': CURRENCY_PAIR.USD_TO_USDT
-    }[pair_name]
+    }.get(pair_name)
 
 
 def get_currency_pair_to_kraken(pair_id):
@@ -87,4 +87,4 @@ def get_currency_pair_to_kraken(pair_id):
         CURRENCY_PAIR.USD_TO_ZEC: 'XZECZUSD',
         CURRENCY_PAIR.USD_TO_XMR: 'XXMRZUSD',
         CURRENCY_PAIR.USD_TO_USDT: 'USDTZUSD'
-    }[pair_id]
+    }.get(pair_id)

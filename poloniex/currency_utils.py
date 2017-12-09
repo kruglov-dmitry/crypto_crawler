@@ -22,7 +22,7 @@ def get_currency_id_from_poloniex(currency_name):
         'DOGE': CURRENCY.DOGE,
         'DCR': CURRENCY.DCR,
         'USDT': CURRENCY.USDT
-    }[currency_name]
+    }.get(currency_name)
 
 
 def get_currency_name_for_poloniex(currency_id):
@@ -45,7 +45,7 @@ def get_currency_name_for_poloniex(currency_id):
         CURRENCY.DOGE: 'DOGE',
         CURRENCY.DCR: 'DCR',
         CURRENCY.USDT: 'USDT'
-    }[currency_id]
+    }.get(currency_id)
 
 
 def get_currency_pair_from_poloniex(pair_name):
@@ -81,7 +81,7 @@ def get_currency_pair_from_poloniex(pair_name):
         'USDT_ZEC': CURRENCY_PAIR.USDT_TO_ZEC,
         'USDT_REP': CURRENCY_PAIR.USDT_TO_REP,
         'USDT_XMR': CURRENCY_PAIR.USDT_TO_XMR
-    }[pair_name]
+    }.get(pair_name)
 
 
 def get_currency_pair_to_poloniex(pair_id):
@@ -117,4 +117,4 @@ def get_currency_pair_to_poloniex(pair_id):
         CURRENCY_PAIR.USDT_TO_ZEC: 'USDT_ZEC',
         CURRENCY_PAIR.USDT_TO_REP: 'USDT_REP',
         CURRENCY_PAIR.USDT_TO_XMR: 'USDT_XMR'
-    }[pair_id]
+    }.get(pair_id)

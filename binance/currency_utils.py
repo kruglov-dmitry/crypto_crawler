@@ -22,7 +22,7 @@ def get_currency_id_from_binance(currency_name):
         'DOGE': CURRENCY.DOGE,
         'DCR': CURRENCY.DCR,
         'USDT': CURRENCY.USDT
-    }[currency_name]
+    }.get(currency_name)
 
 
 def get_currency_name_for_binance(currency_id):
@@ -45,7 +45,7 @@ def get_currency_name_for_binance(currency_id):
         CURRENCY.DOGE: 'DOGE',
         CURRENCY.DCR: 'DCR',
         CURRENCY.USDT: 'USDT'
-    }[currency_id]
+    }.get(currency_id)
 
 
 def get_currency_pair_from_binance(pair_id):
@@ -70,7 +70,7 @@ def get_currency_pair_from_binance(pair_id):
         'BTCUSDT': CURRENCY_PAIR.USDT_TO_BTC,
         'BCCUSDT': CURRENCY_PAIR.USDT_TO_BCC,
         'ETHUSDT': CURRENCY_PAIR.USDT_TO_ETH,
-    }[pair_id]
+    }.get(pair_id)
 
 
 def get_currency_pair_to_binance(pair_id):
@@ -95,4 +95,4 @@ def get_currency_pair_to_binance(pair_id):
         CURRENCY_PAIR.USDT_TO_BTC: 'BTCUSDT',
         CURRENCY_PAIR.USDT_TO_BCC: 'BCCUSDT',
         CURRENCY_PAIR.USDT_TO_ETH: 'ETHUSDT',
-    }[pair_id]
+    }.get(pair_id)
