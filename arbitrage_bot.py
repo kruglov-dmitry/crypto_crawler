@@ -250,6 +250,10 @@ def analyse_order_book(first_order_book,
         if len(first_order_book.bid) == 0 or len(second_order_book.ask) == 0:
             return STATUS.SUCCESS
 
+        """
+        
+        09.12.2017 disable recursive processing of remaining order book
+        
         # adjust volumes
         if first_order_book.bid[FIRST].volume > min_volume:
             first_order_book.bid[FIRST].volume = first_order_book.bid[FIRST].volume - min_volume
@@ -269,6 +273,7 @@ def analyse_order_book(first_order_book,
                                       order_state,
                                       stop_recursion,
                                       type_of_deal)
+        """
 
 
 def adjust_currency_balance(first_order_book, second_order_book, treshold_reverse, action_to_perform,
