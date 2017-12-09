@@ -56,6 +56,7 @@ import copy
 
 
 def get_ticker():
+    all_tickers = {}
 
     timest = get_now_seconds_local()
 
@@ -64,21 +65,25 @@ def get_ticker():
         ticker = get_ticker_bittrex(currency, timest)
         if ticker is not None:
             bittrex_tickers[ticker.pair_id] = ticker
+    all_tickers[EXCHANGE.BITTREX] = bittrex_tickers
 
     kraken_tickers = {}
     for currency in KRAKEN_CURRENCY_PAIRS:
         ticker = get_ticker_kraken(currency, timest)
         if ticker is not None:
             kraken_tickers[ticker.pair_id] = ticker
+    all_tickers[EXCHANGE.KRAKEN] = kraken_tickers
 
     # NOTE: poloniex return all tickers by single call
     poloniex_tickers = get_tickers_poloniex(POLONIEX_CURRENCIES, timest)
+    all_tickers[EXCHANGE.POLONIEX] = poloniex_tickers
 
     # NOTE: binance return all tickers by single call
     binance_tickers = get_tickers_binance(BINANCE_CURRENCIES, timest)
+    all_tickers[EXCHANGE.BINANCE] = binance_tickers
 
-    return bittrex_tickers, kraken_tickers, poloniex_tickers, binance_tickers
-
+    # return bittrex_tickers, kraken_tickers, poloniex_tickers, binance_tickers
+    return all_tickers
 
 def get_ohlc(date_start, date_end):
     all_ohlc = []

@@ -1,96 +1,39 @@
 from enums.currency_pair import CURRENCY_PAIR
 from debug_utils import should_print_debug
+from core.base_math import get_all_permutation
 
 
-# FIXME TODO:
-# pass dict, use combinations.
-def compare_price(bittrex_tickers, kraken_tickers, poloniex_tickers, binance_tickers, threshold, predicate):
+def compare_price(tickers, threshold, predicate):
     """
     High level function that perform tickers analysis
 
-    :param bittrex_tickers:
-    :param kraken_tickers:
-    :param poloniex_tickers:
+    :param tickers: dict of dict where data are structured by exchange_id -> pair_id
     :param threshold: percentage, 0-100.0, float to trigger event
     :return: array of triplets pair_id, exchange_1.lowest_price, exchange_2.highest_bid
     """
     res = []
 
-    for every_currency in CURRENCY_PAIR.values():
-        bittrex_ticker = None
-        if every_currency in bittrex_tickers:
-            bittrex_ticker = bittrex_tickers[every_currency]
+    for pair_id in CURRENCY_PAIR.values():
+        tickers_to_check = {}
+        for exchange_id in tickers:
+            if pair_id in tickers[exchange_id]:
+                tickers_to_check[exchange_id] = tickers[exchange_id][pair_id]
 
-        kraken_ticker = None
-        if every_currency in kraken_tickers:
-            kraken_ticker = kraken_tickers[every_currency]
-
-        poloniex_ticker = None
-        if every_currency in poloniex_tickers:
-            poloniex_ticker = poloniex_tickers[every_currency]
-
-        binance_ticker = None
-        if every_currency in binance_tickers:
-            binance_ticker = binance_tickers[every_currency]
-
-        # FIXME combinations
-        current_result = check_all_combinations(bittrex_ticker, kraken_ticker, poloniex_ticker, binance_ticker, threshold, predicate)
+        current_result = check_all_combinations(tickers_to_check, threshold, predicate)
         if current_result:
             res += current_result
 
     return res
 
 
-def check_all_combinations(bittrex_ticker, kraken_ticker, poloniex_ticker, binance_ticker, threshold, predicate):
-    """
-    FIXME TODO: generate permutation among input value in more general fashion!
-    FIXME SECOND! Crying shame. Simplify.
-    """
+def check_all_combinations(tickers_to_check, threshold, predicate):
 
     res_list = []
 
-    if bittrex_ticker is not None and kraken_ticker is not None and binance_ticker is not None:
-        res = predicate(bittrex_ticker, kraken_ticker, threshold)
-        if res:
-            res_list.append(res)
-        res = predicate(kraken_ticker, bittrex_ticker, threshold)
-        if res:
-            res_list.append(res)
+    pair_of_tickers = get_all_permutation(tickers_to_check, 2)
 
-        res = predicate(kraken_ticker, binance_ticker, threshold)
-        if res:
-            res_list.append(res)
-        res = predicate(binance_ticker, kraken_ticker, threshold)
-        if res:
-            res_list.append(res)
-
-    if poloniex_ticker is not None and kraken_ticker is not None and binance_ticker is not None:
-        res = predicate(kraken_ticker, poloniex_ticker, threshold)
-        if res:
-            res_list.append(res)
-        res = predicate(poloniex_ticker, kraken_ticker, threshold)
-        if res:
-            res_list.append(res)
-
-        res = predicate(binance_ticker, poloniex_ticker, threshold)
-        if res:
-            res_list.append(res)
-        res = predicate(poloniex_ticker, binance_ticker, threshold)
-        if res:
-            res_list.append(res)
-
-    if bittrex_ticker is not None and poloniex_ticker is not None and binance_ticker is not None:
-        res = predicate(bittrex_ticker, poloniex_ticker, threshold)
-        if res:
-            res_list.append(res)
-        res = predicate(poloniex_ticker, bittrex_ticker, threshold)
-        if res:
-            res_list.append(res)
-
-        res = predicate(binance_ticker, bittrex_ticker, threshold)
-        if res:
-            res_list.append(res)
-        res = predicate(bittrex_ticker, binance_ticker, threshold)
+    for first_ticker, second_ticker in pair_of_tickers:
+        res = predicate(first_ticker, second_ticker, threshold)
         if res:
             res_list.append(res)
 
