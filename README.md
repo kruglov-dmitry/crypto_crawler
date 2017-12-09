@@ -12,6 +12,9 @@ select last_value from order_book_bid_id_seq;
 select last_value from order_book_id_seq;
 191289
 
+How to create indexes:
+CREATE INDEX CONCURRENTLY order_history_oha ON order_history (amount);
+
 1. Moving BIDS to ASKS for Poloniex
 WITH moved_rows AS (
     DELETE FROM order_book_bid a

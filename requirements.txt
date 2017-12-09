@@ -1,3 +1,4 @@
 telegram
 psycopg2
 requests
+redis
