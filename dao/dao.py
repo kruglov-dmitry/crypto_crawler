@@ -41,10 +41,11 @@ from binance.market_utils import add_buy_order_binance, add_sell_order_binance, 
     get_balance_binance
 
 from utils.currency_utils import get_currency_pair_to_bittrex, get_currency_pair_to_kraken, \
-    get_currency_pair_to_poloniex, get_currency_pair_to_binance
+    get_currency_pair_to_poloniex, get_currency_pair_to_binance, get_currency_name_by_exchange_id
 
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
+from enums.currency_pair import CURRENCY_PAIR
 from utils.key_utils import get_key_by_exchange
 from utils.file_utils import log_to_file
 
@@ -85,6 +86,7 @@ def get_ticker():
     # return bittrex_tickers, kraken_tickers, poloniex_tickers, binance_tickers
     return all_tickers
 
+
 def get_ohlc(date_start, date_end):
     all_ohlc = []
 
@@ -106,6 +108,46 @@ def get_ohlc(date_start, date_end):
 
     return all_ohlc
 
+
+def get_period_by_exchange_id(exchange_id):
+    return {
+        EXCHANGE.BITTREX: "thirtyMin",
+        EXCHANGE.KRAKEN: 15,
+        EXCHANGE.POLONIEX: 14400,
+        EXCHANGE.BINANCE: "15m"
+    }[exchange_id]
+
+
+def get_ohlc_method_by_echange_id(exchange_id):
+    return {
+        EXCHANGE.BITTREX: get_ohlc_bittrex,
+        EXCHANGE.KRAKEN: get_ohlc_kraken,
+        EXCHANGE.POLONIEX: get_ohlc_poloniex,
+        EXCHANGE.BINANCE: get_ohlc_binance
+    }[exchange_id]
+
+
+def get_ohlc_speedup(date_start, date_end):
+    num_of_requests = len(CURRENCY_PAIR.values()) * len(EXCHANGE.values())
+
+    from gevent.pool import Pool as GPool
+    import gevent
+    pool = GPool(num_of_requests / 2)
+    glets = []
+
+    for pair_id in CURRENCY_PAIR.values():
+        for exchange_id in EXCHANGE.values():
+            pair_name = get_currency_name_by_exchange_id(pair_id, exchange_id)
+            period = get_period_by_exchange_id(exchange_id)
+            functor = get_ohlc_method_by_echange_id(exchange_id)
+
+            with gevent.Timeout(10, False):
+                g = pool.spawn(functor,
+                               date_start, date_end, period)
+                glets.append(g)
+            pool.join()
+
+    return [g.value for g in glets]
 
 def get_order_book():
 

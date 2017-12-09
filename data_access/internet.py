@@ -1,5 +1,9 @@
 from constants import HTTP_TIMEOUT_SECONDS
+
 import requests
+import gevent.monkey
+gevent.monkey.patch_socket()
+
 import json
 import hmac
 import hashlib

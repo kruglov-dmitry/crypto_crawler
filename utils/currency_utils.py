@@ -1,5 +1,6 @@
 from enums.currency_pair import CURRENCY_PAIR
 from enums.currency import CURRENCY
+from enums.exchange import EXCHANGE
 
 
 def split_currency_pairs(pair_id):
@@ -548,6 +549,7 @@ def get_currency_id_from_binance(currency_name):
         'USDT': CURRENCY.USDT
     }[currency_name]
 
+
 def get_currency_name_by_id(currency_id):
     return {
         CURRENCY.BITCOIN: 'BTC',
@@ -570,3 +572,12 @@ def get_currency_name_by_id(currency_id):
         CURRENCY.USD: 'USD',
         CURRENCY.USDT: 'USDT'
     }[currency_id]
+
+
+def get_currency_name_by_exchange_id(pair_id, exchange_id):
+    return {
+        EXCHANGE.BITTREX: get_currency_name_for_bittrex(pair_id),
+        EXCHANGE.KRAKEN: get_currency_name_for_kraken(pair_id),
+        EXCHANGE.POLONIEX: get_currency_name_for_poloniex(pair_id),
+        EXCHANGE.BINANCE: get_currency_name_for_binance(pair_id),
+    }[exchange_id]
