@@ -2,11 +2,10 @@ from enums.currency_pair import CURRENCY_PAIR
 from enums.currency import CURRENCY
 from enums.exchange import EXCHANGE
 
-from bittrex.currency_utils import get_currency_name_for_bittrex
-from kraken.currency_utils import get_currency_name_for_kraken
-from poloniex.currency_utils import get_currency_name_for_poloniex
-from binance.currency_utils import get_currency_name_for_binance
-
+from bittrex.currency_utils import get_currency_pair_to_bittrex
+from kraken.currency_utils import get_currency_pair_to_kraken
+from poloniex.currency_utils import get_currency_pair_to_poloniex
+from binance.currency_utils import get_currency_pair_to_binance
 
 
 def split_currency_pairs(pair_id):
@@ -148,10 +147,10 @@ def get_currency_name_by_id(currency_id):
     }[currency_id]
 
 
-def get_currency_name_by_exchange_id(pair_id, exchange_id):
+def get_currency_pair_name_by_exchange_id(pair_id, exchange_id):
     return {
-        EXCHANGE.BITTREX: get_currency_name_for_bittrex(pair_id),
-        EXCHANGE.KRAKEN: get_currency_name_for_kraken(pair_id),
-        EXCHANGE.POLONIEX: get_currency_name_for_poloniex(pair_id),
-        EXCHANGE.BINANCE: get_currency_name_for_binance(pair_id),
+        EXCHANGE.BITTREX: get_currency_pair_to_bittrex(pair_id),
+        EXCHANGE.KRAKEN: get_currency_pair_to_kraken(pair_id),
+        EXCHANGE.POLONIEX: get_currency_pair_to_poloniex(pair_id),
+        EXCHANGE.BINANCE: get_currency_pair_to_binance(pair_id),
     }[exchange_id]

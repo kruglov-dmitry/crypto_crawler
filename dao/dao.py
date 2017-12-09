@@ -40,7 +40,7 @@ from poloniex.market_utils import add_buy_order_poloniex, add_sell_order_polonie
 from binance.market_utils import add_buy_order_binance, add_sell_order_binance, cancel_order_binance, \
     get_balance_binance
 
-from utils.currency_utils import get_currency_name_by_exchange_id
+from utils.currency_utils import get_currency_pair_name_by_exchange_id
 
 from bittrex.currency_utils import get_currency_pair_to_bittrex
 from kraken.currency_utils import get_currency_pair_to_kraken
@@ -162,12 +162,12 @@ def get_ohlc_speedup(date_start, date_end):
 
     from data_access.ConnectionPool import WorkUnit, ConnectionPool
 
-    ohlc_retrieval_by_exchange = {}
+    ohlc_retrieval_by_pairs = []
+    # ohlc_retrieval_by_exchange = []
     for exchange_id in EXCHANGE.values():
-        ohlc_retrieval_by_pairs = []
         for pair_id in CURRENCY_PAIR.values():
 
-            pair_name = get_currency_name_by_exchange_id(pair_id, exchange_id)
+            pair_name = get_currency_pair_name_by_exchange_id(pair_id, exchange_id)
             if pair_name is None:
                 continue
 
@@ -178,11 +178,12 @@ def get_ohlc_speedup(date_start, date_end):
 
             ohlc_retrieval_by_pairs.append(WorkUnit(request_url, construcotr, pair_name, date_start, date_end))
 
-        ohlc_retrieval_by_exchange[exchange_id] = ohlc_retrieval_by_pairs
+        # ohlc_retrieval_by_exchange[exchange_id] = ohlc_retrieval_by_pairs
 
     processor = ConnectionPool()
 
-    processor.process_async(ohlc_retrieval_by_exchange)
+    # return processor.process_async(ohlc_retrieval_by_exchange)
+    return processor.process_async_in_process(ohlc_retrieval_by_pairs)
 
 
 def get_order_book():

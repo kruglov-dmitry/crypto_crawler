@@ -3,7 +3,6 @@ from data.Ticker import Ticker
 from debug_utils import should_print_debug
 from data_access.internet import send_request
 from enums.status import STATUS
-from utils.currency_utils import get_currency_pair_from_poloniex
 
 
 def get_ticker_poloniex_url(currency_names, timest):

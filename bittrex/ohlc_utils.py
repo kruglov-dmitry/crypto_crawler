@@ -29,7 +29,7 @@ def get_ohlc_bittrex_result_processor(json_responce, currency, date_start, date_
         if json_responce["result"] is not None:
             for record in json_responce["result"]:
                 new_candle = Candle.from_bittrex(record, currency)
-                if new_candle.timest >= date_end:  # NOTE: API V2 tend to ignore time parameter - so we have to filter it manually
+                if new_candle.timest >= date_start:  # NOTE: API V2 tend to ignore time parameter - so we have to filter it manually
                     result_set.append(new_candle)
 
     return result_set
@@ -48,7 +48,7 @@ def get_ohlc_bittrex(currency, date_start, date_end, period):
         if r["result"] is not None:
             for record in r["result"]:
                 new_candle = Candle.from_bittrex(record, currency)
-                if new_candle.timest >= date_end:   # NOTE: API V2 tend to ignore time parameter - so we have to filter it manually
-                    result_set.append(new_candle)
+                # if new_candle.timest >= date_end:   # NOTE: API V2 tend to ignore time parameter - so we have to filter it manually
+                result_set.append(new_candle)
 
     return result_set
