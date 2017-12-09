@@ -1,15 +1,17 @@
-from constants import HTTP_TIMEOUT_SECONDS
-
 import requests
-import gevent.monkey
-gevent.monkey.patch_socket()
-
 import json
 import hmac
 import hashlib
+
+from constants import HTTP_TIMEOUT_SECONDS
 from enums.status import STATUS
 from utils.time_utils import sleep_for
 from utils.file_utils import log_to_file
+
+"""
+            NOTE:
+            in-efficient blocking implementation better to rely ConnectionPool
+"""
 
 
 def send_request(final_url, error_msg):

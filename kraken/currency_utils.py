@@ -1,0 +1,90 @@
+from enums.currency import CURRENCY
+from enums.currency_pair import CURRENCY_PAIR
+
+
+def get_currency_id_from_kraken(currency_name):
+    return {
+        'XXBT': CURRENCY.BITCOIN,
+        'DASH': CURRENCY.DASH,
+        'BCH': CURRENCY.BCC,
+        'XXRP': CURRENCY.XRP,
+        'XLTC': CURRENCY.LTC,
+        'XETC': CURRENCY.ETC,
+        'XETH': CURRENCY.ETH,
+        'XXDG': CURRENCY.DOGE,
+        'ZUSD': CURRENCY.USD,
+        'USDT': CURRENCY.USDT,
+        'XZEC': CURRENCY.ZEC,
+        'XREP': CURRENCY.REP,
+        'XXMR': CURRENCY.XMR
+    }[currency_name]
+
+
+def get_currency_name_for_kraken(currency_id):
+    return {
+        CURRENCY.BITCOIN: 'XXBT',
+        CURRENCY.DASH: 'DASH',
+        CURRENCY.BCC: 'BCH',
+        CURRENCY.XRP: 'XXRP',
+        CURRENCY.LTC: 'XLTC',
+        CURRENCY.ETC: 'XETC',
+        CURRENCY.ETH: 'XETH',
+        CURRENCY.DOGE: 'XXDG',
+        CURRENCY.USD: 'ZUSD',
+        CURRENCY.USDT: 'USDT',
+        CURRENCY.ZEC: 'XZEC',
+        CURRENCY.REP: 'XREP',
+        CURRENCY.XMR: 'XXMR'
+    }[currency_id]
+
+
+def get_currency_pair_from_kraken(pair_name):
+    return {
+        'DASHXBT': CURRENCY_PAIR.BTC_TO_DASH,
+        'XETHXXBT': CURRENCY_PAIR.BTC_TO_ETH,
+        'XLTCXXBT': CURRENCY_PAIR.BTC_TO_LTC,
+        'XXRPXXBT': CURRENCY_PAIR.BTC_TO_XRP,
+        'BCHXBT': CURRENCY_PAIR.BTC_TO_BCC,
+        'XETCXXBT': CURRENCY_PAIR.BTC_TO_ETC,
+        'XXDGXXBT': CURRENCY_PAIR.BTC_TO_DOGE,
+        'XZECXXBT': CURRENCY_PAIR.BTC_TO_ZEC,
+        'XREPXXBT': CURRENCY_PAIR.BTC_TO_REP,
+        'XXMRXXBT': CURRENCY_PAIR.BTC_TO_XMR,
+        'XETCXETH': CURRENCY_PAIR.ETH_TO_ETC,
+        'XREPXETH': CURRENCY_PAIR.ETH_TO_REP,
+        'DASHUSD': CURRENCY_PAIR.USD_TO_DASH,
+        'XETHZUSD': CURRENCY_PAIR.USD_TO_ETH,
+        'XLTCZUSD': CURRENCY_PAIR.USD_TO_LTC,
+        'XXRPZUSD': CURRENCY_PAIR.USD_TO_XRP,
+        'BCHUSD': CURRENCY_PAIR.USD_TO_BCC,
+        'XETCZUSD': CURRENCY_PAIR.USD_TO_ETC,
+        'XZECZUSD': CURRENCY_PAIR.USD_TO_ZEC,
+        'XXMRZUSD': CURRENCY_PAIR.USD_TO_XMR,
+        'USDTZUSD': CURRENCY_PAIR.USD_TO_USDT
+    }[pair_name]
+
+
+def get_currency_pair_to_kraken(pair_id):
+    return {
+        CURRENCY_PAIR.BTC_TO_DASH: 'DASHXBT',
+        CURRENCY_PAIR.BTC_TO_ETH: 'XETHXXBT',
+        CURRENCY_PAIR.BTC_TO_LTC: 'XLTCXXBT',
+        CURRENCY_PAIR.BTC_TO_XRP: 'XXRPXXBT',
+        CURRENCY_PAIR.BTC_TO_BCC: 'BCHXBT',
+        CURRENCY_PAIR.BTC_TO_ETC: 'XETCXXBT',
+        CURRENCY_PAIR.BTC_TO_ZEC: 'XZECXXBT',
+        CURRENCY_PAIR.BTC_TO_REP: 'XREPXXBT',
+        CURRENCY_PAIR.BTC_TO_DOGE: 'XXDGXXBT',
+        CURRENCY_PAIR.BTC_TO_XMR: 'XXMRXXBT',
+        CURRENCY_PAIR.ETH_TO_ETC: 'XETCXETH',
+        CURRENCY_PAIR.ETH_TO_REP:'XREPXETH',
+        CURRENCY_PAIR.USD_TO_DASH: 'DASHUSD',
+        CURRENCY_PAIR.USD_TO_ETH: 'XETHZUSD',
+        CURRENCY_PAIR.USD_TO_LTC: 'XLTCZUSD',
+        CURRENCY_PAIR.USD_TO_XRP: 'XXRPZUSD',
+        CURRENCY_PAIR.USD_TO_BCC: 'BCHUSD',
+        CURRENCY_PAIR.USD_TO_ETC: 'XETCZUSD',
+        CURRENCY_PAIR.USD_TO_ZEC: 'XZECZUSD',
+        CURRENCY_PAIR.USD_TO_XMR: 'XXMRZUSD',
+        CURRENCY_PAIR.USD_TO_USDT: 'USDTZUSD'
+    }[pair_id]

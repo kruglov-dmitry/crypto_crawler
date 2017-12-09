@@ -5,14 +5,20 @@ from data_access.internet import send_request
 from enums.status import STATUS
 
 
-def get_history_bittrex(currency, prev_time, now_time):
-    all_history_records = []
-
+def get_history_bittrex_url(currency, prev_time, now_time):
     # https://bittrex.com/api/v1.1/public/getmarkethistory?market=BTC-LTC
     final_url = BITTREX_GET_HISTORY + currency + "&since=" + str(prev_time)
 
     if should_print_debug():
         print final_url
+
+    return final_url
+
+
+def get_history_bittrex(currency, prev_time, now_time):
+    all_history_records = []
+
+    final_url = get_history_bittrex_url(currency, prev_time, now_time)
 
     err_msg = "get_history_bittrex called for {pair} at {timest}".format(pair=currency, timest=now_time)
     error_code, r = send_request(final_url, err_msg)

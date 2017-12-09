@@ -5,12 +5,19 @@ from data_access.internet import send_request
 from enums.status import STATUS
 
 
-def get_ticker_kraken(currency, timest):
+def get_ticker_kraken_url(currency, timest):
     # https://api.kraken.com/0/public/Ticker?pair=DASHXBT
     final_url = KRAKEN_GET_TICKER + currency
 
     if should_print_debug():
         print final_url
+
+    return final_url
+
+
+def get_ticker_kraken(currency, timest):
+
+    final_url = get_ticker_kraken(currency, timest)
 
     err_msg = "get_ticker_kraken called for {pair} at {timest}".format(pair=currency, timest=timest)
     error_code, r = send_request(final_url, err_msg)

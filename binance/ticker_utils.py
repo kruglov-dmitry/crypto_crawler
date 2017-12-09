@@ -3,8 +3,16 @@ from data.Ticker import Ticker
 from debug_utils import should_print_debug
 from data_access.internet import send_request
 from enums.status import STATUS
-from utils.currency_utils import get_currency_pair_from_binance
+from currency_utils import get_currency_pair_from_binance
 
+
+def get_tickers_binance_url(currency_names, timest):
+    final_url = BINANCE_GET_TICKER
+
+    if should_print_debug():
+        print final_url
+
+    return final_url
 
 def get_tickers_binance(currency_names, timest):
 
@@ -16,10 +24,8 @@ def get_tickers_binance(currency_names, timest):
     :param timest:
     :return:
     """
-    final_url = BINANCE_GET_TICKER
 
-    if should_print_debug():
-        print final_url
+    final_url = get_tickers_binance_url(currency_names, timest)
 
     err_msg = "get_tickers_binance called for list of pairS at {timest}".format(timest=timest)
     error_code, r = send_request(final_url, err_msg)

@@ -5,7 +5,7 @@ from data_access.internet import send_request
 from enums.status import STATUS
 
 
-def get_history_kraken(currency, prev_time, now_time):
+def get_history_kraken_url(currency, prev_time, now_time):
     all_history_records = []
 
     # https://api.kraken.com/0/public/Trades?pair=XETHXXBT&since=1501693512
@@ -14,6 +14,14 @@ def get_history_kraken(currency, prev_time, now_time):
 
     if should_print_debug():
         print final_url
+
+    return final_url
+
+
+def get_history_kraken(currency, prev_time, now_time):
+    all_history_records = []
+
+    final_url = get_history_kraken_url(currency, prev_time, now_time)
 
     err_msg = "get_history_kraken called for {pair} at {timest}".format(pair=currency, timest=now_time)
     error_code, r = send_request(final_url, err_msg)

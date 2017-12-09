@@ -1,3 +1,4 @@
+import multiprocessing
 from enums.currency import CURRENCY
 from enums.currency_pair import CURRENCY_PAIR
 
@@ -26,3 +27,6 @@ ARBITRAGE_PAIRS = [CURRENCY_PAIR.BTC_TO_LTC, CURRENCY_PAIR.BTC_TO_XEM, CURRENCY_
 
 CACHE_HOST = "192.168.1.106"
 CACHE_PORT = 6379
+
+CORE_NUM = multiprocessing.cpu_count()
+POOL_SIZE = 8 * CORE_NUM

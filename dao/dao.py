@@ -16,10 +16,10 @@ from kraken.ticker_utils import get_ticker_kraken
 from poloniex.ticker_utils import get_tickers_poloniex
 from binance.ticker_utils import get_tickers_binance
 
-from bittrex.ohlc_utils import get_ohlc_bittrex
-from kraken.ohlc_utils import get_ohlc_kraken
-from poloniex.ohlc_utils import get_ohlc_poloniex
-from binance.ohlc_utils import get_ohlc_binance
+from bittrex.ohlc_utils import get_ohlc_bittrex, get_ohlc_bittrex_url, get_ohlc_bittrex_result_processor
+from kraken.ohlc_utils import get_ohlc_kraken, get_ohlc_kraken_url, get_ohlc_kraken_result_processor
+from poloniex.ohlc_utils import get_ohlc_poloniex, get_ohlc_poloniex_url, get_ohlc_poloniex_result_processor
+from binance.ohlc_utils import get_ohlc_binance, get_ohlc_binance_url, get_ohlc_binance_result_processor
 
 from bittrex.order_book_utils import get_order_book_bittrex
 from kraken.order_book_utils import get_order_book_kraken
@@ -40,8 +40,12 @@ from poloniex.market_utils import add_buy_order_poloniex, add_sell_order_polonie
 from binance.market_utils import add_buy_order_binance, add_sell_order_binance, cancel_order_binance, \
     get_balance_binance
 
-from utils.currency_utils import get_currency_pair_to_bittrex, get_currency_pair_to_kraken, \
-    get_currency_pair_to_poloniex, get_currency_pair_to_binance, get_currency_name_by_exchange_id
+from utils.currency_utils import get_currency_name_by_exchange_id
+
+from bittrex.currency_utils import get_currency_pair_to_bittrex
+from kraken.currency_utils import get_currency_pair_to_kraken
+from poloniex.currency_utils import get_currency_pair_to_poloniex
+from binance.currency_utils import get_currency_pair_to_binance
 
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
@@ -127,27 +131,56 @@ def get_ohlc_method_by_echange_id(exchange_id):
     }[exchange_id]
 
 
+def get_ohlc_url_by_echange_id(exchange_id):
+    return {
+        EXCHANGE.BITTREX: get_ohlc_bittrex_url,
+        EXCHANGE.KRAKEN: get_ohlc_kraken_url,
+        EXCHANGE.POLONIEX: get_ohlc_poloniex_url,
+        EXCHANGE.BINANCE: get_ohlc_binance_url
+    }[exchange_id]
+
+
+
+"""
+    Return functor that expect following arguments:
+        json_array,
+        exchange specific name of currency
+        date_start
+        date_end
+    It will return array of object from data/* folder
+"""
+def get_mutator_by_echange_id(exchange_id):
+    return {
+        EXCHANGE.BITTREX: get_ohlc_bittrex_result_processor,
+        EXCHANGE.KRAKEN: get_ohlc_kraken_result_processor,
+        EXCHANGE.POLONIEX: get_ohlc_poloniex_result_processor,
+        EXCHANGE.BINANCE: get_ohlc_binance_result_processor
+    }[exchange_id]
+
+
 def get_ohlc_speedup(date_start, date_end):
-    num_of_requests = len(CURRENCY_PAIR.values()) * len(EXCHANGE.values())
 
-    from gevent.pool import Pool as GPool
-    import gevent
-    pool = GPool(num_of_requests / 2)
-    glets = []
+    from data_access.ConnectionPool import WorkUnit, ConnectionPool
 
-    for pair_id in CURRENCY_PAIR.values():
-        for exchange_id in EXCHANGE.values():
+    ohlc_retrieval_by_exchange = {}
+    for exchange_id in EXCHANGE.values():
+        ohlc_retrieval_by_pairs = []
+        for pair_id in CURRENCY_PAIR.values():
+
             pair_name = get_currency_name_by_exchange_id(pair_id, exchange_id)
             period = get_period_by_exchange_id(exchange_id)
-            functor = get_ohlc_method_by_echange_id(exchange_id)
+            method_for_url = get_ohlc_url_by_echange_id(exchange_id)
+            request_url = method_for_url(pair_name, date_start, date_end, period)
+            construcotr = get_mutator_by_echange_id(exchange_id)
 
-            with gevent.Timeout(10, False):
-                g = pool.spawn(functor,
-                               date_start, date_end, period)
-                glets.append(g)
-            pool.join()
+            ohlc_retrieval_by_pairs.append(WorkUnit(request_url, construcotr, pair_name, date_start, date_end))
 
-    return [g.value for g in glets]
+        ohlc_retrieval_by_exchange[exchange_id] = ohlc_retrieval_by_pairs
+
+    processor = ConnectionPool()
+
+    processor.process_async(ohlc_retrieval_by_exchange)
+
 
 def get_order_book():
 

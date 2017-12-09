@@ -2,11 +2,14 @@ from Deal import Deal
 
 from enums.deal_type import get_deal_type_by_id
 
-from utils.currency_utils import get_currency_name_by_id, get_currency_pair_from_kraken
+from utils.currency_utils import get_currency_name_by_id
+from kraken.currency_utils import get_currency_pair_from_kraken
+
 from utils.exchange_utils import get_exchange_name_by_id
 
 from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
+from utils.string_utils import float_to_str
 
 
 class Trade(Deal):
@@ -27,8 +30,8 @@ class Trade(Deal):
             exch=get_exchange_name_by_id(self.exchange_id),
             deal_type=get_deal_type_by_id(self.trade_type),
             pair=get_currency_name_by_id(self.pair_id),
-            vol=self.volume,
-            price=self.price,
+            vol=float_to_str(self.volume),
+            price=float_to_str(self.price),
             ob_time=self.order_book_time,
             ct_time=self.create_time,
             ex_time=self.execute_time,

@@ -1,11 +1,15 @@
 from BaseData import BaseData
 from constants import ARBITRAGE_CURRENCY, ZERO_BALANCE
 from enums.exchange import EXCHANGE
-from utils.currency_utils import get_currency_name_by_id, get_currency_name_for_kraken, \
-    get_currency_name_for_bittrex, get_currency_name_for_poloniex, get_currency_name_for_binance
+from utils.currency_utils import get_currency_name_by_id
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.time_utils import ts_to_string
 from utils.file_utils import log_to_file
+
+from bittrex.currency_utils import get_currency_name_for_bittrex
+from kraken.currency_utils import get_currency_name_for_kraken
+from poloniex.currency_utils import get_currency_name_for_poloniex
+from binance.currency_utils import get_currency_name_for_binance
 
 """
 time_of_last_update,

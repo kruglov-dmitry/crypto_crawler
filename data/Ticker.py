@@ -1,7 +1,10 @@
 import re
-from utils.currency_utils import get_pair_name_by_id, get_currency_pair_from_bittrex, \
-    get_currency_pair_from_kraken, get_currency_pair_from_poloniex, \
-    get_currency_pair_from_binance
+from utils.currency_utils import get_pair_name_by_id
+
+from bittrex.currency_utils import get_currency_pair_from_bittrex
+from kraken.currency_utils import get_currency_pair_from_kraken
+from poloniex.currency_utils import get_currency_pair_from_poloniex
+from binance.currency_utils import get_currency_pair_from_binance
 
 from BaseData import BaseData
 from enums.exchange import EXCHANGE

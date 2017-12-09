@@ -6,26 +6,17 @@ from enums.status import STATUS
 from utils.currency_utils import get_currency_pair_from_poloniex
 
 
-def get_ticker_poloniex(currency, timest):
+def get_ticker_poloniex_url(currency_names, timest):
     final_url = POLONIEX_GET_TICKER
 
     if should_print_debug():
         print final_url
 
-    err_msg = "get_ticker_poloniex called for {pair} at {timest}".format(pair=currency, timest=timest)
-    error_code, r = send_request(final_url, err_msg)
-
-    if error_code == STATUS.SUCCESS and r is not None and currency in r and r[currency] is not None:
-        return Ticker.from_poloniex(currency, timest, r[currency])
-
-    return None
+    return final_url
 
 
 def get_tickers_poloniex(currency_names, timest):
-    final_url = POLONIEX_GET_TICKER
-
-    if should_print_debug():
-        print final_url
+    final_url = get_ticker_poloniex_url(currency_names, timest)
 
     err_msg = "get_ticker_poloniex called for list of pairS at {timest}".format(timest=timest)
     error_code, r = send_request(final_url, err_msg)

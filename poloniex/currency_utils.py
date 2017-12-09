@@ -1,0 +1,120 @@
+from enums.currency_pair import CURRENCY_PAIR
+from enums.currency import CURRENCY
+
+
+def get_currency_id_from_poloniex(currency_name):
+    return {
+        'BTC': CURRENCY.BITCOIN,
+        'DASH': CURRENCY.DASH,
+        'BCH': CURRENCY.BCC,
+        'XRP': CURRENCY.XRP,
+        'LTC': CURRENCY.LTC,
+        'ETC': CURRENCY.ETC,
+        'ETH': CURRENCY.ETH,
+        'SC': CURRENCY.SC,
+        'DGB': CURRENCY.DGB,
+        'XEM': CURRENCY.XEM,
+        'ARDR': CURRENCY.ARDR,
+        'OMG': CURRENCY.OMG,
+        'ZEC': CURRENCY.ZEC,
+        'REP': CURRENCY.REP,
+        'XMR': CURRENCY.XMR,
+        'DOGE': CURRENCY.DOGE,
+        'DCR': CURRENCY.DCR,
+        'USDT': CURRENCY.USDT
+    }[currency_name]
+
+
+def get_currency_name_for_poloniex(currency_id):
+    return {
+        CURRENCY.BITCOIN: 'BTC',
+        CURRENCY.DASH: 'DASH',
+        CURRENCY.BCC: 'BCH',
+        CURRENCY.XRP: 'XRP',
+        CURRENCY.LTC: 'LTC',
+        CURRENCY.ETC: 'ETC',
+        CURRENCY.ETH: 'ETH',
+        CURRENCY.SC: 'SC',
+        CURRENCY.DGB: 'DGB',
+        CURRENCY.XEM: 'XEM',
+        CURRENCY.ARDR: 'ARDR',
+        CURRENCY.OMG: 'OMG',
+        CURRENCY.ZEC: 'ZEC',
+        CURRENCY.REP: 'REP',
+        CURRENCY.XMR: 'XMR',
+        CURRENCY.DOGE: 'DOGE',
+        CURRENCY.DCR: 'DCR',
+        CURRENCY.USDT: 'USDT'
+    }[currency_id]
+
+
+def get_currency_pair_from_poloniex(pair_name):
+    return {
+        'BTC_DASH': CURRENCY_PAIR.BTC_TO_DASH,
+        'BTC_ETH': CURRENCY_PAIR.BTC_TO_ETH,
+        'BTC_LTC': CURRENCY_PAIR.BTC_TO_LTC,
+        'BTC_XRP': CURRENCY_PAIR.BTC_TO_XRP,
+        'BTC_ETC': CURRENCY_PAIR.BTC_TO_ETC,
+        'BTC_SC': CURRENCY_PAIR.BTC_TO_SC,
+        'BTC_DGB' : CURRENCY_PAIR.BTC_TO_DGB,
+        'BTC_XEM': CURRENCY_PAIR.BTC_TO_XEM,
+        'BTC_ARDR': CURRENCY_PAIR.BTC_TO_ARDR,
+        'BTC_BCH': CURRENCY_PAIR.BTC_TO_BCC,
+        'BTC_OMG': CURRENCY_PAIR.BTC_TO_OMG,
+        'BTC_ZEC': CURRENCY_PAIR.BTC_TO_ZEC,
+        'BTC_REP': CURRENCY_PAIR.BTC_TO_REP,
+        'BTC_XMR': CURRENCY_PAIR.BTC_TO_XMR,
+        'BTC_DOGE': CURRENCY_PAIR.BTC_TO_DOGE,
+        'BTC_DCR': CURRENCY_PAIR.BTC_TO_DCR,
+        'ETH_ETC': CURRENCY_PAIR.ETH_TO_ETC,
+        'ETH_BCH': CURRENCY_PAIR.ETH_TO_BCC,
+        'ETH_OMG': CURRENCY_PAIR.ETH_TO_OMG,
+        'ETH_ZEC': CURRENCY_PAIR.ETH_TO_ZEC,
+        'ETH_REP': CURRENCY_PAIR.ETH_TO_REP,
+        'USDT_DASH': CURRENCY_PAIR.USDT_TO_DASH,
+        'USDT_BTC': CURRENCY_PAIR.USDT_TO_BTC,
+        'USDT_ETH': CURRENCY_PAIR.USDT_TO_ETH,
+        'USDT_LTC': CURRENCY_PAIR.USDT_TO_LTC,
+        'USDT_XRP': CURRENCY_PAIR.USDT_TO_XRP,
+        'USDT_ETC': CURRENCY_PAIR.USDT_TO_ETC,
+        'USDT_BCH': CURRENCY_PAIR.USDT_TO_BCC,
+        'USDT_ZEC': CURRENCY_PAIR.USDT_TO_ZEC,
+        'USDT_REP': CURRENCY_PAIR.USDT_TO_REP,
+        'USDT_XMR': CURRENCY_PAIR.USDT_TO_XMR
+    }[pair_name]
+
+
+def get_currency_pair_to_poloniex(pair_id):
+    return {
+        CURRENCY_PAIR.BTC_TO_DASH: 'BTC_DASH',
+        CURRENCY_PAIR.BTC_TO_ETH: 'BTC_ETH',
+        CURRENCY_PAIR.BTC_TO_LTC: 'BTC_LTC',
+        CURRENCY_PAIR.BTC_TO_XRP: 'BTC_XRP',
+        CURRENCY_PAIR.BTC_TO_ETC: 'BTC_ETC',
+        CURRENCY_PAIR.BTC_TO_SC: 'BTC_SC',
+        CURRENCY_PAIR.BTC_TO_DGB : 'BTC_DGB',
+        CURRENCY_PAIR.BTC_TO_XEM: 'BTC_XEM',
+        CURRENCY_PAIR.BTC_TO_ARDR: 'BTC_ARDR',
+        CURRENCY_PAIR.BTC_TO_OMG: 'BTC_OMG',
+        CURRENCY_PAIR.BTC_TO_BCC: 'BTC_BCH',
+        CURRENCY_PAIR.BTC_TO_ZEC: 'BTC_ZEC',
+        CURRENCY_PAIR.BTC_TO_REP: 'BTC_REP',
+        CURRENCY_PAIR.BTC_TO_XMR: 'BTC_XMR',
+        CURRENCY_PAIR.BTC_TO_DOGE: 'BTC_DOGE',
+        CURRENCY_PAIR.BTC_TO_DCR: 'BTC_DCR',
+        CURRENCY_PAIR.ETH_TO_ETC: 'ETH_ETC',
+        CURRENCY_PAIR.ETH_TO_BCC: 'ETH_BCH',
+        CURRENCY_PAIR.ETH_TO_OMG: 'ETH_OMG',
+        CURRENCY_PAIR.ETH_TO_ZEC: 'ETH_ZEC',
+        CURRENCY_PAIR.ETH_TO_REP: 'ETH_REP',
+        CURRENCY_PAIR.USDT_TO_DASH: 'USDT_DASH',
+        CURRENCY_PAIR.USDT_TO_BTC: 'USDT_BTC',
+        CURRENCY_PAIR.USDT_TO_ETH: 'USDT_ETH',
+        CURRENCY_PAIR.USDT_TO_LTC: 'USDT_LTC',
+        CURRENCY_PAIR.USDT_TO_XRP: 'USDT_XRP',
+        CURRENCY_PAIR.USDT_TO_ETC: 'USDT_ETC',
+        CURRENCY_PAIR.USDT_TO_BCC: 'USDT_BCH',
+        CURRENCY_PAIR.USDT_TO_ZEC: 'USDT_ZEC',
+        CURRENCY_PAIR.USDT_TO_REP: 'USDT_REP',
+        CURRENCY_PAIR.USDT_TO_XMR: 'USDT_XMR'
+    }[pair_id]

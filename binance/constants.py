@@ -12,7 +12,7 @@ BINANCE_GET_OHLC = "https://api.binance.com/api/v1/klines?symbol="
 BINANCE_GET_ORDER_BOOK = "https://api.binance.com/api/v1/depth?symbol="
 
 
-BINANCE_GET_HISTORY = ""
+BINANCE_GET_HISTORY = "https://api.binance.com/api/v1/aggTrades?symbol="
 
 
 BINANCE_CURRENCIES = ["DASHBTC", "ETHBTC", "LTCBTC", "XRPBTC", "BCCBTC", "ETCBTC", "OMGBTC", "ZECBTC",  "XMRBTC",

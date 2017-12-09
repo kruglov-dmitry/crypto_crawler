@@ -5,12 +5,19 @@ from data_access.internet import send_request
 from enums.status import STATUS
 
 
-def get_order_book_poloniex(pair_name, timest):
+def get_order_book_poloniex_url(pair_name, timest):
     # https://poloniex.com/public?command=returnOrderBook&currencyPair=BTC_NXT&depth=10, depth optional
     final_url = POLONIEX_GET_ORDER_BOOK + pair_name
 
     if should_print_debug():
         print final_url
+
+    return final_url
+
+
+def get_order_book_poloniex(pair_name, timest):
+
+    final_url = get_order_book_poloniex_url(pair_name, timest)
 
     err_msg = "get_order_book_poloniex called for {pair} at {timest}".format(pair=pair_name, timest=timest)
     error_code, r = send_request(final_url, err_msg)

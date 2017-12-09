@@ -1,8 +1,12 @@
 from datetime import datetime
 import re
 
-from utils.currency_utils import get_pair_name_by_id, get_currency_pair_from_bittrex, \
-    get_currency_pair_from_kraken, get_currency_pair_from_poloniex
+from utils.currency_utils import get_pair_name_by_id
+
+from bittrex.currency_utils import get_currency_pair_from_bittrex
+from kraken.currency_utils import get_currency_pair_from_kraken
+from poloniex.currency_utils import get_currency_pair_from_poloniex
+from binance.currency_utils import get_currency_pair_from_binance
 
 from BaseData import BaseData
 from enums.deal_type import DEAL_TYPE
@@ -17,6 +21,7 @@ regex = re.compile(regex_string)
 ORDER_HISTORY_INSERT_QUERY = "insert into order_history(pair_id, exchange_id, deal_type, price, amount, total, " \
                              "timest, date_time) values(%s, %s, %s, %s, %s, %s, %s, %s);"
 TRADE_HISTORY_TYPE_NAME = "trade_history"
+
 
 class OrderHistory(BaseData):
     insert_query = ORDER_HISTORY_INSERT_QUERY
@@ -142,6 +147,34 @@ class OrderHistory(BaseData):
         currency_pair = get_currency_pair_from_bittrex(pair)
 
         return OrderHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.BITTREX)
+
+    @classmethod
+    def from_binance(cls, json_document, pair, timest):
+        """
+         {
+                "a": 26129,         // Aggregate tradeId
+                "p": "0.01633102",  // Price
+                "q": "4.70443515",  // Quantity
+                "f": 27781,         // First tradeId
+                "l": 27781,         // Last tradeId
+                "T": 1498793709153, // Timestamp
+                "m": true,          // Was the buyer the maker?
+                "M": true           // Was the trade the best price match?
+              }
+        """
+
+        currency_pair = get_currency_pair_from_binance(pair)
+        deal_timest = 0.001 * long(json_document["T"])  # Convert to seconds
+
+        deal_type = DEAL_TYPE.BUY
+        if json_document["m"] is True:
+            deal_type = DEAL_TYPE.SELL
+
+        price = float(json_document["p"])
+        amount = float(json_document["q"])
+        total = price * amount
+
+        return OrderHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.BINANCE)
 
     @classmethod
     def from_string(cls, some_string):

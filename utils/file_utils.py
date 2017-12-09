@@ -1,5 +1,6 @@
 import sys
 import glob
+import os
 
 from data.Candle import Candle, CANDLE_TYPE_NAME
 from data.OrderBook import OrderBook, ORDER_BOOK_TYPE_NAME
@@ -44,7 +45,8 @@ def save_list_to_file(some_data, file_name):
 def log_to_file(trade, file_name):
     with open(file_name, 'a') as the_file:
         ts = get_now_seconds_local()
-        the_file.write(str(ts) + ":" + str(trade) + "\n")
+        pid = os.getpid()
+        the_file.write(str(ts) + " : " + " PID: " + str(pid) + " " + str(trade) + "\n")
 
 
 def load_crap_from_folder(folder_name, pattern_name, pg_conn):
