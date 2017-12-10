@@ -26,7 +26,7 @@ class ConnectionPool:
         # self.processing_pool = MPool(processes=number_of_processes)
         # self.number_of_processes = number_of_processes
 
-    def async_getS(self, work_units, timeout):
+    def async_get_from_list(self, work_units, timeout):
 
         futures = []
         for work_unit in work_units:
@@ -45,5 +45,27 @@ class ConnectionPool:
 
         return res
 
+    def async_get_to_list(self, work_units, timeout):
+
+        futures = []
+        for work_unit in work_units:
+            some_future = self.network_pool.spawn(self.session.get, work_unit.url, timeout=timeout)
+            work_unit.add_future(some_future)
+            futures.append(some_future)
+        gevent.joinall(futures)
+
+        res = []
+        for work_unit in work_units:
+            if work_unit.future_result.value.status_code == 200:
+                # log_to_file(work_unit.future_result.value.json(), "res.txt")
+                res.append(work_unit.method(work_unit.future_result.value.json(), *work_unit.args))
+            else:
+                log_to_file(work_unit.url, "error.txt")
+
+        return res
+
     def process_async(self, work, timeout):
-        return self.async_getS(work, timeout)
+        return self.async_get_from_list(work, timeout)
+
+    def process_async_to_list(self, work, timeout):
+        return self.async_get_to_list(work, timeout)
