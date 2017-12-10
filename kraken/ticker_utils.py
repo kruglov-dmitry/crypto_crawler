@@ -27,3 +27,11 @@ def get_ticker_kraken(currency, timest):
             return Ticker.from_kraken(currency, timest, r["result"][currency])
 
     return None
+
+
+def get_ticker_kraken_result_processor(json_document, pair_name, timest):
+    if json_document is not None and "result" in json_document:
+        if pair_name in json_document["result"]:
+            return Ticker.from_kraken(pair_name, timest, json_document["result"][pair_name])
+
+    return None

@@ -3,11 +3,11 @@
 
 from core.base_analysis import compare_price, check_highest_bid_bigger_than_lowest_ask
 
-from dao.dao import get_ticker
+from dao.ticker_utils import get_ticker_speedup
 from dao.db import init_pg_connection, load_to_postgres
 
 from data.Ticker import TICKER_TYPE_NAME
-from utils.time_utils import sleep_for
+from utils.time_utils import sleep_for, get_now_seconds_utc
 
 from data_access.telegram_notifications import inform_big_boss
 from data_access.ConnectionPool import ConnectionPool
@@ -23,7 +23,11 @@ def analyse_tickers():
     processor = ConnectionPool()
 
     while True:
-        tickers = get_ticker()
+
+        # tickers = get_ticker()
+
+        timest = get_now_seconds_utc()
+        tickers = get_ticker_speedup(timest, processor)
 
         res = compare_price(tickers, TRIGGER_THRESHOLD, check_highest_bid_bigger_than_lowest_ask)
 

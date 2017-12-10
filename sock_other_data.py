@@ -6,7 +6,7 @@ from debug_utils import should_print_debug
 
 from dao.db import init_pg_connection, load_to_postgres
 from dao.ohlc_utils import get_ohlc_speedup
-from dao.order_book import get_order_book_speedup
+from dao.order_book_utils import get_order_book_speedup
 from dao.history_utils import get_history_speedup
 
 from utils.time_utils import get_now_seconds_utc, sleep_for

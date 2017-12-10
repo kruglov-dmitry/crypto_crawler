@@ -14,6 +14,7 @@ def get_tickers_binance_url(currency_names, timest):
 
     return final_url
 
+
 def get_tickers_binance(currency_names, timest):
 
     """

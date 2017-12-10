@@ -6,16 +6,6 @@ from utils.time_utils import get_now_seconds_utc, get_now_seconds_local
 #   Reconsider imports below
 #
 
-from bittrex.constants import BITTREX_CURRENCY_PAIRS
-from kraken.constants import KRAKEN_CURRENCY_PAIRS
-from poloniex.constants import POLONIEX_CURRENCY_PAIRS
-from binance.constants import BINANCE_CURRENCY_PAIRS
-
-from bittrex.ticker_utils import get_ticker_bittrex
-from kraken.ticker_utils import get_ticker_kraken
-from poloniex.ticker_utils import get_tickers_poloniex
-from binance.ticker_utils import get_tickers_binance
-
 from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, cancel_order_bittrex, \
     get_balance_bittrex
 from kraken.market_utils import add_buy_order_kraken, add_sell_order_kraken, cancel_order_kraken, \
@@ -43,40 +33,6 @@ from collections import defaultdict
 from data.BalanceState import BalanceState
 
 import copy
-
-
-def get_ticker():
-    all_tickers = {}
-
-    timest = get_now_seconds_local()
-
-    bittrex_tickers = {}
-    for currency in BITTREX_CURRENCY_PAIRS:
-        ticker = get_ticker_bittrex(currency, timest)
-        if ticker is not None:
-            bittrex_tickers[ticker.pair_id] = ticker
-    all_tickers[EXCHANGE.BITTREX] = bittrex_tickers
-
-    kraken_tickers = {}
-    for currency in KRAKEN_CURRENCY_PAIRS:
-        ticker = get_ticker_kraken(currency, timest)
-        if ticker is not None:
-            kraken_tickers[ticker.pair_id] = ticker
-    all_tickers[EXCHANGE.KRAKEN] = kraken_tickers
-
-    # NOTE: poloniex return all tickers by single call
-    poloniex_tickers = get_tickers_poloniex(POLONIEX_CURRENCY_PAIRS, timest)
-    all_tickers[EXCHANGE.POLONIEX] = poloniex_tickers
-
-    # NOTE: binance return all tickers by single call
-    binance_tickers = get_tickers_binance(BINANCE_CURRENCY_PAIRS, timest)
-    all_tickers[EXCHANGE.BINANCE] = binance_tickers
-
-    # return bittrex_tickers, kraken_tickers, poloniex_tickers, binance_tickers
-    return all_tickers
-
-
-
 
 
 def buy_by_exchange(trade, order_state):
