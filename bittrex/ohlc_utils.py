@@ -34,6 +34,7 @@ def get_ohlc_bittrex_result_processor(json_responce, currency, date_start, date_
 
     return result_set
 
+
 def get_ohlc_bittrex(currency, date_start, date_end, period):
     result_set = []
 

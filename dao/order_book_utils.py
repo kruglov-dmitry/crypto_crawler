@@ -21,6 +21,8 @@ from collections import defaultdict
 
 from utils.time_utils import get_now_seconds_local
 
+from constants import HTTP_TIMEOUT_SECONDS
+
 
 def get_order_book_constructor_by_exchange_id(exchange_id):
     """
@@ -55,7 +57,7 @@ def get_order_book_speedup(date_start, date_end, processor):
 
             order_book_async_requests.append(WorkUnit(request_url, constructor, pair_name, date_start, date_end))
 
-    return processor.process_async(order_book_async_requests)
+    return processor.process_async(order_book_async_requests, HTTP_TIMEOUT_SECONDS)
 
 
 def get_order_book():

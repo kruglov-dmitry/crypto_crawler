@@ -14,6 +14,8 @@ from enums.currency_pair import CURRENCY_PAIR
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from data_access.ConnectionPool import WorkUnit
 
+from constants import HTTP_TIMEOUT_SECONDS
+
 
 def get_history_speedup(date_start, date_end, processor):
 
@@ -32,7 +34,7 @@ def get_history_speedup(date_start, date_end, processor):
 
             history_async_requests.append(WorkUnit(request_url, constructor, pair_name, date_start, date_end))
 
-    return processor.process_async(history_async_requests)
+    return processor.process_async(history_async_requests, HTTP_TIMEOUT_SECONDS)
 
 
 def get_history_url_by_echange_id(exchange_id):
