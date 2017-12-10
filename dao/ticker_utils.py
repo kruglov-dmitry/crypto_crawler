@@ -49,7 +49,7 @@ def get_ticker_speedup(timest, processor):
 
             ohlc_async_requests.append(WorkUnit(request_url, constructor, pair_name, timest))
 
-    async_results = processor.process_async_to_list(ohlc_async_requests, timeout=4)
+    async_results = processor.process_async_to_list(ohlc_async_requests, timeout=7)
 
     async_results += get_tickers_poloniex(POLONIEX_CURRENCY_PAIRS, timest)
     async_results += get_tickers_binance(BINANCE_CURRENCY_PAIRS, timest)

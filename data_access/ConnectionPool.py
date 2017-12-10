@@ -37,8 +37,7 @@ class ConnectionPool:
 
         res = []
         for work_unit in work_units:
-            if work_unit.future_result.value.status_code == 200:
-                # log_to_file(work_unit.future_result.value.json(), "res.txt")
+            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == 200:
                 res += work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
             else:
                 log_to_file(work_unit.url, "error.txt")
@@ -56,8 +55,7 @@ class ConnectionPool:
 
         res = []
         for work_unit in work_units:
-            if work_unit.future_result.value.status_code == 200:
-                # log_to_file(work_unit.future_result.value.json(), "res.txt")
+            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == 200:
                 res.append(work_unit.method(work_unit.future_result.value.json(), *work_unit.args))
             else:
                 log_to_file(work_unit.url, "error.txt")

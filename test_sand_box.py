@@ -24,6 +24,11 @@ from dao.ohlc_utils import get_ohlc_speedup, get_ohlc
 from dao.ticker_utils import get_ticker_speedup
 from data_access.ConnectionPool import ConnectionPool
 
+from dao.ohlc_utils import get_ohlc_speedup
+from dao.order_book_utils import get_order_book_speedup
+from dao.history_utils import get_history_speedup
+
+POLL_PERIOD_SECONDS = 900
 
 def test_binance_ticker_retrieval():
     timest = get_now_seconds_local()
@@ -166,6 +171,26 @@ def get_ticker_time_fast():
     timest = get_now_seconds_utc()
     processor = ConnectionPool()
     return get_ticker_speedup(timest, processor)
+
+
+@timecall
+def get_history_time_fast():
+    end_time = get_now_seconds_utc()
+    start_time = end_time - POLL_PERIOD_SECONDS
+    processor = ConnectionPool()
+
+    trade_history = get_history_speedup(start_time, end_time, processor)
+    return trade_history
+
+
+@timecall
+def get_order_book_time_fast():
+    end_time = get_now_seconds_utc()
+    start_time = end_time - POLL_PERIOD_SECONDS
+    processor = ConnectionPool()
+
+    trade_history = get_order_book_speedup(start_time, end_time, processor)
+    return trade_history
 
 
 for b in range(10):
