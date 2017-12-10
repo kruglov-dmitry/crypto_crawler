@@ -24,8 +24,8 @@ class ConnectionPool:
     def __init__(self, pool_size=POOL_SIZE, number_of_processes=CORE_NUM):
         self.session = requests.Session()
         self.network_pool = Pool(pool_size)
-        self.processing_pool = MPool(processes=number_of_processes)
-        self.number_of_processes = number_of_processes
+        # self.processing_pool = MPool(processes=number_of_processes)
+        # self.number_of_processes = number_of_processes
 
     def async_getS(self, work_units):
 

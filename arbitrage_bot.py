@@ -1,7 +1,7 @@
 import sys
 sys.setrecursionlimit(10000)
 
-from dao.dao import buy_by_exchange, sell_by_exchange, get_updated_balance, get_order_book_by_pair, \
+from dao.dao import buy_by_exchange, sell_by_exchange, get_updated_balance, \
     get_updated_order_state
 from dao.db import init_pg_connection, get_order_book_by_time, get_time_entries
 
@@ -251,9 +251,9 @@ def analyse_order_book(first_order_book,
             return STATUS.SUCCESS
 
         """
-        
+
         09.12.2017 disable recursive processing of remaining order book
-        
+
         # adjust volumes
         if first_order_book.bid[FIRST].volume > min_volume:
             first_order_book.bid[FIRST].volume = first_order_book.bid[FIRST].volume - min_volume

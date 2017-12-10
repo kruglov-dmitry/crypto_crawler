@@ -20,7 +20,10 @@ from binance.market_utils import add_buy_order_binance, add_sell_order_binance, 
 
 from utils.key_utils import generate_nonce
 from profilehooks import timecall
-from dao.dao import get_ohlc_speedup, get_ohlc
+from dao.ohlc_utils import get_ohlc_speedup, get_ohlc
+from dao.ticker_utils import get_ticker_speedup
+from data_access.ConnectionPool import ConnectionPool
+
 
 def test_binance_ticker_retrieval():
     timest = get_now_seconds_local()
@@ -154,6 +157,16 @@ def get_ohlc_time_fast_test():
 #     get_ohlc_time_test()
 
 
-res = get_ohlc_time_fast_test()
-for v in res:
-    print v
+# res = get_ohlc_time_fast_test()
+# for v in res:
+#     print v
+
+@timecall
+def get_ticker_time_fast():
+    timest = get_now_seconds_utc()
+    processor = ConnectionPool()
+    return get_ticker_speedup(timest, processor)
+
+
+for b in range(10):
+    get_ticker_time_fast()
