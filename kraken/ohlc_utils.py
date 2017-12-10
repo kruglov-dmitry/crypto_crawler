@@ -20,7 +20,7 @@ def get_ohlc_kraken_url(currency, date_start, date_end, period):
 def get_ohlc_kraken_result_processor(json_responce, currency, date_start, date_end):
     result_set = []
 
-    log_to_file(json_responce, "kraken_ohlc.txt")
+    # log_to_file(json_responce, "kraken_ohlc.txt")
 
     if json_responce is not None and "result" in json_responce:
         if currency in json_responce["result"]:

@@ -6,30 +6,15 @@ from utils.time_utils import get_now_seconds_utc, get_now_seconds_local
 #   Reconsider imports below
 #
 
-from bittrex.constants import BITTREX_CURRENCIES
+from bittrex.constants import BITTREX_CURRENCY_PAIRS
 from kraken.constants import KRAKEN_CURRENCY_PAIRS
-from poloniex.constants import POLONIEX_CURRENCIES
-from binance.constants import BINANCE_CURRENCIES
+from poloniex.constants import POLONIEX_CURRENCY_PAIRS
+from binance.constants import BINANCE_CURRENCY_PAIRS
 
 from bittrex.ticker_utils import get_ticker_bittrex
 from kraken.ticker_utils import get_ticker_kraken
 from poloniex.ticker_utils import get_tickers_poloniex
 from binance.ticker_utils import get_tickers_binance
-
-from bittrex.ohlc_utils import get_ohlc_bittrex, get_ohlc_bittrex_url, get_ohlc_bittrex_result_processor
-from kraken.ohlc_utils import get_ohlc_kraken, get_ohlc_kraken_url, get_ohlc_kraken_result_processor
-from poloniex.ohlc_utils import get_ohlc_poloniex, get_ohlc_poloniex_url, get_ohlc_poloniex_result_processor
-from binance.ohlc_utils import get_ohlc_binance, get_ohlc_binance_url, get_ohlc_binance_result_processor
-
-from bittrex.order_book_utils import get_order_book_bittrex
-from kraken.order_book_utils import get_order_book_kraken
-from poloniex.order_book_utils import get_order_book_poloniex
-from binance.order_book_utils import get_order_book_binance
-
-from bittrex.history_utils import get_history_bittrex
-from kraken.history_utils import get_history_kraken
-from poloniex.history_utils import get_history_poloniex
-# NO HISTORY FOR POLONIEX
 
 from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, cancel_order_bittrex, \
     get_balance_bittrex
@@ -66,7 +51,7 @@ def get_ticker():
     timest = get_now_seconds_local()
 
     bittrex_tickers = {}
-    for currency in BITTREX_CURRENCIES:
+    for currency in BITTREX_CURRENCY_PAIRS:
         ticker = get_ticker_bittrex(currency, timest)
         if ticker is not None:
             bittrex_tickers[ticker.pair_id] = ticker
@@ -80,185 +65,18 @@ def get_ticker():
     all_tickers[EXCHANGE.KRAKEN] = kraken_tickers
 
     # NOTE: poloniex return all tickers by single call
-    poloniex_tickers = get_tickers_poloniex(POLONIEX_CURRENCIES, timest)
+    poloniex_tickers = get_tickers_poloniex(POLONIEX_CURRENCY_PAIRS, timest)
     all_tickers[EXCHANGE.POLONIEX] = poloniex_tickers
 
     # NOTE: binance return all tickers by single call
-    binance_tickers = get_tickers_binance(BINANCE_CURRENCIES, timest)
+    binance_tickers = get_tickers_binance(BINANCE_CURRENCY_PAIRS, timest)
     all_tickers[EXCHANGE.BINANCE] = binance_tickers
 
     # return bittrex_tickers, kraken_tickers, poloniex_tickers, binance_tickers
     return all_tickers
 
 
-def get_ohlc(date_start, date_end):
-    all_ohlc = []
 
-    for currency in BITTREX_CURRENCIES:
-        period = "thirtyMin"
-        all_ohlc += get_ohlc_bittrex(currency, date_start, date_end, period)
-
-    for currency in KRAKEN_CURRENCY_PAIRS:
-        period = 15
-        all_ohlc += get_ohlc_kraken(currency, date_start, date_end, period)
-
-    for currency in POLONIEX_CURRENCIES:
-        period = 14400
-        all_ohlc += get_ohlc_poloniex(currency, date_start, date_end, period)
-
-    for currency in BINANCE_CURRENCIES:
-        period = "15m"
-        all_ohlc += get_ohlc_binance(currency, date_start, date_end, period)
-
-    return all_ohlc
-
-
-def get_period_by_exchange_id(exchange_id):
-    return {
-        EXCHANGE.BITTREX: "thirtyMin",
-        EXCHANGE.KRAKEN: 15,
-        EXCHANGE.POLONIEX: 14400,
-        EXCHANGE.BINANCE: "15m"
-    }[exchange_id]
-
-
-def get_ohlc_method_by_echange_id(exchange_id):
-    return {
-        EXCHANGE.BITTREX: get_ohlc_bittrex,
-        EXCHANGE.KRAKEN: get_ohlc_kraken,
-        EXCHANGE.POLONIEX: get_ohlc_poloniex,
-        EXCHANGE.BINANCE: get_ohlc_binance
-    }[exchange_id]
-
-
-def get_ohlc_url_by_echange_id(exchange_id):
-    return {
-        EXCHANGE.BITTREX: get_ohlc_bittrex_url,
-        EXCHANGE.KRAKEN: get_ohlc_kraken_url,
-        EXCHANGE.POLONIEX: get_ohlc_poloniex_url,
-        EXCHANGE.BINANCE: get_ohlc_binance_url
-    }[exchange_id]
-
-
-
-"""
-    Return functor that expect following arguments:
-        json_array,
-        exchange specific name of currency
-        date_start
-        date_end
-    It will return array of object from data/* folder
-"""
-def get_mutator_by_echange_id(exchange_id):
-    return {
-        EXCHANGE.BITTREX: get_ohlc_bittrex_result_processor,
-        EXCHANGE.KRAKEN: get_ohlc_kraken_result_processor,
-        EXCHANGE.POLONIEX: get_ohlc_poloniex_result_processor,
-        EXCHANGE.BINANCE: get_ohlc_binance_result_processor
-    }[exchange_id]
-
-
-def get_ohlc_speedup(date_start, date_end):
-
-    from data_access.ConnectionPool import WorkUnit, ConnectionPool
-
-    ohlc_retrieval_by_pairs = []
-    # ohlc_retrieval_by_exchange = []
-    for exchange_id in EXCHANGE.values():
-        for pair_id in CURRENCY_PAIR.values():
-
-            pair_name = get_currency_pair_name_by_exchange_id(pair_id, exchange_id)
-            if pair_name is None:
-                continue
-
-            period = get_period_by_exchange_id(exchange_id)
-            method_for_url = get_ohlc_url_by_echange_id(exchange_id)
-            request_url = method_for_url(pair_name, date_start, date_end, period)
-            construcotr = get_mutator_by_echange_id(exchange_id)
-
-            ohlc_retrieval_by_pairs.append(WorkUnit(request_url, construcotr, pair_name, date_start, date_end))
-
-        # ohlc_retrieval_by_exchange[exchange_id] = ohlc_retrieval_by_pairs
-
-    processor = ConnectionPool()
-
-    # return processor.process_async(ohlc_retrieval_by_exchange)
-    return processor.process_async_in_process(ohlc_retrieval_by_pairs)
-
-
-def get_order_book():
-
-    all_order_book = defaultdict(list)
-
-    timest = get_now_seconds_local()
-
-    for currency in POLONIEX_CURRENCIES:
-        order_book = get_order_book_poloniex(currency, timest)
-        if order_book is not None:
-            all_order_book[EXCHANGE.POLONIEX].append(order_book)
-
-    for currency in KRAKEN_CURRENCY_PAIRS:
-        order_book = get_order_book_kraken(currency, timest)
-        if order_book is not None:
-            all_order_book[EXCHANGE.KRAKEN].append(order_book)
-
-    for currency in BITTREX_CURRENCIES:
-        order_book = get_order_book_bittrex(currency, timest)
-        if order_book is not None:
-            all_order_book[EXCHANGE.BITTREX].append(order_book)
-
-    for currency in BINANCE_CURRENCIES:
-        order_book = get_order_book_binance(currency, timest)
-        if order_book is not None:
-            all_order_book[EXCHANGE.BINANCE].append(order_book)
-
-    return all_order_book
-
-
-def get_order_book_by_pair(pair_id):
-    """
-        Used for arbitrage bot.
-
-    :param pair_id:
-    :return:
-    """
-    all_order_book = defaultdict(list)
-
-    timest = get_now_seconds_local()
-
-    poloniex_pair_name = get_currency_pair_to_poloniex(pair_id)
-    order_book = get_order_book_poloniex(poloniex_pair_name, timest)
-    if order_book is not None:
-        all_order_book[EXCHANGE.POLONIEX].append(order_book)
-
-    # kraken_pair_name = get_currency_pair_to_kraken(pair_id)
-    # order_book = get_order_book_kraken(kraken_pair_name, timest)
-    # if order_book is not None:
-    #    all_order_book[EXCHANGE.KRAKEN].append(order_book)
-
-    bittrex_pair_name = get_currency_pair_to_bittrex(pair_id)
-    order_book = get_order_book_bittrex(bittrex_pair_name, timest)
-    if order_book is not None:
-        all_order_book[EXCHANGE.BITTREX].append(order_book)
-
-    return all_order_book
-
-
-def get_history(prev_time, now_time):
-    all_history = []
-
-    for currency in POLONIEX_CURRENCIES:
-        all_history += get_history_poloniex(currency, prev_time, now_time)
-
-    for currency in KRAKEN_CURRENCY_PAIRS:
-        all_history += get_history_kraken(currency, prev_time, now_time)
-
-    for currency in BITTREX_CURRENCIES:
-        all_history += get_history_bittrex(currency, prev_time, now_time)
-
-    # FIXME NOTE: not found binance history ???
-
-    return all_history
 
 
 def buy_by_exchange(trade, order_state):

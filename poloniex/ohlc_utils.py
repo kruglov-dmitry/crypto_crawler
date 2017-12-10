@@ -19,7 +19,7 @@ def get_ohlc_poloniex_url(currency, date_start, date_end, period):
 
 def get_ohlc_poloniex_result_processor(json_responce, currency, date_start, date_end):
 
-    log_to_file(json_responce, "poloniex_ohlc.txt")
+    # log_to_file(json_responce, "poloniex_ohlc.txt")
 
     result_set = []
 

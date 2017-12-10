@@ -26,3 +26,10 @@ def get_order_book_binance(currency, timest):
         return OrderBook.from_binance(r, currency, timest)
 
     return None
+
+
+def get_order_book_binance_result_processor(json_document, pair_name, timest):
+    if json_document is not None:
+        return OrderBook.from_binance(json_document, pair_name, timest)
+
+    return None

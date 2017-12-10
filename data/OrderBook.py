@@ -86,7 +86,7 @@ class OrderBook(BaseData):
         "isFrozen":"0","seq":41049600}
         """
         timest = timest
-        currency_pair = get_currency_pair_from_poloniex(currency)
+        pair_id = get_currency_pair_from_poloniex(currency)
 
         ask_bids = []
         for b in json_document["asks"]:
@@ -96,7 +96,7 @@ class OrderBook(BaseData):
         for b in json_document["bids"]:
             sell_bids.append(Deal(b[0], b[1]))
 
-        return OrderBook(currency_pair, timest, ask_bids, sell_bids, EXCHANGE.POLONIEX)
+        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.POLONIEX)
 
     @classmethod
     def from_kraken(cls, json_document, currency, timest):
@@ -113,9 +113,9 @@ class OrderBook(BaseData):
         for b in json_document["bids"]:
             sell_bids.append(Deal(b[0], b[1]))
 
-        currency_pair = get_currency_pair_from_kraken(currency)
+        pair_id = get_currency_pair_from_kraken(currency)
 
-        return OrderBook(currency_pair, timest, ask_bids, sell_bids, EXCHANGE.KRAKEN)
+        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.KRAKEN)
 
     @classmethod
     def from_bittrex(cls, json_document, currency, timest):
@@ -134,9 +134,9 @@ class OrderBook(BaseData):
             for b in json_document["buy"]:
                 sell_bids.append(Deal(b["Rate"], b["Quantity"]))
 
-        currency_pair = get_currency_pair_from_bittrex(currency)
+        pair_id = get_currency_pair_from_bittrex(currency)
 
-        return OrderBook(currency_pair, timest, ask_bids, sell_bids, EXCHANGE.BITTREX)
+        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.BITTREX)
 
     @classmethod
     def from_binance(cls, json_document, currency, timest):
@@ -154,9 +154,9 @@ class OrderBook(BaseData):
             for b in json_document["bids"]:
                 sell_bids.append(Deal(price=b[0], volume=b[1]))
 
-        currency_pair = get_currency_pair_from_binance(currency)
+        pair_id = get_currency_pair_from_binance(currency)
 
-        return OrderBook(currency_pair, timest, ask_bids, sell_bids, EXCHANGE.BINANCE)
+        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.BINANCE)
 
     @classmethod
     def from_string(cls, some_string):

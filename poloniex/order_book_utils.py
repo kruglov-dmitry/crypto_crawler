@@ -26,3 +26,10 @@ def get_order_book_poloniex(pair_name, timest):
         return OrderBook.from_poloniex(r, pair_name, timest)
 
     return None
+
+
+def get_order_book_poloniex_result_processor(json_document, pair_name, timest):
+    if json_document is not None:
+        return OrderBook.from_poloniex(json_document, pair_name, timest)
+
+    return None

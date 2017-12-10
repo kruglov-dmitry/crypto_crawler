@@ -13,7 +13,7 @@ from kraken.market_utils import get_orders_kraken, get_balance_kraken, add_buy_o
 
 from binance.ticker_utils import get_tickers_binance
 from binance.ohlc_utils import get_ohlc_binance
-from binance.constants import BINANCE_CURRENCIES
+from binance.constants import BINANCE_CURRENCY_PAIRS
 from binance.order_book_utils import get_order_book_binance
 from binance.market_utils import add_buy_order_binance, add_sell_order_binance, \
     cancel_order_binance, get_balance_binance
@@ -24,7 +24,7 @@ from dao.dao import get_ohlc_speedup, get_ohlc
 
 def test_binance_ticker_retrieval():
     timest = get_now_seconds_local()
-    wtf = get_tickers_binance(BINANCE_CURRENCIES, timest)
+    wtf = get_tickers_binance(BINANCE_CURRENCY_PAIRS, timest)
     for b in wtf:
         print wtf[b]
 
@@ -33,7 +33,7 @@ def test_binance_ohlc_retrieval():
     date_end = get_now_seconds_utc()
     date_start = date_end - 900
     all_ohlc = []
-    for currency in BINANCE_CURRENCIES:
+    for currency in BINANCE_CURRENCY_PAIRS:
         period = "15m"
         all_ohlc += get_ohlc_binance(currency, date_start, date_end, period)
 
@@ -44,7 +44,7 @@ def test_binance_ohlc_retrieval():
 def test_binance_order_book_retrieval():
     res = []
     timest = get_now_seconds_utc()
-    for currency in BINANCE_CURRENCIES:
+    for currency in BINANCE_CURRENCY_PAIRS:
         order_book = get_order_book_binance(currency, timest)
         if order_book is not None:
             res.append(order_book)

@@ -21,7 +21,7 @@ def get_ohlc_bittrex_url(currency, date_start, date_end, period):
 def get_ohlc_bittrex_result_processor(json_responce, currency, date_start, date_end):
     result_set = []
 
-    log_to_file(json_responce, "bittrex_ohlc.txt")
+    # log_to_file(json_responce, "bittrex_ohlc.txt")
 
     if json_responce is not None and "result" in json_responce:
         # result":[{"O":0.08184725,"H":0.08184725,"L":0.08181559,"C":0.08181559,"V":9.56201864,"T":"2017-07-21T17:26:00","BV":0.78232812},

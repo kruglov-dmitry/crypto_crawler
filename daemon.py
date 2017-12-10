@@ -1,13 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from core.base_analysis import compare_price, get_diff_lowest_ask_vs_highest_bid, \
-    check_highest_bid_bigger_than_lowest_ask
+from core.base_analysis import compare_price, check_highest_bid_bigger_than_lowest_ask
+
 from dao.dao import get_ticker
+from dao.db import init_pg_connection, load_to_postgres
+
 from data.Ticker import TICKER_TYPE_NAME
-from dao.db import init_pg_connection, load_to_postgres, save_alarm_into_pg
 from utils.time_utils import sleep_for
+
 from data_access.telegram_notifications import inform_big_boss
+from data_access.ConnectionPool import ConnectionPool
 
 # time to poll
 POLL_PERIOD_SECONDS = 120
@@ -16,6 +19,8 @@ TRIGGER_THRESHOLD = 1.5 # 2 percents only
 
 def analyse_tickers():
     pg_conn = init_pg_connection()
+
+    processor = ConnectionPool()
 
     while True:
         tickers = get_ticker()

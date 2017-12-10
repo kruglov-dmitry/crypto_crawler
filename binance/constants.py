@@ -15,10 +15,10 @@ BINANCE_GET_ORDER_BOOK = "https://api.binance.com/api/v1/depth?symbol="
 BINANCE_GET_HISTORY = "https://api.binance.com/api/v1/aggTrades?symbol="
 
 
-BINANCE_CURRENCIES = ["DASHBTC", "ETHBTC", "LTCBTC", "XRPBTC", "BCCBTC", "ETCBTC", "OMGBTC", "ZECBTC",  "XMRBTC",
+BINANCE_CURRENCY_PAIRS = ["DASHBTC", "ETHBTC", "LTCBTC", "XRPBTC", "BCCBTC", "ETCBTC", "OMGBTC", "ZECBTC", "XMRBTC",
                       "DASHETH", "XRPETH", "BCCETH", "ETCETH", "OMGETH", "ZECETH", "XMRETH",
                       "BTCUSDT", "ETHUSDT", "BCCUSDT"
-                      ]
+                          ]
 
 # LIMIT
 # BUY | SELL

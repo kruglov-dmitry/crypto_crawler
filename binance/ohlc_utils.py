@@ -20,7 +20,7 @@ def get_ohlc_binance_url(currency, date_start, date_end, period):
 def get_ohlc_binance_result_processor(json_responce, currency, date_start, date_end):
     result_set = []
 
-    log_to_file(json_responce, "binance_ohlc.txt")
+    # log_to_file(json_responce, "binance_ohlc.txt")
 
     if json_responce is not None:
         for record in json_responce:

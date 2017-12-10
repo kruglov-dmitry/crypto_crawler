@@ -1,11 +1,18 @@
-from dao.dao import get_ohlc, get_history, get_order_book
 from data.Candle import CANDLE_TYPE_NAME
 from data.OrderBook import ORDER_BOOK_TYPE_NAME
 from data.OrderHistory import TRADE_HISTORY_TYPE_NAME
+
 from debug_utils import should_print_debug
+
 from dao.db import init_pg_connection, load_to_postgres
-from utils.time_utils import get_now_seconds_local, get_now_seconds_utc, sleep_for
+from dao.ohlc_utils import get_ohlc_speedup
+from dao.order_book import get_order_book_speedup
+from dao.history_utils import get_history_speedup
+
+from utils.time_utils import get_now_seconds_utc, sleep_for
 from utils.file_utils import log_to_file
+
+from data_access.ConnectionPool import ConnectionPool
 
 # time to poll - 15 minutes
 POLL_PERIOD_SECONDS = 900
@@ -13,6 +20,8 @@ POLL_PERIOD_SECONDS = 900
 if __name__ == "__main__":
 
     pg_conn = init_pg_connection()
+
+    processor = ConnectionPool()
 
     while True:
         #
@@ -22,13 +31,15 @@ if __name__ == "__main__":
         end_time = get_now_seconds_utc()
         start_time = end_time - POLL_PERIOD_SECONDS
 
-        candles = get_ohlc(start_time, end_time)
-        order_book = get_order_book()
+        candles = get_ohlc_speedup(start_time, end_time, processor)
+
+        order_book = get_order_book_speedup(start_time, end_time, processor)
+
         order_book_size = 0
         order_book_ask_size = 0
         order_book_bid_size = 0
 
-        trade_history = get_history(start_time, end_time)
+        trade_history = get_history_speedup(start_time, end_time, processor)
 
         load_to_postgres(candles, CANDLE_TYPE_NAME, pg_conn)
 
