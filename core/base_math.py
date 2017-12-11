@@ -42,3 +42,25 @@ def get_all_permutation(my_dict, max_len):
 
     """
     return map(list, itertools.permutations(my_dict.keys(), max_len))
+
+
+def get_all_permutation_list(my_list, max_len):
+    """
+    :param my_list:
+    :param max_len:
+    :return: list of possible permutation of dictionary values
+
+
+    Example:
+        wtf= []
+        wtf[1] = "UNO"
+        wtf[2] = "TWO"
+        wtf[3] = "THREE"
+        wtf[3] = "FOUR"
+
+        res = get_all_permutation(wtf, 2)
+        print res
+        [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
+
+    """
+    return map(list, itertools.permutations(my_list, max_len))

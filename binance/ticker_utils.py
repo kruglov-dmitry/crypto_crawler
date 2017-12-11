@@ -31,11 +31,11 @@ def get_tickers_binance(currency_names, timest):
     err_msg = "get_tickers_binance called for list of pairS at {timest}".format(timest=timest)
     error_code, r = send_request(final_url, err_msg)
 
-    res = {}
+    res = []
     if error_code == STATUS.SUCCESS and r is not None:
         for entry in r:
             if entry["symbol"] in currency_names:
                 pair_id = get_currency_pair_from_binance(entry["symbol"])
-                res[pair_id] = Ticker.from_binance(entry["symbol"], timest, entry)
+                res.append(Ticker.from_binance(entry["symbol"], timest, entry))
 
     return res

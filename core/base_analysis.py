@@ -1,6 +1,16 @@
 from enums.currency_pair import CURRENCY_PAIR
 from debug_utils import should_print_debug
-from core.base_math import get_all_permutation
+from core.base_math import get_all_permutation, get_all_permutation_list
+
+
+def get_matches(objs, key):
+    """
+        Return dict of list curresponding to key
+    """
+    d = {}
+    for obj in objs:
+        d.setdefault(getattr(obj, key), []).append(obj)
+    return d
 
 
 def compare_price(tickers, threshold, predicate):
@@ -13,13 +23,14 @@ def compare_price(tickers, threshold, predicate):
     """
     res = []
 
-    for pair_id in CURRENCY_PAIR.values():
-        tickers_to_check = {}
-        for exchange_id in tickers:
-            if pair_id in tickers[exchange_id]:
-                tickers_to_check[exchange_id] = tickers[exchange_id][pair_id]
+    sorted_tickers = get_matches(tickers, "pair_id")
 
-        current_result = check_all_combinations(tickers_to_check, threshold, predicate)
+    for pair_id in CURRENCY_PAIR.values():
+        tickers_to_check = []
+        if pair_id in sorted_tickers:
+            tickers_to_check.append(sorted_tickers[pair_id])
+
+        current_result = check_all_combinations_list(tickers_to_check, threshold, predicate)
         if current_result:
             res += current_result
 
@@ -38,6 +49,21 @@ def check_all_combinations(tickers_to_check, threshold, predicate):
             res_list.append(res)
 
     return res_list
+
+
+def check_all_combinations_list(tickers_to_check, threshold, predicate):
+
+    res_list = []
+
+    pair_of_tickers = get_all_permutation_list(tickers_to_check, 2)
+
+    for first_ticker, second_ticker in pair_of_tickers:
+        res = predicate(first_ticker, second_ticker, threshold)
+        if res:
+            res_list.append(res)
+
+    return res_list
+
 
 
 def get_diff_lowest_ask_vs_highest_bid(first_one, second_one, threshold):

@@ -21,11 +21,11 @@ def get_tickers_poloniex(currency_names, timest):
     err_msg = "get_ticker_poloniex called for list of pairS at {timest}".format(timest=timest)
     error_code, r = send_request(final_url, err_msg)
 
-    res = {}
+    res = []
     if error_code == STATUS.SUCCESS and r is not None:
         for pair_name in currency_names:
             if pair_name in r and r[pair_name] is not None:
                 pair_id = get_currency_pair_from_poloniex(pair_name)
-                res[pair_id] = Ticker.from_poloniex(pair_name, timest, r[pair_name])
+                res.append(Ticker.from_poloniex(pair_name, timest, r[pair_name]))
 
     return res
