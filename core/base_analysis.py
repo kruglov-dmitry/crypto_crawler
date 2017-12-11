@@ -1,15 +1,17 @@
 from enums.currency_pair import CURRENCY_PAIR
 from debug_utils import should_print_debug
+from utils.file_utils import log_to_file
 from core.base_math import get_all_permutation, get_all_permutation_list
+from collections import defaultdict
 
 
 def get_matches(objs, key):
     """
         Return dict of list curresponding to key
     """
-    d = {}
+    d = defaultdict(list)
     for obj in objs:
-        d.setdefault(getattr(obj, key), []).append(obj)
+        d[getattr(obj, key)].append(obj)
     return d
 
 
@@ -26,13 +28,17 @@ def compare_price(tickers, threshold, predicate):
     sorted_tickers = get_matches(tickers, "pair_id")
 
     for pair_id in CURRENCY_PAIR.values():
-        tickers_to_check = []
         if pair_id in sorted_tickers:
-            tickers_to_check.append(sorted_tickers[pair_id])
+            tickers_to_check = sorted_tickers[pair_id]
 
-        current_result = check_all_combinations_list(tickers_to_check, threshold, predicate)
-        if current_result:
-            res += current_result
+            if len(tickers_to_check) < 2:
+                for b in tickers_to_check:
+                    log_to_file("Ticker: not found pair tickers for: " + str(b),
+                                "ticker.log")
+            else:
+                current_result = check_all_combinations_list(tickers_to_check, threshold, predicate)
+                if current_result:
+                    res += current_result
 
     return res
 

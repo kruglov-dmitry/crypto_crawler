@@ -193,5 +193,16 @@ def get_order_book_time_fast():
     return trade_history
 
 
-for b in range(10):
-    get_ticker_time_fast()
+# for b in range(10):
+#     get_ticker_time_fast()
+from core.base_analysis import compare_price, check_highest_bid_bigger_than_lowest_ask
+TRIGGER_THRESHOLD = 1.5 # 2 percents only
+
+processor = ConnectionPool()
+
+timest = get_now_seconds_utc()
+tickers = get_ticker_speedup(timest, processor)
+
+res = compare_price(tickers, TRIGGER_THRESHOLD, check_highest_bid_bigger_than_lowest_ask)
+
+
