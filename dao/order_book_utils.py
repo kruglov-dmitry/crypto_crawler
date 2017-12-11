@@ -19,7 +19,7 @@ from data_access.ConnectionPool import WorkUnit
 
 from collections import defaultdict
 
-from utils.time_utils import get_now_seconds_local
+from utils.time_utils import get_now_seconds_utc
 
 from constants import HTTP_TIMEOUT_SECONDS
 
@@ -64,7 +64,7 @@ def get_order_book():
 
     all_order_book = defaultdict(list)
 
-    timest = get_now_seconds_local()
+    timest = get_now_seconds_utc()
 
     for currency in POLONIEX_CURRENCY_PAIRS:
         order_book = get_order_book_poloniex(currency, timest)
@@ -98,7 +98,7 @@ def get_order_book_by_pair(pair_id):
     """
     all_order_book = defaultdict(list)
 
-    timest = get_now_seconds_local()
+    timest = get_now_seconds_utc()
 
     poloniex_pair_name = get_currency_pair_to_poloniex(pair_id)
     order_book = get_order_book_poloniex(poloniex_pair_name, timest)

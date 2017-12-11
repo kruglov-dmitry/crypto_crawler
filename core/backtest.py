@@ -7,7 +7,7 @@ from data.Balance import Balance
 from data.BalanceState import BalanceState
 from data.MarketCap import MarketCap
 
-from utils.time_utils import get_now_seconds_local
+from utils.time_utils import get_now_seconds_utc
 
 
 def dummy_balance_init(timest, default_volume, default_available_volume, balance_adjust_threshold):
@@ -34,7 +34,7 @@ def dummy_order_state_init():
     open_orders = []
     closed_orders = []
 
-    timest = get_now_seconds_local()
+    timest = get_now_seconds_utc()
 
     for exchange_id in EXCHANGE.values():
         order_state_by_exchange[exchange_id] = None

@@ -7,7 +7,7 @@ from data.OrderBook import OrderBook, ORDER_BOOK_TYPE_NAME
 from data.OrderHistory import OrderHistory, TRADE_HISTORY_TYPE_NAME
 from data.Ticker import Ticker, TICKER_TYPE_NAME
 from dao.db import insert_data, init_pg_connection
-from utils.time_utils import get_now_seconds_local
+from utils.time_utils import get_now_seconds_utc
 
 
 def constructor_selector(class_name, string_repr):
@@ -44,7 +44,7 @@ def save_list_to_file(some_data, file_name):
 
 def log_to_file(trade, file_name):
     with open(file_name, 'a') as the_file:
-        ts = get_now_seconds_local()
+        ts = get_now_seconds_utc()
         pid = os.getpid()
         the_file.write(str(ts) + " : " + " PID: " + str(pid) + " " + str(trade) + "\n")
 

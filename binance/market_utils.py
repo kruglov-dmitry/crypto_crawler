@@ -4,7 +4,7 @@ from utils.key_utils import signed_body_256, signed_string, generate_nonce
 from data_access.internet import send_get_request_with_header, send_post_request_with_header, send_delete_request_with_header
 from urllib import urlencode as _urlencode
 from data.Balance import Balance
-from utils.time_utils import get_now_seconds_local
+from utils.time_utils import get_now_seconds_utc
 from enums.status import STATUS
 
 """
@@ -156,7 +156,7 @@ def get_balance_binance(key):
 
     err_msg = "check binance balance called"
 
-    timest = get_now_seconds_local()
+    timest = get_now_seconds_utc()
 
     error_code, res = send_get_request_with_header(final_url, headers, err_msg)
     print res

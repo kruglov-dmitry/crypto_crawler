@@ -4,10 +4,11 @@ sys.setrecursionlimit(10000)
 from dao.dao import buy_by_exchange, sell_by_exchange, get_updated_balance, \
     get_updated_order_state
 from dao.db import init_pg_connection, get_order_book_by_time, get_time_entries
+from dao.order_book_utils import get_order_book_by_pair
 
 from utils.key_utils import load_keys
 from debug_utils import should_print_debug
-from utils.time_utils import sleep_for, get_now_seconds_local
+from utils.time_utils import sleep_for, get_now_seconds_local, get_now_seconds_utc
 from utils.currency_utils import split_currency_pairs, get_pair_name_by_id
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.file_utils import log_to_file
@@ -29,8 +30,6 @@ from constants import ARBITRAGE_PAIRS
 from data_access.telegram_notifications import send_single_message
 
 from core.backtest import common_cap_init, dummy_balance_init, dummy_order_state_init, custom_balance_init
-
-from multiprocessing import Pool
 
 
 # FIXME NOTE:
@@ -91,7 +90,7 @@ def init_deals_with_logging(trade_pairs, order_state,  file_name):
     debug_msg = "Deals details: " + str(first_deal)
     result_1 = init_deal(first_deal, order_state, debug_msg)
 
-    first_deal.execute_time = get_now_seconds_local()
+    first_deal.execute_time = get_now_seconds_utc()
 
     if result_1[0] != STATUS.SUCCESS:
         msg = "Failing of adding FIRST deal! {deal}".format(deal=str(first_deal))
@@ -102,7 +101,7 @@ def init_deals_with_logging(trade_pairs, order_state,  file_name):
     debug_msg = "Deals details: " + str(second_deal)
     result_2 = init_deal(second_deal, order_state, debug_msg)
 
-    second_deal.execute_time = get_now_seconds_local()
+    second_deal.execute_time = get_now_seconds_utc()
 
     if result_1[0] == STATUS.FAILURE or result_2[0] == STATUS.FAILURE:
         msg = "Failing of adding deals! {deal_pair}".format(deal_pair=str(trade_pairs))
@@ -224,7 +223,7 @@ def analyse_order_book(first_order_book,
 
             return
 
-        create_time = get_now_seconds_local()
+        create_time = get_now_seconds_utc()
         trade_at_first_exchange = Trade(DEAL_TYPE.SELL, first_order_book.exchange_id, first_order_book.pair_id,
                                         first_order_book.bid[FIRST].price, min_volume, first_order_book.timest, create_time)
 
@@ -475,7 +474,7 @@ def run_analysis_over_db(deal_threshold, balance_adjust_threshold, treshold_reve
 def run_bot(deal_threshold, balance_adjust_threshold, treshold_reverse):
     load_keys("./secret_keys")
     deal_cap = common_cap_init()
-    cur_timest = get_now_seconds_local()
+    cur_timest = get_now_seconds_utc()
     current_balance = dummy_balance_init(cur_timest, 0, 0, balance_adjust_threshold)
     order_state = dummy_order_state_init()
 

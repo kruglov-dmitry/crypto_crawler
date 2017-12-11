@@ -62,7 +62,7 @@ def test_binance_order_book_retrieval():
 
 
 def test_bittrex_market_api(bit_key):
-    show_balance_bittrex(bit_key)
+    get_balance_bittrex(bit_key)
     cancel_order_bittrex(bit_key, '0e2ffb00-3509-4150-a7d2-f2b7e8c1a9e4')
     add_buy_order_bittrex(bit_key, "BTC-OMG", 0.00249870, 1)
     add_sell_order_bittrex(bit_key, "BTC-OMG", 0.0025, 1)
@@ -108,10 +108,10 @@ def test_kraken_market_utils(krak_key):
     error_code, r = get_balance_kraken(krak_key)
     print r
     pol_key = get_key_by_exchange(EXCHANGE.POLONIEX)
-    r = show_balance_poloniex(pol_key)
+    r = get_balance_poloniex(pol_key)
     print r
     bit_key = get_key_by_exchange(EXCHANGE.BITTREX)
-    r = show_balance_bittrex(bit_key)
+    r = get_balance_bittrex(bit_key)
     print r
     add_buy_order_kraken(krak_key, "XETHXXBT", 0.07220, 0.02)
     add_sell_order_kraken(krak_key, "XETHXXBT", 0.07220, 0.02)

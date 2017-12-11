@@ -5,7 +5,7 @@ from data_access.internet import send_post_request_with_header
 
 from debug_utils import should_print_debug
 from utils.key_utils import generate_nonce, sign_kraken
-from utils.time_utils import get_now_seconds_local, sleep_for
+from utils.time_utils import get_now_seconds_local, sleep_for, get_now_seconds_utc
 from utils.string_utils import float_to_str
 
 from enums.exchange import EXCHANGE
@@ -196,7 +196,7 @@ def get_balance_kraken(key):
 
     err_msg = "check kraken balance called"
 
-    timest = get_now_seconds_local()
+    timest = get_now_seconds_utc()
     error_code, res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
 
     if error_code == STATUS.SUCCESS and "result" in res:
@@ -253,7 +253,7 @@ def ger_open_orders_kraken(key):
 
     err_msg = "check kraken open orders called"
 
-    timest = get_now_seconds_local()
+    timest = get_now_seconds_utc()
     error_code, res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
 
     open_orders = []
@@ -281,7 +281,7 @@ def get_closed_orders_kraken(key):
 
     err_msg = "check kraken closed orders called"
 
-    timest = get_now_seconds_local()
+    timest = get_now_seconds_utc()
     error_code, res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
 
     closed_orders = []
@@ -297,7 +297,7 @@ def get_closed_orders_kraken(key):
 
 def get_orders_kraken(key):
 
-    timest = get_now_seconds_local()
+    timest = get_now_seconds_utc()
     error_code_1, open_orders = ger_open_orders_kraken(key)
     error_code_2, closed_orders = get_closed_orders_kraken(key)
 

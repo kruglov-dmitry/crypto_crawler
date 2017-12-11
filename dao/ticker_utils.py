@@ -8,7 +8,7 @@ from kraken.ticker_utils import get_ticker_kraken, get_ticker_kraken_url, get_ti
 from poloniex.ticker_utils import get_tickers_poloniex, get_ticker_poloniex_url
 from binance.ticker_utils import get_tickers_binance, get_tickers_binance_url
 
-from utils.time_utils import get_now_seconds_local
+from utils.time_utils import get_now_seconds_utc
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 
 from enums.exchange import EXCHANGE
@@ -60,7 +60,7 @@ def get_ticker_speedup(timest, processor):
 def get_ticker():
     all_tickers = {}
 
-    timest = get_now_seconds_local()
+    timest = get_now_seconds_utc()
 
     bittrex_tickers = {}
     for currency in BITTREX_CURRENCY_PAIRS:
