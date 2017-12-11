@@ -34,12 +34,12 @@ def analyse_tickers():
         if res:
             inform_big_boss(res, pg_conn, POLL_PERIOD_SECONDS)
 
-        all_tickers = []
-        for exchange_id in tickers:
-            all_tickers += tickers[exchange_id].values()
+        # all_tickers = []
+        # for exchange_id in tickers:
+        #     all_tickers += tickers[exchange_id].values()
 
-        print "Total amount of tickers = {num}".format(num = len(all_tickers))
-        load_to_postgres(all_tickers, TICKER_TYPE_NAME, pg_conn)
+        print "Total amount of tickers = {num}".format(num=len(tickers))
+        load_to_postgres(tickers, TICKER_TYPE_NAME, pg_conn)
 
         print "Before sleep..."
         sleep_for(POLL_PERIOD_SECONDS)
