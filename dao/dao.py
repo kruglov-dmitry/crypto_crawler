@@ -1,5 +1,3 @@
-from utils.time_utils import get_now_seconds_utc, get_now_seconds_local
-
 #
 #       FIXME NOTE
 #
@@ -15,8 +13,6 @@ from poloniex.market_utils import add_buy_order_poloniex, add_sell_order_polonie
 from binance.market_utils import add_buy_order_binance, add_sell_order_binance, cancel_order_binance, \
     get_balance_binance
 
-from utils.currency_utils import get_currency_pair_name_by_exchange_id
-
 from bittrex.currency_utils import get_currency_pair_to_bittrex
 from kraken.currency_utils import get_currency_pair_to_kraken
 from poloniex.currency_utils import get_currency_pair_to_poloniex
@@ -24,11 +20,8 @@ from binance.currency_utils import get_currency_pair_to_binance
 
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
-from enums.currency_pair import CURRENCY_PAIR
 from utils.key_utils import get_key_by_exchange
 from utils.file_utils import log_to_file
-
-from collections import defaultdict
 
 from data.BalanceState import BalanceState
 
@@ -117,19 +110,21 @@ def get_balance_by_exchange(exchange_id):
     return res
 
 
-def get_updated_balance(balance_adjust_threshold, prev_balance):
+def get_updated_balance(prev_balance):
     balance = {}
 
     for exchange_id in EXCHANGE.values():
         if exchange_id == EXCHANGE.KRAKEN or exchange_id == EXCHANGE.BINANCE:
             continue
         balance[exchange_id] = copy.deepcopy(prev_balance.balance_per_exchange[exchange_id])
+
         status_code, new_balance_value = get_balance_by_exchange(exchange_id)
+
         if status_code == STATUS.SUCCESS:
             balance[exchange_id] = new_balance_value
             log_to_file(new_balance_value, "debug.txt")
 
-    return BalanceState(balance, balance_adjust_threshold)
+    return BalanceState(balance)
 
 
 def get_updated_order_state(order_state):

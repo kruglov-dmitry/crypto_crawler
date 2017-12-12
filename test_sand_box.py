@@ -4,7 +4,7 @@ from utils.key_utils import load_keys, get_key_by_exchange
 from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
 from bittrex.market_utils import get_balance_bittrex
 from poloniex.market_utils import get_balance_poloniex
-from arbitrage_bot import dummy_order_state_init
+from arbitrage_core import dummy_order_state_init
 from dao.dao import get_updated_order_state
 from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, \
     cancel_order_bittrex

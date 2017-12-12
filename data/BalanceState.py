@@ -1,13 +1,10 @@
 from BaseData import BaseData
-from core.base_analysis import get_change
-from enums.currency import CURRENCY
 from utils.currency_utils import split_currency_pairs
 
 
 class BalanceState(BaseData):
-    def __init__(self, balance_per_exchange, balance_adjust_threshold):
+    def __init__(self, balance_per_exchange):
         self.balance_per_exchange = balance_per_exchange.copy()
-        self.balance_adjust_threshold = balance_adjust_threshold
 
     def __str__(self):
         str_repr = ""
@@ -15,22 +12,6 @@ class BalanceState(BaseData):
             str_repr += str(self.balance_per_exchange[b]) + "\n"
 
         return str_repr
-
-    def is_there_disbalance(self, currency_id, src_exchange_id, dst_exchange_id, balance_threshold=None):
-
-        # FIXME NOTE: I guess it should be excluded from overall fun
-        if currency_id == CURRENCY.BITCOIN:
-            return False
-
-        # FIXME NOTE - add time checks here if it more than 2 minutes - should be at least some warning!
-        difference = get_change(self.balance_per_exchange[src_exchange_id].total_balance[currency_id],
-                                self.balance_per_exchange[dst_exchange_id].total_balance[currency_id],
-                                provide_abs=False)
-
-        if balance_threshold is None:
-            balance_threshold = self.balance_adjust_threshold
-
-        return difference > balance_threshold
 
     def add_balance(self, currency_id, exchange_id, volume):
         prev_volume = self.balance_per_exchange[exchange_id].available_balance[currency_id]
