@@ -23,26 +23,17 @@ def create_screen(screen_name):
     return out
 
 
-def create_screen_windows(screen_name, window_list):
+def create_screen_window(screen_name, window_name):
     """
 
     Create numerous named screen consoles in screen with name screen_name
 
     :param screen_name:
-    :param window_list:
+    :param window_name:
     :return: False, if assert failed or command output
     """
 
-    try:
-        assert hasattr(window_list, '__iter__')
-        assert len(window_list) > 0
-    except AssertionError:
-        return False
-
-    for line in window_list:
-        out = commands.getoutput("/usr/bin/screen -S %s -X screen -t %s" % (screen_name, line))
-
-    return out
+    return commands.getoutput("/usr/bin/screen -S %s -X screen -t %s" % (screen_name, window_name))
 
 
 def run_command_in_screen(screen_name, window_name, command):

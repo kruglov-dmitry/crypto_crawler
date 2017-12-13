@@ -4,12 +4,11 @@ from enums.deal_type import get_deal_type_by_id
 
 
 class ArbitrageConfig:
-    def __init__(self, threshold, sell_exchange_id, buy_exchange_id, pair_id, mode_id, file_name):
+    def __init__(self, threshold, sell_exchange_id, buy_exchange_id, pair_id, mode_id):
         self.threshold = threshold
         self.sell_exchange_id = sell_exchange_id
         self.buy_exchange_id = buy_exchange_id
         self.pair_id = pair_id
-        self.file_name = file_name
         self.mode = mode_id
 
     def __str__(self):
@@ -28,7 +27,3 @@ class ArbitrageConfig:
         )
 
         return str_repr
-
-    @classmethod
-    def from_cfg(cls, file_name):
-        pass
