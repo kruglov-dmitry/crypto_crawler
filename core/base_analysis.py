@@ -11,7 +11,8 @@ def get_matches(objs, key):
     """
     d = defaultdict(list)
     for obj in objs:
-        d[getattr(obj, key)].append(obj)
+        if obj is not None:
+            d[getattr(obj, key)].append(obj)
     return d
 
 

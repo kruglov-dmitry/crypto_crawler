@@ -56,7 +56,12 @@ class ConnectionPool:
         res = []
         for work_unit in work_units:
             if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == 200:
-                res.append(work_unit.method(work_unit.future_result.value.json(), *work_unit.args))
+                some_ticker = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
+                if some_ticker is not None:
+                    res.append(some_ticker)
+                else:
+                    msg = "For url {url} response {resp}".format(url=work_unit.url, resp=work_unit.future_result.value.json())
+                    log_to_file(msg, "bad_tickers.txt")
             else:
                 log_to_file(work_unit.url, "error.txt")
 
