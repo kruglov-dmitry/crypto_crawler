@@ -58,9 +58,9 @@ def init_deal(trade_to_perform, order_state, debug_msg):
     res = STATUS.FAILURE, None
     try:
         if trade_to_perform.trade_type == DEAL_TYPE.SELL:
-            res = sell_by_exchange(trade_to_perform, order_state)
+            res = sell_by_exchange(trade_to_perform)
         else:
-            res = buy_by_exchange(trade_to_perform, order_state)
+            res = buy_by_exchange(trade_to_perform)
     except Exception, e:
         msg = "init_deal: FAILED ERROR WE ALL DIE with following exception: {excp} {dbg}".format(excp=str(e),
                                                                                                  dbg=debug_msg)
@@ -70,7 +70,7 @@ def init_deal(trade_to_perform, order_state, debug_msg):
     return res
 
 
-def init_deals_with_logging(trade_pairs, order_state, difference, file_name):
+def init_deals_with_logging(trade_pairs, difference, file_name):
     global overall_profit_so_far
 
     first_deal = trade_pairs.deal_1
@@ -83,7 +83,7 @@ def init_deals_with_logging(trade_pairs, order_state, difference, file_name):
 
     # market routine
     debug_msg = "Deals details: " + str(first_deal)
-    result_1 = init_deal(first_deal, order_state, debug_msg)
+    result_1 = init_deal(first_deal, debug_msg)
 
     first_deal.execute_time = get_now_seconds_utc()
 
@@ -94,7 +94,7 @@ def init_deals_with_logging(trade_pairs, order_state, difference, file_name):
         return STATUS.FAILURE
 
     debug_msg = "Deals details: " + str(second_deal)
-    result_2 = init_deal(second_deal, order_state, debug_msg)
+    result_2 = init_deal(second_deal, debug_msg)
 
     second_deal.execute_time = get_now_seconds_utc()
 
@@ -170,7 +170,7 @@ def adjust_minimum_volume_by_trading_cap(first_order_book, second_order_book, de
 
 def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
                          action_to_perform,
-                         balance_state, deal_cap, order_state,
+                         balance_state, deal_cap,
                          type_of_deal):
     """
     FIXMR NOTE - add comments!
@@ -231,7 +231,6 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
 
         deal_status = action_to_perform(TradePair(trade_at_first_exchange, trade_at_second_exchange,
                                                   sell_order_book.timest, buy_order_book.timest, type_of_deal),
-                                        order_state,
                                         difference,
                                         "history_trades.txt")
 

@@ -31,7 +31,6 @@ if __name__ == "__main__":
 
     while True:
         balance_state = get_updated_balance_for_both_exchange(src_exchange_id, dst_exchange_id, balance_state)
-        order_state = get_updated_order_state_for_both_exchange(src_exchange_id, dst_exchange_id, order_state)
 
         order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(src_exchange_id, dst_exchange_id, pair_id)
 
@@ -41,5 +40,4 @@ if __name__ == "__main__":
                              init_deals_with_logging,
                              balance_state,
                              deal_cap,
-                             order_state,
                              type_of_deal=DEAL_TYPE.ARBITRAGE)

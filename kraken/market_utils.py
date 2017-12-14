@@ -16,13 +16,17 @@ from data.OrderState import OrderState
 from data.Trade import Trade
 
 
-def add_buy_order_kraken(key, pair_name, price, amount, order_state):
+def add_buy_order_kraken(key, pair_name, price, amount):
+
+    print "add_buy_order_kraken - confirmation of deals via balance\order"
+    raise
+
     max_retry_num = 3
     retry_num = 0
 
     error_code, res = STATUS.FAILURE, None
 
-    prev_num_of_orders = order_state.get_total_num_of_orders()
+    # prev_num_of_orders = order_state.get_total_num_of_orders()
 
     while retry_num < max_retry_num:
         retry_num += 1
@@ -39,7 +43,7 @@ def add_buy_order_kraken(key, pair_name, price, amount, order_state):
 
         order_error_code, new_order_state = get_orders_kraken(key)
 
-        if order_error_code == STATUS.SUCCESS and prev_num_of_orders < new_order_state.get_total_num_of_orders():
+        if order_error_code == STATUS.SUCCESS:  # and prev_num_of_orders < new_order_state.get_total_num_of_orders():
             # FIXME well, ideally we have to look for pair_name, price and amount
             # But for now lets conclude that This crap did it!
 
@@ -81,13 +85,16 @@ def add_buy_order_kraken_impl(key, pair_name, price, amount):
     return res
 
 
-def add_sell_order_kraken(key, pair_name, price, amount, order_state):
+def add_sell_order_kraken(key, pair_name, price, amount):
+    print "add_sell_order_kraken - confirmation of deals via balance\order"
+    raise
+
     max_retry_num = 3
     retry_num = 0
 
     error_code, res = STATUS.FAILURE, None
 
-    prev_num_of_orders = order_state.get_total_num_of_orders()
+    # prev_num_of_orders = order_state.get_total_num_of_orders()
 
     while retry_num < max_retry_num:
         retry_num += 1
