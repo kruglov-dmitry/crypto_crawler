@@ -6,6 +6,7 @@ from urllib import urlencode as _urlencode
 from data.Balance import Balance
 from utils.time_utils import get_now_seconds_utc
 from enums.status import STATUS
+from data_access.PostRequestDetails import PostRequestDetails
 
 """
 time in force:
@@ -131,11 +132,7 @@ def cancel_order_binance(key, pair_name, deal_id):
     return res
 
 
-def get_balance_binance(key):
-    """
-
-    """
-
+def get_balance_binance_post_details(key):
     final_url = BINANCE_CHECK_BALANCE
 
     body = {
@@ -151,15 +148,34 @@ def get_balance_binance(key):
 
     headers = {"X-MBX-APIKEY": key.api_key}
 
+    res = PostRequestDetails(final_url, headers, body)
+
     if should_print_debug():
-        print final_url, headers, body
+        print res
+
+    return res
+
+
+def get_balance_binance_result_processor(json_document, timest):
+    if json_document is not None:
+        return Balance.from_binance(timest, json_document)
+
+    return None
+
+
+def get_balance_binance(key):
+    """
+
+    """
+
+    post_details = get_balance_binance_post_details(key)
 
     err_msg = "check binance balance called"
 
     timest = get_now_seconds_utc()
 
-    error_code, res = send_get_request_with_header(final_url, headers, err_msg)
-    print res
+    error_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg)
+
     if error_code == STATUS.SUCCESS and res is not None:
         res = Balance.from_binance(timest, res)
 

@@ -1,7 +1,10 @@
 from constants import BITTREX_CANCEL_ORDER, BITTREX_BUY_ORDER, BITTREX_SELL_ORDER, BITTREX_CHECK_BALANCE
 from debug_utils import should_print_debug
 from utils.key_utils import signed_string, generate_nonce
+
 from data_access.internet import send_post_request_with_header
+from data_access.PostRequestDetails import PostRequestDetails
+
 from urllib import urlencode as _urlencode
 from data.Balance import Balance
 from utils.time_utils import get_now_seconds_utc
@@ -87,6 +90,30 @@ def cancel_order_bittrex(key, deal_id):
     return res
 
 
+def get_balance_bittrex_post_details(key):
+    final_url = BITTREX_CHECK_BALANCE + key.api_key + "&nonce=" + str(generate_nonce())
+
+    body = {
+    }
+
+    final_url += _urlencode(body)
+
+    headers = {"apisign": signed_string(final_url, key.secret)}
+
+    res = PostRequestDetails(final_url, headers, body)
+    if should_print_debug():
+        print res
+
+    return res
+
+
+def get_balance_bittrex_result_processor(json_document, timest):
+    if json_document is not None and "result" in json_document:
+        return Balance.from_poloniex(timest, json_document["result"])
+
+    return None
+
+
 def get_balance_bittrex(key):
     """
         https://bittrex.com/api/v1.1/account/getbalances?apikey=8a2dd16465b0469197574ec0a516badb&nonce=1508507525325
@@ -108,25 +135,13 @@ def get_balance_bittrex(key):
 
     """
 
-    final_url = BITTREX_CHECK_BALANCE + key.api_key + "&nonce=" + str(generate_nonce())
-
-    body = {
-    }
-
-    final_url += _urlencode(body)
-
-    print final_url, type(final_url)
-
-    headers = {"apisign": signed_string(final_url, key.secret)}
-
-    if should_print_debug():
-        print final_url, headers, body
+    post_details = get_balance_bittrex_post_details(key)
 
     err_msg = "check bittrex balance called"
 
     timest = get_now_seconds_utc()
 
-    error_code, res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg, max_tries=3)
 
     if error_code == STATUS.SUCCESS and "result" in res:
         res = Balance.from_bittrex(timest, res["result"])

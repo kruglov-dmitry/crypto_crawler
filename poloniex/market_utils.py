@@ -5,6 +5,7 @@ from debug_utils import should_print_debug
 from data.Balance import Balance
 from utils.time_utils import get_now_seconds_utc
 from enums.status import STATUS
+from data_access.PostRequestDetails import PostRequestDetails
 
 
 def add_buy_order_poloniex(key, pair_name, price, amount):
@@ -85,6 +86,31 @@ def cancel_order_poloniex(key, deal_id):
     return res
 
 
+def get_balance_poloniex_post_details(key):
+    body = {
+        'command': 'returnCompleteBalances',
+        'nonce': generate_nonce()
+    }
+
+    headers = {"Key": key.api_key, "Sign": signed_body(body, key.secret)}
+
+    # https://poloniex.com/tradingApi
+    final_url = POLONIEX_CHECK_BALANCE
+
+    res = PostRequestDetails(final_url, headers, body)
+    if should_print_debug():
+        print res
+
+    return res
+
+
+def get_balance_poloniex_result_processor(json_document, timest):
+    if json_document is not None:
+        return Balance.from_poloniex(timest, json_document)
+
+    return None
+
+
 def get_balance_poloniex(key):
     """
     https://poloniex.com/tradingApi
@@ -96,23 +122,12 @@ def get_balance_poloniex(key):
 
     """
 
-    body = {
-        'command': 'returnCompleteBalances',
-        'nonce': generate_nonce()
-    }
-
-    headers = {"Key": key.api_key, "Sign": signed_body(body, key.secret)}
-
-    # https://poloniex.com/tradingApi
-    final_url = POLONIEX_CHECK_BALANCE
-
-    if should_print_debug():
-        print final_url, headers, body
+    post_details = get_balance_poloniex_post_details(key)
 
     err_msg = "check poloniex balance called"
 
     timest = get_now_seconds_utc()
-    error_code, res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg, max_tries=3)
 
     if error_code == STATUS.SUCCESS:
         res = Balance.from_poloniex(timest, res)

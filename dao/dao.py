@@ -4,14 +4,10 @@
 #   Reconsider imports below
 #
 
-from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, cancel_order_bittrex, \
-    get_balance_bittrex
-from kraken.market_utils import add_buy_order_kraken, add_sell_order_kraken, cancel_order_kraken, \
-    get_balance_kraken, get_orders_kraken
-from poloniex.market_utils import add_buy_order_poloniex, add_sell_order_poloniex, cancel_order_poloniex, \
-    get_balance_poloniex
-from binance.market_utils import add_buy_order_binance, add_sell_order_binance, cancel_order_binance, \
-    get_balance_binance
+from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, cancel_order_bittrex
+from kraken.market_utils import add_buy_order_kraken, add_sell_order_kraken, cancel_order_kraken
+from poloniex.market_utils import add_buy_order_poloniex, add_sell_order_poloniex, cancel_order_poloniex
+from binance.market_utils import add_buy_order_binance, add_sell_order_binance, cancel_order_binance
 
 from bittrex.currency_utils import get_currency_pair_to_bittrex
 from kraken.currency_utils import get_currency_pair_to_kraken
@@ -22,10 +18,6 @@ from enums.exchange import EXCHANGE
 from enums.status import STATUS
 from utils.key_utils import get_key_by_exchange
 from utils.file_utils import log_to_file
-
-from data.BalanceState import BalanceState
-
-import copy
 
 
 def buy_by_exchange(trade):
@@ -89,42 +81,6 @@ def cancel_by_exchange(trade):
         print "cancel_by_exchange - Unknown exchange! ", trade
 
     return res
-
-
-def get_balance_by_exchange(exchange_id):
-    res = STATUS.FAILURE, None
-
-    key = get_key_by_exchange(exchange_id)
-
-    if exchange_id == EXCHANGE.BITTREX:
-        res = get_balance_bittrex(key)
-    elif exchange_id == EXCHANGE.KRAKEN:
-        res = get_balance_kraken(key)
-    elif exchange_id == EXCHANGE.POLONIEX:
-        res = get_balance_poloniex(key)
-    elif exchange_id == EXCHANGE.BINANCE:
-        res = get_balance_binance(key)
-    else:
-        print "show_balance_by_exchange - Unknown exchange! ", exchange_id
-
-    return res
-
-
-def get_updated_balance(prev_balance):
-    balance = {}
-
-    for exchange_id in EXCHANGE.values():
-        if exchange_id == EXCHANGE.KRAKEN or exchange_id == EXCHANGE.BINANCE:
-            continue
-        balance[exchange_id] = copy.deepcopy(prev_balance.balance_per_exchange[exchange_id])
-
-        status_code, new_balance_value = get_balance_by_exchange(exchange_id)
-
-        if status_code == STATUS.SUCCESS:
-            balance[exchange_id] = new_balance_value
-            log_to_file(new_balance_value, "debug.txt")
-
-    return BalanceState(balance)
 
 
 def get_updated_order_state(order_state):
