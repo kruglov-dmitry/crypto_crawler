@@ -4,7 +4,7 @@ from utils.key_utils import signed_body_256, signed_string, generate_nonce
 from data_access.internet import send_get_request_with_header, send_post_request_with_header, send_delete_request_with_header
 from urllib import urlencode as _urlencode
 from data.Balance import Balance
-from utils.time_utils import get_now_seconds_utc
+from utils.time_utils import get_now_seconds_utc, get_now_seconds_utc_ms
 from enums.status import STATUS
 from data_access.PostRequestDetails import PostRequestDetails
 
@@ -27,7 +27,7 @@ def add_buy_order_binance(key, pair_name, price, amount):
         "type": "LIMIT",
         "timeInForce": "GTC",
         "recvWindow": 5000,
-        "timestamp": generate_nonce(),
+        "timestamp": get_now_seconds_utc_ms(),
         "quantity": amount,
         "price": price
     }
@@ -69,7 +69,7 @@ def add_sell_order_binance(key, pair_name, price, amount):
         "type": "LIMIT",
         "timeInForce": "GTC",
         "recvWindow": 5000,
-        "timestamp": generate_nonce(),
+        "timestamp": get_now_seconds_utc_ms(),
         "quantity": amount,
         "price": price
     }
@@ -106,7 +106,7 @@ def cancel_order_binance(key, pair_name, deal_id):
 
     body = {
         "recvWindow": 5000,
-        "timestamp": generate_nonce(),
+        "timestamp": get_now_seconds_utc(),
         "symbol": pair_name,
         "orderId": deal_id
     }
@@ -136,7 +136,7 @@ def get_balance_binance_post_details(key):
     final_url = BINANCE_CHECK_BALANCE
 
     body = {
-        "timestamp": generate_nonce(),
+        "timestamp": get_now_seconds_utc_ms(),
         "recvWindow": 5000
     }
 
@@ -150,14 +150,14 @@ def get_balance_binance_post_details(key):
 
     res = PostRequestDetails(final_url, headers, body)
 
-    if should_print_debug():
-        print res
+    # if should_print_debug():
+    #    print res
 
     return res
 
 
 def get_balance_binance_result_processor(json_document, timest):
-    if json_document is not None:
+    if json_document is not None and "balances" in json_document:
         return Balance.from_binance(timest, json_document)
 
     return None
@@ -176,7 +176,7 @@ def get_balance_binance(key):
 
     error_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg)
 
-    if error_code == STATUS.SUCCESS and res is not None:
+    if error_code == STATUS.SUCCESS and res is not None and "balances" in res:
         res = Balance.from_binance(timest, res)
 
     return error_code, res

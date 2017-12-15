@@ -97,8 +97,9 @@ def get_balance_poloniex_post_details(key):
     final_url = POLONIEX_CHECK_BALANCE
 
     res = PostRequestDetails(final_url, headers, body)
-    if should_print_debug():
-        print res
+
+    # if should_print_debug():
+    #    print res
 
     return res
 

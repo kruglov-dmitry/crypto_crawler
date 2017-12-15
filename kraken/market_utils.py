@@ -188,8 +188,9 @@ def get_balance_kraken_post_details(key):
     headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_CHECK_BALANCE, key.secret)}
 
     res = PostRequestDetails(final_url, headers, body)
-    if should_print_debug():
-        print res
+
+    # if should_print_debug():
+    #    print res
 
     return res
 

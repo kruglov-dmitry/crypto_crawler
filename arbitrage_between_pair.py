@@ -43,8 +43,8 @@ if __name__ == "__main__":
 
         order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, timest, processor)
 
-        search_for_arbitrage(cfg.sell_exchange_id,
-                             cfg.buy_exchange_id,
+        search_for_arbitrage(order_book_src,
+                             order_book_dst,
                              cfg.threshold,
                              init_deals_with_logging,
                              balance_state,

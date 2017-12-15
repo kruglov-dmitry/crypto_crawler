@@ -101,8 +101,9 @@ def get_balance_bittrex_post_details(key):
     headers = {"apisign": signed_string(final_url, key.secret)}
 
     res = PostRequestDetails(final_url, headers, body)
-    if should_print_debug():
-        print res
+
+    # if should_print_debug():
+    #    print res
 
     return res
 

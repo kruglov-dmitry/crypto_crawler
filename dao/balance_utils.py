@@ -56,7 +56,7 @@ def get_updated_balance(prev_balance):
 
 
 def get_updated_balance_arbitrage(cfg, timest, balance_state, processor):
-    order_book_async_requests = []
+    res = []
 
     for exchange_id in [cfg.sell_exchange_id, cfg.buy_exchange_id]:
         pair_name = get_currency_pair_name_by_exchange_id(cfg.pair_id, exchange_id)
@@ -66,18 +66,9 @@ def get_updated_balance_arbitrage(cfg, timest, balance_state, processor):
             print msg
             raise
 
-        key = get_key_by_exchange(exchange_id)
-
-        method_for_post_details_retrieval = get_balance_post_details_generator(exchange_id)
-        post_details = method_for_post_details_retrieval(key)
-        constructor = get_balance_constructor_by_exchange_id(exchange_id)
-
-        wu = WorkUnit(post_details.final_url, constructor, timest)
-        wu.add_post_details(post_details)
-
-        order_book_async_requests.append(wu)
-
-    res = processor.process_async_post(order_book_async_requests, HTTP_TIMEOUT_SECONDS)
+        status_code, balance = get_balance_by_exchange(exchange_id)
+        if balance is not None:
+            res.append(balance)
 
     print len(res)
     assert(len(res)==2)
