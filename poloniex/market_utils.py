@@ -91,7 +91,6 @@ def get_balance_poloniex_post_details(key):
         'command': 'returnCompleteBalances',
         'nonce': generate_nonce()
     }
-
     headers = {"Key": key.api_key, "Sign": signed_body(body, key.secret)}
 
     # https://poloniex.com/tradingApi

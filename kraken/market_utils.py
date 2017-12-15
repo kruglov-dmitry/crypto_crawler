@@ -196,7 +196,7 @@ def get_balance_kraken_post_details(key):
 
 def get_balance_kraken_result_processor(json_document, timest):
     if json_document is not None and "result" in json_document:
-        return Balance.from_poloniex(timest, json_document["result"])
+        return Balance.from_kraken(timest, json_document["result"])
 
     return None
 

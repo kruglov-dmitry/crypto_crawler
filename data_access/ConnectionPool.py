@@ -66,7 +66,7 @@ class ConnectionPool:
             some_future = self.network_pool.spawn(self.session.post,
                                                   work_unit.post_details.final_url,
                                                   data=work_unit.post_details.body,
-                                                  headers=work_unit.post_details.header,
+                                                  headers=work_unit.post_details.headers,
                                                   timeout=timeout)
             work_unit.add_future(some_future)
             futures.append(some_future)
@@ -75,9 +75,15 @@ class ConnectionPool:
         res = []
         for work_unit in work_units:
             if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == 200:
-                res.append(work_unit.method(work_unit.future_result.value.json(), *work_unit.args))
+                some_result = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
+                res.append(some_result)
             else:
                 log_to_file(work_unit.url, "error.txt")
+                try:
+                    log_to_file(work_unit.future_result.value.status_code, "error.txt")
+                    log_to_file(work_unit.future_result.value.json(), "error.txt")
+                except:
+                    pass
 
         return res
 

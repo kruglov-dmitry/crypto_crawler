@@ -6,7 +6,6 @@ from enums.exchange import EXCHANGE
 from data.BalanceState import BalanceState
 
 from utils.file_utils import log_to_file
-from utils.key_utils import get_key_by_exchange
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 
 from bittrex.market_utils import get_balance_bittrex, get_balance_bittrex_post_details, get_balance_bittrex_result_processor
@@ -17,6 +16,7 @@ from binance.market_utils import get_balance_binance, get_balance_binance_post_d
 from constants import HTTP_TIMEOUT_SECONDS
 
 from data_access.ConnectionPool import WorkUnit
+from utils.key_utils import get_key_by_exchange
 
 
 def get_balance_by_exchange(exchange_id):
@@ -61,10 +61,15 @@ def get_updated_balance_arbitrage(cfg, timest, balance_state, processor):
     for exchange_id in [cfg.sell_exchange_id, cfg.buy_exchange_id]:
         pair_name = get_currency_pair_name_by_exchange_id(cfg.pair_id, exchange_id)
         if pair_name is None:
-            continue
+            msg = "get_updated_balance_arbitrage: WE ADD ONLY SINGLE PAIR ID!!! " \
+                  "Exchange = {exch} Pair_id = {pair_id}".format(exch=exchange_id, pair_id=cfg.pair_id)
+            print msg
+            raise
+
+        key = get_key_by_exchange(exchange_id)
 
         method_for_post_details_retrieval = get_balance_post_details_generator(exchange_id)
-        post_details = method_for_post_details_retrieval(pair_name, timest)
+        post_details = method_for_post_details_retrieval(key)
         constructor = get_balance_constructor_by_exchange_id(exchange_id)
 
         wu = WorkUnit(post_details.final_url, constructor, timest)
@@ -73,8 +78,13 @@ def get_updated_balance_arbitrage(cfg, timest, balance_state, processor):
         order_book_async_requests.append(wu)
 
     res = processor.process_async_post(order_book_async_requests, HTTP_TIMEOUT_SECONDS)
+
+    print len(res)
+    assert(len(res)==2)
+
     for entry in res:
-        balance_state[entry.exchange_id] = entry
+        print entry
+        balance_state.balance_per_exchange[entry.exchange_id] = entry
 
     return balance_state
 

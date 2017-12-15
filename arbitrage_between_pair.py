@@ -16,15 +16,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Constantly poll two exchange for order book for particular pair "
                                                  "and initiate sell\\buy deals for arbitrage opportunities")
 
-    parser.add_argument('--threshold', action="store", type=float)
-    parser.add_argument('--sell_exchange_id', action="store", type=int)
-    parser.add_argument('--buy_exchange_id', action="store", type=int)
-    parser.add_argument('--pair_id', action="store", type=int)
-    parser.add_argument('--mode_id', action="store", type=int)
+    parser.add_argument('--threshold', action="store", type=float, required=True)
+    parser.add_argument('--sell_exchange_id', action="store", type=int, required=True)
+    parser.add_argument('--buy_exchange_id', action="store", type=int, required=True)
+    parser.add_argument('--pair_id', action="store", type=int, required=True)
+    parser.add_argument('--mode_id', action="store", type=int, required=True)
 
     results = parser.parse_args()
 
-    cfg = ArbitrageConfig(results.threshold, results.sell_exchange_name, results.buy_exchange_name, results.pair_name, results.mode_name)
+    cfg = ArbitrageConfig(results.threshold, results.sell_exchange_id, results.buy_exchange_id, results.pair_id, results.mode_id)
 
     load_keys("./secret_keys")
 
