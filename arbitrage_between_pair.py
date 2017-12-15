@@ -1,5 +1,4 @@
 from utils.key_utils import load_keys
-from enums.deal_type import DEAL_TYPE
 from core.backtest import common_cap_init, dummy_balance_init, dummy_order_state_init
 from utils.time_utils import get_now_seconds_utc
 from arbitrage_core import search_for_arbitrage, init_deals_with_logging
@@ -8,7 +7,7 @@ import argparse
 from data_access.ConnectionPool import ConnectionPool
 from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
-
+from utils.time_utils import sleep_for
 
 
 if __name__ == "__main__":
@@ -42,6 +41,10 @@ if __name__ == "__main__":
         balance_state = get_updated_balance_arbitrage(cfg, balance_state)
 
         order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, timest, processor)
+
+        if order_book_dst is None or order_book_src is None:
+            sleep_for(1)
+            continue
 
         search_for_arbitrage(order_book_src,
                              order_book_dst,

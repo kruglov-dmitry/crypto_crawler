@@ -56,6 +56,7 @@ class ConnectionPool:
             if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == 200:
                 res.append(work_unit.method(work_unit.future_result.value.json(), *work_unit.args))
             else:
+                res.append(None)
                 log_to_file(work_unit.url, "error.txt")
 
         return res

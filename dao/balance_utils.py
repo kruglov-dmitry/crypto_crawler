@@ -67,11 +67,8 @@ def get_updated_balance_arbitrage(cfg, balance_state):
             raise
 
         status_code, balance = get_balance_by_exchange(exchange_id)
-        if balance is not None:
+        if status_code == STATUS.SUCCESS:
             res.append(balance)
-
-    print len(res)
-    assert(len(res)==2)
 
     for entry in res:
         print entry

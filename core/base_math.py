@@ -61,6 +61,5 @@ def get_all_permutation_list(my_list, max_len):
         res = get_all_permutation(wtf, 2)
         print res
         [[1, 2], [1, 3], [2, 1], [2, 3], [3, 1], [3, 2]]
-
     """
     return map(list, itertools.permutations(my_list, max_len))

@@ -194,9 +194,9 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
         msg = "check_highest_bid_bigger_than_lowest_ask: Exchange1 - {exch1} BID = {bid} Exchange2 - {exch2} " \
               "ASK = {ask} DIFF = {diff}".format(
             exch1=get_exchange_name_by_id(sell_order_book.exchange_id),
-            bid=sell_order_book.bid[FIRST].price,
+            bid=float_to_str(sell_order_book.bid[FIRST].price),
             exch2=get_exchange_name_by_id(buy_order_book.exchange_id),
-            ask=buy_order_book.ask[LAST].price,
+            ask=float_to_str(buy_order_book.ask[LAST].price),
             diff=difference)
         print msg
         log_to_file(msg, "debug.txt")

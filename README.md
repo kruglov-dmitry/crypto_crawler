@@ -1,3 +1,14 @@
+# Kill ALL screens with all session MacOs
+screen -ls | awk '{print $1}' | xargs -I{} screen -S {} -X quit
+based on 
+https://stackoverflow.com/questions/1509677/kill-detached-screen-session
+alias cleanscreen="screen -ls | tail -n +2 | head -n -2 | awk '{print $1}'| xargs -I{} screen -S {} -X quit"
+
+MacOs dependencies:
+pip install python-telegram-bot --user
+
+
+
 How to kill all processes:
 ps -ef | grep arbitrage | awk '{print $2}' | xargs kill -9 $1
 
