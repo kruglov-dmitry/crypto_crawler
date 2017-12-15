@@ -39,7 +39,7 @@ if __name__ == "__main__":
 
         timest = get_now_seconds_utc()
 
-        balance_state = get_updated_balance_arbitrage(cfg, timest, balance_state, processor)
+        balance_state = get_updated_balance_arbitrage(cfg, balance_state)
 
         order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, timest, processor)
 

@@ -55,7 +55,7 @@ def get_updated_balance(prev_balance):
     return BalanceState(balance)
 
 
-def get_updated_balance_arbitrage(cfg, timest, balance_state, processor):
+def get_updated_balance_arbitrage(cfg, balance_state):
     res = []
 
     for exchange_id in [cfg.sell_exchange_id, cfg.buy_exchange_id]:
