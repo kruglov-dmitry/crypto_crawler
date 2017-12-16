@@ -9,7 +9,7 @@ from dao.order_book_utils import get_order_book_by_pair
 from dao.balance_utils import update_balance_by_exchange
 
 from utils.key_utils import load_keys
-from debug_utils import should_print_debug
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, LOG_ALL_MARKET_NETWORK_RELATED_CRAP
 from utils.time_utils import get_now_seconds_utc
 from utils.currency_utils import split_currency_pairs, get_pair_name_by_id
 from utils.exchange_utils import get_exchange_name_by_id
@@ -65,7 +65,7 @@ def init_deal(trade_to_perform, debug_msg):
     except Exception, e:
         msg = "init_deal: FAILED ERROR WE ALL DIE with following exception: {excp} {dbg}".format(excp=str(e),
                                                                                                  dbg=debug_msg)
-        print msg
+        print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, "error.log")
 
     # force update balance at exchanges
@@ -93,8 +93,8 @@ def init_deals_with_logging(trade_pairs, difference, file_name):
 
     if result_1[0] != STATUS.SUCCESS:
         msg = "Failing of adding FIRST deal! {deal}".format(deal=str(first_deal))
-        print msg
-        log_to_file(msg, file_name)
+        print_to_console(msg, LOG_ALL_ERRORS)
+        log_to_file(msg, "error.log")
         return STATUS.FAILURE
 
     debug_msg = "Deals details: " + str(second_deal)
@@ -104,8 +104,8 @@ def init_deals_with_logging(trade_pairs, difference, file_name):
 
     if result_1[0] == STATUS.FAILURE or result_2[0] == STATUS.FAILURE:
         msg = "Failing of adding deals! {deal_pair}".format(deal_pair=str(trade_pairs))
-        print msg
-        log_to_file(msg, file_name)
+        print_to_console(msg, LOG_ALL_ERRORS)
+        log_to_file(msg, "error.log")
         return STATUS.FAILURE
 
     overall_profit_so_far += trade_pairs.current_profit
@@ -115,8 +115,7 @@ def init_deals_with_logging(trade_pairs, difference, file_name):
                                                tot=float_to_str(overall_profit_so_far),
                                                diff=difference, deal=str(trade_pairs))
 
-    print msg
-    # Logging TODO save to postgres
+    print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
     log_to_file(trade_pairs, file_name)
 
     send_single_message(msg)
@@ -142,7 +141,7 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
     min_volume = min(first_order_book.bid[FIRST].volume, second_order_book.ask[LAST].volume)
     if min_volume <= 0:
         msg = "determine_minimum_volume - something severely wrong - NEGATIVE min price: {pr}".format(pr=min_volume)
-        print msg
+        print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, "error.txt")
         raise
 
@@ -201,7 +200,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
             exch2=get_exchange_name_by_id(buy_order_book.exchange_id),
             ask=float_to_str(buy_order_book.ask[LAST].price),
             diff=difference)
-        print msg
+        print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
         log_to_file(msg, "debug.txt")
 
     if difference >= threshold:
@@ -218,7 +217,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
                 second_exchange=get_exchange_name_by_id(buy_order_book.exchange_id),
                 vol1=float_to_str(sell_order_book.bid[FIRST].volume),
                 vol2=float_to_str(buy_order_book.ask[LAST].volume))
-            print msg
+            print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
             log_to_file(msg, "debug.txt")
             send_single_message(msg)
 
@@ -291,6 +290,7 @@ def mega_analysis(order_book, threshold, balance_state, deal_cap, action_to_perf
                              balance_state,
                              deal_cap,
                              type_of_deal=DEAL_TYPE.ARBITRAGE)
+
 
 def run_bot(deal_threshold):
     load_keys("./secret_keys")

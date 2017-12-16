@@ -17,6 +17,7 @@ from binance.currency_utils import get_currency_pair_to_binance
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
 from utils.key_utils import get_key_by_exchange
+from debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.file_utils import log_to_file
 
 
@@ -37,7 +38,9 @@ def buy_by_exchange(trade):
         currency = get_currency_pair_to_binance(trade.pair_id)
         res = add_buy_order_binance(key, currency, trade.price, trade.volume)
     else:
-        print "buy_by_exchange - Unknown exchange! ", trade
+        msg = "buy_by_exchange - Unknown exchange! Details: {res}".format(res=str(trade))
+        print_to_console(msg, LOG_ALL_ERRORS)
+        log_to_file(msg, "error.log")
 
     return res
 
@@ -59,7 +62,9 @@ def sell_by_exchange(trade):
         currency = get_currency_pair_to_binance(trade.pair_id)
         res = add_sell_order_binance(key, currency, trade.price, trade.volume)
     else:
-        print "sell_by_exchange - Unknown exchange! ", trade
+        msg = "buy_by_exchange - Unknown exchange! Details: {res}".format(res=str(trade))
+        print_to_console(msg, LOG_ALL_ERRORS)
+        log_to_file(msg, "error.log")
 
     return res
 
@@ -78,12 +83,18 @@ def cancel_by_exchange(trade):
         pair_name = get_currency_pair_to_binance(trade.pair_id)
         res = cancel_order_binance(key, pair_name, trade.deal_id)
     else:
-        print "cancel_by_exchange - Unknown exchange! ", trade
+        msg = "cancel_by_exchange - Unknown exchange! Details: {res}".format(res=str(trade))
+        print_to_console(msg, LOG_ALL_ERRORS)
+        log_to_file(msg, "error.log")
 
     return res
 
 
 def get_updated_order_state(order_state):
+
+    print "DAO: get_updated_order_state"
+    raise
+
     new_order_state = {EXCHANGE.BITTREX: None,
                        EXCHANGE.POLONIEX: None,
                        EXCHANGE.KRAKEN: order_state[EXCHANGE.KRAKEN],

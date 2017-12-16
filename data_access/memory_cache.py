@@ -2,6 +2,7 @@ import redis as _redis
 from constants import CACHE_HOST, CACHE_PORT
 from utils.exchange_utils import get_exchange_name_by_id
 import pickle
+import time
 
 
 local_cache = None
@@ -20,7 +21,8 @@ class MemoryCache:
         return self.r.incr('nonce')
 
     def _init_nonce(self):
-        pass
+        ts = int(round(time.time() * 1000))
+        self.r.set('nonce', str(ts))
 
     def update_balance(self, exchange_name, balance):
         self.r.set(exchange_name, pickle.dumps(balance))

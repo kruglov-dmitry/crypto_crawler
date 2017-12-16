@@ -1,6 +1,7 @@
 from constants import BITTREX_GET_TICKER
 from data.Ticker import Ticker
-from debug_utils import should_print_debug
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_OTHER_STUFF, LOG_ALL_ERRORS
+from utils.file_utils import log_to_file
 from data_access.internet import send_request
 from enums.status import STATUS
 
@@ -10,7 +11,7 @@ def get_ticker_bittrex_url(pair_name, timest):
     final_url = BITTREX_GET_TICKER + pair_name
 
     if should_print_debug():
-        print final_url
+        print_to_console(final_url, LOG_ALL_OTHER_STUFF)
 
     return final_url
 
@@ -26,8 +27,10 @@ def get_ticker_bittrex(pair_name, timest):
         try:
             return Ticker.from_bittrex(pair_name, timest, r["result"])
         except Exception, e:
-            print "Error get ticket bitrex", str(e), "for data"
-            print r["result"]
+            msg = "get_ticker_bittrex: Error get ticket bitrex: {excp} for data: {dd}".format(excp=str(e),
+                                                                                              dd=r["result"])
+            print_to_console(msg, LOG_ALL_ERRORS)
+            log_to_file(msg, "error.log")
 
     return None
 
@@ -37,7 +40,9 @@ def get_ticker_bittrex_result_processor(json_document, pair_name, timest):
         try:
             return Ticker.from_bittrex(pair_name, timest, json_document["result"])
         except Exception, e:
-            print "Error get ticket bitrex", str(e), "for data"
-            print json_document["result"]
+            msg = "get_ticker_bittrex: Error get ticket bitrex: {excp} for data: {dd}".format(excp=str(e),
+                                                                                              dd=r["result"])
+            print_to_console(msg, LOG_ALL_ERRORS)
+            log_to_file(msg, "error.log")
 
     return None

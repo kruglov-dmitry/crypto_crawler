@@ -1,6 +1,6 @@
 from constants import POLONIEX_GET_TICKER
 from data.Ticker import Ticker
-from debug_utils import should_print_debug
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG
 from data_access.internet import send_request
 from enums.status import STATUS
 from currency_utils import get_currency_pair_from_poloniex
@@ -10,7 +10,7 @@ def get_ticker_poloniex_url(currency_names, timest):
     final_url = POLONIEX_GET_TICKER
 
     if should_print_debug():
-        print final_url
+        print_to_console(final_url, LOG_ALL_DEBUG)
 
     return final_url
 

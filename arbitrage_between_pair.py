@@ -1,16 +1,16 @@
-from utils.key_utils import load_keys
-from core.backtest import common_cap_init, dummy_balance_init, dummy_order_state_init
-from utils.time_utils import get_now_seconds_utc
-from arbitrage_core import search_for_arbitrage, init_deals_with_logging, adjust_currency_balance
-from data.ArbitrageConfig import ArbitrageConfig
 import argparse
-from data_access.ConnectionPool import ConnectionPool
+
+from core.arbitrage_core import search_for_arbitrage, init_deals_with_logging, adjust_currency_balance
+from core.backtest import common_cap_init, dummy_balance_init, dummy_order_state_init
 from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
-from utils.time_utils import sleep_for
+from data.ArbitrageConfig import ArbitrageConfig
+from data_access.ConnectionPool import ConnectionPool
 from data_access.memory_cache import local_cache
 from enums.deal_type import DEAL_TYPE
-
+from utils.key_utils import load_keys
+from utils.time_utils import get_now_seconds_utc
+from utils.time_utils import sleep_for
 
 if __name__ == "__main__":
 

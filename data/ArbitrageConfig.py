@@ -12,9 +12,8 @@ class ArbitrageConfig:
         self.mode = mode_id
 
     def __str__(self):
-        str_repr = "File name: {fn} Sell=Bid exchange - {sell_exch} id = {id1} Buy-Ask exchange - {buy_exch} " \
+        str_repr = "Sell=Bid exchange - {sell_exch} id = {id1} Buy-Ask exchange - {buy_exch} " \
                    "id = {id2} currency pair - {pair} Arbitrage Threshold = {thrshld} mode = {md} id = {id3}".format(
-            fn=self.file_name,
             sell_exch=get_exchange_name_by_id(self.sell_exchange_id),
             id1=self.sell_exchange_id,
             buy_exch=get_exchange_name_by_id(self.buy_exchange_id),

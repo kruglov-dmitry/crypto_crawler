@@ -1,9 +1,8 @@
 from constants import BITTREX_GET_OHLC
 from data.Candle import Candle
-from debug_utils import should_print_debug
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG
 from data_access.internet import send_request
 from enums.status import STATUS
-from utils.file_utils import log_to_file
 
 
 def get_ohlc_bittrex_url(currency, date_start, date_end, period):
@@ -13,15 +12,13 @@ def get_ohlc_bittrex_url(currency, date_start, date_end, period):
     final_url = BITTREX_GET_OHLC + period + "&marketName=" + currency + "&_=" + str(date_start)
 
     if should_print_debug():
-        print final_url
+        print_to_console(final_url, LOG_ALL_DEBUG)
 
     return final_url
 
 
 def get_ohlc_bittrex_result_processor(json_responce, currency, date_start, date_end):
     result_set = []
-
-    # log_to_file(json_responce, "bittrex_ohlc.txt")
 
     if json_responce is not None and "result" in json_responce:
         # result":[{"O":0.08184725,"H":0.08184725,"L":0.08181559,"C":0.08181559,"V":9.56201864,"T":"2017-07-21T17:26:00","BV":0.78232812},

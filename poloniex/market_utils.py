@@ -1,12 +1,17 @@
-from utils.key_utils import signed_body
-from data_access.memory_cache import generate_nonce
 from constants import POLONIEX_CANCEL_ORDER, POLONIEX_BUY_ORDER, POLONIEX_SELL_ORDER, POLONIEX_CHECK_BALANCE
+
+from data_access.memory_cache import generate_nonce
 from data_access.internet import send_post_request_with_header
-from debug_utils import should_print_debug
-from data.Balance import Balance
-from utils.time_utils import get_now_seconds_utc
-from enums.status import STATUS
 from data_access.PostRequestDetails import PostRequestDetails
+
+from enums.status import STATUS
+from data.Balance import Balance
+
+from utils.key_utils import signed_body
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, \
+    LOG_ALL_MARKET_NETWORK_RELATED_CRAP
+from utils.time_utils import get_now_seconds_utc
+from utils.file_utils import log_to_file
 
 
 def add_buy_order_poloniex(key, pair_name, price, amount):
@@ -23,14 +28,18 @@ def add_buy_order_poloniex(key, pair_name, price, amount):
     final_url = POLONIEX_BUY_ORDER
 
     if should_print_debug():
-        print final_url, headers, body
+        msg = "add_buy_order_poloniex: url - {url} headers - {headers} body - {body}".format(url=final_url,
+                                                                                            headers=headers, body=body)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(msg, "market_utils.log")
 
     err_msg = "add_buy_order poloniex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
     res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
 
     if should_print_debug():
-        print res
+        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(res, "market_utils.log")
 
     return res
 
@@ -50,14 +59,18 @@ def add_sell_order_poloniex(key, pair_name, price, amount):
     final_url = POLONIEX_SELL_ORDER
 
     if should_print_debug():
-        print final_url, headers, body
+        msg = "add_sell_order_poloniex: url - {url} headers - {headers} body - {body}".format(url=final_url,
+                                                                                            headers=headers, body=body)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(msg, "market_utils.log")
 
     err_msg = "add_sell_order poloniex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
     res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
 
     if should_print_debug():
-        print res
+        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(res, "market_utils.log")
 
     return res
 
@@ -75,14 +88,18 @@ def cancel_order_poloniex(key, deal_id):
     final_url = POLONIEX_CANCEL_ORDER
 
     if should_print_debug():
-        print final_url, headers, body
+        msg = "add_sell_order_poloniex: url - {url} headers - {headers} body - {body}".format(url=final_url,
+                                                                                            headers=headers, body=body)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(msg, "market_utils.log")
 
     err_msg = "cancel poloniex called for {deal_id}".format(deal_id=deal_id)
 
     res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
 
     if should_print_debug():
-        print res
+        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(res, "market_utils.log")
 
     return res
 
@@ -99,8 +116,8 @@ def get_balance_poloniex_post_details(key):
 
     res = PostRequestDetails(final_url, headers, body)
 
-    # if should_print_debug():
-    #    print res
+    if should_print_debug():
+        print_to_console(res, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
 
     return res
 

@@ -24,8 +24,6 @@ def analyse_tickers():
 
     while True:
 
-        # tickers = get_ticker()
-
         timest = get_now_seconds_utc()
         tickers = get_ticker_speedup(timest, processor)
 
@@ -33,10 +31,6 @@ def analyse_tickers():
 
         if res:
             inform_big_boss(res, pg_conn, POLL_PERIOD_SECONDS)
-
-        # all_tickers = []
-        # for exchange_id in tickers:
-        #     all_tickers += tickers[exchange_id].values()
 
         print "Total amount of tickers = {num}".format(num=len(tickers))
         load_to_postgres(tickers, TICKER_TYPE_NAME, pg_conn)
@@ -47,5 +41,4 @@ def analyse_tickers():
 
 if __name__ == "__main__":
     # FIXME NOTE: read settings from cfg
-    # FIXME NOTE 2: some time it hangs at socket read, anti ddos?
     analyse_tickers()

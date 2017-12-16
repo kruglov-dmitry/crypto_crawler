@@ -2,6 +2,7 @@ from constants import POLONIEX_GET_HISTORY
 from data.OrderHistory import OrderHistory
 from debug_utils import should_print_debug
 from data_access.internet import send_request
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_OTHER_STUFF
 from enums.status import STATUS
 
 
@@ -10,7 +11,7 @@ def get_history_poloniex_url(pair_name, prev_time, now_time):
     final_url = POLONIEX_GET_HISTORY + pair_name + "&start=" + str(prev_time) + "&end=" + str(now_time)
 
     if should_print_debug():
-        print final_url
+        print_to_console(final_url, LOG_ALL_OTHER_STUFF)
 
     return final_url
 

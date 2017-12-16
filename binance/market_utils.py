@@ -1,12 +1,19 @@
-from constants import BINANCE_CANCEL_ORDER, BINANCE_BUY_ORDER, BINANCE_SELL_ORDER, BINANCE_CHECK_BALANCE
-from debug_utils import should_print_debug
-from utils.key_utils import signed_body_256
-from data_access.internet import send_get_request_with_header, send_post_request_with_header, send_delete_request_with_header
 from urllib import urlencode as _urlencode
-from data.Balance import Balance
-from utils.time_utils import get_now_seconds_utc, get_now_seconds_utc_ms
-from enums.status import STATUS
+
+from data_access.internet import send_get_request_with_header, send_post_request_with_header, \
+    send_delete_request_with_header
 from data_access.PostRequestDetails import PostRequestDetails
+
+from data.Balance import Balance
+
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, \
+    LOG_ALL_MARKET_NETWORK_RELATED_CRAP
+from utils.key_utils import signed_body_256
+from utils.time_utils import get_now_seconds_utc, get_now_seconds_utc_ms
+from utils.file_utils import log_to_file
+
+from constants import BINANCE_CANCEL_ORDER, BINANCE_BUY_ORDER, BINANCE_SELL_ORDER, BINANCE_CHECK_BALANCE
+from enums.status import STATUS
 
 """
 time in force:
@@ -41,7 +48,9 @@ def add_buy_order_binance(key, pair_name, price, amount):
     headers = {"X-MBX-APIKEY": key.api_key}
 
     if should_print_debug():
-        print final_url, headers, body
+        msg = "add_buy_order_binance: url - {url} headers - {headers} body - {body}".format(url=final_url, headers=headers, body=body)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(msg, "market_utils.log")
 
     err_msg = "add_buy_order_binance  called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
@@ -52,9 +61,9 @@ def add_buy_order_binance(key, pair_name, price, amount):
 
     """
 
-
     if should_print_debug():
-        print res
+        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(res, "market_utils.log")
 
     return res
 
@@ -83,7 +92,11 @@ def add_sell_order_binance(key, pair_name, price, amount):
     headers = {"X-MBX-APIKEY": key.api_key}
 
     if should_print_debug():
-        print final_url, headers, body
+        msg = "add_sell_order_binance: url - {url} headers - {headers} body - {body}".format(url=final_url,
+                                                                                             headers=headers,
+                                                                                             body=body)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(msg, "market_utils.log")
 
     err_msg = "add_sell_order binance called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
@@ -95,7 +108,8 @@ def add_sell_order_binance(key, pair_name, price, amount):
     """
 
     if should_print_debug():
-        print res
+        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(res, "market_utils.log")
 
     return res
 
@@ -120,14 +134,19 @@ def cancel_order_binance(key, pair_name, deal_id):
     headers = {"X-MBX-APIKEY": key.api_key}
 
     if should_print_debug():
-        print final_url, headers, body
+        msg = "cancel_order_binance: url - {url} headers - {headers} body - {body}".format(url=final_url,
+                                                                                             headers=headers,
+                                                                                             body=body)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(msg, "market_utils.log")
 
     err_msg = "cancel binance order with id {id}".format(id=deal_id)
 
     res = send_delete_request_with_header(final_url, headers, {}, err_msg, max_tries=3)
 
     if should_print_debug():
-        print res
+        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(res, "market_utils.log")
 
     return res
 
@@ -150,8 +169,8 @@ def get_balance_binance_post_details(key):
 
     res = PostRequestDetails(final_url, headers, body)
 
-    # if should_print_debug():
-    #    print res
+    if should_print_debug():
+        print_to_console(res, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
 
     return res
 

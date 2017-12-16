@@ -1,32 +1,30 @@
-from enums.exchange import EXCHANGE
-from enums.currency import CURRENCY
-from utils.key_utils import load_keys, get_key_by_exchange
-from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
-from bittrex.market_utils import get_balance_bittrex
-from poloniex.market_utils import get_balance_poloniex
-from arbitrage_core import dummy_order_state_init
-from dao.dao import get_updated_order_state
-from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, \
-    cancel_order_bittrex
-from kraken.market_utils import get_orders_kraken, get_balance_kraken, add_buy_order_kraken, \
-    add_sell_order_kraken, cancel_order_kraken
+from profilehooks import timecall
 
-from binance.ticker_utils import get_tickers_binance
-from binance.ohlc_utils import get_ohlc_binance
 from binance.constants import BINANCE_CURRENCY_PAIRS
-from binance.order_book_utils import get_order_book_binance
 from binance.market_utils import add_buy_order_binance, add_sell_order_binance, \
     cancel_order_binance, get_balance_binance
-
-from utils.key_utils import generate_nonce
-from profilehooks import timecall
-from dao.ohlc_utils import get_ohlc_speedup, get_ohlc
-from dao.ticker_utils import get_ticker_speedup
-from data_access.ConnectionPool import ConnectionPool
-
+from binance.ohlc_utils import get_ohlc_binance
+from binance.order_book_utils import get_order_book_binance
+from binance.ticker_utils import get_tickers_binance
+from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, \
+    cancel_order_bittrex
+from bittrex.market_utils import get_balance_bittrex
+from core.arbitrage_core import dummy_order_state_init
+from dao.dao import get_updated_order_state
+from dao.history_utils import get_history_speedup
+from dao.ohlc_utils import get_ohlc
 from dao.ohlc_utils import get_ohlc_speedup
 from dao.order_book_utils import get_order_book_speedup
-from dao.history_utils import get_history_speedup
+from dao.ticker_utils import get_ticker_speedup
+from data_access.ConnectionPool import ConnectionPool
+from enums.currency import CURRENCY
+from enums.exchange import EXCHANGE
+from kraken.market_utils import get_orders_kraken, get_balance_kraken, add_buy_order_kraken, \
+    add_sell_order_kraken, cancel_order_kraken
+from poloniex.market_utils import get_balance_poloniex
+from utils.key_utils import generate_nonce
+from utils.key_utils import load_keys, get_key_by_exchange
+from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
 
 POLL_PERIOD_SECONDS = 900
 

@@ -12,6 +12,7 @@ from utils.time_utils import get_now_seconds_utc
 from utils.file_utils import log_to_file
 
 from dao.db import init_pg_connection, get_order_book_by_time, get_time_entries
+from arbitrage_core import mega_analysis
 
 
 def dummy_balance_init(timest, default_volume, default_available_volume):
@@ -147,8 +148,6 @@ def run_analysis_over_db(deal_threshold):
     current_balance = custom_balance_init(time_entries[0])
     deal_cap = common_cap_init()
 
-    order_state = dummy_order_state_init()
-
     for exch_id in current_balance.balance_per_exchange:
         print current_balance.balance_per_exchange[exch_id]
 
@@ -159,7 +158,6 @@ def run_analysis_over_db(deal_threshold):
             mega_analysis(order_book_grouped_by_time,
                           deal_threshold,
                           current_balance,
-                          order_state,
                           log_to_file,
                           deal_cap)
 

@@ -5,15 +5,16 @@ from enums.exchange import EXCHANGE
 
 from data.BalanceState import BalanceState
 
-from utils.file_utils import log_to_file
-
 from bittrex.market_utils import get_balance_bittrex, get_balance_bittrex_post_details, get_balance_bittrex_result_processor
 from kraken.market_utils import get_balance_kraken, get_balance_kraken_post_details, get_balance_kraken_result_processor
 from poloniex.market_utils import get_balance_poloniex, get_balance_poloniex_post_details, get_balance_poloniex_result_processor
 from binance.market_utils import get_balance_binance, get_balance_binance_post_details, get_balance_binance_result_processor
 
-from utils.key_utils import get_key_by_exchange
 from data_access.memory_cache import get_cache
+
+from debug_utils import print_to_console, LOG_ALL_ERRORS
+from utils.key_utils import get_key_by_exchange
+from utils.file_utils import log_to_file
 from utils.exchange_utils import get_exchange_name_by_id
 
 
@@ -31,7 +32,8 @@ def get_balance_by_exchange(exchange_id):
     elif exchange_id == EXCHANGE.BINANCE:
         res = get_balance_binance(key)
     else:
-        print "show_balance_by_exchange - Unknown exchange! ", exchange_id
+        msg = "get_balance_by_exchange - Unknown exchange! {idx}".format(idx=exchange_id)
+        print_to_console(msg, LOG_ALL_ERRORS)
 
     return res
 
@@ -109,7 +111,8 @@ def get_balance(self, exchange_id, cache=get_cache()):
     if balance is None :
         balance = self.update_balance_by_exchange(exchange_id)
         if balance is None:
-            print "ERROR: BALANCE IS STILL NONE!!! for", exchange_name
+            msg = "ERROR: BALANCE IS STILL NONE!!! for {n}".format(n=exchange_name)
+            print_to_console(msg, LOG_ALL_ERRORS)
 
         return balance
 

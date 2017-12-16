@@ -1,15 +1,15 @@
 from Deal import Deal
 
-from enums.deal_type import get_deal_type_by_id
-
-from utils.currency_utils import get_currency_name_by_id
-from kraken.currency_utils import get_currency_pair_from_kraken
-
-from utils.exchange_utils import get_exchange_name_by_id
-
 from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
+from enums.deal_type import get_deal_type_by_id
+
+from debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.string_utils import float_to_str
+from utils.exchange_utils import get_exchange_name_by_id
+from utils.currency_utils import get_currency_name_by_id
+from kraken.currency_utils import get_currency_pair_from_kraken
+from utils.file_utils import log_to_file
 
 
 class Trade(Deal):
@@ -91,6 +91,8 @@ class Trade(Deal):
             return Trade(trade_type, EXCHANGE.KRAKEN, pair_id, price, volume, order_book_time, create_time,
                          execute_time=create_time, deal_id=trade_id)
         except Exception, e:
-            print "NON supported currency?", pair_name, str(e)
+            msg = "NON supported currency? name: {n} exception: {e}".format(n=pair_name, e=str(e))
+            print_to_console(msg, LOG_ALL_ERRORS)
+            log_to_file(msg, "error.log")
 
         return None
