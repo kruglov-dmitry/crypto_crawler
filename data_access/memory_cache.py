@@ -14,6 +14,15 @@ class MemoryCach():
     def get_counter(self):
         return self.r.incr('nonce')
 
+    def _init_nonce(self):
+        pass
+
+    def get_balance(self, exchange_id):
+        return self.r.get(exchange_id)
+
+    def _update_balance(self):
+        pass
+
 
 # FIXME NOTE temporary workaround for in-memory caching
 
