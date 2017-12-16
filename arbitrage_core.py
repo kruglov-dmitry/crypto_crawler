@@ -55,7 +55,7 @@ def is_no_pending_order(currency_id, src_exchange_id, dst_exchange_id):
     return True
 
 
-def init_deal(trade_to_perform, order_state, debug_msg):
+def init_deal(trade_to_perform, debug_msg):
     res = STATUS.FAILURE, None
     try:
         if trade_to_perform.trade_type == DEAL_TYPE.SELL:
