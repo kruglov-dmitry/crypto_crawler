@@ -5,8 +5,8 @@ sys.setrecursionlimit(10000)
 from dao.dao import buy_by_exchange, sell_by_exchange, get_updated_order_state
 from dao.balance_utils import get_updated_balance
 
-from dao.db import init_pg_connection, get_order_book_by_time, get_time_entries
 from dao.order_book_utils import get_order_book_by_pair
+from dao.balance_utils import update_balance_by_exchange
 
 from utils.key_utils import load_keys
 from debug_utils import should_print_debug
@@ -67,6 +67,9 @@ def init_deal(trade_to_perform, order_state, debug_msg):
                                                                                                  dbg=debug_msg)
         print msg
         log_to_file(msg, "debug.txt")
+
+    # force update balance at exchanges
+    update_balance_by_exchange(trade_to_perform.exchange_id)
 
     return res
 

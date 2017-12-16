@@ -1,6 +1,6 @@
 from constants import BINANCE_CANCEL_ORDER, BINANCE_BUY_ORDER, BINANCE_SELL_ORDER, BINANCE_CHECK_BALANCE
 from debug_utils import should_print_debug
-from utils.key_utils import signed_body_256, signed_string, generate_nonce
+from utils.key_utils import signed_body_256
 from data_access.internet import send_get_request_with_header, send_post_request_with_header, send_delete_request_with_header
 from urllib import urlencode as _urlencode
 from data.Balance import Balance

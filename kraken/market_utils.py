@@ -4,7 +4,8 @@ from constants import KRAKEN_BASE_API_URL, KRAKEN_CANCEL_ORDER, KRAKEN_BUY_ORDER
 from data_access.internet import send_post_request_with_header
 
 from debug_utils import should_print_debug
-from utils.key_utils import generate_nonce, sign_kraken
+from utils.key_utils import sign_kraken
+from data_access.memory_cache import generate_nonce
 from utils.time_utils import sleep_for, get_now_seconds_utc
 from utils.string_utils import float_to_str
 

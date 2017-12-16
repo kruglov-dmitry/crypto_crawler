@@ -131,7 +131,7 @@ if __name__ == "__main__":
     run_command_in_screen(balance_screen_name, balance_window_name, BALANCE_UPDATE_COMMAND)
 
     # 2nd stage - spawn a shit load of arbitrage checkers
-    for screen_name in deploy_units:
+    """for screen_name in deploy_units:
         print screen_name
         create_screen(screen_name)
 
@@ -140,4 +140,4 @@ if __name__ == "__main__":
             window_name = deploy_unit.generate_window_name()
             create_screen_window(screen_name, window_name)
             run_command_in_screen(screen_name, window_name, deploy_unit.generate_command(FULL_COMMAND))
-
+    """

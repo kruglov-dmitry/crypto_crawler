@@ -13,6 +13,8 @@ from poloniex.market_utils import get_balance_poloniex, get_balance_poloniex_pos
 from binance.market_utils import get_balance_binance, get_balance_binance_post_details, get_balance_binance_result_processor
 
 from utils.key_utils import get_key_by_exchange
+from data_access.memory_cache import get_cache
+from utils.exchange_utils import get_exchange_name_by_id
 
 
 def get_balance_by_exchange(exchange_id):
@@ -53,7 +55,6 @@ def get_updated_balance(prev_balance):
 
 def get_updated_balance_arbitrage(cfg, balance_state, local_cache):
     """
-
     Method is frequently called from numerous thread so in order to decrease load and number of request to exchanges,
     to avoid banning, we use cahed version of balance from memory cache.
 
@@ -86,3 +87,33 @@ def get_balance_constructor_by_exchange_id(exchange_id):
         EXCHANGE.POLONIEX: get_balance_poloniex_result_processor,
         EXCHANGE.BINANCE: get_balance_binance_result_processor
     }[exchange_id]
+
+
+def update_balance_by_exchange(exchange_id, cache=get_cache()):
+    status_code, balance = get_balance_by_exchange(exchange_id)
+    exchange_name = get_exchange_name_by_id(exchange_id)
+    if status_code == STATUS.SUCCESS:
+        cache.update_balance(exchange_name, balance)
+        return balance
+    else:
+        msg = "Can't update balance for exchange_id = {exch1} {exch_name}".format(exch1=exchange_id,
+                                                                                            exch_name=exchange_name)
+        log_to_file(msg, "cache.log")
+
+    return None
+
+
+def get_balance(self, exchange_id, cache=get_cache()):
+    exchange_name = get_exchange_name_by_id(exchange_id)
+    balance = cache.get_balance(exchange_id)
+    if balance is None :
+        balance = self.update_balance_by_exchange(exchange_id)
+        if balance is None:
+            print "ERROR: BALANCE IS STILL NONE!!! for", exchange_name
+
+        return balance
+
+
+def init_balances(exchanges_ids, cache=get_cache()):
+    for exchange_id in exchanges_ids:
+        update_balance_by_exchange(exchange_id, cache)

@@ -1,4 +1,5 @@
-from utils.key_utils import generate_nonce, signed_body
+from utils.key_utils import signed_body
+from data_access.memory_cache import generate_nonce
 from constants import POLONIEX_CANCEL_ORDER, POLONIEX_BUY_ORDER, POLONIEX_SELL_ORDER, POLONIEX_CHECK_BALANCE
 from data_access.internet import send_post_request_with_header
 from debug_utils import should_print_debug

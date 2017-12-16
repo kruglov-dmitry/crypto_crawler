@@ -1,6 +1,7 @@
 from constants import BITTREX_CANCEL_ORDER, BITTREX_BUY_ORDER, BITTREX_SELL_ORDER, BITTREX_CHECK_BALANCE
 from debug_utils import should_print_debug
-from utils.key_utils import signed_string, generate_nonce
+from utils.key_utils import signed_string
+from data_access.memory_cache import generate_nonce
 
 from data_access.internet import send_post_request_with_header
 from data_access.PostRequestDetails import PostRequestDetails

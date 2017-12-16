@@ -148,7 +148,6 @@ class Balance(BaseData):
 		      "locked": "0.00000000"
 		    },
         """
-        print json_document
         for currency_id in ARBITRAGE_CURRENCY:
 
             available_balance[currency_id] = ZERO_BALANCE
