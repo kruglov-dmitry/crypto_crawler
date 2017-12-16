@@ -1,7 +1,7 @@
 from utils.key_utils import load_keys
 from core.backtest import common_cap_init, dummy_balance_init, dummy_order_state_init
 from utils.time_utils import get_now_seconds_utc
-from arbitrage_core import search_for_arbitrage, init_deals_with_logging
+from arbitrage_core import search_for_arbitrage, init_deals_with_logging, adjust_currency_balance
 from data.ArbitrageConfig import ArbitrageConfig
 import argparse
 from data_access.ConnectionPool import ConnectionPool
@@ -9,6 +9,7 @@ from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
 from utils.time_utils import sleep_for
 from data_access.memory_cache import local_cache
+from enums.deal_type import DEAL_TYPE
 
 
 if __name__ == "__main__":
@@ -35,6 +36,8 @@ if __name__ == "__main__":
 
     processor = ConnectionPool(pool_size=2)
 
+    method = search_for_arbitrage if cfg.mode == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
+
     while True:
 
         timest = get_now_seconds_utc()
@@ -47,10 +50,5 @@ if __name__ == "__main__":
             sleep_for(1)
             continue
 
-        search_for_arbitrage(order_book_src,
-                             order_book_dst,
-                             cfg.threshold,
-                             init_deals_with_logging,
-                             balance_state,
-                             deal_cap,
-                             type_of_deal=cfg.mode)
+        method(order_book_src, order_book_dst, cfg.threshold, init_deals_with_logging,
+               balance_state, deal_cap, type_of_deal=cfg.mode)

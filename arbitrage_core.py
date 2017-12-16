@@ -66,7 +66,7 @@ def init_deal(trade_to_perform, debug_msg):
         msg = "init_deal: FAILED ERROR WE ALL DIE with following exception: {excp} {dbg}".format(excp=str(e),
                                                                                                  dbg=debug_msg)
         print msg
-        log_to_file(msg, "debug.txt")
+        log_to_file(msg, "error.log")
 
     # force update balance at exchanges
     update_balance_by_exchange(trade_to_perform.exchange_id)
@@ -251,49 +251,22 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
 
         return STATUS.SUCCESS
 
-"""
+
 def adjust_currency_balance(first_order_book, second_order_book, treshold_reverse, action_to_perform,
-                            balance_state, deal_cap, order_state):
+                            balance_state, deal_cap):
     pair_id = first_order_book.pair_id
     src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
     src_exchange_id = first_order_book.exchange_id
     dst_exchange_id = second_order_book.exchange_id
 
-    order_book_expired = STATUS.SUCCESS
-    # disbalance_state, treshold_reverse
-    if balance_state.is_there_disbalance(dst_currency_id, src_exchange_id, dst_exchange_id) and \
+    if balance_state.is_there_disbalance(dst_currency_id, src_exchange_id, dst_exchange_id, treshold_reverse) and \
             is_no_pending_order(pair_id, src_exchange_id, dst_exchange_id):
-        order_book_expired = analyse_order_book(first_order_book,
-                                                second_order_book,
-                                                treshold_reverse,
-                                                action_to_perform,
-                                                balance_state,
-                                                deal_cap,
-                                                order_state,
-                                                stop_recursion=True,
-                                                type_of_deal=DEAL_TYPE.REVERSE)
-
-    # FIXME NOTE - here we treat order book as unchanged, but it may already be affected by previous deals
-    # previous call change bids of first order book & asks of second order book
-    # but here we use oposite - i.e. should be fine
-
-    # disbalance_state, treshold_reverse
-    if order_book_expired == STATUS.SUCCESS and balance_state.is_there_disbalance(dst_currency_id, dst_exchange_id,
-                                                                                  src_exchange_id) \
-            and is_no_pending_order(pair_id, dst_exchange_id, src_exchange_id):
-        analyse_order_book(second_order_book,
-                           first_order_book,
-                           treshold_reverse,
-                           action_to_perform,
-                           balance_state,
-                           deal_cap,
-                           order_state,
-                           stop_recursion=True,
-                           type_of_deal=DEAL_TYPE.REVERSE)
-"""
+        search_for_arbitrage(first_order_book, second_order_book, treshold_reverse,
+                             action_to_perform, balance_state, deal_cap,
+                             type_of_deal=DEAL_TYPE.REVERSE)
 
 
-def mega_analysis(order_book, threshold, balance_state, order_state, deal_cap, action_to_perform):
+def mega_analysis(order_book, threshold, balance_state, deal_cap, action_to_perform):
     """
     :param order_book: dict of lists with order book, where keys are exchange names within particular time window
             either request timeout or by timest window during playing within database
@@ -317,7 +290,6 @@ def mega_analysis(order_book, threshold, balance_state, order_state, deal_cap, a
                              action_to_perform,
                              balance_state,
                              deal_cap,
-                             order_state,
                              type_of_deal=DEAL_TYPE.ARBITRAGE)
 
 def run_bot(deal_threshold):
@@ -334,8 +306,7 @@ def run_bot(deal_threshold):
 
         for pair_id in ARBITRAGE_PAIRS:
             order_book = get_order_book_by_pair(pair_id)
-            mega_analysis(order_book, deal_threshold, current_balance, order_state, deal_cap,
-                          init_deals_with_logging)
+            mega_analysis(order_book, deal_threshold, current_balance, deal_cap, init_deals_with_logging)
 
 
 if __name__ == "__main__":

@@ -71,7 +71,6 @@ def check_all_combinations_list(tickers_to_check, threshold, predicate):
     return res_list
 
 
-
 def get_diff_lowest_ask_vs_highest_bid(first_one, second_one, threshold):
     difference = get_change(first_one.ask, second_one.bid)
 

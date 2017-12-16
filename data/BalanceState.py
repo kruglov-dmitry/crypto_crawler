@@ -1,5 +1,6 @@
 from BaseData import BaseData
 from utils.currency_utils import split_currency_pairs
+from core.base_analysis import get_change
 
 
 class BalanceState(BaseData):
@@ -64,3 +65,18 @@ class BalanceState(BaseData):
 
     def update_time(self, exchange_id, timest):
         self.balance_per_exchange[exchange_id].last_update = timest
+
+    def is_there_disbalance(self, exchange_id, src_exchange_id, dst_exchange_id, threshold):
+        """
+            Check whether amount of dst_currency at pair of exchange do not differ more than threshold
+            in percent.
+
+        :param dst_currency_id:
+        :param src_exchange_id:
+        :param dst_exchange_id:
+        :return:
+        """
+        balance_1 = self.balance_per_exchange[src_exchange_id][exchange_id]
+        balance_2 = self.balance_per_exchange[dst_exchange_id][exchange_id]
+
+        return get_change(balance_1, balance_2, provide_abs=False) > threshold
