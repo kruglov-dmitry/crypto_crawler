@@ -6,16 +6,12 @@ from enums.exchange import EXCHANGE
 from data.BalanceState import BalanceState
 
 from utils.file_utils import log_to_file
-from utils.currency_utils import get_currency_pair_name_by_exchange_id
 
 from bittrex.market_utils import get_balance_bittrex, get_balance_bittrex_post_details, get_balance_bittrex_result_processor
 from kraken.market_utils import get_balance_kraken, get_balance_kraken_post_details, get_balance_kraken_result_processor
 from poloniex.market_utils import get_balance_poloniex, get_balance_poloniex_post_details, get_balance_poloniex_result_processor
 from binance.market_utils import get_balance_binance, get_balance_binance_post_details, get_balance_binance_result_processor
 
-from constants import HTTP_TIMEOUT_SECONDS
-
-from data_access.ConnectionPool import WorkUnit
 from utils.key_utils import get_key_by_exchange
 
 
@@ -55,24 +51,21 @@ def get_updated_balance(prev_balance):
     return BalanceState(balance)
 
 
-def get_updated_balance_arbitrage(cfg, balance_state):
-    res = []
+def get_updated_balance_arbitrage(cfg, balance_state, local_cache):
+    """
 
+    Method is frequently called from numerous thread so in order to decrease load and number of request to exchanges,
+    to avoid banning, we use cahed version of balance from memory cache.
+
+    :param cfg: type: ArbitrageConfig
+    :param balance_state:
+    :param local_cache:
+    :return: updated balance_state for request exchanges id
+    """
     for exchange_id in [cfg.sell_exchange_id, cfg.buy_exchange_id]:
-        pair_name = get_currency_pair_name_by_exchange_id(cfg.pair_id, exchange_id)
-        if pair_name is None:
-            msg = "get_updated_balance_arbitrage: WE ADD ONLY SINGLE PAIR ID!!! " \
-                  "Exchange = {exch} Pair_id = {pair_id}".format(exch=exchange_id, pair_id=cfg.pair_id)
-            print msg
-            raise
-
-        status_code, balance = get_balance_by_exchange(exchange_id)
-        if status_code == STATUS.SUCCESS:
-            res.append(balance)
-
-    for entry in res:
-        print entry
-        balance_state.balance_per_exchange[entry.exchange_id] = entry
+        balance = local_cache.get_balance(exchange_id)
+        if balance is not None:
+            balance_state.balance_per_exchange[exchange_id] = balance
 
     return balance_state
 

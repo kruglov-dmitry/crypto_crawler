@@ -122,6 +122,15 @@ if __name__ == "__main__":
                 deploy_units[screen_name] = commands_per_screen
 
     # Create named screen
+    # 1st stage - initialization balance polling service
+    balance_screen_name = "Balance_Retrieval"
+    balance_window_name = "balance_update"
+    BALANCE_UPDATE_COMMAND = "python balance_monitoring.py"
+    create_screen(balance_screen_name)
+    create_screen_window(balance_screen_name, balance_window_name)
+    run_command_in_screen(balance_screen_name, balance_window_name, BALANCE_UPDATE_COMMAND)
+
+    # 2nd stage - spawn a shit load of arbitrage checkers
     for screen_name in deploy_units:
         print screen_name
         create_screen(screen_name)

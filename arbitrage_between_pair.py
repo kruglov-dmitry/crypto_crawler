@@ -8,6 +8,7 @@ from data_access.ConnectionPool import ConnectionPool
 from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
 from utils.time_utils import sleep_for
+from data_access.memory_cache import local_cache
 
 
 if __name__ == "__main__":
@@ -38,7 +39,7 @@ if __name__ == "__main__":
 
         timest = get_now_seconds_utc()
 
-        balance_state = get_updated_balance_arbitrage(cfg, balance_state)
+        balance_state = get_updated_balance_arbitrage(cfg, balance_state, local_cache)
 
         order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, timest, processor)
 

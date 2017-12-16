@@ -8,6 +8,15 @@ MacOs dependencies:
 pip install python-telegram-bot --user
 
 
+Removing dubplicate rows:
+DELETE FROM tablename
+WHERE id IN (SELECT id
+              FROM (SELECT id,
+                             ROW_NUMBER() OVER (partition BY column1, column2, column3 ORDER BY id) AS rnum
+                     FROM tablename) t
+              WHERE t.rnum > 1);
+
+https://wiki.postgresql.org/wiki/Deleting_duplicates
 
 How to kill all processes:
 ps -ef | grep arbitrage | awk '{print $2}' | xargs kill -9 $1
