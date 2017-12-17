@@ -253,7 +253,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
 
 
 def adjust_currency_balance(first_order_book, second_order_book, treshold_reverse, action_to_perform,
-                            balance_state, deal_cap):
+                            balance_state, deal_cap, type_of_deal):
     pair_id = first_order_book.pair_id
     src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
     src_exchange_id = first_order_book.exchange_id
@@ -263,7 +263,7 @@ def adjust_currency_balance(first_order_book, second_order_book, treshold_revers
             is_no_pending_order(pair_id, src_exchange_id, dst_exchange_id):
         search_for_arbitrage(first_order_book, second_order_book, treshold_reverse,
                              action_to_perform, balance_state, deal_cap,
-                             type_of_deal=DEAL_TYPE.REVERSE)
+                             type_of_deal)
 
 
 def mega_analysis(order_book, threshold, balance_state, deal_cap, action_to_perform):

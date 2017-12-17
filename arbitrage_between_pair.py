@@ -52,3 +52,5 @@ if __name__ == "__main__":
 
         method(order_book_src, order_book_dst, cfg.threshold, init_deals_with_logging,
                balance_state, deal_cap, type_of_deal=cfg.mode)
+
+        sleep_for(1)
