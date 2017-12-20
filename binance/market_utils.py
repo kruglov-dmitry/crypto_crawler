@@ -23,7 +23,7 @@ GTC: Good-Til-Canceled
 """
 
 
-def add_buy_order_binance(key, pair_name, price, amount):
+def add_buy_order_binance_url(key, pair_name, price, amount):
     #  curl -H "X-MBX-APIKEY: vmPUZE6mv9SD5VNHk4HlWFsOr6aKE2zvsw0MuIgwCIPy6utIco14y7Ju91duEh8A"
     # -X POST 'https://api.binance.com/api/v3/order' -d 'symbol=LTCBTC&side=BUY&type=LIMIT&timeInForce=GTC&quantity=1
     # &price=0.1&recvWindow=6000000&timestamp=1499827319559&signature=c8db56825ae71d6d79447849e617115f4a920fa2acdcab2b053c4b2838bd6b71'
@@ -48,14 +48,24 @@ def add_buy_order_binance(key, pair_name, price, amount):
 
     headers = {"X-MBX-APIKEY": key.api_key}
 
+    res = PostRequestDetails(final_url, headers, body)
+
     if should_print_debug():
-        msg = "add_buy_order_binance: url - {url} headers - {headers} body - {body}".format(url=final_url, headers=headers, body=body)
+        msg = "add_buy_order_binance: url - {url} headers - {headers} body - {body}".format(url=res.final_url, headers=res.headers, body=res.body)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
+    return res
+
+
+def add_buy_order_binance(key, pair_name, price, amount):
+
+    post_details = add_buy_order_binance_url(key, pair_name, price, amount)
+
     err_msg = "add_buy_order_binance  called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(final_url, headers, {}, err_msg, max_tries=BINANCE_NUM_OF_DEAL_RETRY, timeout=BINANCE_DEAL_TIMEOUT)
+    # NOTE: Yeah, body must be empty!
+    res = send_post_request_with_header(post_details.final_url, post_details.headers, {}, err_msg, max_tries=BINANCE_NUM_OF_DEAL_RETRY, timeout=BINANCE_DEAL_TIMEOUT)
 
     """
     {"orderId": 1373289, "clientOrderId": "Is7wGaKBtLBK7JjDkNAJwn", "origQty": "10.00000000", "symbol": "RDNBTC", "side": "BUY", "timeInForce": "GTC", "status": "NEW", "transactTime": 1512581468544, "type": "LIMIT", "price": "0.00022220", "executedQty": "0.00000000"}
@@ -69,7 +79,7 @@ def add_buy_order_binance(key, pair_name, price, amount):
     return res
 
 
-def add_sell_order_binance(key, pair_name, price, amount):
+def add_sell_order_binance_url(key, pair_name, price, amount):
 
     final_url = BINANCE_SELL_ORDER
 
@@ -92,16 +102,26 @@ def add_sell_order_binance(key, pair_name, price, amount):
 
     headers = {"X-MBX-APIKEY": key.api_key}
 
+    res = PostRequestDetails(final_url, headers, body)
+
     if should_print_debug():
-        msg = "add_sell_order_binance: url - {url} headers - {headers} body - {body}".format(url=final_url,
-                                                                                             headers=headers,
-                                                                                             body=body)
+        msg = "add_sell_order_binance: url - {url} headers - {headers} body - {body}".format(url=res.final_url,
+                                                                                             headers=res.headers,
+                                                                                             body=res.body)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
+    return res
+
+
+def add_sell_order_binance(key, pair_name, price, amount):
+
+    post_details = add_sell_order_binance_url(key, pair_name, price, amount)
+
     err_msg = "add_sell_order binance called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(final_url, headers, {}, err_msg, max_tries=BINANCE_NUM_OF_DEAL_RETRY, timeout=BINANCE_DEAL_TIMEOUT)
+    # NOTE: Yeah, body must be empty!
+    res = send_post_request_with_header(post_details.final_url, post_details.headers, {}, err_msg, max_tries=BINANCE_NUM_OF_DEAL_RETRY, timeout=BINANCE_DEAL_TIMEOUT)
 
     """
     {"orderId": 1373492, "clientOrderId": "e04JGgCpafdrR6O1lOLwgD", "origQty": "1.00000000", "symbol": "RDNBTC", "side": "SELL", "timeInForce": "GTC", "status": "NEW", "transactTime": 1512581721384, "type": "LIMIT", "price": "1.00022220", "executedQty": "0.00000000"}`:w
