@@ -11,7 +11,7 @@ from dao.balance_utils import update_balance_by_exchange
 from utils.key_utils import load_keys
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, LOG_ALL_MARKET_NETWORK_RELATED_CRAP
 from utils.time_utils import get_now_seconds_utc
-from utils.currency_utils import split_currency_pairs, get_pair_name_by_id, get_currency_pair_name_by_exchange_id
+from utils.currency_utils import split_currency_pairs, get_pair_name_by_id
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.file_utils import log_to_file
 from utils.string_utils import float_to_str
@@ -25,6 +25,13 @@ from enums.status import STATUS
 
 from data.Trade import Trade
 from data.TradePair import TradePair
+
+from binance.market_utils import add_buy_order_binance_url, add_sell_order_binance_url
+from kraken.market_utils import add_buy_order_kraken_url, add_sell_order_kraken_url
+from bittrex.market_utils import add_buy_order_bittrex_url, add_sell_order_bittrex_url
+from poloniex.market_utils import add_buy_order_poloniex_url, add_sell_order_poloniex_url
+from data_access.ConnectionPool import WorkUnit
+
 
 from constants import ARBITRAGE_PAIRS, DEAL_MAX_TIMEOUT
 
@@ -130,83 +137,51 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
 
         method_for_url = get_method_for_create_url_trade_by_exchange_id(trade)
         request_url = method_for_url(trade)
-        constructor = ignore_all_result(trade)
+        constructor = return_with_no_change
 
         parallel_deals.append(WorkUnit(request_url, constructor, trade))
 
-    res = processor.process_async_to_list(parallel_deals, DEAL_MAX_TIMEOUT)
-
-    """
+    res = processor.process_async_post(parallel_deals, DEAL_MAX_TIMEOUT)
 
     global overall_profit_so_far
-
-    first_deal = trade_pairs.deal_1
-    second_deal = trade_pairs.deal_2
-
-    if second_deal.exchange_id == EXCHANGE.KRAKEN:
-        # It is hilarious but if deal at kraken will not succeeded no need to bother with second exchange
-        first_deal = trade_pairs.deal_2
-        second_deal = trade_pairs.deal_1
-
-    # market routine
-    debug_msg = "Deals details: " + str(first_deal)
-    result_1 = init_deal(first_deal, debug_msg)
-
-    first_deal.execute_time = get_now_seconds_utc()
-
-    if result_1[0] != STATUS.SUCCESS:
-        msg = "Failing of adding FIRST deal! {deal}".format(deal=str(first_deal))
-        print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, "error.log")
-        return STATUS.FAILURE
-
-    debug_msg = "Deals details: " + str(second_deal)
-    result_2 = init_deal(second_deal, debug_msg)
-
-    second_deal.execute_time = get_now_seconds_utc()
-
-    if result_1[0] == STATUS.FAILURE or result_2[0] == STATUS.FAILURE:
-        msg = "Failing of adding deals! {deal_pair}".format(deal_pair=str(trade_pairs))
-        print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, "error.log")
-        return STATUS.FAILURE
-
     overall_profit_so_far += trade_pairs.current_profit
 
-    msg = "Some deals sent to exchanges. Expected profit: {cur}. Overall: {tot} Difference in percents: " \
+    msg = "We try to send following deals to exchange. \n Expected profit: {cur}. Overall: {tot} Difference in percents: " \
           "{diff} Deal details: {deal}".format(cur=float_to_str(trade_pairs.current_profit),
                                                tot=float_to_str(overall_profit_so_far),
                                                diff=difference, deal=str(trade_pairs))
 
-    print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
-    log_to_file(trade_pairs, file_name)
-
+    log_to_file(msg, file_name)
     send_single_message(msg)
 
-    return STATUS.SUCCESS
-    """
+    for (json_document, trade) in res:
+        print_to_console(json_document, LOG_ALL_ERRORS)
+        send_single_message(json_document)
+        log_to_file(json_document, file_name)
+
+    # FIXME NOTE: and now good question - what to do with failed deals.
 
 
 def get_method_for_create_url_trade_by_exchange_id(trade):
     return {
         DEAL_TYPE.BUY: {
             EXCHANGE.BINANCE: add_buy_order_binance_url,
-            EXCHANGE.BITTREX: "",
-            EXCHANGE.POLONIEX: "",
-            EXCHANGE.KRAKEN: "",
+            EXCHANGE.BITTREX: add_buy_order_bittrex_url,
+            EXCHANGE.POLONIEX: add_buy_order_poloniex_url,
+            EXCHANGE.KRAKEN: add_buy_order_kraken_url,
         },
         DEAL_TYPE.SELL: {
             EXCHANGE.BINANCE: add_sell_order_binance_url,
-            EXCHANGE.BITTREX: "",
-            EXCHANGE.POLONIEX: "",
-            EXCHANGE.KRAKEN: "",
+            EXCHANGE.BITTREX: add_sell_order_bittrex_url,
+            EXCHANGE.POLONIEX: add_sell_order_poloniex_url,
+            EXCHANGE.KRAKEN: add_sell_order_kraken_url,
         }
     }[trade.deal_id][trade.exchange_id]
 
 
-def ignore_all_result(some_thing):
-    pass
-
+def return_with_no_change(json_document, corresponding_trade):
+    corresponding_trade.execute_time = get_now_seconds_utc()
+    return json_document, corresponding_trade
 
 
 def determine_minimum_volume(first_order_book, second_order_book, balance_state):

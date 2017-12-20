@@ -14,8 +14,7 @@ from utils.time_utils import get_now_seconds_utc
 from utils.file_utils import log_to_file
 
 
-
-def add_buy_order_poloniex(key, pair_name, price, amount):
+def add_buy_order_poloniex_url(key, pair_name, price, amount):
     body = {
         "command": "buy",
         "currencyPair": pair_name,
@@ -28,15 +27,26 @@ def add_buy_order_poloniex(key, pair_name, price, amount):
     # https://poloniex.com/tradingApi
     final_url = POLONIEX_BUY_ORDER
 
+    res = PostRequestDetails(final_url, headers, body)
+
     if should_print_debug():
-        msg = "add_buy_order_poloniex: url - {url} headers - {headers} body - {body}".format(url=final_url,
-                                                                                            headers=headers, body=body)
+        msg = "add_buy_order_poloniex: url - {url} headers - {headers} body - {body}".format(url=res.final_url,
+                                                                                             headers=res.headers,
+                                                                                             body=res.body)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
+    return res
+
+
+def add_buy_order_poloniex(key, pair_name, price, amount):
+
+    post_details = add_buy_order_poloniex_url(key, pair_name, price, amount)
+
     err_msg = "add_buy_order poloniex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=POLONIEX_NUM_OF_DEAL_RETRY, timeout=POLONIEX_DEAL_TIMEOUT)
+    res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg,
+                                        max_tries=POLONIEX_NUM_OF_DEAL_RETRY, timeout=POLONIEX_DEAL_TIMEOUT)
 
     if should_print_debug():
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
@@ -45,7 +55,7 @@ def add_buy_order_poloniex(key, pair_name, price, amount):
     return res
 
 
-def add_sell_order_poloniex(key, pair_name, price, amount):
+def add_sell_order_poloniex_url(key, pair_name, price, amount):
     body = {
         "command": "sell",
         "currencyPair": pair_name,
@@ -59,15 +69,26 @@ def add_sell_order_poloniex(key, pair_name, price, amount):
     # https://poloniex.com/tradingApi
     final_url = POLONIEX_SELL_ORDER
 
+    res = PostRequestDetails(final_url, headers, body)
+
     if should_print_debug():
-        msg = "add_sell_order_poloniex: url - {url} headers - {headers} body - {body}".format(url=final_url,
-                                                                                            headers=headers, body=body)
+        msg = "add_sell_order_poloniex: url - {url} headers - {headers} body - {body}".format(url=res.final_url,
+                                                                                              headers=res.headers,
+                                                                                              body=res.body)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
+    return res
+
+
+def add_sell_order_poloniex(key, pair_name, price, amount):
+
+    post_details = add_sell_order_poloniex_url(key, pair_name, price, amount)
+
     err_msg = "add_sell_order poloniex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=POLONIEX_NUM_OF_DEAL_RETRY, timeout=POLONIEX_DEAL_TIMEOUT)
+    res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg,
+                                        max_tries=POLONIEX_NUM_OF_DEAL_RETRY, timeout=POLONIEX_DEAL_TIMEOUT)
 
     if should_print_debug():
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)

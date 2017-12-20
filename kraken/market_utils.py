@@ -20,6 +20,12 @@ from data_access.memory_cache import generate_nonce
 from data_access.PostRequestDetails import PostRequestDetails
 
 
+def add_buy_order_kraken_url():
+    raise
+
+def add_sell_order_kraken_url():
+    raise
+
 def add_buy_order_kraken(key, pair_name, price, amount):
 
     print "add_buy_order_kraken - confirmation of deals via balance\order"
