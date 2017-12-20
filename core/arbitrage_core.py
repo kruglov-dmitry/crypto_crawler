@@ -1,4 +1,6 @@
 import sys
+import json
+import re
 
 sys.setrecursionlimit(10000)
 
@@ -11,10 +13,11 @@ from dao.balance_utils import update_balance_by_exchange
 from utils.key_utils import load_keys
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, LOG_ALL_MARKET_NETWORK_RELATED_CRAP
 from utils.time_utils import get_now_seconds_utc
-from utils.currency_utils import split_currency_pairs, get_pair_name_by_id
+from utils.currency_utils import split_currency_pairs, get_pair_name_by_id, get_currency_pair_name_by_exchange_id
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.file_utils import log_to_file
 from utils.string_utils import float_to_str
+from utils.key_utils import get_key_by_exchange
 
 from core.base_analysis import get_change
 from core.base_math import get_all_combination
@@ -136,28 +139,55 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
     for trade in [trade_pairs.deal_1, trade_pairs.deal_2]:
 
         method_for_url = get_method_for_create_url_trade_by_exchange_id(trade)
-        request_url = method_for_url(trade)
+        # key, pair_name, price, amount
+        key = get_key_by_exchange(trade.exchange_id)
+        pair_name = get_currency_pair_name_by_exchange_id(trade.pair_id, trade.exchange_id)
+        post_details = method_for_url(key, pair_name, trade.price, trade.volume)
         constructor = return_with_no_change
 
-        parallel_deals.append(WorkUnit(request_url, constructor, trade))
+        wu = WorkUnit(post_details.final_url, constructor, trade)
+        wu.add_post_details(post_details)
+
+        parallel_deals.append(wu)
 
     res = processor.process_async_post(parallel_deals, DEAL_MAX_TIMEOUT)
 
     global overall_profit_so_far
     overall_profit_so_far += trade_pairs.current_profit
 
-    msg = "We try to send following deals to exchange. \n Expected profit: {cur}. Overall: {tot} Difference in percents: " \
-          "{diff} Deal details: {deal}".format(cur=float_to_str(trade_pairs.current_profit),
-                                               tot=float_to_str(overall_profit_so_far),
-                                               diff=difference, deal=str(trade_pairs))
+    msg = """We try to send following deals to exchange.
+    *Expected profit:* _{cur}_. 
+    *Overall:* _{tot}_
+    *Difference in percents:* _{diff}_
+    
+    Deal details:
+    {deal}
+    """.format(
+        cur=float_to_str(trade_pairs.current_profit),
+        tot=float_to_str(overall_profit_so_far),
+        diff=difference, deal=str(trade_pairs))
 
     log_to_file(msg, file_name)
     send_single_message(msg)
 
-    for (json_document, trade) in res:
-        print_to_console(json_document, LOG_ALL_ERRORS)
-        send_single_message(json_document)
-        log_to_file(json_document, file_name)
+    """
+    if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == 200:
+    work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
+    """
+
+    # check for errors only
+    for (return_value, trade) in res:
+        # check for none and error_code may not be jsonable
+        if return_value.status_code == 200:
+            wtf_str = re.sub(r'([^\s\w]|_)+', '', json.dumps(return_value.json()))
+            msg = """For trade {trade} response is {resp} """.format(trade=trade, resp=wtf_str)
+            print "Try to send this: ", msg
+        else:
+            msg = """For trade {trade} response is just *BAD CODE* {resp}""".format(trade=trade, resp=return_value.status_code)
+            print "Try to send this: ", msg
+        print_to_console(msg, LOG_ALL_ERRORS)
+        send_single_message(msg)
+        log_to_file(msg, file_name)
 
     # FIXME NOTE: and now good question - what to do with failed deals.
 
@@ -176,7 +206,7 @@ def get_method_for_create_url_trade_by_exchange_id(trade):
             EXCHANGE.POLONIEX: add_sell_order_poloniex_url,
             EXCHANGE.KRAKEN: add_sell_order_kraken_url,
         }
-    }[trade.deal_id][trade.exchange_id]
+    }[trade.trade_type][trade.exchange_id]
 
 
 def return_with_no_change(json_document, corresponding_trade):

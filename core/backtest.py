@@ -12,7 +12,6 @@ from utils.time_utils import get_now_seconds_utc
 from utils.file_utils import log_to_file
 
 from dao.db import init_pg_connection, get_order_book_by_time, get_time_entries
-from arbitrage_core import mega_analysis
 
 
 def dummy_balance_init(timest, default_volume, default_available_volume):
@@ -134,7 +133,7 @@ def common_cap_init():
     return MarketCap(min_volume_cap, max_volume_cap, min_price_cap, max_price_cap)
 
 
-def run_analysis_over_db(deal_threshold):
+def run_analysis_over_db(deal_threshold, some_functor_method):
     # FIXME NOTE: accumulate profit
 
     pg_conn = init_pg_connection()
@@ -155,7 +154,8 @@ def run_analysis_over_db(deal_threshold):
         order_book_grouped_by_time = get_order_book_by_time(pg_conn, every_time_entry)
 
         for x in order_book_grouped_by_time:
-            mega_analysis(order_book_grouped_by_time,
+            # mega_analysis\
+            some_functor_method (order_book_grouped_by_time,
                           deal_threshold,
                           current_balance,
                           log_to_file,

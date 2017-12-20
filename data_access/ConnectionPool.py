@@ -75,16 +75,20 @@ class ConnectionPool:
 
         res = []
         for work_unit in work_units:
-            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == 200:
+            some_result = work_unit.method(work_unit.future_result.value, *work_unit.args)
+            res.append(some_result)
+            """if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == 200:
                 some_result = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
                 res.append(some_result)
             else:
+                some_result = work_unit.method(work_unit.future_result.value, *work_unit.args)
+                res.append(some_result)
                 log_to_file(work_unit.url, "error.txt")
                 try:
                     log_to_file(work_unit.future_result.value.status_code, "error.txt")
                     log_to_file(work_unit.future_result.value.json(), "error.txt")
                 except:
-                    pass
+                    pass"""
 
         return res
 
