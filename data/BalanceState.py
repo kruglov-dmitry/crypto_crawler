@@ -76,7 +76,7 @@ class BalanceState(BaseData):
         :param dst_exchange_id:
         :return:
         """
-        balance_1 = self.balance_per_exchange[src_exchange_id][exchange_id]
-        balance_2 = self.balance_per_exchange[dst_exchange_id][exchange_id]
+        balance_1 = self.balance_per_exchange[src_exchange_id].available_balance[exchange_id]
+        balance_2 = self.balance_per_exchange[dst_exchange_id].available_balance[exchange_id]
 
         return get_change(balance_1, balance_2, provide_abs=False) > threshold

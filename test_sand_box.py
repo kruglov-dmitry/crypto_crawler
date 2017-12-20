@@ -1,8 +1,10 @@
 from profilehooks import timecall
+from poloniex.market_utils import get_balance_poloniex, get_orders_history_poloniex, get_open_orders_poloniex
 
 from binance.constants import BINANCE_CURRENCY_PAIRS
 from binance.market_utils import add_buy_order_binance, add_sell_order_binance, \
     cancel_order_binance, get_balance_binance
+
 from binance.ohlc_utils import get_ohlc_binance
 from binance.order_book_utils import get_order_book_binance
 from binance.ticker_utils import get_tickers_binance
@@ -12,8 +14,9 @@ from bittrex.market_utils import get_balance_bittrex
 from core.arbitrage_core import dummy_order_state_init
 from dao.dao import get_updated_order_state
 from dao.history_utils import get_history_speedup
-from dao.ohlc_utils import get_ohlc
-from dao.ohlc_utils import get_ohlc_speedup
+
+from data_access.memory_cache import generate_nonce
+from dao.ohlc_utils import get_ohlc_speedup, get_ohlc
 from dao.order_book_utils import get_order_book_speedup
 from dao.ticker_utils import get_ticker_speedup
 from data_access.ConnectionPool import ConnectionPool
@@ -21,8 +24,6 @@ from enums.currency import CURRENCY
 from enums.exchange import EXCHANGE
 from kraken.market_utils import get_orders_kraken, get_balance_kraken, add_buy_order_kraken, \
     add_sell_order_kraken, cancel_order_kraken
-from poloniex.market_utils import get_balance_poloniex
-from utils.key_utils import generate_nonce
 from utils.key_utils import load_keys, get_key_by_exchange
 from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
 
@@ -137,11 +138,6 @@ def test_time_epoch():
     print "nonce", t2
 
 
-load_keys("./secret_keys")
-krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
-bin_key = get_key_by_exchange(EXCHANGE.BINANCE)
-
-
 @timecall
 def get_ohlc_time_test():
     end_time = get_now_seconds_utc()
@@ -193,14 +189,21 @@ def get_order_book_time_fast():
 
 # for b in range(10):
 #     get_ticker_time_fast()
-from core.base_analysis import compare_price, check_highest_bid_bigger_than_lowest_ask
-TRIGGER_THRESHOLD = 1.5 # 2 percents only
+# from core.base_analysis import compare_price, check_highest_bid_bigger_than_lowest_ask
+# TRIGGER_THRESHOLD = 1.5 # 2 percents only
 
-processor = ConnectionPool()
+# processor = ConnectionPool()
 
-timest = get_now_seconds_utc()
-tickers = get_ticker_speedup(timest, processor)
+# timest = get_now_seconds_utc()
+# tickers = get_ticker_speedup(timest, processor)
 
-res = compare_price(tickers, TRIGGER_THRESHOLD, check_highest_bid_bigger_than_lowest_ask)
+# res = compare_price(tickers, TRIGGER_THRESHOLD, check_highest_bid_bigger_than_lowest_ask)
 
+load_keys("./secret_keys")
+krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
+bin_key = get_key_by_exchange(EXCHANGE.BINANCE)
+pol_key = get_key_by_exchange(EXCHANGE.POLONIEX)
+
+er_code, res = get_orders_history_poloniex(pol_key, "all")
+print res
 
