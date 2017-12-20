@@ -10,6 +10,7 @@ from dao.order_book_utils import get_order_books_for_arbitrage_pair
 from utils.time_utils import sleep_for
 from data_access.memory_cache import local_cache
 from enums.deal_type import DEAL_TYPE
+from utils.exchange_utils import get_exchange_name_by_id
 
 
 if __name__ == "__main__":
@@ -47,6 +48,8 @@ if __name__ == "__main__":
         order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, timest, processor)
 
         if order_book_dst is None or order_book_src is None:
+            if order_book_dst is None:
+                print "CAN'T retrieve order book for {nn}".format(nn=get_exchange_name_by_id(cfg.sell_exchange_id))
             sleep_for(1)
             continue
 

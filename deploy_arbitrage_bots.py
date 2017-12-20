@@ -91,35 +91,28 @@ if __name__ == "__main__":
 
     for exchange_id in exchange_settings:
 
-        exchanges_ids = [exchange_id]
-
         for settings in exchange_settings[exchange_id]:
             dst_exchanges_id = settings.dst_exchange_id
-            exchanges_ids.append(dst_exchanges_id)
 
-        exchange_pairs = get_all_permutation_list(exchanges_ids, 2)
+            exchange_pairs = [[exchange_id, dst_exchanges_id], [dst_exchanges_id, exchange_id]]
 
-        for sell_exchange_id, buy_exchange_id in exchange_pairs:
-            print sell_exchange_id, buy_exchange_id
+            for sell_exchange_id, buy_exchange_id in exchange_pairs:
+                print sell_exchange_id, buy_exchange_id
 
-            for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
+                for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
 
-                screen_name = generate_screen_name(sell_exchange_id, buy_exchange_id, mode_id)
+                    screen_name = generate_screen_name(sell_exchange_id, buy_exchange_id, mode_id)
 
-                current_threshold = {DEAL_TYPE.ARBITRAGE: arbitrage_threshold,
-                                     DEAL_TYPE.REVERSE: balance_adjust_threshold}.get(mode_id)
+                    current_threshold = {DEAL_TYPE.ARBITRAGE: arbitrage_threshold,
+                                         DEAL_TYPE.REVERSE: balance_adjust_threshold}.get(mode_id)
 
-                commands_per_screen = []
+                    commands_per_screen = []
 
-                for bbb in exchange_settings[exchange_id]:
-                    if bbb.dst_exchange_id == sell_exchange_id or \
-                            bbb.dst_exchange_id == buy_exchange_id:
-                        list_of_pairs = bbb.list_of_pairs
-                        for every_pair_name in list_of_pairs:
-                            pair_id = get_pair_id_by_name(every_pair_name)
-                            commands_per_screen.append(DeployUnit(sell_exchange_id, buy_exchange_id, pair_id, current_threshold, mode_id))
-
-                deploy_units[screen_name] = commands_per_screen
+                    list_of_pairs = settings.list_of_pairs
+                    for every_pair_name in list_of_pairs:
+                        pair_id = get_pair_id_by_name(every_pair_name)
+                        commands_per_screen.append(DeployUnit(sell_exchange_id, buy_exchange_id, pair_id, current_threshold, mode_id))
+                    deploy_units[screen_name] = commands_per_screen
 
     # Create named screen
     # 1st stage - initialization balance polling service
@@ -132,11 +125,9 @@ if __name__ == "__main__":
 
     # 2nd stage - spawn a shit load of arbitrage checkers
     for screen_name in deploy_units:
-        print screen_name
         create_screen(screen_name)
 
         for deploy_unit in deploy_units[screen_name]:
-            print deploy_unit
             window_name = deploy_unit.generate_window_name()
             create_screen_window(screen_name, window_name)
             run_command_in_screen(screen_name, window_name, deploy_unit.generate_command(FULL_COMMAND))

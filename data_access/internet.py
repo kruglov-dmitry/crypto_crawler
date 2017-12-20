@@ -58,12 +58,12 @@ def send_post_request_with_header(final_url, header, body, error_msg, max_tries)
                     or "timeout" in str_repr:
                 sleep_for(1)
             else:
-                msg = "send_post_request_with_header: YEAH, RESULT: {res}".format(res=str_repr)
+                msg = "send_post_request_with_header: YEAH, RESULT: {res} for url={url}".format(res=str_repr, url=final_url)
                 log_to_file(msg, "debug.txt")
                 # NOTE: Consider it as success then, if not - extend possible checks above
                 return STATUS.SUCCESS, response
 
-            msg = "send_post_request_with_header: SOME ERROR: RESULT: {res}".format(res=response)
+            msg = "send_post_request_with_header: SOME ERROR: RESULT: {res} for url={url}".format(res=response, url=final_url)
             print msg
             log_to_file(msg, "error.txt")
 
@@ -71,7 +71,7 @@ def send_post_request_with_header(final_url, header, body, error_msg, max_tries)
 
         except Exception, e:
             res = STATUS.FAILURE, error_msg + str(e)
-            msg = "send_post_request_with_header: Exception: {excp} Msg: {msg}".format(excp=error_msg, msg=str(e))
+            msg = "send_post_request_with_header: Exception: {excp} Msg: {msg} for url={url}".format(excp=error_msg, msg=str(e), url=final_url)
             print msg
             log_to_file(msg, "error.txt")
             sleep_for(1)

@@ -261,6 +261,13 @@ def adjust_currency_balance(first_order_book, second_order_book, treshold_revers
 
     if balance_state.is_there_disbalance(dst_currency_id, src_exchange_id, dst_exchange_id, treshold_reverse) and \
             is_no_pending_order(pair_id, src_exchange_id, dst_exchange_id):
+        msg = "We have disbalance! Exchanges {exch1} {exch2} for {pair_id} with {thrs}".format(
+            exch1=get_exchange_name_by_id(src_exchange_id),
+            exch2=get_exchange_name_by_id(dst_exchange_id),
+            pair_id=get_pair_name_by_id(dst_currency_id),
+            thrs=treshold_reverse
+        )
+        print msg
         search_for_arbitrage(first_order_book, second_order_book, treshold_reverse,
                              action_to_perform, balance_state, deal_cap,
                              type_of_deal)
