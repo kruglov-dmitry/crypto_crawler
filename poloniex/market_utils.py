@@ -1,6 +1,6 @@
 from data_access.memory_cache import generate_nonce
 from constants import POLONIEX_CANCEL_ORDER, POLONIEX_BUY_ORDER, POLONIEX_SELL_ORDER, POLONIEX_CHECK_BALANCE, \
-    POLONIEX_GET_ORDER_HISTORY, POLONIEX_GET_OPEN_ORDERS
+    POLONIEX_GET_ORDER_HISTORY, POLONIEX_GET_OPEN_ORDERS, POLONIEX_NUM_OF_DEAL_RETRY, POLONIEX_DEAL_TIMEOUT
 from data_access.internet import send_post_request_with_header
 from data_access.PostRequestDetails import PostRequestDetails
 
@@ -12,6 +12,7 @@ from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_REL
     LOG_ALL_MARKET_NETWORK_RELATED_CRAP
 from utils.time_utils import get_now_seconds_utc
 from utils.file_utils import log_to_file
+
 
 
 def add_buy_order_poloniex(key, pair_name, price, amount):
@@ -35,7 +36,7 @@ def add_buy_order_poloniex(key, pair_name, price, amount):
 
     err_msg = "add_buy_order poloniex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=POLONIEX_NUM_OF_DEAL_RETRY, timeout=POLONIEX_DEAL_TIMEOUT)
 
     if should_print_debug():
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
@@ -66,7 +67,7 @@ def add_sell_order_poloniex(key, pair_name, price, amount):
 
     err_msg = "add_sell_order poloniex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=POLONIEX_NUM_OF_DEAL_RETRY, timeout=POLONIEX_DEAL_TIMEOUT)
 
     if should_print_debug():
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
@@ -95,7 +96,7 @@ def cancel_order_poloniex(key, deal_id):
 
     err_msg = "cancel poloniex called for {deal_id}".format(deal_id=deal_id)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=1)
 
     if should_print_debug():
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)

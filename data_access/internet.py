@@ -47,18 +47,18 @@ def send_get_request_with_header(final_url, header, error_msg):
     return res
 
 
-def send_post_request_with_header(final_url, header, body, error_msg, max_tries):
+def send_post_request_with_header(final_url, header, body, error_msg, max_tries, timeout=HTTP_TIMEOUT_SECONDS):
     res = STATUS.FAILURE, None
 
     try_number = 0
     while try_number < max_tries:
         try_number += 1
         try:
-            response = requests.post(final_url, data=body, headers=header, timeout=HTTP_TIMEOUT_SECONDS).json()
+            response = requests.post(final_url, data=body, headers=header, timeout=timeout).json()
             str_repr = json.dumps(response)
             # try to deal with problem - i.e. just wait an retry
             if "EOrder" in str_repr or "Unavailable" in str_repr or "Busy" in str_repr or "ETrade" in str_repr or "EGeneral:Invalid" in str_repr \
-                    or "timeout" in str_repr:
+                    or "timeout" in str_repr or "Nonce must" in str_repr:
                 sleep_for(1)
             else:
                 msg = "send_post_request_with_header: YEAH, RESULT: {res} for url={url}".format(res=str_repr, url=final_url)

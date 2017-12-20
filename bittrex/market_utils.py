@@ -1,6 +1,7 @@
 from urllib import urlencode as _urlencode
 
-from constants import BITTREX_CANCEL_ORDER, BITTREX_BUY_ORDER, BITTREX_SELL_ORDER, BITTREX_CHECK_BALANCE
+from constants import BITTREX_CANCEL_ORDER, BITTREX_BUY_ORDER, BITTREX_SELL_ORDER, BITTREX_CHECK_BALANCE, \
+    BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT
 from data.Balance import Balance
 from enums.status import STATUS
 
@@ -37,7 +38,7 @@ def add_buy_order_bittrex(key, pair_name, price, amount):
 
     err_msg = "add_buy_order bittrex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY, timeout=BITTREX_DEAL_TIMEOUT)
 
     if should_print_debug():
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
@@ -68,7 +69,7 @@ def add_sell_order_bittrex(key, pair_name, price, amount):
 
     err_msg = "add_sell_order bittrex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY, timeout=BITTREX_DEAL_TIMEOUT)
 
     if should_print_debug():
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)

@@ -12,7 +12,8 @@ from utils.key_utils import signed_body_256
 from utils.time_utils import get_now_seconds_utc, get_now_seconds_utc_ms
 from utils.file_utils import log_to_file
 
-from constants import BINANCE_CANCEL_ORDER, BINANCE_BUY_ORDER, BINANCE_SELL_ORDER, BINANCE_CHECK_BALANCE
+from constants import BINANCE_CANCEL_ORDER, BINANCE_BUY_ORDER, BINANCE_SELL_ORDER, BINANCE_CHECK_BALANCE, \
+    BINANCE_NUM_OF_DEAL_RETRY, BINANCE_DEAL_TIMEOUT
 from enums.status import STATUS
 
 """
@@ -54,7 +55,7 @@ def add_buy_order_binance(key, pair_name, price, amount):
 
     err_msg = "add_buy_order_binance  called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(final_url, headers, {}, err_msg, max_tries=3)
+    res = send_post_request_with_header(final_url, headers, {}, err_msg, max_tries=BINANCE_NUM_OF_DEAL_RETRY, timeout=BINANCE_DEAL_TIMEOUT)
 
     """
     {"orderId": 1373289, "clientOrderId": "Is7wGaKBtLBK7JjDkNAJwn", "origQty": "10.00000000", "symbol": "RDNBTC", "side": "BUY", "timeInForce": "GTC", "status": "NEW", "transactTime": 1512581468544, "type": "LIMIT", "price": "0.00022220", "executedQty": "0.00000000"}
@@ -100,7 +101,7 @@ def add_sell_order_binance(key, pair_name, price, amount):
 
     err_msg = "add_sell_order binance called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(final_url, headers, {}, err_msg, max_tries=3)
+    res = send_post_request_with_header(final_url, headers, {}, err_msg, max_tries=BINANCE_NUM_OF_DEAL_RETRY, timeout=BINANCE_DEAL_TIMEOUT)
 
     """
     {"orderId": 1373492, "clientOrderId": "e04JGgCpafdrR6O1lOLwgD", "origQty": "1.00000000", "symbol": "RDNBTC", "side": "SELL", "timeInForce": "GTC", "status": "NEW", "transactTime": 1512581721384, "type": "LIMIT", "price": "1.00022220", "executedQty": "0.00000000"}`:w
