@@ -204,6 +204,42 @@ krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
 bin_key = get_key_by_exchange(EXCHANGE.BINANCE)
 pol_key = get_key_by_exchange(EXCHANGE.POLONIEX)
 
-er_code, res = get_orders_history_poloniex(pol_key, "all")
-print res
+def check_order_polonie(pol_key):
+    er_code, res = get_orders_history_poloniex(pol_key, "all")
+    print res
+
+
+from enums.deal_type import DEAL_TYPE
+from data.Trade import Trade
+from data.TradePair import TradePair
+from core.arbitrage_core import init_deals_with_logging_speedy
+
+
+def check_deal_placements():
+    create_time = get_now_seconds_utc()
+    fake_order_book_time1 = -10
+    fake_order_book_time2 = -20
+    deal_volume = -100500
+    deal_price = -1
+    pair_id = -1
+
+    sell_exchange_id = -1
+    buy_exchange_id = -1
+
+    difference = "difference is HUGE"
+    file_name = "test.log"
+
+    processor = ConnectionPool(pool_size=2)
+
+    trade_at_first_exchange = Trade(DEAL_TYPE.SELL, sell_exchange_id, pair_id,
+                                    deal_price, deal_volume, fake_order_book_time1,
+                                    create_time)
+
+    trade_at_second_exchange = Trade(DEAL_TYPE.BUY, buy_exchange_id, pair_id,
+                                     deal_price, deal_volume, fake_order_book_time2,
+                                     create_time)
+
+    trade_pairs = TradePair(trade_at_first_exchange, trade_at_second_exchange, fake_order_book_time1, fake_order_book_time2, DEAL_TYPE.DEBUG)
+
+    init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor)
 

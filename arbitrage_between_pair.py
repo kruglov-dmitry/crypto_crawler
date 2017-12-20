@@ -1,6 +1,6 @@
 import argparse
 
-from core.arbitrage_core import search_for_arbitrage, init_deals_with_logging, adjust_currency_balance
+from core.arbitrage_core import search_for_arbitrage, init_deals_with_logging_speedy, adjust_currency_balance
 from core.backtest import common_cap_init, dummy_balance_init, dummy_order_state_init
 from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
@@ -54,7 +54,7 @@ if __name__ == "__main__":
             sleep_for(1)
             continue
 
-        method(order_book_src, order_book_dst, cfg.threshold, init_deals_with_logging,
-               balance_state, deal_cap, type_of_deal=cfg.mode)
+        method(order_book_src, order_book_dst, cfg.threshold, init_deals_with_logging_speedy,
+               balance_state, deal_cap, type_of_deal=cfg.mode, worker_pool=processor)
 
         sleep_for(1)
