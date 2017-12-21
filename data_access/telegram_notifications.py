@@ -34,7 +34,7 @@ def send_single_message(some_message):
     res = STATUS.FAILURE
     bot = telegram.Bot(token='438844686:AAE8lS3VyMsNgtytR4I1uWy4DLUaot2e5hU')
     try:
-        bot.send_message(chat_id=-218431137, text=str(some_message), parse_mode=telegram.ParseMode.MARKDOWN)
+        bot.send_message(chat_id=-218431137, text=str(some_message), parse_mode=telegram.ParseMode.HTML)
         res = STATUS.SUCCESS
     except Exception, e:
         msg = "send_single_message: {ee}".format(ee=str(e))

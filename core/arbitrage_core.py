@@ -155,12 +155,13 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
     global overall_profit_so_far
     overall_profit_so_far += trade_pairs.current_profit
 
-    msg = """We try to send following deals to exchange.
-    *Expected profit:* _{cur}_. 
-    *Overall:* _{tot}_
-    *Difference in percents:* _{diff}_
+    msg = """
+            We try to send following deals to exchange.
+    <b>Expected profit:</b> <i>{cur}</i>. 
+    <b>Overall:</b> <i>{tot}</i>
+    <b>Difference in percents:</b> <i>{diff}</i>
     
-    Deal details:
+            Deal details:
     {deal}
     """.format(
         cur=float_to_str(trade_pairs.current_profit),
@@ -179,12 +180,14 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
     for (return_value, trade) in res:
         # check for none and error_code may not be jsonable
         if return_value.status_code == 200:
-            wtf_str = re.sub(r'([^\s\w]|_)+', '', json.dumps(return_value.json()))
-            msg = """For trade {trade} response is {resp} """.format(trade=trade, resp=wtf_str)
-            print "Try to send this: ", msg
+            msg = """
+            For trade {trade}
+            Response is {resp} """.format(trade=trade, resp=return_value.json())
         else:
-            msg = """For trade {trade} response is just *BAD CODE* {resp}""".format(trade=trade, resp=return_value.status_code)
-            print "Try to send this: ", msg
+            msg = """
+            For trade {trade}
+            Response is <b>BAD CODE!</b> {resp}""".format(trade=trade, resp=str(return_value.status_code))
+
         print_to_console(msg, LOG_ALL_ERRORS)
         send_single_message(msg)
         log_to_file(msg, file_name)
