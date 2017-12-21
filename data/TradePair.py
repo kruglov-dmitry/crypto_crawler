@@ -20,11 +20,14 @@ class TradePair(BaseData):
         self.current_profit = self.compute_profit(self.deal_1, self.deal_2)
 
     def __str__(self):
-        str_repr = "Trade #{num} at timest1: {timest1} timest2: {timest2} type: {type}\n".format(
-            num=self.id, timest1=self.timest1, timest2=self.timest2, type=get_deal_type_by_id(self.deal_type))
-        str_repr += str(self.deal_1) + "\n"
-        str_repr += str(self.deal_2) + "\n"
-        str_repr += "Current profit - {bakshish}".format(bakshish=float_to_str(self.current_profit))
+        str_repr = """Trade #{num} at timest1: {timest1} timest2: {timest2} type: {type}
+        {deal1}
+        {deal2}
+        Current profit - {bakshish}
+        """.format(num=self.id, timest1=self.timest1, timest2=self.timest2, type=get_deal_type_by_id(self.deal_type),
+                   deal1=str(self.deal_1),
+                   deal2=str(self.deal_2),
+                   bakshish=float_to_str(self.current_profit))
 
         return str_repr
 

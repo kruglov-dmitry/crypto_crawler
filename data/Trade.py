@@ -25,8 +25,12 @@ class Trade(Deal):
         self.deal_id = deal_id
 
     def __str__(self):
-        str_repr = "Trade at Exchange: {exch} type: {deal_type} pair: {pair} for volume {vol} with price {price} " \
-                   "order_book_time {ob_time} create_time {ct_time} execute_time {ex_time} deal_id {deal_id}".format(
+        str_repr = """
+        Trade at Exchange: {exch}
+        Type: {deal_type}
+        Pair: {pair} for volume {vol} with price {price}
+        order_book_time {ob_time} create_time {ct_time} execute_time {ex_time}
+        deal_id {deal_id}""".format(
             exch=get_exchange_name_by_id(self.exchange_id),
             deal_type=get_deal_type_by_id(self.trade_type),
             pair=get_currency_name_by_id(self.pair_id),
