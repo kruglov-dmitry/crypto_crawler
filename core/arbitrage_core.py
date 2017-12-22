@@ -82,9 +82,6 @@ def init_deal(trade_to_perform, debug_msg):
         print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, "error.log")
 
-    # force update balance at exchanges
-    update_balance_by_exchange(trade_to_perform.exchange_id)
-
     return res
 
 
@@ -204,6 +201,9 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
         log_to_file(msg, file_name)
 
     # FIXME NOTE: and now good question - what to do with failed deals.
+    # FIXME NOTE 2: What if we can't update balance?
+    for exchange_id in [trade_pairs.deal_1.exchange_id, trade_pairs.deal_2.exchange_id]:
+        update_balance_by_exchange(exchange_id)
 
 
 def get_method_for_create_url_trade_by_exchange_id(trade):
