@@ -66,6 +66,12 @@ class BalanceState(BaseData):
     def update_time(self, exchange_id, timest):
         self.balance_per_exchange[exchange_id].last_update = timest
 
+    def expired(self, timest, src_exchange_id, dst_exchange_id, threshold):
+        diff1 = timest - self.balance_per_exchange[src_exchange_id].last_update
+        diff2 = timest - self.balance_per_exchange[dst_exchange_id].last_update
+
+        return diff1 > threshold or diff2 > threshold
+
     def is_there_disbalance(self, currency_id, src_exchange_id, dst_exchange_id, threshold):
         """
             Check whether amount of dst_currency at pair of exchange do not differ more than threshold

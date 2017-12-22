@@ -134,6 +134,9 @@ def init_deals_with_logging(trade_pairs, difference, file_name):
     return STATUS.SUCCESS
 
 
+def init_deals_with_logging_speedy_fake(trade_pairs, difference, file_name, processor):
+    pass
+
 def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor):
     parallel_deals = []
 
@@ -241,7 +244,7 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
     if min_volume <= 0:
         msg = "determine_minimum_volume - something severely wrong - NEGATIVE min price: {pr}".format(pr=min_volume)
         print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, "error.txt")
+        log_to_file(msg, "error.log")
         raise
 
     base_currency_id, dst_currency_id = split_currency_pairs(first_order_book.pair_id)
@@ -304,7 +307,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
             ask=float_to_str(buy_order_book.ask[LAST].price),
             diff=difference)
         print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
-        log_to_file(msg, "debug.txt")
+        log_to_file(msg, "debug.log")
 
     if difference >= threshold:
 
@@ -322,7 +325,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
                 vol1=float_to_str(sell_order_book.bid[FIRST].volume),
                 vol2=float_to_str(buy_order_book.ask[LAST].volume))
             print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
-            log_to_file(msg, "debug.txt")
+            log_to_file(msg, "debug.log")
             send_single_message(msg, NOTIFICATION.DEBUG)
 
             return STATUS.FAILURE
@@ -339,7 +342,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
         deal_status = action_to_perform(TradePair(trade_at_first_exchange, trade_at_second_exchange,
                                                   sell_order_book.timest, buy_order_book.timest, type_of_deal),
                                         difference,
-                                        "history_trades.txt",
+                                        "history_trades.log",
                                         worker_pool)
 
         if deal_status == STATUS.FAILURE:
@@ -369,11 +372,20 @@ def adjust_currency_balance(first_order_book, second_order_book, treshold_revers
         )
 
         print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
-        log_to_file(msg, "debug.txt")
+        log_to_file(msg, "debug.log")
 
         search_for_arbitrage(first_order_book, second_order_book, treshold_reverse,
                              action_to_perform, balance_state, deal_cap,
                              type_of_deal, worker_pool)
+    else:
+        msg = "No disbalance at Exchanges {exch1} {exch2} for {pair_id} with {thrs}".format(
+            exch1=get_exchange_name_by_id(src_exchange_id),
+            exch2=get_exchange_name_by_id(dst_exchange_id),
+            pair_id=get_pair_name_by_id(dst_currency_id),
+            thrs=treshold_reverse
+        )
+        print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
+        log_to_file(msg, "debug.log")
 
 
 def mega_analysis(order_book, threshold, balance_state, deal_cap, action_to_perform):
