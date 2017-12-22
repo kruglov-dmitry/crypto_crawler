@@ -8,6 +8,8 @@ from data.OrderHistory import OrderHistory, TRADE_HISTORY_TYPE_NAME
 from data.Ticker import Ticker, TICKER_TYPE_NAME
 from utils.time_utils import get_now_seconds_utc
 
+from constants import LOGS_FOLDER
+
 
 def constructor_selector(class_name, string_repr):
     if class_name == TICKER_TYPE_NAME:
@@ -26,8 +28,9 @@ def save_list_to_file(some_data, file_name):
             myfile.write("%s\n" % str(entry))
 
 
-def log_to_file(trade, file_name):
-    with open(file_name, 'a') as the_file:
+def log_to_file(trade, file_name, log_dir=LOGS_FOLDER):
+    full_file_path = log_dir + file_name
+    with open(full_file_path, 'a') as the_file:
         ts = get_now_seconds_utc()
         pid = os.getpid()
         the_file.write(str(ts) + " : " + " PID: " + str(pid) + " " + str(trade) + "\n")

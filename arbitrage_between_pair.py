@@ -68,9 +68,9 @@ if __name__ == "__main__":
                 lf=cfg.log_file_name
             )
             print_to_console(msg, LOG_ALL_ERRORS)
-            print_to_console(balance_state, LOG_ALL_ERRORS)
             send_single_message(msg, NOTIFICATION.DEAL)
             log_to_file(msg, cfg.log_file_name)
+            log_to_file(balance_state, cfg.log_file_name)
             raise
 
         order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, timest, processor)
