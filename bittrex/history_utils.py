@@ -33,7 +33,7 @@ def get_history_bittrex(pair_name, prev_time, now_time):
 def get_history_bittrex_result_processor(json_document, pair_name, timest):
     all_history_records = []
 
-    if json_document is not None and "result" in json_document:
+    if json_document is not None and "result" in json_document and json_document["result"] is not None:
         for rr in json_document["result"]:
             all_history_records.append(OrderHistory.from_bittrex(rr, pair_name, timest))
 
