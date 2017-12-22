@@ -106,7 +106,8 @@ if __name__ == "__main__":
                 list_of_pairs = settings.list_of_pairs
                 for every_pair_name in list_of_pairs:
                     pair_id = get_pair_id_by_name(every_pair_name)
-                    commands_per_screen.append(DeployUnit(sell_exchange_id, buy_exchange_id, pair_id, arbitrage_threshold, reverse_threshold))
+                    commands_per_screen.append(DeployUnit(sell_exchange_id, buy_exchange_id, pair_id,
+                                                          arbitrage_threshold, balance_adjust_threshold))
                     deploy_units[screen_name] = commands_per_screen
 
     # Create named screen
