@@ -39,8 +39,7 @@ class DeployUnit(BaseData):
             reverse_threshold=self.reverse_threshold,
             sell_exchange_id=self.sell_exchange_id,
             buy_exchange_id=self.buy_exchange_id,
-            pair_id=self.pair_id,
-            mode_id=self.mode_id)
+            pair_id=self.pair_id)
 
         return cmd
 

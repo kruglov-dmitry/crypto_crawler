@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     results = parser.parse_args()
 
-    cfg = ArbitrageConfig(results.threshold, results.reverse_threshold, results.sell_exchange_id, results.buy_exchange_id, results.pair_id, results.mode_id)
+    cfg = ArbitrageConfig(results.threshold, results.reverse_threshold, results.sell_exchange_id, results.buy_exchange_id, results.pair_id)
 
     load_keys("./secret_keys")
 

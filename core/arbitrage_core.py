@@ -34,6 +34,9 @@ from binance.market_utils import add_buy_order_binance_url, add_sell_order_binan
 from kraken.market_utils import add_buy_order_kraken_url, add_sell_order_kraken_url
 from bittrex.market_utils import add_buy_order_bittrex_url, add_sell_order_bittrex_url
 from poloniex.market_utils import add_buy_order_poloniex_url, add_sell_order_poloniex_url
+
+from binance.precision_by_currency import round_minimum_volume_by_binance_rules
+
 from data_access.ConnectionPool import WorkUnit
 
 
@@ -273,7 +276,10 @@ def adjust_minimum_volume_by_trading_cap(first_order_book, second_order_book, de
     return min_volume
 
 
-def round_minimum_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, min_volume):
+def round_minimum_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, min_volume, pair_id):
+    if sell_exchange_id == EXCHANGE.BINANCE or buy_exchange_id == EXCHANGE.BINANCE:
+        return round_minimum_volume_by_binance_rules(pair_id, min_volume)
+    return min_volume
     
 
 
@@ -319,7 +325,8 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
 
         min_volume = adjust_minimum_volume_by_trading_cap(sell_order_book, buy_order_book, deal_cap, min_volume)
 
-        min_volume = round_minimum_volume_by_exchange_rules(sell_order_book.exchange_id, buy_order_book.exchange_id, min_volume)
+        min_volume = round_minimum_volume_by_exchange_rules(sell_order_book.exchange_id, buy_order_book.exchange_id,
+                                                            min_volume, sell_order_book.pair_id)
 
         if min_volume <= 0:
             msg = """analyse order book - DETERMINED volume of deal is not ENOUGH {pair_name}:
