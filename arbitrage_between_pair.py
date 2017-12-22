@@ -1,6 +1,7 @@
 import argparse
 
-from core.arbitrage_core import search_for_arbitrage, init_deals_with_logging_speedy, adjust_currency_balance
+from core.arbitrage_core import search_for_arbitrage, init_deals_with_logging_speedy, adjust_currency_balance, \
+    init_deals_with_logging_speedy_fake
 from core.backtest import common_cap_init, dummy_balance_init, dummy_order_state_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
@@ -55,17 +56,19 @@ if __name__ == "__main__":
         balance_state = get_updated_balance_arbitrage(cfg, balance_state, local_cache)
 
         if balance_state.expired(timest, cfg.buy_exchange_id, cfg.sell_exchange_id, BALANCE_EXPIRED_THRESHOLD):
-            msg = """       <b> <<< CRITICAL >>> </b>
+            msg = """
+                        <b> !!! CRITICAL !!! </b>
             Balance is OUTDATED for {exch1} or {exch2} for more than {tt} seconds
             Arbitrage process will be stopped just in case.
-            Active settings: {cfg}
+            Check log file: {lf}
             """.format(
                 exch1=get_exchange_name_by_id(cfg.buy_exchange_id),
                 exch2=get_exchange_name_by_id(cfg.sell_exchange_id),
                 tt=BALANCE_EXPIRED_THRESHOLD,
-                cfg=cfg
+                lf=cfg.log_file_name
             )
             print_to_console(msg, LOG_ALL_ERRORS)
+            print_to_console(balance_state, LOG_ALL_ERRORS)
             send_single_message(msg, NOTIFICATION.DEAL)
             log_to_file(msg, cfg.log_file_name)
             raise
@@ -78,7 +81,9 @@ if __name__ == "__main__":
             sleep_for(1)
             continue
 
-        method(order_book_src, order_book_dst, cfg.threshold, init_deals_with_logging_speedy,
+        # init_deals_with_logging_speedy
+        method(order_book_src, order_book_dst, cfg.threshold,
+               init_deals_with_logging_speedy,
                balance_state, deal_cap, type_of_deal=cfg.mode, worker_pool=processor)
 
         print_to_console("I am still allive! ", LOG_ALL_DEBUG)
