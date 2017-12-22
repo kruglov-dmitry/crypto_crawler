@@ -14,7 +14,7 @@ FULL_COMMAND = "python /Users/kruglovdmitry/crypto_crawler/arbitrage_between_pai
 
 
 def generate_screen_name(sell_exchange_id, buy_exchange_id, deal_type_id):
-    screen_name = "{sell_exch}==>{buy_exch} ::: {deal_type}".format(sell_exch=get_exchange_name_by_id(sell_exchange_id),
+    screen_name = "{sell_exch}==>{buy_exch}-{deal_type}".format(sell_exch=get_exchange_name_by_id(sell_exchange_id),
                                                                     buy_exch=get_exchange_name_by_id(buy_exchange_id),
                                                                     deal_type=get_deal_type_by_id(deal_type_id))
     return screen_name
