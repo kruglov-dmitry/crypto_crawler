@@ -367,7 +367,10 @@ def adjust_currency_balance(first_order_book, second_order_book, treshold_revers
             pair_id=get_pair_name_by_id(dst_currency_id),
             thrs=treshold_reverse
         )
-        print msg
+
+        print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
+        log_to_file(msg, "debug.txt")
+
         search_for_arbitrage(first_order_book, second_order_book, treshold_reverse,
                              action_to_perform, balance_state, deal_cap,
                              type_of_deal, worker_pool)

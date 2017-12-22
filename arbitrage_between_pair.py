@@ -2,12 +2,16 @@ import argparse
 
 from core.arbitrage_core import search_for_arbitrage, init_deals_with_logging_speedy, adjust_currency_balance
 from core.backtest import common_cap_init, dummy_balance_init, dummy_order_state_init
+
 from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
 from data.ArbitrageConfig import ArbitrageConfig
+
 from data_access.ConnectionPool import ConnectionPool
 from data_access.memory_cache import local_cache
+
 from enums.deal_type import DEAL_TYPE
+
 from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc
 from utils.time_utils import sleep_for
@@ -45,7 +49,6 @@ if __name__ == "__main__":
         timest = get_now_seconds_utc()
 
         balance_state = get_updated_balance_arbitrage(cfg, balance_state, local_cache)
-        print balance_state
 
         order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, timest, processor)
 

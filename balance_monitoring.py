@@ -1,6 +1,8 @@
 from utils.time_utils import sleep_for, get_now_seconds_utc
 from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
+from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, LOG_ALL_ERRORS, LOG_ALL_DEBUG
+from utils.exchange_utils import get_exchange_name_by_id
 
 from data_access.memory_cache import connect_to_cache
 from data_access.telegram_notifications import send_single_message
@@ -37,15 +39,17 @@ if __name__ == "__main__":
         cnt += POLL_TIMEOUT
 
         for idx in exchanges_ids:
-            print "Update for ", idx
+            tr = "Update for exch = {exch}".format(exch=get_exchange_name_by_id(idx))
+            print_to_console(tr, LOG_ALL_DEBUG)
+
             res = update_balance_by_exchange(idx, cache)
 
             if res.do_we_have_enough_bitcoin(BITCOIN_ALARM_THRESHOLD):
-                msg = "BTC balance on exchange BELOW threshold {thrs} - only {am} LEFT!".format(
-                    thrs=BITCOIN_ALARM_THRESHOLD, am=res.get_bitcoin_balance())
+                msg = """           <b> <<<< INFO >>>> </b>
+                BTC balance on exchange {exch} BELOW threshold {thrs} - only {am} LEFT!""".format(
+                    thrs=BITCOIN_ALARM_THRESHOLD, exch=get_exchange_name_by_id(idx), am=res.get_bitcoin_balance())
                 send_single_message(msg, NOTIFICATION.DEAL)
-
-        print cnt
+                print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
 
         if cnt >= TIMEOUT_HEALTH_CHECK:
             cnt = 0
@@ -54,8 +58,15 @@ if __name__ == "__main__":
             for idx in exchanges_ids:
                 some_balance = cache.get_balance(idx)
                 if some_balance is None or (timest - some_balance.last_update) > MAX_EXPIRE_TIMEOUT:
-                    msg = "<<<< ERROR >>>> BALANCE were not updated for a {tm} seconds ".format(tm=MAX_EXPIRE_TIMEOUT)
-                    print msg
-                    log_to_file(msg, "cache.log")
+                    msg = """           <b> <<<< WARNING >>>> </b> 
+                    BALANCE were not updated for a {tm} seconds!
+                    last balance {bl}""".format(tm=MAX_EXPIRE_TIMEOUT, bl=some_balance)
+                    print_to_console(msg, LOG_ALL_ERRORS)
+                    send_single_message(msg, NOTIFICATION.DEAL)
+                    log_to_file(msg, "balance.log")
                 else:
-                    print some_balance
+                    msg = """Updated balance sucessfully for exch={exch}:
+                    {balance}
+                    """.format(exch=get_exchange_name_by_id(idx), balance= some_balance)
+                    print_to_console(some_balance, LOG_ALL_MARKET_RELATED_CRAP)
+                    log_to_file(some_balance, "balance.log")
