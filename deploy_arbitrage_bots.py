@@ -1,10 +1,12 @@
 import sys
-from core.base_math import get_all_permutation_list
 from deploy.screen_utils import create_screen, create_screen_window, run_command_in_screen
+
 from utils.exchange_utils import get_exchange_id_by_name, get_exchange_name_by_id
 from utils.currency_utils import get_pair_name_by_id, get_pair_id_by_name
-from enums.deal_type import DEAL_TYPE, get_deal_type_by_id
+from utils.time_utils import sleep_for
+
 from data.BaseData import BaseData
+
 from collections import defaultdict
 
 
@@ -104,7 +106,8 @@ if __name__ == "__main__":
                 list_of_pairs = settings.list_of_pairs
                 for every_pair_name in list_of_pairs:
                     pair_id = get_pair_id_by_name(every_pair_name)
-                    commands_per_screen.append(DeployUnit(sell_exchange_id, buy_exchange_id, pair_id, arbitrage_threshold, reverse_threshold))
+                    commands_per_screen.append(DeployUnit(sell_exchange_id, buy_exchange_id, pair_id,
+                                                          arbitrage_threshold, balance_adjust_threshold))
                     deploy_units[screen_name] = commands_per_screen
 
     # Create named screen
@@ -115,6 +118,9 @@ if __name__ == "__main__":
     create_screen(balance_screen_name)
     create_screen_window(balance_screen_name, balance_window_name)
     run_command_in_screen(balance_screen_name, balance_window_name, BALANCE_UPDATE_COMMAND)
+
+    # Let it update balance first
+    sleep_for(5)
 
     # 2nd stage - spawn a shit load of arbitrage checkers
     for screen_name in deploy_units:

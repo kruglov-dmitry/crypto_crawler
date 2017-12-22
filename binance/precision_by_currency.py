@@ -1,4 +1,4 @@
-from currency_utils import get_currency_pair_from_binance
+from currency_utils import get_currency_pair_to_binance
 
 # BASE_CURRENCY = BTC
 PRECISIONS = {
@@ -97,5 +97,6 @@ PRECISIONS = {
 
 
 def round_minimum_volume_by_binance_rules(volume, pair_id):
-    pair_name = get_currency_pair_from_binance(pair_id)
+    pair_name = get_currency_pair_to_binance(pair_id)
+    print "WTF", pair_name, pair_id
     return (int(volume / PRECISIONS[pair_name])) * PRECISIONS[pair_name]

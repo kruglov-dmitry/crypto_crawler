@@ -7,6 +7,7 @@ from utils.time_utils import sleep_for
 from utils.currency_utils import get_pair_name_by_id
 from debug_utils import print_to_console, LOG_ALL_DEBUG, LOG_ALL_ERRORS
 from utils.string_utils import float_to_str
+from utils.file_utils import log_to_file
 
 from dao.db import save_alarm_into_pg
 
@@ -42,6 +43,7 @@ def inform_big_boss(info_to_report, pg_conn, error_timeout):
 
         if STATUS.SUCCESS != error_code:
             err_msg = "inform_big_boss can't send message to telegram. Lets try one more time after timeout: {r}".format(r=msg)
+            log_to_file(err_msg, "telegram.log")
             print_to_console(err_msg, err_msg)
             sleep_for(error_timeout)
             send_single_message(msg, NOTIFICATION.ARBITRAGE)
@@ -55,7 +57,8 @@ def send_single_message(some_message, notification_type):
         bot.send_message(chat_id=chat_id, text=str(some_message), parse_mode=telegram.ParseMode.HTML)
         res = STATUS.SUCCESS
     except Exception, e:
-        msg = "send_single_message: {ee}".format(ee=str(e))
+        msg = "send_single_message FAILED: {msg} {ee}".format(msg=some_message, ee=str(e))
         print_to_console(msg, LOG_ALL_ERRORS)
+        log_to_file(msg, "telegram.log")
 
     return res
