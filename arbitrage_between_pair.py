@@ -83,6 +83,8 @@ if __name__ == "__main__":
                 sleep_for(1)
                 continue
 
+            raise
+
             # init_deals_with_logging_speedy
             method(order_book_src, order_book_dst, active_threshold,
                    init_deals_with_logging_speedy,
