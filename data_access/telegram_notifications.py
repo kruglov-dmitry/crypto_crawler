@@ -6,8 +6,10 @@ import telegram
 from utils.time_utils import sleep_for
 from utils.currency_utils import get_pair_name_by_id
 from debug_utils import print_to_console, LOG_ALL_DEBUG, LOG_ALL_ERRORS
+from utils.string_utils import float_to_str
 
 from dao.db import save_alarm_into_pg
+
 from enums.status import STATUS
 from enums.notifications import NOTIFICATION
 
@@ -27,10 +29,14 @@ def inform_big_boss(info_to_report, pg_conn, error_timeout):
     print_to_console("SEND NOTIFY", LOG_ALL_DEBUG)
     for debug in info_to_report:
         save_alarm_into_pg(debug[2], debug[3], pg_conn)
-        msg = "Condition: {msg} \nPair: {pair_name}, {ask_exchange}: {ask_price} {sell_exchange}: {sell_price}".format(
+        msg = """Condition: {msg}
+        Pair: {pair_name}, {ask_exchange}: {ask_price} {sell_exchange}: {sell_price}
+        TAG: {ask_exchange}-{sell_exchange}
+        """.format(
             msg=debug[0],
-            pair_name=get_pair_name_by_id(debug[1]), ask_exchange=debug[2].exchange, ask_price=debug[2].bid,
-            sell_exchange=debug[3].exchange, sell_price=debug[3].ask)
+            pair_name=get_pair_name_by_id(debug[1]),
+            ask_exchange=debug[2].exchange, ask_price=float_to_str(debug[2].bid),
+            sell_exchange=debug[3].exchange, sell_price=float_to_str(debug[3].ask))
 
         error_code = send_single_message(msg, NOTIFICATION.ARBITRAGE)
 

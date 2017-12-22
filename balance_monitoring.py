@@ -39,13 +39,13 @@ if __name__ == "__main__":
         cnt += POLL_TIMEOUT
 
         for idx in exchanges_ids:
-            tr = "Update for exch = {exch}".format(exch=get_exchange_name_by_id(idx))
+            tr = "Updating for exch = {exch}".format(exch=get_exchange_name_by_id(idx))
             print_to_console(tr, LOG_ALL_DEBUG)
 
             res = update_balance_by_exchange(idx, cache)
 
             if res.do_we_have_enough_bitcoin(BITCOIN_ALARM_THRESHOLD):
-                msg = """           <b> <<<< INFO >>>> </b>
+                msg = """           <b> !!! INFO !!! </b>
                 BTC balance on exchange {exch} BELOW threshold {thrs} - only {am} LEFT!""".format(
                     thrs=BITCOIN_ALARM_THRESHOLD, exch=get_exchange_name_by_id(idx), am=res.get_bitcoin_balance())
                 send_single_message(msg, NOTIFICATION.DEAL)
