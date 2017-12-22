@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     TIMEOUT_HEALTH_CHECK = 60
     MAX_EXPIRE_TIMEOUT = 59
-    POLL_TIMEOUT = 10
+    POLL_TIMEOUT = 1
     cnt = 0
 
     while True:

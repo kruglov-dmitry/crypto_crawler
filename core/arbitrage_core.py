@@ -372,7 +372,7 @@ def adjust_currency_balance(first_order_book, second_order_book, treshold_revers
         )
 
         print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
-        log_to_file(msg, "debug.log")
+        log_to_file(msg, "history_trades.log")
 
         search_for_arbitrage(first_order_book, second_order_book, treshold_reverse,
                              action_to_perform, balance_state, deal_cap,

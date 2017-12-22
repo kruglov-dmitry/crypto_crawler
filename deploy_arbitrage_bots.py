@@ -13,30 +13,30 @@ import ConfigParser
 FULL_COMMAND = "python /Users/kruglovdmitry/crypto_crawler/arbitrage_between_pair.py"
 
 
-def generate_screen_name(sell_exchange_id, buy_exchange_id, deal_type_id):
-    screen_name = "{sell_exch}==>{buy_exch}-{deal_type}".format(sell_exch=get_exchange_name_by_id(sell_exchange_id),
-                                                                    buy_exch=get_exchange_name_by_id(buy_exchange_id),
-                                                                    deal_type=get_deal_type_by_id(deal_type_id))
+def generate_screen_name(sell_exchange_id, buy_exchange_id):
+    screen_name = "{sell_exch}==>{buy_exch}".format(sell_exch=get_exchange_name_by_id(sell_exchange_id),
+                                                    buy_exch=get_exchange_name_by_id(buy_exchange_id))
     return screen_name
 
 
 class DeployUnit(BaseData):
-    def __init__(self, sell_exchange_id, buy_exchange_id, pair_id, threshold, mode_id):
+    def __init__(self, sell_exchange_id, buy_exchange_id, pair_id, threshold, reverse_threshold):
         self.threshold = threshold
+        self.reverse_threshold = reverse_threshold
         self.sell_exchange_id = sell_exchange_id
         self.buy_exchange_id = buy_exchange_id
         self.pair_id = pair_id
-        self.mode_id = mode_id
 
     def generate_window_name(self):
         window_name = "{pair_id} - {pair_name}".format(pair_id=self.pair_id,pair_name=get_pair_name_by_id(self.pair_id))
         return window_name
 
     def generate_command(self, full_path_to_script):
-        cmd = "{cmd} --threshold {threshold} --sell_exchange_id {sell_exchange_id} --buy_exchange_id {buy_exchange_id} " \
-              "--pair_id {pair_id} --mode_id {mode_id}".format(
+        cmd = "{cmd} --threshold {threshold} --reverse_threshold {reverse_threshold} --sell_exchange_id {sell_exchange_id} --buy_exchange_id {buy_exchange_id} " \
+              "--pair_id {pair_id}".format(
             cmd=full_path_to_script,
             threshold=self.threshold,
+            reverse_threshold=self.reverse_threshold,
             sell_exchange_id=self.sell_exchange_id,
             buy_exchange_id=self.buy_exchange_id,
             pair_id=self.pair_id,
@@ -97,21 +97,15 @@ if __name__ == "__main__":
             exchange_pairs = [[exchange_id, dst_exchanges_id], [dst_exchanges_id, exchange_id]]
 
             for sell_exchange_id, buy_exchange_id in exchange_pairs:
-                print sell_exchange_id, buy_exchange_id
 
-                for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
+                screen_name = generate_screen_name(sell_exchange_id, buy_exchange_id)
 
-                    screen_name = generate_screen_name(sell_exchange_id, buy_exchange_id, mode_id)
+                commands_per_screen = []
 
-                    current_threshold = {DEAL_TYPE.ARBITRAGE: arbitrage_threshold,
-                                         DEAL_TYPE.REVERSE: balance_adjust_threshold}.get(mode_id)
-
-                    commands_per_screen = []
-
-                    list_of_pairs = settings.list_of_pairs
-                    for every_pair_name in list_of_pairs:
-                        pair_id = get_pair_id_by_name(every_pair_name)
-                        commands_per_screen.append(DeployUnit(sell_exchange_id, buy_exchange_id, pair_id, current_threshold, mode_id))
+                list_of_pairs = settings.list_of_pairs
+                for every_pair_name in list_of_pairs:
+                    pair_id = get_pair_id_by_name(every_pair_name)
+                    commands_per_screen.append(DeployUnit(sell_exchange_id, buy_exchange_id, pair_id, arbitrage_threshold, reverse_threshold))
                     deploy_units[screen_name] = commands_per_screen
 
     # Create named screen

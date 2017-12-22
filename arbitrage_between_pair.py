@@ -30,14 +30,14 @@ if __name__ == "__main__":
                                                  "and initiate sell\\buy deals for arbitrage opportunities")
 
     parser.add_argument('--threshold', action="store", type=float, required=True)
+    parser.add_argument('--reverse_threshold', action="store", type=float, required=True)
     parser.add_argument('--sell_exchange_id', action="store", type=int, required=True)
     parser.add_argument('--buy_exchange_id', action="store", type=int, required=True)
     parser.add_argument('--pair_id', action="store", type=int, required=True)
-    parser.add_argument('--mode_id', action="store", type=int, required=True)
 
     results = parser.parse_args()
 
-    cfg = ArbitrageConfig(results.threshold, results.sell_exchange_id, results.buy_exchange_id, results.pair_id, results.mode_id)
+    cfg = ArbitrageConfig(results.threshold, results.reverse_threshold, results.sell_exchange_id, results.buy_exchange_id, results.pair_id, results.mode_id)
 
     load_keys("./secret_keys")
 
@@ -47,44 +47,46 @@ if __name__ == "__main__":
 
     processor = ConnectionPool(pool_size=2)
 
-    method = search_for_arbitrage if cfg.mode == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
-
     while True:
 
-        timest = get_now_seconds_utc()
+        for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
+            timest = get_now_seconds_utc()
 
-        balance_state = get_updated_balance_arbitrage(cfg, balance_state, local_cache)
+            method = search_for_arbitrage if mode_id == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
+            active_threshold = cfg.threshold if mode_id == DEAL_TYPE.ARBITRAGE else cfg.reverse_threshold
 
-        if balance_state.expired(timest, cfg.buy_exchange_id, cfg.sell_exchange_id, BALANCE_EXPIRED_THRESHOLD):
-            msg = """
-                        <b> !!! CRITICAL !!! </b>
-            Balance is OUTDATED for {exch1} or {exch2} for more than {tt} seconds
-            Arbitrage process will be stopped just in case.
-            Check log file: {lf}
-            """.format(
-                exch1=get_exchange_name_by_id(cfg.buy_exchange_id),
-                exch2=get_exchange_name_by_id(cfg.sell_exchange_id),
-                tt=BALANCE_EXPIRED_THRESHOLD,
-                lf=cfg.log_file_name
-            )
-            print_to_console(msg, LOG_ALL_ERRORS)
-            send_single_message(msg, NOTIFICATION.DEAL)
-            log_to_file(msg, cfg.log_file_name)
-            log_to_file(balance_state, cfg.log_file_name)
-            raise
+            balance_state = get_updated_balance_arbitrage(cfg, balance_state, local_cache)
 
-        order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, timest, processor)
+            if balance_state.expired(timest, cfg.buy_exchange_id, cfg.sell_exchange_id, BALANCE_EXPIRED_THRESHOLD):
+                msg = """
+                            <b> !!! CRITICAL !!! </b>
+                Balance is OUTDATED for {exch1} or {exch2} for more than {tt} seconds
+                Arbitrage process will be stopped just in case.
+                Check log file: {lf}
+                """.format(
+                    exch1=get_exchange_name_by_id(cfg.buy_exchange_id),
+                    exch2=get_exchange_name_by_id(cfg.sell_exchange_id),
+                    tt=BALANCE_EXPIRED_THRESHOLD,
+                    lf=cfg.log_file_name
+                )
+                print_to_console(msg, LOG_ALL_ERRORS)
+                send_single_message(msg, NOTIFICATION.DEAL)
+                log_to_file(msg, cfg.log_file_name)
+                log_to_file(balance_state, cfg.log_file_name)
+                raise
 
-        if order_book_dst is None or order_book_src is None:
-            if order_book_dst is None:
-                print "CAN'T retrieve order book for {nn}".format(nn=get_exchange_name_by_id(cfg.sell_exchange_id))
+            order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, timest, processor)
+
+            if order_book_dst is None or order_book_src is None:
+                if order_book_dst is None:
+                    print "CAN'T retrieve order book for {nn}".format(nn=get_exchange_name_by_id(cfg.sell_exchange_id))
+                sleep_for(1)
+                continue
+
+            # init_deals_with_logging_speedy
+            method(order_book_src, order_book_dst, active_threshold,
+                   init_deals_with_logging_speedy,
+                   balance_state, deal_cap, type_of_deal=mode_id, worker_pool=processor)
+
+            print_to_console("I am still allive! ", LOG_ALL_DEBUG)
             sleep_for(1)
-            continue
-
-        # init_deals_with_logging_speedy
-        method(order_book_src, order_book_dst, cfg.threshold,
-               init_deals_with_logging_speedy,
-               balance_state, deal_cap, type_of_deal=cfg.mode, worker_pool=processor)
-
-        print_to_console("I am still allive! ", LOG_ALL_DEBUG)
-        sleep_for(1)
