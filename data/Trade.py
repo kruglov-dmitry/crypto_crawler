@@ -1,15 +1,15 @@
 from Deal import Deal
 
-from enums.deal_type import get_deal_type_by_id
-
-from utils.currency_utils import get_currency_name_by_id
-from kraken.currency_utils import get_currency_pair_from_kraken
-
-from utils.exchange_utils import get_exchange_name_by_id
-
 from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
+from enums.deal_type import get_deal_type_by_id
+
+from debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.string_utils import float_to_str
+from utils.exchange_utils import get_exchange_name_by_id
+from utils.currency_utils import get_currency_name_by_id
+from kraken.currency_utils import get_currency_pair_from_kraken
+from utils.file_utils import log_to_file
 
 
 class Trade(Deal):
@@ -25,8 +25,12 @@ class Trade(Deal):
         self.deal_id = deal_id
 
     def __str__(self):
-        str_repr = "Trade at Exchange: {exch} type: {deal_type} pair: {pair} for volume {vol} with price {price} " \
-                   "order_book_time {ob_time} create_time {ct_time} execute_time {ex_time} deal_id {deal_id}".format(
+        str_repr = """
+        Trade at Exchange: {exch}
+        Type: {deal_type}
+        Pair: {pair} for volume {vol} with price {price}
+        order_book_time {ob_time} create_time {ct_time} execute_time {ex_time}
+        deal_id {deal_id}""".format(
             exch=get_exchange_name_by_id(self.exchange_id),
             deal_type=get_deal_type_by_id(self.trade_type),
             pair=get_currency_name_by_id(self.pair_id),
@@ -91,6 +95,8 @@ class Trade(Deal):
             return Trade(trade_type, EXCHANGE.KRAKEN, pair_id, price, volume, order_book_time, create_time,
                          execute_time=create_time, deal_id=trade_id)
         except Exception, e:
-            print "NON supported currency?", pair_name, str(e)
+            msg = "NON supported currency? name: {n} exception: {e}".format(n=pair_name, e=str(e))
+            print_to_console(msg, LOG_ALL_ERRORS)
+            log_to_file(msg, "error.log")
 
         return None

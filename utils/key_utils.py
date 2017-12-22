@@ -1,10 +1,10 @@
-from enums.exchange import EXCHANGE
-from utils.exchange_utils import get_exchange_name_by_id
 import hmac
 import hashlib
 from urllib import urlencode as _urlencode
 import base64
-from data_access.memory_cache import local_cache
+
+from enums.exchange import EXCHANGE
+from utils.exchange_utils import get_exchange_name_by_id
 
 access_keys = {}
 
@@ -24,14 +24,6 @@ class ExchangeKey(object):
                     break
 
         return ExchangeKey(array[0], array[1])
-
-
-def generate_nonce(cache_implementation=local_cache):
-    # Additionally, all queries must include a "nonce" POST parameter.
-    # The nonce parameter is an integer which must always be greater than the previous nonce used.
-    # FIXME - store in db
-    # return int(round(time.time() * 1000))
-    return cache_implementation.get_counter()
 
 
 def signed_body(body, secret):

@@ -1,6 +1,6 @@
 from constants import BITTREX_GET_HISTORY
 from data.OrderHistory import OrderHistory
-from debug_utils import should_print_debug
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_OTHER_STUFF
 from data_access.internet import send_request
 from enums.status import STATUS
 
@@ -10,7 +10,7 @@ def get_history_bittrex_url(pair_name, prev_time, now_time):
     final_url = BITTREX_GET_HISTORY + pair_name + "&since=" + str(prev_time)
 
     if should_print_debug():
-        print final_url
+        print_to_console(final_url, LOG_ALL_OTHER_STUFF)
 
     return final_url
 

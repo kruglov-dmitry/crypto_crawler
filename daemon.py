@@ -12,6 +12,8 @@ from utils.time_utils import sleep_for, get_now_seconds_utc
 from data_access.telegram_notifications import inform_big_boss
 from data_access.ConnectionPool import ConnectionPool
 
+from debug_utils import print_to_console, LOG_ALL_DEBUG
+
 # time to poll
 POLL_PERIOD_SECONDS = 120
 TRIGGER_THRESHOLD = 1.5 # 2 percents only
@@ -24,8 +26,6 @@ def analyse_tickers():
 
     while True:
 
-        # tickers = get_ticker()
-
         timest = get_now_seconds_utc()
         tickers = get_ticker_speedup(timest, processor)
 
@@ -34,18 +34,13 @@ def analyse_tickers():
         if res:
             inform_big_boss(res, pg_conn, POLL_PERIOD_SECONDS)
 
-        # all_tickers = []
-        # for exchange_id in tickers:
-        #     all_tickers += tickers[exchange_id].values()
-
-        print "Total amount of tickers = {num}".format(num=len(tickers))
+        print_to_console("Total amount of tickers = {num}".format(num=len(tickers)), LOG_ALL_DEBUG)
         load_to_postgres(tickers, TICKER_TYPE_NAME, pg_conn)
 
-        print "Before sleep..."
+        print_to_console("Before sleep...", LOG_ALL_DEBUG)
         sleep_for(POLL_PERIOD_SECONDS)
 
 
 if __name__ == "__main__":
     # FIXME NOTE: read settings from cfg
-    # FIXME NOTE 2: some time it hangs at socket read, anti ddos?
     analyse_tickers()

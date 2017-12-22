@@ -1,6 +1,6 @@
 from constants import BINANCE_GET_HISTORY
 from data.OrderHistory import OrderHistory
-from debug_utils import should_print_debug
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_OTHER_STUFF
 from data_access.internet import send_request
 from enums.status import STATUS
 
@@ -11,7 +11,7 @@ def get_history_binance_url(pair_name, date_start, date_end):
     final_url = BINANCE_GET_HISTORY + pair_name
 
     if should_print_debug():
-        print final_url
+        print_to_console(final_url, LOG_ALL_OTHER_STUFF)
 
     return final_url
 

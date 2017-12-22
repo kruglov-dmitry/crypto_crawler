@@ -1,12 +1,12 @@
 from constants import KRAKEN_BASE_API_URL, KRAKEN_CANCEL_ORDER, KRAKEN_BUY_ORDER, KRAKEN_SELL_ORDER, \
     KRAKEN_CHECK_BALANCE, KRAKEN_GET_CLOSE_ORDERS, KRAKEN_GET_OPEN_ORDERS
 
-from data_access.internet import send_post_request_with_header
-
-from debug_utils import should_print_debug
-from utils.key_utils import generate_nonce, sign_kraken
-from utils.time_utils import get_now_seconds_local, sleep_for, get_now_seconds_utc
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, \
+    LOG_ALL_MARKET_NETWORK_RELATED_CRAP
+from utils.key_utils import sign_kraken
+from utils.time_utils import sleep_for, get_now_seconds_utc
 from utils.string_utils import float_to_str
+from utils.file_utils import log_to_file
 
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
@@ -15,14 +15,28 @@ from data.Balance import Balance
 from data.OrderState import OrderState
 from data.Trade import Trade
 
+from data_access.internet import send_post_request_with_header
+from data_access.memory_cache import generate_nonce
+from data_access.PostRequestDetails import PostRequestDetails
 
-def add_buy_order_kraken(key, pair_name, price, amount, order_state):
+
+def add_buy_order_kraken_url():
+    raise
+
+def add_sell_order_kraken_url():
+    raise
+
+def add_buy_order_kraken(key, pair_name, price, amount):
+
+    print "add_buy_order_kraken - confirmation of deals via balance\order"
+    raise
+
     max_retry_num = 3
     retry_num = 0
 
     error_code, res = STATUS.FAILURE, None
 
-    prev_num_of_orders = order_state.get_total_num_of_orders()
+    # prev_num_of_orders = order_state.get_total_num_of_orders()
 
     while retry_num < max_retry_num:
         retry_num += 1
@@ -39,7 +53,7 @@ def add_buy_order_kraken(key, pair_name, price, amount, order_state):
 
         order_error_code, new_order_state = get_orders_kraken(key)
 
-        if order_error_code == STATUS.SUCCESS and prev_num_of_orders < new_order_state.get_total_num_of_orders():
+        if order_error_code == STATUS.SUCCESS:  # and prev_num_of_orders < new_order_state.get_total_num_of_orders():
             # FIXME well, ideally we have to look for pair_name, price and amount
             # But for now lets conclude that This crap did it!
 
@@ -69,25 +83,32 @@ def add_buy_order_kraken_impl(key, pair_name, price, amount):
     headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_BUY_ORDER, key.secret)}
 
     if should_print_debug():
-        print final_url, headers, body
+        msg = "add_buy_order_kraken: url - {url} headers - {headers} body - {body}".format(url=final_url,
+                                                                                            headers=headers, body=body)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(msg, "market_utils.log")
 
     err_msg = "add_buy_order kraken called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
     res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=1)     # FailFast motherfucker!
 
     if should_print_debug():
-        print res
+        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(res, "market_utils.log")
 
     return res
 
 
-def add_sell_order_kraken(key, pair_name, price, amount, order_state):
+def add_sell_order_kraken(key, pair_name, price, amount):
+    print "add_sell_order_kraken - confirmation of deals via balance\order"
+    raise
+
     max_retry_num = 3
     retry_num = 0
 
     error_code, res = STATUS.FAILURE, None
 
-    prev_num_of_orders = order_state.get_total_num_of_orders()
+    # prev_num_of_orders = order_state.get_total_num_of_orders()
 
     while retry_num < max_retry_num:
         retry_num += 1
@@ -134,14 +155,18 @@ def add_sell_order_kraken_impl(key, pair_name, price, amount):
     headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_SELL_ORDER, key.secret)}
 
     if should_print_debug():
-        print final_url, headers, body
+        msg = "add_sell_order_kraken_impl: url - {url} headers - {headers} body - {body}".format(url=final_url,
+                                                                                            headers=headers, body=body)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(msg, "market_utils.log")
 
     err_msg = "add_sell_order kraken called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
     res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=1)
 
     if should_print_debug():
-        print res
+        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(res, "market_utils.log")
 
     return res
 
@@ -158,16 +183,44 @@ def cancel_order_kraken(key, deal_id):
     headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_CANCEL_ORDER, key.secret)}
 
     if should_print_debug():
-        print final_url, headers, body
+        msg = "cancel_order_kraken: url - {url} headers - {headers} body - {body}".format(url=final_url,
+                                                                                            headers=headers, body=body)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(msg, "market_utils.log")
 
     err_msg = "cancel kraken called for {deal_id}".format(deal_id=deal_id)
 
     res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
 
     if should_print_debug():
-        print res
+        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(res, "market_utils.log")
 
     return res
+
+
+def get_balance_kraken_post_details(key):
+    final_url = KRAKEN_BASE_API_URL + KRAKEN_CHECK_BALANCE
+
+    body = {
+        "nonce": generate_nonce()
+    }
+
+    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_CHECK_BALANCE, key.secret)}
+
+    res = PostRequestDetails(final_url, headers, body)
+
+    if should_print_debug():
+        print_to_console(res, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
+
+    return res
+
+
+def get_balance_kraken_result_processor(json_document, timest):
+    if json_document is not None and "result" in json_document:
+        return Balance.from_kraken(timest, json_document["result"])
+
+    return None
 
 
 def get_balance_kraken(key):
@@ -183,21 +236,13 @@ def get_balance_kraken(key):
                  u'EOS': u'2450.8822990100', u'USDT': u'77.99709699', u'XXRP': u'0.24804100',
                  u'XREP': u'349.7839715600', u'XETC': u'508.0140331400', u'XETH': u'88.6104554900'}, u'error': []}
     """
-    final_url = KRAKEN_BASE_API_URL + KRAKEN_CHECK_BALANCE
 
-    body = {
-        "nonce": generate_nonce()
-    }
-
-    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_CHECK_BALANCE, key.secret)}
-
-    if should_print_debug():
-        print final_url, headers, body
+    post_details = get_balance_kraken_post_details(key)
 
     err_msg = "check kraken balance called"
 
     timest = get_now_seconds_utc()
-    error_code, res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
+    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg, max_tries=5)
 
     if error_code == STATUS.SUCCESS and "result" in res:
         res = Balance.from_kraken(timest, res["result"])
@@ -239,7 +284,6 @@ def ger_open_orders_kraken(key):
  }
     """
 
-
     final_url = KRAKEN_BASE_API_URL + KRAKEN_GET_OPEN_ORDERS
 
     body = {
@@ -249,7 +293,10 @@ def ger_open_orders_kraken(key):
     headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_GET_OPEN_ORDERS, key.secret)}
 
     if should_print_debug():
-        print final_url, headers, body
+        msg = "ger_open_orders_kraken: url - {url} headers - {headers} body - {body}".format(url=final_url,
+                                                                                            headers=headers, body=body)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(msg, "market_utils.log")
 
     err_msg = "check kraken open orders called"
 
@@ -277,7 +324,10 @@ def get_closed_orders_kraken(key):
     headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_GET_CLOSE_ORDERS, key.secret)}
 
     if should_print_debug():
-        print final_url, headers, body
+        msg = "get_closed_orders_kraken: url - {url} headers - {headers} body - {body}".format(url=final_url,
+                                                                                            headers=headers, body=body)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(msg, "market_utils.log")
 
     err_msg = "check kraken closed orders called"
 

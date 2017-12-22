@@ -60,6 +60,24 @@ def get_order_book_speedup(date_start, date_end, processor):
     return processor.process_async_to_list(order_book_async_requests, HTTP_TIMEOUT_SECONDS)
 
 
+def get_order_books_for_arbitrage_pair(cfg, date_end, processor):
+
+    order_book_async_requests = []
+
+    for exchange_id in [cfg.sell_exchange_id, cfg.buy_exchange_id]:
+        pair_name = get_currency_pair_name_by_exchange_id(cfg.pair_id, exchange_id)
+        if pair_name is None:
+            continue
+
+        method_for_url = get_order_book_url_by_echange_id(exchange_id)
+        request_url = method_for_url(pair_name, date_end)
+        constructor = get_order_book_constructor_by_exchange_id(exchange_id)
+
+        order_book_async_requests.append(WorkUnit(request_url, constructor, pair_name, date_end))
+
+    return processor.process_async_to_list(order_book_async_requests, HTTP_TIMEOUT_SECONDS)
+
+
 def get_order_book():
 
     all_order_book = defaultdict(list)

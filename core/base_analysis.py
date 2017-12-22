@@ -1,5 +1,5 @@
 from enums.currency_pair import CURRENCY_PAIR
-from debug_utils import should_print_debug
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
 from utils.file_utils import log_to_file
 from core.base_math import get_all_permutation, get_all_permutation_list
 from collections import defaultdict
@@ -72,13 +72,13 @@ def check_all_combinations_list(tickers_to_check, threshold, predicate):
     return res_list
 
 
-
 def get_diff_lowest_ask_vs_highest_bid(first_one, second_one, threshold):
     difference = get_change(first_one.ask, second_one.bid)
 
     if should_print_debug():
-        print "get_diff_lowest_ask_vs_highest_bid: ASK = {ask} BID = {bid} DIFF={diff}".format(
+        msg = "get_diff_lowest_ask_vs_highest_bid: ASK = {ask} BID = {bid} DIFF={diff}".format(
             ask=first_one.ask, bid=second_one.bid, diff=difference)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
 
     if difference >= threshold:
         msg = "Lowest ask differ from highest bid more than {num} %".format(num=threshold)
@@ -91,13 +91,22 @@ def check_highest_bid_bigger_than_lowest_ask(first_one, second_one, threshold):
     difference = get_change(first_one.bid, second_one.ask, provide_abs=False)
 
     if should_print_debug():
-        print "check_highest_bid_bigger_than_lowest_ask"
-        print "ASK: ", first_one.bid
-        print "BID: ", second_one.ask
-        print "DIFF: ", difference
+        msg = """check_highest_bid_bigger_than_lowest_ask called for
+        threshold = {threshold}
+        BID: {bid}
+        AKS: {ask}
+        DIFF: {diff}
+        """.format(threshold=threshold, bid=first_one.bid, ask=second_one.ask, diff=difference)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
 
     if difference >= threshold:
-        msg = "highest bid bigger than Lowest ask for more than {num} %".format(num=threshold)
+        severity_flag = ""
+        if 5.0 < difference < 10.0:
+            severity_flag = "! ACT NOW !"
+        elif difference > 10.0:
+            severity_flag = "<b>!!! ACT IMMEDIATELY !!!</b>"
+        msg = """{severity_flag} highest bid bigger than Lowest ask for more than {num} - {diff}""".format(
+            severity_flag=severity_flag, num=threshold, diff=difference)
         return msg, first_one.pair_id, first_one, second_one
 
     return ()

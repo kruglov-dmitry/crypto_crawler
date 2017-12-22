@@ -3,6 +3,7 @@ class DEAL_TYPE:
     BUY = 2
     ARBITRAGE = 3
     REVERSE = 4
+    DEBUG = 100500
 
 
 def get_deal_type_by_id(deal_id):
@@ -10,5 +11,6 @@ def get_deal_type_by_id(deal_id):
         DEAL_TYPE.BUY: "Buy",
         DEAL_TYPE.SELL: "Sell",
         DEAL_TYPE.ARBITRAGE: "Arbitrage",
-        DEAL_TYPE.REVERSE: "Reverse"
+        DEAL_TYPE.REVERSE: "Reverse",
+        DEAL_TYPE.DEBUG: "DEBUGGING MODE ACTIVE!"
     }[deal_id]

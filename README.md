@@ -1,3 +1,23 @@
+# Kill ALL screens with all session MacOs
+screen -ls | awk '{print $1}' | xargs -I{} screen -S {} -X quit
+based on 
+https://stackoverflow.com/questions/1509677/kill-detached-screen-session
+alias cleanscreen="screen -ls | tail -n +2 | head -n -2 | awk '{print $1}'| xargs -I{} screen -S {} -X quit"
+
+MacOs dependencies:
+pip install python-telegram-bot --user
+
+
+Removing dubplicate rows:
+DELETE FROM tablename
+WHERE id IN (SELECT id
+              FROM (SELECT id,
+                             ROW_NUMBER() OVER (partition BY column1, column2, column3 ORDER BY id) AS rnum
+                     FROM tablename) t
+              WHERE t.rnum > 1);
+
+https://wiki.postgresql.org/wiki/Deleting_duplicates
+
 How to kill all processes:
 ps -ef | grep arbitrage | awk '{print $2}' | xargs kill -9 $1
 
@@ -11,6 +31,10 @@ select last_value from order_book_bid_id_seq;
 69942433
 select last_value from order_book_id_seq;
 191289
+
+How to get ID of telegram chat:
+https://api.telegram.org/bot<YourBOTToken>/getUpdates
+
 
 How to create indexes:
 CREATE INDEX CONCURRENTLY order_history_oha ON order_history (amount);

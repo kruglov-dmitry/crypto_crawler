@@ -47,9 +47,9 @@ def get_ohlc_speedup(date_start, date_end, processor):
             period = get_ohlc_period_by_exchange_id(exchange_id)
             method_for_url = get_ohlc_url_by_echange_id(exchange_id)
             request_url = method_for_url(pair_name, date_start, date_end, period)
-            construcotr = get_candle_constructor_by_exchange_id(exchange_id)
+            constructor = get_candle_constructor_by_exchange_id(exchange_id)
 
-            ohlc_async_requests.append(WorkUnit(request_url, construcotr, pair_name, date_start, date_end))
+            ohlc_async_requests.append(WorkUnit(request_url, constructor, pair_name, date_start, date_end))
 
     return processor.process_async(ohlc_async_requests, HTTP_TIMEOUT_SECONDS)
 

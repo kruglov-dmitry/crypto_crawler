@@ -1,10 +1,13 @@
 from BaseData import BaseData
 from constants import ARBITRAGE_CURRENCY, ZERO_BALANCE
 from enums.exchange import EXCHANGE
+from enums.currency import CURRENCY
+
 from utils.currency_utils import get_currency_name_by_id
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.time_utils import ts_to_string
 from utils.file_utils import log_to_file
+from debug_utils import print_to_console, LOG_ALL_ERRORS
 
 from bittrex.currency_utils import get_currency_name_for_bittrex
 from kraken.currency_utils import get_currency_name_for_kraken
@@ -43,6 +46,15 @@ class Balance(BaseData):
             str_repr += " " + get_currency_name_by_id(currency_id) + " - " + str(self.total_balance[currency_id])
 
         return str_repr
+
+    def do_we_have_enough_bitcoin(self, threahold):
+        if CURRENCY.BITCOIN in self.available_balance:
+            return self.available_balance[CURRENCY.BITCOIN] < threahold
+
+        return False
+
+    def get_bitcoin_balance(self):
+        return self.available_balance.get(CURRENCY.BITCOIN)
 
     @classmethod
     def from_poloniex(cls, last_update, json_document):
@@ -92,7 +104,7 @@ class Balance(BaseData):
             except Exception, e:
                 error_msg = "Can't find currency_id - {id}".format(id=currency_id)
                 msg = "Balance.from_kraken Exception: {excp} {msg}".format(excp=error_msg, msg=str(e))
-                print msg
+                print_to_console(msg, LOG_ALL_ERRORS)
                 log_to_file(msg, "error.txt")
 
         return Balance(EXCHANGE.KRAKEN, last_update, initial_balance, initial_balance)
@@ -135,20 +147,20 @@ class Balance(BaseData):
 
         """
             "makerCommission": 15,
-		  "takerCommission": 15,
-		  "buyerCommission": 0,
-		  "sellerCommission": 0,
-		  "canTrade": true,
-		  "canWithdraw": true,
-		  "canDeposit": true,
-		  "balances": [
-		    {
-		      "asset": "BTC",
-		      "free": "4723846.89208129",
-		      "locked": "0.00000000"
-		    },
+            "takerCommission": 15,
+            "buyerCommission": 0,
+            "sellerCommission": 0,
+            "canTrade": true,
+            "canWithdraw": true,
+            "canDeposit": true,
+            "balances": [
+                {
+                    "asset": "BTC",
+                    "free": "4723846.89208129",
+                    "locked": "0.00000000"
+                },
+                
         """
-
         for currency_id in ARBITRAGE_CURRENCY:
 
             available_balance[currency_id] = ZERO_BALANCE

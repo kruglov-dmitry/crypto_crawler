@@ -1,16 +1,15 @@
 from constants import BINANCE_GET_TICKER
 from data.Ticker import Ticker
-from debug_utils import should_print_debug
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_OTHER_STUFF
 from data_access.internet import send_request
 from enums.status import STATUS
-from currency_utils import get_currency_pair_from_binance
 
 
 def get_tickers_binance_url(currency_names, timest):
     final_url = BINANCE_GET_TICKER
 
     if should_print_debug():
-        print final_url
+        print_to_console(final_url, LOG_ALL_OTHER_STUFF)
 
     return final_url
 
@@ -35,7 +34,6 @@ def get_tickers_binance(currency_names, timest):
     if error_code == STATUS.SUCCESS and r is not None:
         for entry in r:
             if entry["symbol"] in currency_names:
-                pair_id = get_currency_pair_from_binance(entry["symbol"])
                 res.append(Ticker.from_binance(entry["symbol"], timest, entry))
 
     return res

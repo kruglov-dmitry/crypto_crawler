@@ -3,7 +3,7 @@ from data.Candle import Candle
 from debug_utils import should_print_debug
 from data_access.internet import send_request
 from enums.status import STATUS
-from utils.file_utils import log_to_file
+from debug_utils import print_to_console, LOG_ALL_DEBUG
 
 
 def get_ohlc_kraken_url(currency, date_start, date_end, period):
@@ -12,15 +12,13 @@ def get_ohlc_kraken_url(currency, date_start, date_end, period):
                 "&interval=" + str(period)
 
     if should_print_debug():
-        print final_url
+        print_to_console(final_url, LOG_ALL_DEBUG)
 
     return final_url
 
 
 def get_ohlc_kraken_result_processor(json_responce, currency, date_start, date_end):
     result_set = []
-
-    # log_to_file(json_responce, "kraken_ohlc.txt")
 
     if json_responce is not None and "result" in json_responce:
         if currency in json_responce["result"]:

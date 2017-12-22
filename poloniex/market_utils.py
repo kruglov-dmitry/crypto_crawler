@@ -1,13 +1,20 @@
-from utils.key_utils import generate_nonce, signed_body
-from constants import POLONIEX_CANCEL_ORDER, POLONIEX_BUY_ORDER, POLONIEX_SELL_ORDER, POLONIEX_CHECK_BALANCE
+from data_access.memory_cache import generate_nonce
+from constants import POLONIEX_CANCEL_ORDER, POLONIEX_BUY_ORDER, POLONIEX_SELL_ORDER, POLONIEX_CHECK_BALANCE, \
+    POLONIEX_GET_ORDER_HISTORY, POLONIEX_GET_OPEN_ORDERS, POLONIEX_NUM_OF_DEAL_RETRY, POLONIEX_DEAL_TIMEOUT
 from data_access.internet import send_post_request_with_header
-from debug_utils import should_print_debug
-from data.Balance import Balance
-from utils.time_utils import get_now_seconds_utc
+from data_access.PostRequestDetails import PostRequestDetails
+
 from enums.status import STATUS
+from data.Balance import Balance
+
+from utils.key_utils import signed_body
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, \
+    LOG_ALL_MARKET_NETWORK_RELATED_CRAP
+from utils.time_utils import get_now_seconds_utc
+from utils.file_utils import log_to_file
 
 
-def add_buy_order_poloniex(key, pair_name, price, amount):
+def add_buy_order_poloniex_url(key, pair_name, price, amount):
     body = {
         "command": "buy",
         "currencyPair": pair_name,
@@ -20,20 +27,35 @@ def add_buy_order_poloniex(key, pair_name, price, amount):
     # https://poloniex.com/tradingApi
     final_url = POLONIEX_BUY_ORDER
 
-    if should_print_debug():
-        print final_url, headers, body
-
-    err_msg = "add_buy_order poloniex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
-
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+    res = PostRequestDetails(final_url, headers, body)
 
     if should_print_debug():
-        print res
+        msg = "add_buy_order_poloniex: url - {url} headers - {headers} body - {body}".format(url=res.final_url,
+                                                                                             headers=res.headers,
+                                                                                             body=res.body)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(msg, "market_utils.log")
 
     return res
 
 
-def add_sell_order_poloniex(key, pair_name, price, amount):
+def add_buy_order_poloniex(key, pair_name, price, amount):
+
+    post_details = add_buy_order_poloniex_url(key, pair_name, price, amount)
+
+    err_msg = "add_buy_order poloniex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
+
+    res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg,
+                                        max_tries=POLONIEX_NUM_OF_DEAL_RETRY, timeout=POLONIEX_DEAL_TIMEOUT)
+
+    if should_print_debug():
+        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(res, "market_utils.log")
+
+    return res
+
+
+def add_sell_order_poloniex_url(key, pair_name, price, amount):
     body = {
         "command": "sell",
         "currencyPair": pair_name,
@@ -47,15 +69,30 @@ def add_sell_order_poloniex(key, pair_name, price, amount):
     # https://poloniex.com/tradingApi
     final_url = POLONIEX_SELL_ORDER
 
+    res = PostRequestDetails(final_url, headers, body)
+
     if should_print_debug():
-        print final_url, headers, body
+        msg = "add_sell_order_poloniex: url - {url} headers - {headers} body - {body}".format(url=res.final_url,
+                                                                                              headers=res.headers,
+                                                                                              body=res.body)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(msg, "market_utils.log")
+
+    return res
+
+
+def add_sell_order_poloniex(key, pair_name, price, amount):
+
+    post_details = add_sell_order_poloniex_url(key, pair_name, price, amount)
 
     err_msg = "add_sell_order poloniex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+    res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg,
+                                        max_tries=POLONIEX_NUM_OF_DEAL_RETRY, timeout=POLONIEX_DEAL_TIMEOUT)
 
     if should_print_debug():
-        print res
+        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(res, "market_utils.log")
 
     return res
 
@@ -73,16 +110,45 @@ def cancel_order_poloniex(key, deal_id):
     final_url = POLONIEX_CANCEL_ORDER
 
     if should_print_debug():
-        print final_url, headers, body
+        msg = "add_sell_order_poloniex: url - {url} headers - {headers} body - {body}".format(url=final_url,
+                                                                                            headers=headers, body=body)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(msg, "market_utils.log")
 
     err_msg = "cancel poloniex called for {deal_id}".format(deal_id=deal_id)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=1)
 
     if should_print_debug():
-        print res
+        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(res, "market_utils.log")
 
     return res
+
+
+def get_balance_poloniex_post_details(key):
+    body = {
+        'command': 'returnCompleteBalances',
+        'nonce': generate_nonce()
+    }
+    headers = {"Key": key.api_key, "Sign": signed_body(body, key.secret)}
+
+    # https://poloniex.com/tradingApi
+    final_url = POLONIEX_CHECK_BALANCE
+
+    res = PostRequestDetails(final_url, headers, body)
+
+    if should_print_debug():
+        print_to_console(res, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
+
+    return res
+
+
+def get_balance_poloniex_result_processor(json_document, timest):
+    if json_document is not None:
+        return Balance.from_poloniex(timest, json_document)
+
+    return None
 
 
 def get_balance_poloniex(key):
@@ -96,25 +162,75 @@ def get_balance_poloniex(key):
 
     """
 
-    body = {
-        'command': 'returnCompleteBalances',
-        'nonce': generate_nonce()
-    }
-
-    headers = {"Key": key.api_key, "Sign": signed_body(body, key.secret)}
-
-    # https://poloniex.com/tradingApi
-    final_url = POLONIEX_CHECK_BALANCE
-
-    if should_print_debug():
-        print final_url, headers, body
+    post_details = get_balance_poloniex_post_details(key)
 
     err_msg = "check poloniex balance called"
 
     timest = get_now_seconds_utc()
-    error_code, res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=3)
+    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg, max_tries=3)
 
     if error_code == STATUS.SUCCESS:
         res = Balance.from_poloniex(timest, res)
+
+    return error_code, res
+
+
+def get_order_history_poloniex_post_details(key, currency_name):
+    body = {
+        'command': 'returnTradeHistory',
+        'currencyPair': currency_name,
+        'nonce': generate_nonce()
+    }
+    headers = {"Key": key.api_key, "Sign": signed_body(body, key.secret)}
+
+    # https://poloniex.com/tradingApi
+    final_url = POLONIEX_GET_ORDER_HISTORY
+
+    res = PostRequestDetails(final_url, headers, body)
+
+    # if should_print_debug():
+    #    print res
+
+    return res
+
+
+def get_orders_history_poloniex(key, currency_name):
+    post_details = get_order_history_poloniex_post_details(key, currency_name)
+
+    err_msg = "get poloniex order history"
+    print err_msg
+
+    timest = get_now_seconds_utc()
+    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg, max_tries=3)
+
+    return error_code, res
+
+
+def get_open_order_poloniex_post_details(key, currency_name):
+    body = {
+        'command': 'returnOpenOrders',
+        'currencyPair': currency_name,
+        'nonce': generate_nonce()
+    }
+    headers = {"Key": key.api_key, "Sign": signed_body(body, key.secret)}
+
+    # https://poloniex.com/tradingApi
+    final_url = POLONIEX_GET_OPEN_ORDERS
+
+    res = PostRequestDetails(final_url, headers, body)
+
+    # if should_print_debug():
+    #    print res
+
+    return res
+
+
+def get_open_orders_poloniex(key, currency_name):
+    post_details = get_open_order_poloniex_post_details(key, currency_name)
+
+    err_msg = "get poloniex open orders"
+    print err_msg
+
+    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg, max_tries=3)
 
     return error_code, res

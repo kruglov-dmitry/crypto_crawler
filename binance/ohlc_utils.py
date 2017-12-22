@@ -1,9 +1,8 @@
 from constants import BINANCE_GET_OHLC
 from data.Candle import Candle
-from debug_utils import should_print_debug
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG
 from data_access.internet import send_request
 from enums.status import STATUS
-from utils.file_utils import log_to_file
 
 
 def get_ohlc_binance_url(currency, date_start, date_end, period):
@@ -12,7 +11,7 @@ def get_ohlc_binance_url(currency, date_start, date_end, period):
     final_url = BINANCE_GET_OHLC + currency + "&interval=" + period + "&startTime=" + str(date_start_ms)
 
     if should_print_debug():
-        print final_url
+        print_to_console(final_url, LOG_ALL_DEBUG)
 
     return final_url
 
@@ -20,13 +19,12 @@ def get_ohlc_binance_url(currency, date_start, date_end, period):
 def get_ohlc_binance_result_processor(json_responce, currency, date_start, date_end):
     result_set = []
 
-    # log_to_file(json_responce, "binance_ohlc.txt")
-
     if json_responce is not None:
         for record in json_responce:
             result_set.append(Candle.from_binance(record, currency))
 
     return result_set
+
 
 def get_ohlc_binance(currency, date_start, date_end, period):
     result_set = []

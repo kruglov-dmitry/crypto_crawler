@@ -2,6 +2,8 @@ from collections import defaultdict
 from data.OrderBook import OrderBook, ORDER_BOOK_INSERT_BIDS, ORDER_BOOK_INSERT_ASKS, ORDER_BOOK_TYPE_NAME
 from data_access.postgres_connection import PostgresConnection
 from utils.time_utils import get_date_time_from_epoch
+from utils.file_utils import log_to_file
+from debug_utils import print_to_console, LOG_ALL_ERRORS
 
 
 def init_pg_connection(_db_host="192.168.1.106", _db_port=5432):
@@ -29,7 +31,11 @@ def insert_data(some_object, pg_conn, dummy_flag):
         cur.execute(PG_INSERT_QUERY, args_list)
     except Exception, e:
         print PG_INSERT_QUERY, args_list
-        print "insert data failed :(  ", str(e)
+        msg = "insert data failed for Query: {query} Args: {args} Exception: {excp}".format(query=PG_INSERT_QUERY,
+                                                                                            args=args_list,
+                                                                                            excp=str(e))
+        print_to_console(msg, LOG_ALL_ERRORS)
+        log_to_file(msg, "error.log")
 
     # Yeap, this crap I am not the biggest fun of!
     if dummy_flag:
@@ -43,7 +49,9 @@ def insert_data(some_object, pg_conn, dummy_flag):
             for bid in some_object.bid:
                 cur.execute(ORDER_BOOK_INSERT_BIDS, (order_book_id, bid.price, bid.volume))
         except Exception, e:
-            print "Insert data failed for order book exactly: ", str(e)
+            msg = "Insert data failed for order book exactly. Exception: {excp}".format(excp=str(e))
+            print_to_console(msg, LOG_ALL_ERRORS)
+            log_to_file(msg, "error.log")
 
 
 def load_to_postgres(array, pattern_name, pg_conn):
@@ -74,8 +82,9 @@ def save_alarm_into_pg(src_ticker, dst_ticker, pg_conn):
     try:
         cur.execute(PG_INSERT_QUERY, args_list)
     except Exception, e:
-        print "save_alarm_into_pg insert data failed :(  ", str(e)
-        print "args: ", args_list
+        msg = "save_alarm_into_pg insert data failed :( Exception: {excp}. Args: {args}".format(excp=str(e), args=args_list)
+        print_to_console(msg, LOG_ALL_ERRORS)
+        log_to_file(msg, "error.log")
 
     pg_conn.commit()
 

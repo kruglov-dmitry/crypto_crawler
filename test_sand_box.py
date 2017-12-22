@@ -1,32 +1,31 @@
-from enums.exchange import EXCHANGE
-from enums.currency import CURRENCY
-from utils.key_utils import load_keys, get_key_by_exchange
-from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
-from bittrex.market_utils import get_balance_bittrex
-from poloniex.market_utils import get_balance_poloniex
-from arbitrage_bot import dummy_order_state_init
-from dao.dao import get_updated_order_state
-from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, \
-    cancel_order_bittrex
-from kraken.market_utils import get_orders_kraken, get_balance_kraken, add_buy_order_kraken, \
-    add_sell_order_kraken, cancel_order_kraken
+from profilehooks import timecall
+from poloniex.market_utils import get_balance_poloniex, get_orders_history_poloniex, get_open_orders_poloniex
 
-from binance.ticker_utils import get_tickers_binance
-from binance.ohlc_utils import get_ohlc_binance
 from binance.constants import BINANCE_CURRENCY_PAIRS
-from binance.order_book_utils import get_order_book_binance
 from binance.market_utils import add_buy_order_binance, add_sell_order_binance, \
     cancel_order_binance, get_balance_binance
 
-from utils.key_utils import generate_nonce
-from profilehooks import timecall
+from binance.ohlc_utils import get_ohlc_binance
+from binance.order_book_utils import get_order_book_binance
+from binance.ticker_utils import get_tickers_binance
+from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, \
+    cancel_order_bittrex
+from bittrex.market_utils import get_balance_bittrex
+from core.arbitrage_core import dummy_order_state_init
+from dao.dao import get_updated_order_state
+from dao.history_utils import get_history_speedup
+
+from data_access.memory_cache import generate_nonce
 from dao.ohlc_utils import get_ohlc_speedup, get_ohlc
+from dao.order_book_utils import get_order_book_speedup
 from dao.ticker_utils import get_ticker_speedup
 from data_access.ConnectionPool import ConnectionPool
-
-from dao.ohlc_utils import get_ohlc_speedup
-from dao.order_book_utils import get_order_book_speedup
-from dao.history_utils import get_history_speedup
+from enums.currency import CURRENCY
+from enums.exchange import EXCHANGE
+from kraken.market_utils import get_orders_kraken, get_balance_kraken, add_buy_order_kraken, \
+    add_sell_order_kraken, cancel_order_kraken
+from utils.key_utils import load_keys, get_key_by_exchange
+from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
 
 POLL_PERIOD_SECONDS = 900
 
@@ -139,11 +138,6 @@ def test_time_epoch():
     print "nonce", t2
 
 
-load_keys("./secret_keys")
-krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
-bin_key = get_key_by_exchange(EXCHANGE.BINANCE)
-
-
 @timecall
 def get_ohlc_time_test():
     end_time = get_now_seconds_utc()
@@ -195,14 +189,59 @@ def get_order_book_time_fast():
 
 # for b in range(10):
 #     get_ticker_time_fast()
-from core.base_analysis import compare_price, check_highest_bid_bigger_than_lowest_ask
-TRIGGER_THRESHOLD = 1.5 # 2 percents only
+# from core.base_analysis import compare_price, check_highest_bid_bigger_than_lowest_ask
+# TRIGGER_THRESHOLD = 1.5 # 2 percents only
 
-processor = ConnectionPool()
+# processor = ConnectionPool()
 
-timest = get_now_seconds_utc()
-tickers = get_ticker_speedup(timest, processor)
+# timest = get_now_seconds_utc()
+# tickers = get_ticker_speedup(timest, processor)
 
-res = compare_price(tickers, TRIGGER_THRESHOLD, check_highest_bid_bigger_than_lowest_ask)
+# res = compare_price(tickers, TRIGGER_THRESHOLD, check_highest_bid_bigger_than_lowest_ask)
+
+load_keys("./secret_keys")
+krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
+bin_key = get_key_by_exchange(EXCHANGE.BINANCE)
+pol_key = get_key_by_exchange(EXCHANGE.POLONIEX)
+
+def check_order_polonie(pol_key):
+    er_code, res = get_orders_history_poloniex(pol_key, "all")
+    print res
 
 
+from enums.deal_type import DEAL_TYPE
+from data.Trade import Trade
+from data.TradePair import TradePair
+from core.arbitrage_core import init_deals_with_logging_speedy
+from enums.currency_pair import CURRENCY_PAIR
+
+
+def check_deal_placements():
+    create_time = get_now_seconds_utc()
+    fake_order_book_time1 = -10
+    fake_order_book_time2 = -20
+    deal_volume = 5
+    deal_price = -1
+    pair_id = CURRENCY_PAIR.BTC_TO_ARDR
+
+    sell_exchange_id = EXCHANGE.POLONIEX
+    buy_exchange_id = EXCHANGE.BITTREX
+
+    difference = "difference is HUGE"
+    file_name = "test.log"
+
+    processor = ConnectionPool(pool_size=2)
+
+    trade_at_first_exchange = Trade(DEAL_TYPE.SELL, sell_exchange_id, pair_id,
+                                    0.00000001, deal_volume, fake_order_book_time1,
+                                    create_time)
+
+    trade_at_second_exchange = Trade(DEAL_TYPE.BUY, buy_exchange_id, pair_id,
+                                     0.00004, deal_volume, fake_order_book_time2,
+                                     create_time)
+
+    trade_pairs = TradePair(trade_at_first_exchange, trade_at_second_exchange, fake_order_book_time1, fake_order_book_time2, DEAL_TYPE.DEBUG)
+
+    init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor)
+
+check_deal_placements()

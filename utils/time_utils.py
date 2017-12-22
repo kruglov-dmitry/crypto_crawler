@@ -22,6 +22,10 @@ def get_now_seconds_utc():
     return long((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds())
 
 
+def get_now_seconds_utc_ms():
+    return 1000 * get_now_seconds_utc()
+
+
 def sleep_for(num_of_seconds):
     time.sleep(num_of_seconds)
 

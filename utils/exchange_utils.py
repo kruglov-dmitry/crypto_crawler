@@ -16,7 +16,7 @@ def get_exchange_id_by_name(exchange_name):
         EXCHANGE.KRAKEN_EXCHANGE: EXCHANGE.KRAKEN,
         EXCHANGE.BITTREX_EXCHANGE: EXCHANGE.BITTREX,
         EXCHANGE.BINANCE_EXCHANGE: EXCHANGE.BINANCE
-    }[exchange_name]
+    }[exchange_name.upper()]
 
 
 def get_fee_by_exchange(exchange_id):

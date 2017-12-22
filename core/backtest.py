@@ -9,8 +9,12 @@ from data.MarketCap import MarketCap
 
 from utils.time_utils import get_now_seconds_utc
 
+from utils.file_utils import log_to_file
 
-def dummy_balance_init(timest, default_volume, default_available_volume, balance_adjust_threshold):
+from dao.db import init_pg_connection, get_order_book_by_time, get_time_entries
+
+
+def dummy_balance_init(timest, default_volume, default_available_volume):
     balance = {}
 
     total_balance = {}
@@ -25,7 +29,7 @@ def dummy_balance_init(timest, default_volume, default_available_volume, balance
     for exchange_id in EXCHANGE.values():
         balance[exchange_id] = Balance(exchange_id, timest, available_balance, total_balance)
 
-    return BalanceState(balance, balance_adjust_threshold)
+    return BalanceState(balance)
 
 
 def dummy_order_state_init():
@@ -42,7 +46,7 @@ def dummy_order_state_init():
     return order_state_by_exchange
 
 
-def custom_balance_init(timest, balance_adjust_threshold):
+def custom_balance_init(timest):
 
     balance = {}
 
@@ -81,7 +85,7 @@ def custom_balance_init(timest, balance_adjust_threshold):
           "If this is one of the LAST message in stack trace it mean that deal Cap and Arbitrage currencies not update!")
     assert (len(ARBITRAGE_CURRENCY) == len(poloniex_balance))
 
-    return BalanceState(balance, balance_adjust_threshold)
+    return BalanceState(balance)
 
 
 def common_cap_init():
@@ -127,3 +131,48 @@ def common_cap_init():
     # assert(len(ARBITRAGE_CURRENCY) == len(max_volume_cap))
 
     return MarketCap(min_volume_cap, max_volume_cap, min_price_cap, max_price_cap)
+
+
+def run_analysis_over_db(deal_threshold, some_functor_method):
+    # FIXME NOTE: accumulate profit
+
+    pg_conn = init_pg_connection()
+    time_entries = get_time_entries(pg_conn)
+    time_entries_num = len(time_entries)
+
+    print "Order_book num: ", time_entries_num
+
+    cnt = 0
+    MAX_ORDER_BOOK_COUNT = 10000
+    current_balance = custom_balance_init(time_entries[0])
+    deal_cap = common_cap_init()
+
+    for exch_id in current_balance.balance_per_exchange:
+        print current_balance.balance_per_exchange[exch_id]
+
+    for every_time_entry in time_entries:
+        order_book_grouped_by_time = get_order_book_by_time(pg_conn, every_time_entry)
+
+        for x in order_book_grouped_by_time:
+            # mega_analysis\
+            some_functor_method (order_book_grouped_by_time,
+                          deal_threshold,
+                          current_balance,
+                          log_to_file,
+                          deal_cap)
+
+        cnt += 1
+        some_msg = "Processed order_book #{cnt} out of {total} time entries\n current_balance={balance}".format(
+            cnt=cnt, total=time_entries_num, balance=str(current_balance))
+
+        print some_msg
+
+        log_to_file(some_msg, "history_trades.txt")
+
+        if cnt == MAX_ORDER_BOOK_COUNT:
+            raise
+
+    print "At the end of processing we have following balance:"
+    print "NOTE: supposedly all buy \ sell request were fullfilled"
+    for exch_id in current_balance.balance_per_exchange:
+        print current_balance.balance_per_exchange[exch_id]

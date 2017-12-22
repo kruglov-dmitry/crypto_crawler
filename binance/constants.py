@@ -20,6 +20,9 @@ BINANCE_CURRENCY_PAIRS = ["DASHBTC", "ETHBTC", "LTCBTC", "XRPBTC", "BCCBTC", "ET
                       "BTCUSDT", "ETHUSDT", "BCCUSDT"
                           ]
 
+BINANCE_NUM_OF_DEAL_RETRY = 1
+BINANCE_DEAL_TIMEOUT = 5
+
 # LIMIT
 # BUY | SELL
 
