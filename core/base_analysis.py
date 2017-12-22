@@ -11,7 +11,8 @@ def get_matches(objs, key):
     """
     d = defaultdict(list)
     for obj in objs:
-        d[getattr(obj, key)].append(obj)
+        if obj is not None:
+            d[getattr(obj, key)].append(obj)
     return d
 
 
@@ -99,13 +100,17 @@ def check_highest_bid_bigger_than_lowest_ask(first_one, second_one, threshold):
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
 
     if difference >= threshold:
+        factual_threshold = threshold
         severity_flag = ""
         if 5.0 < difference < 10.0:
-            severity_flag = "! ACT NOW !"
+            severity_flag = "<b> ! ACT NOW ! </b>"
+            factual_threshold = 5.0
         elif difference > 10.0:
             severity_flag = "<b>!!! ACT IMMEDIATELY !!!</b>"
-        msg = """{severity_flag} highest bid bigger than Lowest ask for more than {num} - {diff}""".format(
-            severity_flag=severity_flag, num=threshold, diff=difference)
+            factual_threshold = 10.0
+        msg = """{severity_flag}
+        highest bid bigger than Lowest ask for more than {num} - <b>{diff}</b>""".format(
+            severity_flag=severity_flag, num=factual_threshold, diff=difference)
         return msg, first_one.pair_id, first_one, second_one
 
     return ()
