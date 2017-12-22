@@ -66,7 +66,7 @@ class BalanceState(BaseData):
     def update_time(self, exchange_id, timest):
         self.balance_per_exchange[exchange_id].last_update = timest
 
-    def is_there_disbalance(self, exchange_id, src_exchange_id, dst_exchange_id, threshold):
+    def is_there_disbalance(self, currency_id, src_exchange_id, dst_exchange_id, threshold):
         """
             Check whether amount of dst_currency at pair of exchange do not differ more than threshold
             in percent.
@@ -76,7 +76,7 @@ class BalanceState(BaseData):
         :param dst_exchange_id:
         :return:
         """
-        balance_1 = self.balance_per_exchange[src_exchange_id].available_balance[exchange_id]
-        balance_2 = self.balance_per_exchange[dst_exchange_id].available_balance[exchange_id]
+        balance_1 = self.balance_per_exchange[src_exchange_id].available_balance[currency_id]
+        balance_2 = self.balance_per_exchange[dst_exchange_id].available_balance[currency_id]
 
         return get_change(balance_1, balance_2, provide_abs=False) > threshold
