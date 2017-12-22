@@ -58,7 +58,8 @@ def load_to_postgres(array, pattern_name, pg_conn):
 
     dummy_flag = (pattern_name == ORDER_BOOK_TYPE_NAME)
     for entry in array:
-        insert_data(entry, pg_conn, dummy_flag)
+        if entry is not None:
+            insert_data(entry, pg_conn, dummy_flag)
 
     pg_conn.commit()
 
