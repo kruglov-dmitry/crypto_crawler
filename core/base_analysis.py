@@ -90,13 +90,22 @@ def check_highest_bid_bigger_than_lowest_ask(first_one, second_one, threshold):
     difference = get_change(first_one.bid, second_one.ask, provide_abs=False)
 
     if should_print_debug():
-        print_to_console("check_highest_bid_bigger_than_lowest_ask", LOG_ALL_MARKET_RELATED_CRAP)
-        print_to_console("BID: ".format(bid=first_one.bid), LOG_ALL_MARKET_RELATED_CRAP)
-        print_to_console("ASK: ".format(bid=second_one.ask), LOG_ALL_MARKET_RELATED_CRAP)
-        print_to_console("DIFF: ".format(bid=difference), LOG_ALL_MARKET_RELATED_CRAP)
+        msg = """check_highest_bid_bigger_than_lowest_ask called for
+        threshold = {threshold}
+        BID: {bid}
+        AKS: {ask}
+        DIFF: {diff}
+        """.format(threshold=threshold, bid=first_one.bid, ask=second_one.ask, diff=difference)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
 
     if difference >= threshold:
-        msg = "highest bid bigger than Lowest ask for more than {num} %".format(num=threshold)
+        severity_flag = ""
+        if 5.0 < difference < 10.0:
+            severity_flag = "! ACT NOW !"
+        elif difference > 10.0:
+            severity_flag = "<b>!!! ACT IMMEDIATELY !!!</b>"
+        msg = """{severity_flag} highest bid bigger than Lowest ask for more than {num} - {diff}""".format(
+            severity_flag=severity_flag, num=threshold, diff=difference)
         return msg, first_one.pair_id, first_one, second_one
 
     return ()

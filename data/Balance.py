@@ -1,6 +1,7 @@
 from BaseData import BaseData
 from constants import ARBITRAGE_CURRENCY, ZERO_BALANCE
 from enums.exchange import EXCHANGE
+from enums.currency import CURRENCY
 
 from utils.currency_utils import get_currency_name_by_id
 from utils.exchange_utils import get_exchange_name_by_id
@@ -45,6 +46,15 @@ class Balance(BaseData):
             str_repr += " " + get_currency_name_by_id(currency_id) + " - " + str(self.total_balance[currency_id])
 
         return str_repr
+
+    def do_we_have_enough_bitcoin(self, threahold):
+        if CURRENCY.BITCOIN in self.available_balance:
+            return self.available_balance[CURRENCY.BITCOIN] < threahold
+
+        return False
+
+    def get_bitcoin_balance(self):
+        return self.available_balance.get(CURRENCY.BITCOIN)
 
     @classmethod
     def from_poloniex(cls, last_update, json_document):
@@ -137,18 +147,19 @@ class Balance(BaseData):
 
         """
             "makerCommission": 15,
-		  "takerCommission": 15,
-		  "buyerCommission": 0,
-		  "sellerCommission": 0,
-		  "canTrade": true,
-		  "canWithdraw": true,
-		  "canDeposit": true,
-		  "balances": [
-		    {
-		      "asset": "BTC",
-		      "free": "4723846.89208129",
-		      "locked": "0.00000000"
-		    },
+            "takerCommission": 15,
+            "buyerCommission": 0,
+            "sellerCommission": 0,
+            "canTrade": true,
+            "canWithdraw": true,
+            "canDeposit": true,
+            "balances": [
+                {
+                    "asset": "BTC",
+                    "free": "4723846.89208129",
+                    "locked": "0.00000000"
+                },
+                
         """
         for currency_id in ARBITRAGE_CURRENCY:
 
