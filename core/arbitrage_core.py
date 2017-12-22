@@ -273,6 +273,10 @@ def adjust_minimum_volume_by_trading_cap(first_order_book, second_order_book, de
     return min_volume
 
 
+def round_minimum_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, min_volume):
+    
+
+
 def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
                          action_to_perform,
                          balance_state, deal_cap,
@@ -314,6 +318,8 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
         min_volume = determine_minimum_volume(sell_order_book, buy_order_book, balance_state)
 
         min_volume = adjust_minimum_volume_by_trading_cap(sell_order_book, buy_order_book, deal_cap, min_volume)
+
+        min_volume = round_minimum_volume_by_exchange_rules(sell_order_book.exchange_id, buy_order_book.exchange_id, min_volume)
 
         if min_volume <= 0:
             msg = """analyse order book - DETERMINED volume of deal is not ENOUGH {pair_name}:
