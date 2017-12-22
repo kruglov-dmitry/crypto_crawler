@@ -32,6 +32,10 @@ select last_value from order_book_bid_id_seq;
 select last_value from order_book_id_seq;
 191289
 
+How to get ID of telegram chat:
+https://api.telegram.org/bot<YourBOTToken>/getUpdates
+
+
 How to create indexes:
 CREATE INDEX CONCURRENTLY order_history_oha ON order_history (amount);
 

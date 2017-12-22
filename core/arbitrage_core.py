@@ -25,6 +25,7 @@ from core.base_math import get_all_combination
 from enums.exchange import EXCHANGE
 from enums.deal_type import DEAL_TYPE
 from enums.status import STATUS
+from enums.notifications import NOTIFICATION
 
 from data.Trade import Trade
 from data.TradePair import TradePair
@@ -128,7 +129,7 @@ def init_deals_with_logging(trade_pairs, difference, file_name):
     print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
     log_to_file(trade_pairs, file_name)
 
-    send_single_message(msg)
+    send_single_message(msg, NOTIFICATION.DEAL)
 
     return STATUS.SUCCESS
 
@@ -169,12 +170,7 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
         diff=difference, deal=str(trade_pairs))
 
     log_to_file(msg, file_name)
-    send_single_message(msg)
-
-    """
-    if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == 200:
-    work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
-    """
+    send_single_message(msg, NOTIFICATION.DEAL)
 
     # check for errors only
     for (return_value, trade) in res:
@@ -184,12 +180,21 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
             For trade {trade}
             Response is {resp} """.format(trade=trade, resp=return_value.json())
         else:
+            response_json = "Not provided"
+            try:
+                response_json = return_value.json()
+            except:
+                pass
             msg = """
             For trade {trade}
-            Response is <b>BAD CODE!</b> {resp}""".format(trade=trade, resp=str(return_value.status_code))
+            Response is <b>BAD CODE!</b> {resp} and exact json - {js}""".format(
+                trade=trade,
+                resp=str(return_value.status_code),
+                js=response_json
+            )
 
         print_to_console(msg, LOG_ALL_ERRORS)
-        send_single_message(msg)
+        send_single_message(msg, NOTIFICATION.DEBUG)
         log_to_file(msg, file_name)
 
     # FIXME NOTE: and now good question - what to do with failed deals.
@@ -287,8 +292,12 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
     difference = get_change(sell_order_book.bid[FIRST].price, buy_order_book.ask[LAST].price, provide_abs=False)
 
     if should_print_debug():
-        msg = "check_highest_bid_bigger_than_lowest_ask: Exchange1 - {exch1} BID = {bid} Exchange2 - {exch2} " \
-              "ASK = {ask} DIFF = {diff}".format(
+        msg = """check_highest_bid_bigger_than_lowest_ask:
+        For pair - {pair_name}
+        Exchange1 - {exch1} BID = {bid}
+        Exchange2 - {exch2} ASK = {ask}
+        DIFF = {diff}""".format(
+            pair_name=get_pair_name_by_id(sell_order_book.pair_id),
             exch1=get_exchange_name_by_id(sell_order_book.exchange_id),
             bid=float_to_str(sell_order_book.bid[FIRST].price),
             exch2=get_exchange_name_by_id(buy_order_book.exchange_id),
@@ -304,8 +313,9 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
         min_volume = adjust_minimum_volume_by_trading_cap(sell_order_book, buy_order_book, deal_cap, min_volume)
 
         if min_volume <= 0:
-            msg = "analyse order book - determined volume is ZERO!!! {pair_name}: \n first_exchange: {first_exchange} " \
-                  "first exchange volume: {vol1} \n second_exchange: {second_exchange} second_exchange_volume: {vol2} \n".format(
+            msg = """analyse order book - DETERMINED volume of deal is not ENOUGH {pair_name}:
+            first_exchange: {first_exchange} first exchange volume: <b>{vol1}</b>
+            second_exchange: {second_exchange} second_exchange_volume: <b>{vol2}</b>""".format(
                 pair_name=get_pair_name_by_id(sell_order_book.pair_id),
                 first_exchange=get_exchange_name_by_id(sell_order_book.exchange_id),
                 second_exchange=get_exchange_name_by_id(buy_order_book.exchange_id),
@@ -313,7 +323,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
                 vol2=float_to_str(buy_order_book.ask[LAST].volume))
             print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
             log_to_file(msg, "debug.txt")
-            send_single_message(msg)
+            send_single_message(msg, NOTIFICATION.DEBUG)
 
             return STATUS.FAILURE
 
@@ -338,10 +348,6 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
             # if for any reason they not succeeded - it mean we already spend more than one minute
             # and our orderbook is expired already so we should stop recursive calls
             return STATUS.FAILURE
-
-        # FIXME NOTE - should be performed ONLY after deal confirmation
-        balance_state.subtract_balance_by_pair(sell_order_book, min_volume, sell_order_book.bid[FIRST].price)
-        balance_state.add_balance_by_pair(buy_order_book, min_volume, buy_order_book.ask[LAST].price)
 
         return STATUS.SUCCESS
 
