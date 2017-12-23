@@ -24,10 +24,6 @@ if __name__ == "__main__":
     processor = ConnectionPool()
 
     while True:
-        #
-        #   First, we grab tickers only to trigger alerts if any
-        #
-
         end_time = get_now_seconds_utc()
         start_time = end_time - POLL_PERIOD_SECONDS
 
@@ -49,8 +45,9 @@ if __name__ == "__main__":
         order_book_size = len(order_book)
 
         for entry in order_book:
-            order_book_ask_size += len(entry.ask)
-            order_book_bid_size += len(entry.bid)
+            if entry is not None:
+                order_book_ask_size += len(entry.ask)
+                order_book_bid_size += len(entry.bid)
 
         if should_print_debug():
             msg = "Sock other data:\n Candle size - {num} \nOrder book size - {num1} Order book asks - {num10} Order book bids - {num20} \nTrade history size - {num2}".format(
