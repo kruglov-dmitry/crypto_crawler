@@ -243,5 +243,3 @@ def check_deal_placements():
     trade_pairs = TradePair(trade_at_first_exchange, trade_at_second_exchange, fake_order_book_time1, fake_order_book_time2, DEAL_TYPE.DEBUG)
 
     init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor)
-
-check_deal_placements()

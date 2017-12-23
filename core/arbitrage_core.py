@@ -34,6 +34,9 @@ from binance.market_utils import add_buy_order_binance_url, add_sell_order_binan
 from kraken.market_utils import add_buy_order_kraken_url, add_sell_order_kraken_url
 from bittrex.market_utils import add_buy_order_bittrex_url, add_sell_order_bittrex_url
 from poloniex.market_utils import add_buy_order_poloniex_url, add_sell_order_poloniex_url
+
+from binance.precision_by_currency import round_minimum_volume_by_binance_rules
+
 from data_access.ConnectionPool import WorkUnit
 
 
@@ -78,9 +81,6 @@ def init_deal(trade_to_perform, debug_msg):
                                                                                                  dbg=debug_msg)
         print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, "error.log")
-
-    # force update balance at exchanges
-    update_balance_by_exchange(trade_to_perform.exchange_id)
 
     return res
 
@@ -201,6 +201,9 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
         log_to_file(msg, file_name)
 
     # FIXME NOTE: and now good question - what to do with failed deals.
+    # FIXME NOTE 2: What if we can't update balance?
+    for exchange_id in [trade_pairs.deal_1.exchange_id, trade_pairs.deal_2.exchange_id]:
+        update_balance_by_exchange(exchange_id)
 
 
 def get_method_for_create_url_trade_by_exchange_id(trade):
@@ -273,6 +276,13 @@ def adjust_minimum_volume_by_trading_cap(first_order_book, second_order_book, de
     return min_volume
 
 
+def round_minimum_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, min_volume, pair_id):
+    if sell_exchange_id == EXCHANGE.BINANCE or buy_exchange_id == EXCHANGE.BINANCE:
+        return round_minimum_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
+    return min_volume
+    
+
+
 def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
                          action_to_perform,
                          balance_state, deal_cap,
@@ -314,6 +324,9 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
         min_volume = determine_minimum_volume(sell_order_book, buy_order_book, balance_state)
 
         min_volume = adjust_minimum_volume_by_trading_cap(sell_order_book, buy_order_book, deal_cap, min_volume)
+
+        min_volume = round_minimum_volume_by_exchange_rules(sell_order_book.exchange_id, buy_order_book.exchange_id,
+                                                            min_volume, sell_order_book.pair_id)
 
         if min_volume <= 0:
             msg = """analyse order book - DETERMINED volume of deal is not ENOUGH {pair_name}:
@@ -372,7 +385,7 @@ def adjust_currency_balance(first_order_book, second_order_book, treshold_revers
         )
 
         print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
-        log_to_file(msg, "debug.log")
+        log_to_file(msg, "history_trades.log")
 
         search_for_arbitrage(first_order_book, second_order_book, treshold_reverse,
                              action_to_perform, balance_state, deal_cap,
