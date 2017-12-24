@@ -49,7 +49,7 @@ class Balance(BaseData):
 
     def do_we_have_enough_bitcoin(self, threahold):
         if CURRENCY.BITCOIN in self.available_balance:
-            return self.available_balance[CURRENCY.BITCOIN] < threahold
+            return self.available_balance[CURRENCY.BITCOIN] > threahold
 
         return False
 

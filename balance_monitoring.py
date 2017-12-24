@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
             res = update_balance_by_exchange(idx, cache)
 
-            if res.do_we_have_enough_bitcoin(BITCOIN_ALARM_THRESHOLD):
+            if not res.do_we_have_enough_bitcoin(BITCOIN_ALARM_THRESHOLD):
                 msg = """           <b> !!! INFO !!! </b>
                 BTC balance on exchange {exch} BELOW threshold {thrs} - only {am} LEFT!""".format(
                     thrs=BITCOIN_ALARM_THRESHOLD, exch=get_exchange_name_by_id(idx), am=res.get_bitcoin_balance())
