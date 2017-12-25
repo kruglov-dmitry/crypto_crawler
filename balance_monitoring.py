@@ -45,6 +45,7 @@ if __name__ == "__main__":
             res = update_balance_by_exchange(idx, cache)
             while res is None:
 		print "Balance", res
+        	sleep_for(1)
             	res = update_balance_by_exchange(idx, cache)
 
 
