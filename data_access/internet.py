@@ -32,10 +32,10 @@ def send_request(final_url, error_msg):
     return res
 
 
-def send_get_request_with_header(final_url, header, error_msg):
+def send_get_request_with_header(final_url, header, error_msg, timeout=HTTP_TIMEOUT_SECONDS):
     res = STATUS.FAILURE, None
     try:
-        responce = requests.get(final_url, headers=header, timeout=HTTP_TIMEOUT_SECONDS).json()
+        responce = requests.get(final_url, headers=header, timeout=timeout).json()
         res = STATUS.SUCCESS, responce
         log_to_file(responce, "debug.txt")
     except Exception, e:

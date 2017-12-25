@@ -242,7 +242,8 @@ def get_balance_kraken(key):
     err_msg = "check kraken balance called"
 
     timest = get_now_seconds_utc()
-    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg, max_tries=5)
+
+    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg, max_tries=1)
 
     if error_code == STATUS.SUCCESS and "result" in res:
         res = Balance.from_kraken(timest, res["result"])

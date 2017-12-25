@@ -219,7 +219,7 @@ def get_balance_binance(key):
 
     timest = get_now_seconds_utc()
 
-    error_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg)
+    error_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg, timeout=BINANCE_DEAL_TIMEOUT)
 
     if error_code == STATUS.SUCCESS and res is not None and "balances" in res:
         res = Balance.from_binance(timest, res)
