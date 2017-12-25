@@ -48,7 +48,6 @@ if __name__ == "__main__":
         	sleep_for(1)
             	res = update_balance_by_exchange(idx, cache)
 
-
             if not res.do_we_have_enough_bitcoin(BITCOIN_ALARM_THRESHOLD):
                 msg = """           <b> !!! INFO !!! </b>
                 BTC balance on exchange {exch} BELOW threshold {thrs} - only {am} LEFT!""".format(
@@ -64,7 +63,7 @@ if __name__ == "__main__":
             for idx in exchanges_ids:
                 some_balance = cache.get_balance(idx)
                 if some_balance is None or (timest - some_balance.last_update) > MAX_EXPIRE_TIMEOUT:
-                    msg = """           <b> <<<< WARNING >>>> </b> 
+                    msg = """           <b> !!! WARNING !!! </b> 
                     BALANCE were not updated for a {tm} seconds!
                     last balance {bl}""".format(tm=MAX_EXPIRE_TIMEOUT, bl=some_balance)
                     print_to_console(msg, LOG_ALL_ERRORS)

@@ -179,7 +179,10 @@ def get_balance_bittrex(key):
 
     timest = get_now_seconds_utc()
 
-    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg, max_tries=3)
+    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
+                                                    err_msg,
+                                                    max_tries=BITTREX_NUM_OF_DEAL_RETRY,
+                                                    timeout=BITTREX_DEAL_TIMEOUT)
 
     if error_code == STATUS.SUCCESS and "result" in res:
         res = Balance.from_bittrex(timest, res["result"])

@@ -1,5 +1,6 @@
-telegram
+python-telegram-bot
 psycopg2
+#psycopg2cffi for pypy
 requests
 redis
 gevent
