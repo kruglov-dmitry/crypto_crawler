@@ -125,12 +125,12 @@ class OrderBook(BaseData):
         """
 
         ask_bids = []
-        if "sell" in json_document:
+        if "sell" in json_document and json_document["sell"] is not None:
             for b in json_document["sell"]:
                 ask_bids.append(Deal(b["Rate"], b["Quantity"]))
 
         sell_bids = []
-        if "buy" in json_document:
+        if "buy" in json_document and json_document["buy"] is not None:
             for b in json_document["buy"]:
                 sell_bids.append(Deal(b["Rate"], b["Quantity"]))
 
