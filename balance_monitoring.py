@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     TIMEOUT_HEALTH_CHECK = 60
     MAX_EXPIRE_TIMEOUT = 59
-    POLL_TIMEOUT = 1
+    POLL_TIMEOUT = 3
     cnt = 0
 
     while True:
@@ -43,13 +43,18 @@ if __name__ == "__main__":
             print_to_console(tr, LOG_ALL_DEBUG)
 
             res = update_balance_by_exchange(idx, cache)
+            while res is None:
+		print "Balance", res
+            	res = update_balance_by_exchange(idx, cache)
 
-            if res.do_we_have_enough_bitcoin(BITCOIN_ALARM_THRESHOLD):
+
+            if not res.do_we_have_enough_bitcoin(BITCOIN_ALARM_THRESHOLD):
                 msg = """           <b> !!! INFO !!! </b>
                 BTC balance on exchange {exch} BELOW threshold {thrs} - only {am} LEFT!""".format(
                     thrs=BITCOIN_ALARM_THRESHOLD, exch=get_exchange_name_by_id(idx), am=res.get_bitcoin_balance())
                 send_single_message(msg, NOTIFICATION.DEAL)
                 print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+		print res
 
         if cnt >= TIMEOUT_HEALTH_CHECK:
             cnt = 0

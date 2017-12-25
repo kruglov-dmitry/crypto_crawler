@@ -14,5 +14,5 @@ def should_print_debug():
 
 
 def print_to_console(msg, debug_level):
-    if debug_level <= LOG_ALL_MARKET_NETWORK_RELATED_CRAP:
+    if debug_level <= LOG_ALL_MARKET_RELATED_CRAP:
         print msg

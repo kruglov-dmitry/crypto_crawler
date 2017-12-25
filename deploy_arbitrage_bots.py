@@ -12,7 +12,7 @@ from collections import defaultdict
 
 import ConfigParser
 
-FULL_COMMAND = "python /Users/kruglovdmitry/crypto_crawler/arbitrage_between_pair.py"
+FULL_COMMAND = "python arbitrage_between_pair.py"
 
 
 def generate_screen_name(sell_exchange_id, buy_exchange_id):
