@@ -44,9 +44,9 @@ if __name__ == "__main__":
 
             res = update_balance_by_exchange(idx, cache)
             while res is None:
-		print "Balance", res
-        	sleep_for(1)
-            	res = update_balance_by_exchange(idx, cache)
+                print_to_console("Balance is NONE:", LOG_ALL_MARKET_RELATED_CRAP)
+                sleep_for(1)
+                res = update_balance_by_exchange(idx, cache)
 
             if not res.do_we_have_enough_bitcoin(BITCOIN_ALARM_THRESHOLD):
                 msg = """           <b> !!! INFO !!! </b>
@@ -54,7 +54,7 @@ if __name__ == "__main__":
                     thrs=BITCOIN_ALARM_THRESHOLD, exch=get_exchange_name_by_id(idx), am=res.get_bitcoin_balance())
                 send_single_message(msg, NOTIFICATION.DEAL)
                 print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
-		print res
+                print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
 
         if cnt >= TIMEOUT_HEALTH_CHECK:
             cnt = 0
