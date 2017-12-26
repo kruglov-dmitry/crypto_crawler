@@ -19,7 +19,8 @@ from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for
 from utils.file_utils import log_to_file
 from utils.exchange_utils import get_exchange_name_by_id
-from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG
+
+from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG, set_logging_level
 
 BALANCE_EXPIRED_THRESHOLD = 60
 
@@ -34,10 +35,15 @@ if __name__ == "__main__":
     parser.add_argument('--sell_exchange_id', action="store", type=int, required=True)
     parser.add_argument('--buy_exchange_id', action="store", type=int, required=True)
     parser.add_argument('--pair_id', action="store", type=int, required=True)
+    parser.add_argument('--logging_level', action="store", type=int)
 
     results = parser.parse_args()
 
-    cfg = ArbitrageConfig(results.threshold, results.reverse_threshold, results.sell_exchange_id, results.buy_exchange_id, results.pair_id)
+    cfg = ArbitrageConfig(results.threshold, results.reverse_threshold, results.sell_exchange_id,
+                          results.buy_exchange_id, results.pair_id, results.logging_level)
+
+    if cfg.logging_level_id is not None:
+        set_logging_level(cfg.logging_level_id)
 
     load_keys("./secret_keys")
 

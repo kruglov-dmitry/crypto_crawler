@@ -1,4 +1,12 @@
-import re, commands
+import re
+import commands
+from utils.exchange_utils import get_exchange_name_by_id
+
+
+def generate_screen_name(sell_exchange_id, buy_exchange_id):
+    screen_name = "{sell_exch}==>{buy_exch}".format(sell_exch=get_exchange_name_by_id(sell_exchange_id),
+                                                    buy_exch=get_exchange_name_by_id(buy_exchange_id))
+    return screen_name
 
 
 def stop_screen(screen_name):

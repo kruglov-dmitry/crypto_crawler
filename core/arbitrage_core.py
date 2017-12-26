@@ -282,7 +282,6 @@ def round_minimum_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, mi
     return min_volume
     
 
-
 def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
                          action_to_perform,
                          balance_state, deal_cap,
@@ -296,11 +295,14 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
     :param balance_state:
     :param deal_cap:
     :param type_of_deal:
+    :param worker_pool
     :return:
     """
 
+    deal_status = STATUS.FAILURE, None
+
     if len(sell_order_book.bid) == 0 or len(buy_order_book.ask) == 0:
-        return STATUS.SUCCESS
+        return deal_status
 
     difference = get_change(sell_order_book.bid[FIRST].price, buy_order_book.ask[LAST].price, provide_abs=False)
 
@@ -341,7 +343,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
             log_to_file(msg, "debug.log")
             send_single_message(msg, NOTIFICATION.DEBUG)
 
-            return STATUS.FAILURE
+            return deal_status
 
         create_time = get_now_seconds_utc()
         trade_at_first_exchange = Trade(DEAL_TYPE.SELL, sell_order_book.exchange_id, sell_order_book.pair_id,
@@ -352,20 +354,17 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
                                          buy_order_book.ask[LAST].price, min_volume, buy_order_book.timest,
                                          create_time)
 
-        deal_status = action_to_perform(TradePair(trade_at_first_exchange, trade_at_second_exchange,
-                                                  sell_order_book.timest, buy_order_book.timest, type_of_deal),
-                                        difference,
-                                        "history_trades.log",
-                                        worker_pool)
+        trade_pair = TradePair(trade_at_first_exchange, trade_at_second_exchange, sell_order_book.timest,
+                               buy_order_book.timest, type_of_deal)
 
-        if deal_status == STATUS.FAILURE:
-            # We are going to stop recursion here due to simple reason
-            # we have 3 to 5 re-tries within placing orders
-            # if for any reason they not succeeded - it mean we already spend more than one minute
-            # and our orderbook is expired already so we should stop recursive calls
-            return STATUS.FAILURE
+        placement_status = action_to_perform(trade_pair,
+                                             difference,
+                                             "history_trades.log",
+                                             worker_pool)
 
-        return STATUS.SUCCESS
+        deal_status = placement_status, trade_pair
+
+    return deal_status
 
 
 def adjust_currency_balance(first_order_book, second_order_book, treshold_reverse, action_to_perform,
