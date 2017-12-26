@@ -100,3 +100,15 @@ class Trade(Deal):
             log_to_file(msg, "error.log")
 
         return None
+
+    @classmethod
+    def from_binance(cls, json_document):
+        pass
+
+    @classmethod
+    def from_bittrex(cls, json_document):
+        pass
+
+    @classmethod
+    def from_poloniex(cls, json_document):
+        pass

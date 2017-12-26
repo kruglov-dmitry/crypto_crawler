@@ -1,4 +1,5 @@
 import argparse
+from collections import defaultdict
 
 from core.arbitrage_core import search_for_arbitrage, init_deals_with_logging_speedy, adjust_currency_balance, \
     init_deals_with_logging_speedy_fake
@@ -25,6 +26,10 @@ from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG, set_log
 BALANCE_EXPIRED_THRESHOLD = 60
 
 
+def get_list_of_expired_deals(deals):
+    return []
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Constantly poll two exchange for order book for particular pair "
@@ -35,12 +40,14 @@ if __name__ == "__main__":
     parser.add_argument('--sell_exchange_id', action="store", type=int, required=True)
     parser.add_argument('--buy_exchange_id', action="store", type=int, required=True)
     parser.add_argument('--pair_id', action="store", type=int, required=True)
+    parser.add_argument('--deal_expire_timeout', action="store", type=int, required=True)
+
     parser.add_argument('--logging_level', action="store", type=int)
 
     results = parser.parse_args()
 
     cfg = ArbitrageConfig(results.threshold, results.reverse_threshold, results.sell_exchange_id,
-                          results.buy_exchange_id, results.pair_id, results.logging_level)
+                          results.buy_exchange_id, results.pair_id, results.deal_expire_timeout, results.logging_level)
 
     if cfg.logging_level_id is not None:
         set_logging_level(cfg.logging_level_id)
@@ -53,17 +60,20 @@ if __name__ == "__main__":
 
     processor = ConnectionPool(pool_size=2)
 
+    # key is timest rounded to minutes
+    list_of_deals = defaultdict(list)
+
     while True:
 
         for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
-            timest = get_now_seconds_utc()
+            cur_timest_sec = get_now_seconds_utc()
 
             method = search_for_arbitrage if mode_id == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
             active_threshold = cfg.threshold if mode_id == DEAL_TYPE.ARBITRAGE else cfg.reverse_threshold
 
             balance_state = get_updated_balance_arbitrage(cfg, balance_state, local_cache)
 
-            if balance_state.expired(timest, cfg.buy_exchange_id, cfg.sell_exchange_id, BALANCE_EXPIRED_THRESHOLD):
+            if balance_state.expired(cur_timest_sec, cfg.buy_exchange_id, cfg.sell_exchange_id, BALANCE_EXPIRED_THRESHOLD):
                 msg = """
                             <b> !!! CRITICAL !!! </b>
                 Balance is OUTDATED for {exch1} or {exch2} for more than {tt} seconds
@@ -81,18 +91,29 @@ if __name__ == "__main__":
                 log_to_file(balance_state, cfg.log_file_name)
                 raise
 
-            order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, timest, processor)
+            order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec, processor)
 
             if order_book_dst is None or order_book_src is None:
                 if order_book_dst is None:
-                    print "CAN'T retrieve order book for {nn}".format(nn=get_exchange_name_by_id(cfg.sell_exchange_id))
+                    msg = "CAN'T retrieve order book for {nn}".format(nn=get_exchange_name_by_id(cfg.sell_exchange_id))
+                    print_to_console(msg, LOG_ALL_ERRORS)
+                    log_to_file(msg, cfg.log_file_name)
+                    print
+
                 sleep_for(1)
                 continue
 
             # init_deals_with_logging_speedy
-            method(order_book_src, order_book_dst, active_threshold,
-                   init_deals_with_logging_speedy,
-                   balance_state, deal_cap, type_of_deal=mode_id, worker_pool=processor)
+            status_code, deal_pair = method(order_book_src, order_book_dst, active_threshold,
+                                            init_deals_with_logging_speedy,
+                                            balance_state, deal_cap, type_of_deal=mode_id, worker_pool=processor)
 
             print_to_console("I am still allive! ", LOG_ALL_DEBUG)
             sleep_for(1)
+
+            deals_to_check = get_list_of_expired_deals(cur_timest_sec)
+            if len(deals_to_check) > 0:
+                deals_state = get_deals_state_by_exchange_speedup(cfg, processor)
+                for every_deal in deals_to_check:
+                    if deal_is_not_closed(deals_state, every_deal):
+                        close_deal_by_exchange(every_deal)

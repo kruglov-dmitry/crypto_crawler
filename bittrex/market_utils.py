@@ -1,8 +1,11 @@
 from urllib import urlencode as _urlencode
 
 from constants import BITTREX_CANCEL_ORDER, BITTREX_BUY_ORDER, BITTREX_SELL_ORDER, BITTREX_CHECK_BALANCE, \
-    BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT
+    BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT, BITTREX_GET_OPEN_ORDERS
+
 from data.Balance import Balance
+from data.Trade import Trade
+
 from enums.status import STATUS
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, \
@@ -188,3 +191,36 @@ def get_balance_bittrex(key):
         res = Balance.from_bittrex(timest, res["result"])
 
     return error_code, res
+
+
+def get_open_orders_bittrix(key, pair_name):
+
+    final_url = BITTREX_GET_OPEN_ORDERS + key.api_key + "&nonce=" + str(generate_nonce())
+
+    body = {
+        "market": pair_name
+    }
+
+    final_url += _urlencode(body)
+
+    headers = {"apisign": signed_string(final_url, key.secret)}
+
+    post_details = PostRequestDetails(final_url, headers, body)
+
+    if should_print_debug():
+        print_to_console(post_details, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
+
+    err_msg = "get_orders_binance"
+
+    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
+                                                    err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY,
+                                                    timeout=BITTREX_DEAL_TIMEOUT)
+
+    orders = []
+    if error_code == STATUS.SUCCESS and res is not None:
+        for entry in res:
+            order = Trade.from_bittrex(entry)
+            if order is not None:
+                orders.append(order)
+
+    return error_code, orders

@@ -6,6 +6,7 @@ from data_access.PostRequestDetails import PostRequestDetails
 
 from enums.status import STATUS
 from data.Balance import Balance
+from data.Trade import Trade
 
 from utils.key_utils import signed_body
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, \
@@ -236,4 +237,11 @@ def get_open_orders_poloniex(key, currency_name):
 
     error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg, max_tries=3)
 
-    return error_code, res
+    orders = []
+    if error_code == STATUS.SUCCESS and res is not None:
+        for entry in res:
+            order = Trade.from_poloniex(entry)
+            if order is not None:
+                orders.append(order)
+
+    return error_code, orders
