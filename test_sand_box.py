@@ -1,16 +1,41 @@
 from profilehooks import timecall
-from poloniex.market_utils import get_balance_poloniex, get_orders_history_poloniex, get_open_orders_poloniex
 
 from binance.constants import BINANCE_CURRENCY_PAIRS
-from binance.market_utils import add_buy_order_binance, add_sell_order_binance, \
-    cancel_order_binance, get_balance_binance
-
+from binance.market_utils import cancel_order_binance
 from binance.ohlc_utils import get_ohlc_binance
 from binance.order_book_utils import get_order_book_binance
 from binance.ticker_utils import get_tickers_binance
-from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, \
-    cancel_order_bittrex
-from bittrex.market_utils import get_balance_bittrex
+from binance.sell_utils import add_sell_order_binance
+from binance.buy_utils import add_buy_order_binance
+from binance.balance_utils import get_balance_binance
+from binance.order_utils import get_open_orders_binance
+
+from bittrex.market_utils import cancel_order_bittrex
+from bittrex.balance_utils import get_balance_bittrex
+from bittrex.buy_utils import add_buy_order_bittrex
+from bittrex.sell_utils import add_sell_order_bittrex
+from bittrex.order_utils import get_open_orders_bittrix
+
+from poloniex.market_utils import get_orders_history_poloniex
+from poloniex.market_utils import cancel_order_poloniex
+from poloniex.balance_utils import get_balance_poloniex
+from poloniex.buy_utils import add_buy_order_poloniex
+from poloniex.sell_utils import add_sell_order_poloniex
+from poloniex.order_utils import get_open_orders_poloniex
+
+from kraken.market_utils import cancel_order_kraken
+from kraken.balance_utils import get_balance_kraken
+from kraken.buy_utils import add_buy_order_kraken
+from kraken.sell_utils import add_sell_order_kraken
+from kraken.order_utils import get_orders_kraken, get_open_orders_kraken
+
+
+from enums.deal_type import DEAL_TYPE
+from data.Trade import Trade
+from data.TradePair import TradePair
+from core.arbitrage_core import init_deals_with_logging_speedy
+from enums.currency_pair import CURRENCY_PAIR
+
 from core.arbitrage_core import dummy_order_state_init
 from dao.dao import get_updated_order_state
 from dao.history_utils import get_history_speedup
@@ -22,8 +47,7 @@ from dao.ticker_utils import get_ticker_speedup
 from data_access.ConnectionPool import ConnectionPool
 from enums.currency import CURRENCY
 from enums.exchange import EXCHANGE
-from kraken.market_utils import get_orders_kraken, get_balance_kraken, add_buy_order_kraken_try_till_the_end, \
-    add_sell_order_kraken_till_the_end, cancel_order_kraken
+
 from utils.key_utils import load_keys, get_key_by_exchange
 from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
 
@@ -87,7 +111,7 @@ def test_kraken_placing_deals(krak_key):
     print order_state[EXCHANGE.KRAKEN]
     ts1 = get_now_seconds_local()
     for x in range(10000):
-        add_sell_order_kraken_till_the_end(krak_key, "BCHXBT", price=0.5, amount=0.1, order_state=order_state[EXCHANGE.KRAKEN])
+        # add_sell_order_kraken_till_the_end(krak_key, "BCHXBT", price=0.5, amount=0.1, order_state=order_state[EXCHANGE.KRAKEN])
         sleep_for(30)
 
     ts2 = get_now_seconds_local()
@@ -112,10 +136,10 @@ def test_kraken_market_utils(krak_key):
     bit_key = get_key_by_exchange(EXCHANGE.BITTREX)
     r = get_balance_bittrex(bit_key)
     print r
-    add_buy_order_kraken_try_till_the_end(krak_key, "XETHXXBT", 0.07220, 0.02)
+    """add_buy_order_kraken_try_till_the_end(krak_key, "XETHXXBT", 0.07220, 0.02)
     add_sell_order_kraken_till_the_end(krak_key, "XETHXXBT", 0.07220, 0.02)
     add_sell_order_kraken_till_the_end(krak_key, "XETHXXBT", 0.07220, 0.02)
-
+    """
     cancel_order_kraken(krak_key, 'O6PGMG-DXKYV-UU4MNM')
 
 
@@ -148,17 +172,11 @@ def get_ohlc_time_test():
 
 @timecall
 def get_ohlc_time_fast_test():
+    processor = ConnectionPool()
     end_time = get_now_seconds_utc()
     start_time = end_time - 900
-    return get_ohlc_speedup(start_time, end_time)
+    return get_ohlc_speedup(start_time, end_time, processor)
 
-# for x in range(100):
-#     get_ohlc_time_test()
-
-
-# res = get_ohlc_time_fast_test()
-# for v in res:
-#     print v
 
 @timecall
 def get_ticker_time_fast():
@@ -187,34 +205,9 @@ def get_order_book_time_fast():
     return trade_history
 
 
-# for b in range(10):
-#     get_ticker_time_fast()
-# from core.base_analysis import compare_price, check_highest_bid_bigger_than_lowest_ask
-# TRIGGER_THRESHOLD = 1.5 # 2 percents only
-
-# processor = ConnectionPool()
-
-# timest = get_now_seconds_utc()
-# tickers = get_ticker_speedup(timest, processor)
-
-# res = compare_price(tickers, TRIGGER_THRESHOLD, check_highest_bid_bigger_than_lowest_ask)
-
-load_keys("./secret_keys")
-krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
-bin_key = get_key_by_exchange(EXCHANGE.BINANCE)
-pol_key = get_key_by_exchange(EXCHANGE.POLONIEX)
-
 def check_order_polonie(pol_key):
     er_code, res = get_orders_history_poloniex(pol_key, "all")
     print res
-
-
-from enums.deal_type import DEAL_TYPE
-from data.Trade import Trade
-from data.TradePair import TradePair
-from core.arbitrage_core import init_deals_with_logging_speedy
-from enums.currency_pair import CURRENCY_PAIR
-
 
 def check_deal_placements():
     create_time = get_now_seconds_utc()
@@ -243,3 +236,27 @@ def check_deal_placements():
     trade_pairs = TradePair(trade_at_first_exchange, trade_at_second_exchange, fake_order_book_time1, fake_order_book_time2, DEAL_TYPE.DEBUG)
 
     init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor)
+
+
+def check_open_order_retrieval():
+    load_keys("./secret_keys")
+    krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
+    bin_key = get_key_by_exchange(EXCHANGE.BINANCE)
+    pol_key = get_key_by_exchange(EXCHANGE.POLONIEX)
+    bittrex_key = get_key_by_exchange(EXCHANGE.BITTREX)
+
+    err_code, res = get_open_orders_binance(bin_key, "XMRBTC")
+    for r in res:
+        print r
+
+    err_code, res = get_open_orders_bittrix(bittrex_key, None)
+    for r in res:
+        print r
+
+    err_code, res = get_open_orders_kraken(bittrex_key, None)
+    for r in res:
+        print r
+
+    err_code, res = get_open_orders_poloniex(pol_key, "BTC_ARDR")
+    for r in res:
+        print r
