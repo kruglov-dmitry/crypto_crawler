@@ -15,7 +15,7 @@ from data_access.internet import send_post_request_with_header
 from data_access.PostRequestDetails import PostRequestDetails
 
 
-def get_open_orders_bittrix_url(key, pair_name):
+def get_open_orders_bittrix_post_details(key, pair_name):
     final_url = BITTREX_GET_OPEN_ORDERS + key.api_key + "&nonce=" + str(generate_nonce())
 
     body = {
@@ -38,7 +38,7 @@ def get_open_orders_bittrix_url(key, pair_name):
 
 def get_open_orders_bittrix(key, pair_name):
 
-    post_details = get_open_orders_bittrix_url(key, pair_name)
+    post_details = get_open_orders_bittrix_post_details(key, pair_name)
 
     err_msg = "get_orders_binance"
 
@@ -48,9 +48,17 @@ def get_open_orders_bittrix(key, pair_name):
 
     orders = []
     if error_code == STATUS.SUCCESS and res is not None:
-        for entry in res:
+        orders = get_open_orders_bittrex_result_processor(res)
+
+    return error_code, orders
+
+
+def get_open_orders_bittrex_result_processor(json_document):
+    orders = []
+    if json_document is not None:
+        for entry in json_document:
             order = Trade.from_bittrex(entry)
             if order is not None:
                 orders.append(order)
 
-    return error_code, orders
+    return orders

@@ -142,6 +142,7 @@ def init_deals_with_logging(trade_pairs, difference, file_name):
 def init_deals_with_logging_speedy_fake(trade_pairs, difference, file_name, processor):
     pass
 
+
 def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor):
     parallel_deals = []
 

@@ -12,7 +12,7 @@ from data.Trade import Trade
 from utils.key_utils import signed_body
 
 
-def get_open_order_poloniex_post_details(key, currency_name):
+def get_open_orders_poloniex_post_details(key, currency_name):
     body = {
         'command': 'returnOpenOrders',
         'currencyPair': currency_name,
@@ -34,7 +34,7 @@ def get_open_order_poloniex_post_details(key, currency_name):
 
 
 def get_open_orders_poloniex(key, currency_name):
-    post_details = get_open_order_poloniex_post_details(key, currency_name)
+    post_details = get_open_orders_poloniex_post_details(key, currency_name)
 
     err_msg = "get poloniex open orders"
     print err_msg
@@ -44,9 +44,17 @@ def get_open_orders_poloniex(key, currency_name):
 
     orders = []
     if error_code == STATUS.SUCCESS and res is not None:
-        for entry in res:
+        orders = get_open_orders_poloniex_result_processor(res)
+
+    return error_code, orders
+
+
+def get_open_orders_poloniex_result_processor(json_document):
+    orders = []
+    if json_document is not None:
+        for entry in json_document:
             order = Trade.from_poloniex(entry)
             if order is not None:
                 orders.append(order)
 
-    return error_code, orders
+    return orders

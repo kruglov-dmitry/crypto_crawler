@@ -13,7 +13,7 @@ from constants import BINANCE_DEAL_TIMEOUT, BINANCE_GET_ALL_OPEN_ORDERS
 from enums.status import STATUS
 
 
-def get_open_orders_binance_url(key, pair_name):
+def get_open_orders_binance_post_details(key, pair_name):
     final_url = BINANCE_GET_ALL_OPEN_ORDERS
 
     body = {
@@ -43,7 +43,7 @@ def get_open_orders_binance_url(key, pair_name):
 
 def get_open_orders_binance(key, pair_name):
 
-    post_details = get_open_orders_binance_url(key, pair_name)
+    post_details = get_open_orders_binance_post_details(key, pair_name)
 
     err_msg = "get_orders_binance"
 
@@ -52,9 +52,17 @@ def get_open_orders_binance(key, pair_name):
 
     orders = []
     if error_code == STATUS.SUCCESS and res is not None:
-        for entry in res:
+        orders = get_open_orders_binance_result_processor(res)
+
+    return error_code, orders
+
+
+def get_open_orders_binance_result_processor(json_document):
+    orders = []
+    if json_document is not None:
+        for entry in json_document:
             order = Trade.from_binance(entry)
             if order is not None:
                 orders.append(order)
 
-    return error_code, orders
+    return orders

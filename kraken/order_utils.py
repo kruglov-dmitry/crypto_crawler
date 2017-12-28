@@ -17,7 +17,7 @@ from data_access.memory_cache import generate_nonce
 from data_access.PostRequestDetails import PostRequestDetails
 
 
-def get_open_orders_kraken_url(key, pair_name=None):
+def get_open_orders_kraken_post_details(key, pair_name=None):
     final_url = KRAKEN_BASE_API_URL + KRAKEN_GET_OPEN_ORDERS
 
     body = {
@@ -70,7 +70,7 @@ def get_open_orders_kraken(key, pair_name=None):
  }
     """
 
-    post_details = get_open_orders_kraken_url(key, pair_name=None)
+    post_details = get_open_orders_kraken_post_details(key, pair_name=None)
 
     err_msg = "check kraken open orders called"
 
@@ -79,11 +79,7 @@ def get_open_orders_kraken(key, pair_name=None):
 
     open_orders = []
     if error_code == STATUS.SUCCESS and "result" in res:
-        if "open" in res["result"]:
-            for order_id in res["result"]["open"]:
-                new_order = Trade.from_kraken(order_id, res["result"]["open"][order_id])
-                if new_order is not None:
-                    open_orders.append(new_order)
+        open_orders = get_open_orders_kraken_result_processor(res)
 
     if pair_name is not None:
         pair_id = get_currency_pair_from_kraken(pair_name)
@@ -92,7 +88,19 @@ def get_open_orders_kraken(key, pair_name=None):
     return error_code, open_orders
 
 
-def get_closed_orders_kraken_url(key, pair_name=None):
+def get_open_orders_kraken_result_processor(json_document):
+    open_orders = []
+
+    if json_document is not None and "open" in json_document["result"]:
+        for order_id in json_document["result"]["open"]:
+            new_order = Trade.from_kraken(order_id, json_document["result"]["open"][order_id])
+            if new_order is not None:
+                open_orders.append(new_order)
+
+    return open_orders
+
+
+def get_closed_orders_kraken_post_details(key, pair_name=None):
     final_url = KRAKEN_BASE_API_URL + KRAKEN_GET_CLOSE_ORDERS
 
     body = {
@@ -113,7 +121,7 @@ def get_closed_orders_kraken_url(key, pair_name=None):
 
 def get_closed_orders_kraken(key, pair_name=None):
 
-    post_details = get_closed_orders_kraken_url(key, pair_name)
+    post_details = get_closed_orders_kraken_post_details(key, pair_name)
 
     err_msg = "check kraken closed orders called"
 
