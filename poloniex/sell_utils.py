@@ -25,9 +25,7 @@ def add_sell_order_poloniex_url(key, pair_name, price, amount):
     res = PostRequestDetails(final_url, headers, body)
 
     if should_print_debug():
-        msg = "add_sell_order_poloniex: url - {url} headers - {headers} body - {body}".format(url=res.final_url,
-                                                                                              headers=res.headers,
-                                                                                              body=res.body)
+        msg = "add_sell_order_poloniex: {res}".format(res=res)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 

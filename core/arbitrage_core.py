@@ -1,6 +1,4 @@
 import sys
-import json
-import re
 
 sys.setrecursionlimit(10000)
 
@@ -30,10 +28,17 @@ from enums.notifications import NOTIFICATION
 from data.Trade import Trade
 from data.TradePair import TradePair
 
-from binance.market_utils import add_buy_order_binance_url, add_sell_order_binance_url
-from kraken.market_utils import add_buy_order_kraken_url, add_sell_order_kraken_url
-from bittrex.market_utils import add_buy_order_bittrex_url, add_sell_order_bittrex_url
-from poloniex.market_utils import add_buy_order_poloniex_url, add_sell_order_poloniex_url
+from binance.buy_utils import add_buy_order_binance_url
+from binance.sell_utils import add_sell_order_binance_url
+
+from kraken.buy_utils import add_buy_order_kraken_url
+from kraken.sell_utils import add_sell_order_kraken_url
+
+from bittrex.buy_utils import add_buy_order_bittrex_url
+from bittrex.sell_utils import add_sell_order_bittrex_url
+
+from poloniex.buy_utils import add_buy_order_poloniex_url
+from poloniex.sell_utils import add_sell_order_poloniex_url
 
 from binance.precision_by_currency import round_minimum_volume_by_binance_rules
 

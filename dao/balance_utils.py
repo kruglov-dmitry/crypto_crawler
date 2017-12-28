@@ -5,10 +5,14 @@ from enums.exchange import EXCHANGE
 
 from data.BalanceState import BalanceState
 
-from bittrex.market_utils import get_balance_bittrex, get_balance_bittrex_post_details, get_balance_bittrex_result_processor
-from kraken.market_utils import get_balance_kraken, get_balance_kraken_post_details, get_balance_kraken_result_processor
-from poloniex.market_utils import get_balance_poloniex, get_balance_poloniex_post_details, get_balance_poloniex_result_processor
-from binance.market_utils import get_balance_binance, get_balance_binance_post_details, get_balance_binance_result_processor
+from bittrex.balance_utils import get_balance_bittrex, get_balance_bittrex_post_details, \
+    get_balance_bittrex_result_processor
+from kraken.balance_utils import get_balance_kraken, get_balance_kraken_post_details, \
+    get_balance_kraken_result_processor
+from poloniex.balance_utils import get_balance_poloniex, get_balance_poloniex_post_details, \
+    get_balance_poloniex_result_processor
+from binance.balance_utils import get_balance_binance, get_balance_binance_post_details, \
+    get_balance_binance_result_processor
 
 from data_access.memory_cache import get_cache
 

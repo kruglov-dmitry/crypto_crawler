@@ -1,0 +1,56 @@
+from urllib import urlencode as _urlencode
+
+from constants import BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT, BITTREX_GET_OPEN_ORDERS
+
+from data.Trade import Trade
+
+from enums.status import STATUS
+
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
+from utils.key_utils import signed_string
+from utils.file_utils import log_to_file
+
+from data_access.memory_cache import generate_nonce
+from data_access.internet import send_post_request_with_header
+from data_access.PostRequestDetails import PostRequestDetails
+
+
+def get_open_orders_bittrix_url(key, pair_name):
+    final_url = BITTREX_GET_OPEN_ORDERS + key.api_key + "&nonce=" + str(generate_nonce())
+
+    body = {
+        "market": pair_name
+    }
+
+    final_url += _urlencode(body)
+
+    headers = {"apisign": signed_string(final_url, key.secret)}
+
+    res = PostRequestDetails(final_url, headers, body)
+
+    if should_print_debug():
+        msg = "get_open_orders_bittrix: {res}".format(res=res)
+        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+        log_to_file(msg, "market_utils.log")
+
+    return res
+
+
+def get_open_orders_bittrix(key, pair_name):
+
+    post_details = get_open_orders_bittrix_url(key, pair_name)
+
+    err_msg = "get_orders_binance"
+
+    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
+                                                    err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY,
+                                                    timeout=BITTREX_DEAL_TIMEOUT)
+
+    orders = []
+    if error_code == STATUS.SUCCESS and res is not None:
+        for entry in res:
+            order = Trade.from_bittrex(entry)
+            if order is not None:
+                orders.append(order)
+
+    return error_code, orders

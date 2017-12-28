@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
             deals_to_check = get_list_of_expired_deals(cur_timest_sec)
             if len(deals_to_check) > 0:
-                deals_state = get_deals_state_by_exchange_speedup(cfg, processor)
+                deals_state = get_open_orders_by_exchange_speedup(cfg, processor)
                 for every_deal in deals_to_check:
                     if deal_is_not_closed(deals_state, every_deal):
                         close_deal_by_exchange(every_deal)

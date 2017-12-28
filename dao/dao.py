@@ -4,10 +4,25 @@
 #   Reconsider imports below
 #
 
-from bittrex.market_utils import add_buy_order_bittrex, add_sell_order_bittrex, cancel_order_bittrex, get_open_orders_bittrix
-from kraken.market_utils import add_buy_order_kraken_try_till_the_end, add_sell_order_kraken_till_the_end, cancel_order_kraken, get_open_orders_kraken
-from poloniex.market_utils import add_buy_order_poloniex, add_sell_order_poloniex, cancel_order_poloniex, get_open_orders_poloniex
-from binance.market_utils import add_buy_order_binance, add_sell_order_binance, cancel_order_binance, get_open_orders_binance
+from bittrex.buy_utils import add_buy_order_bittrex
+from bittrex.sell_utils import add_sell_order_bittrex
+from bittrex.order_utils import get_open_orders_bittrix
+from bittrex.market_utils import cancel_order_bittrex
+
+from kraken.buy_utils import add_buy_order_kraken
+from kraken.sell_utils import add_sell_order_kraken
+from kraken.order_utils import get_open_orders_kraken
+from kraken.market_utils import cancel_order_kraken
+
+from poloniex.buy_utils import add_buy_order_poloniex
+from poloniex.sell_utils import add_sell_order_poloniex
+from poloniex.order_utils import get_open_orders_poloniex
+from poloniex.market_utils import cancel_order_poloniex
+
+from binance.buy_utils import add_buy_order_binance
+from binance.sell_utils import add_sell_order_binance
+from binance.order_utils import get_open_orders_binance
+from binance.market_utils import cancel_order_binance
 
 from bittrex.currency_utils import get_currency_pair_to_bittrex
 from kraken.currency_utils import get_currency_pair_to_kraken
@@ -32,7 +47,7 @@ def buy_by_exchange(trade):
         res = add_buy_order_bittrex(key, currency, trade.price, trade.volume)
     elif trade.exchange_id == EXCHANGE.KRAKEN:
         currency = get_currency_pair_to_kraken(trade.pair_id)
-        res = add_buy_order_kraken_try_till_the_end(key, currency, trade.price, trade.volume)
+        res = add_buy_order_kraken(key, currency, trade.price, trade.volume)
     elif trade.exchange_id == EXCHANGE.POLONIEX:
         currency = get_currency_pair_to_poloniex(trade.pair_id)
         res = add_buy_order_poloniex(key, currency, trade.price, trade.volume)
@@ -56,7 +71,7 @@ def sell_by_exchange(trade):
         res = add_sell_order_bittrex(key, currency, trade.price, trade.volume)
     elif trade.exchange_id == EXCHANGE.KRAKEN:
         currency = get_currency_pair_to_kraken(trade.pair_id)
-        res = add_sell_order_kraken_till_the_end(key, currency, trade.price, trade.volume)
+        res = add_sell_order_kraken(key, currency, trade.price, trade.volume)
     elif trade.exchange_id == EXCHANGE.POLONIEX:
         currency = get_currency_pair_to_poloniex(trade.pair_id)
         res = add_sell_order_poloniex(key, currency, trade.price, trade.volume)
