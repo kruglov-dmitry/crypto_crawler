@@ -9,20 +9,26 @@ from utils.string_utils import float_to_str
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.currency_utils import get_currency_name_by_id
 from kraken.currency_utils import get_currency_pair_from_kraken
+from binance.currency_utils import get_currency_pair_from_binance
+from bittrex.currency_utils import get_currency_pair_from_bittrex
+from poloniex.currency_utils import get_currency_pair_from_poloniex
 from utils.file_utils import log_to_file
 
 
 class Trade(Deal):
-    def __init__(self, trade_type, exchange_id, pair_id, price, volume, order_book_time, create_time, execute_time=None, deal_id=None):
-        self.trade_type = trade_type
-        self.exchange_id = exchange_id
-        self.pair_id = pair_id
-        self.price = price
-        self.volume = volume
-        self.order_book_time = order_book_time
-        self.create_time = create_time
-        self.execute_time = execute_time
+    def __init__(self, trade_type, exchange_id, pair_id, price, volume,
+                 order_book_time, create_time, execute_time=None,
+                 deal_id=None, executed_volume=None):
+        self.trade_type = int(trade_type)
+        self.exchange_id = int(exchange_id)
+        self.pair_id = int(pair_id)
+        self.price = float(price)
+        self.volume = float(volume)
+        self.order_book_time = long(order_book_time)
+        self.create_time = long(create_time)
+        self.execute_time = long(execute_time)
         self.deal_id = deal_id
+        self.executed_volume = float(executed_volume)
 
     def __str__(self):
         str_repr = """
@@ -30,7 +36,7 @@ class Trade(Deal):
         Type: {deal_type}
         Pair: {pair} for volume {vol} with price {price}
         order_book_time {ob_time} create_time {ct_time} execute_time {ex_time}
-        deal_id {deal_id}""".format(
+        deal_id {deal_id} executed_volume {ex_volume}""".format(
             exch=get_exchange_name_by_id(self.exchange_id),
             deal_type=get_deal_type_by_id(self.trade_type),
             pair=get_currency_name_by_id(self.pair_id),
@@ -39,7 +45,9 @@ class Trade(Deal):
             ob_time=self.order_book_time,
             ct_time=self.create_time,
             ex_time=self.execute_time,
-            deal_id=self.deal_id)
+            deal_id=self.deal_id,
+            ex_volume=self.executed_volume
+        )
 
         return str_repr
 
@@ -75,10 +83,11 @@ class Trade(Deal):
  			}
         """
 
-        price = float(json_doc["descr"]["price"])
-        volume = float(json_doc["vol"])
+        price = json_doc["descr"]["price"]
+        volume = json_doc["vol"]
+        executed_volume = json_doc["vol_exec"]
 
-        create_time = long(json_doc["opentm"])
+        create_time = json_doc["opentm"]
         order_book_time = create_time # Because at this stage we do not really know it
 
         trade_type_str = json_doc["descr"]["type"]
@@ -93,7 +102,7 @@ class Trade(Deal):
             pair_id = get_currency_pair_from_kraken(pair_name)
 
             return Trade(trade_type, EXCHANGE.KRAKEN, pair_id, price, volume, order_book_time, create_time,
-                         execute_time=create_time, deal_id=trade_id)
+                         execute_time=create_time, deal_id=trade_id, executed_volume=executed_volume)
         except Exception, e:
             msg = "NON supported currency? name: {n} exception: {e}".format(n=pair_name, e=str(e))
             print_to_console(msg, LOG_ALL_ERRORS)
@@ -103,12 +112,72 @@ class Trade(Deal):
 
     @classmethod
     def from_binance(cls, json_document):
-        pass
+        """
+        {u'orderId': 3542537,
+        u'clientOrderId': u'L0LbifBNp65Gy2BWTNOOYR',
+        u'origQty': u'50.00000000',
+        u'icebergQty': u'0.00000000',
+        u'symbol': u'XMRBTC',
+        u'side': u'SELL',
+        u'timeInForce': u'GTC',
+        u'status': u'NEW',
+        u'stopPrice': u'0.01981500',
+        u'time': 1514321524235,
+        u'isWorking': False,
+        u'type': u'STOP_LOSS_LIMIT',
+        u'price': u'0.01975600',
+        u'executedQty': u'0.00000000'}
+        """
+        pair_id = get_currency_pair_from_binance(json_document["symbol"])
+        timest = json_document["time"]
+        price = json_document["price"]
+        volume = json_document["origQty"]
+        trade_type = DEAL_TYPE.BUY
+        if "SELL" in json_document["side"]:
+            trade_type = DEAL_TYPE.SELL
+        trade_id = json_document["orderId"]
+        executed_volume = json_document["executedQty"]
+
+        return Trade(trade_type, EXCHANGE.BINANCE, pair_id, price, volume, timest, timest,
+                         execute_time=timest, deal_id=trade_id, executed_volume=executed_volume)
 
     @classmethod
     def from_bittrex(cls, json_document):
-        pass
+        """
+        {u'OrderUuid': u'262a63f5-b901-4efb-b0fb-b6f2f6d203ea',
+        u'QuantityRemaining': 8500.0,
+        u'IsConditional': False,
+        u'ImmediateOrCancel': False,
+        u'Uuid': None,
+        u'Exchange': u'BTC-GRS',
+        u'OrderType': u'LIMIT_BUY',
+        u'Price': 0.0,
+        u'CommissionPaid': 0.0,
+        u'Opened': u'2017-12-26T20:22:41.07',
+        u'Limit': 8.969e-05,
+        u'Closed': None,
+        u'ConditionTarget': None,
+        u'CancelInitiated': False,
+        u'PricePerUnit': None,
+        u'Condition': u'NONE',
+        u'Quantity': 8500.0}
+        """
+        print json_document
+        pair_id = get_currency_pair_from_bittrex(json_document["Exchange"])
+        timest = parse_time(json_document["Opened"], )
+
+        price = json_document["Limit"]
+        volume = json_document["Quantity"]
+        trade_type = DEAL_TYPE.BUY
+        if "SELL" in json_document["OrderType"]:
+            trade_type = DEAL_TYPE.SELL
+        trade_id = json_document["OrderUuid"]
+        executed_volume = json_document["QuantityRemaining"]
+
+        return Trade(trade_type, EXCHANGE.BINANCE, pair_id, price, volume, timest, timest,
+                         execute_time=timest, deal_id=trade_id, executed_volume=executed_volume)
 
     @classmethod
     def from_poloniex(cls, json_document):
+        print json_document
         pass

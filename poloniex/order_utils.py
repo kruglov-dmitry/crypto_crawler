@@ -42,6 +42,7 @@ def get_open_orders_poloniex(key, currency_name):
     error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
                                                     err_msg, max_tries=3)
 
+    print res
     orders = []
     if error_code == STATUS.SUCCESS and res is not None:
         orders = get_open_orders_poloniex_result_processor(res)

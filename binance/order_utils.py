@@ -36,6 +36,7 @@ def get_open_orders_binance_post_details(key, pair_name):
     post_details = PostRequestDetails(final_url, headers, body)
 
     if should_print_debug():
+        print post_details
         print_to_console(post_details, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
 
     return post_details
@@ -50,6 +51,7 @@ def get_open_orders_binance(key, pair_name):
     error_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
                                                    timeout=BINANCE_DEAL_TIMEOUT)
 
+    print res
     orders = []
     if error_code == STATUS.SUCCESS and res is not None:
         orders = get_open_orders_binance_result_processor(res)

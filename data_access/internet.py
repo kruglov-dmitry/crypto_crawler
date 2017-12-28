@@ -35,14 +35,16 @@ def send_request(final_url, error_msg):
 def send_get_request_with_header(final_url, header, error_msg, timeout=HTTP_TIMEOUT_SECONDS):
     res = STATUS.FAILURE, None
     try:
-        responce = requests.get(final_url, headers=header, timeout=timeout).json()
+        responce = requests.get(final_url, headers=header, timeout=timeout)
+        print responce
+        responce = responce.json()
         res = STATUS.SUCCESS, responce
         log_to_file(responce, "debug.txt")
     except Exception, e:
         res = STATUS.FAILURE, error_msg + str(e)
         msg = "send_get_request_with_header ERROR: {excp} MSG: {e_msg}".format(e_msg=error_msg, excp=str(e))
         print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, "debug.txt")
+        log_to_file(msg, "error.txt")
 
     return res
 

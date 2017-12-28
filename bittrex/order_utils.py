@@ -44,6 +44,7 @@ def get_open_orders_bittrix(key, pair_name):
                                                     err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY,
                                                     timeout=BITTREX_DEAL_TIMEOUT)
 
+    print res
     orders = []
     if error_code == STATUS.SUCCESS and res is not None:
         orders = get_open_orders_bittrex_result_processor(res)

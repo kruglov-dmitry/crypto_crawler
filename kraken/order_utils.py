@@ -77,6 +77,7 @@ def get_open_orders_kraken(key, pair_name=None):
     error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
                                                     err_msg, max_tries=5)
 
+    print res
     open_orders = []
     if error_code == STATUS.SUCCESS and "result" in res:
         open_orders = get_open_orders_kraken_result_processor(res)

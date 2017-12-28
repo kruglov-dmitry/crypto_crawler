@@ -38,6 +38,6 @@ BINANCE_CANCEL_ORDER = "https://api.binance.com/api/v3/order?"
 # timestamp
 BINANCE_CHECK_BALANCE = "https://api.binance.com/api/v3/account?"
 
-BINANCE_GET_ALL_OPEN_ORDERS = "https://api.binance.com/api/v3/openOrders"
+BINANCE_GET_ALL_OPEN_ORDERS = "https://api.binance.com/api/v3/openOrders?"
 
 BINANCE_GET_ALL_ORDERS = "https://api.binance.com/api/v3/allOrders?"
