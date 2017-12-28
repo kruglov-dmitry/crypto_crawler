@@ -18,9 +18,7 @@ from data_access.PostRequestDetails import PostRequestDetails
 def get_open_orders_bittrix_post_details(key, pair_name):
     final_url = BITTREX_GET_OPEN_ORDERS + key.api_key + "&nonce=" + str(generate_nonce())
 
-    body = {
-        "market": pair_name
-    }
+    body = {"market": pair_name} if pair_name is not None else {}
 
     final_url += _urlencode(body)
 
