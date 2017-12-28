@@ -115,6 +115,7 @@ def get_pair_id_by_name(pair_name):
         "USD_TO_USDT": CURRENCY_PAIR.USD_TO_USDT,
     }[pair_name.upper()]
 
+
 def get_pair_name_by_id(pair_id):
     return {
         CURRENCY_PAIR.BTC_TO_DASH: "BTC_TO_DASH",

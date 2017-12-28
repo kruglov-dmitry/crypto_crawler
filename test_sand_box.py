@@ -22,8 +22,8 @@ from dao.ticker_utils import get_ticker_speedup
 from data_access.ConnectionPool import ConnectionPool
 from enums.currency import CURRENCY
 from enums.exchange import EXCHANGE
-from kraken.market_utils import get_orders_kraken, get_balance_kraken, add_buy_order_kraken, \
-    add_sell_order_kraken, cancel_order_kraken
+from kraken.market_utils import get_orders_kraken, get_balance_kraken, add_buy_order_kraken_try_till_the_end, \
+    add_sell_order_kraken_till_the_end, cancel_order_kraken
 from utils.key_utils import load_keys, get_key_by_exchange
 from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
 
@@ -87,7 +87,7 @@ def test_kraken_placing_deals(krak_key):
     print order_state[EXCHANGE.KRAKEN]
     ts1 = get_now_seconds_local()
     for x in range(10000):
-        add_sell_order_kraken(krak_key, "BCHXBT", price=0.5, amount=0.1, order_state=order_state[EXCHANGE.KRAKEN])
+        add_sell_order_kraken_till_the_end(krak_key, "BCHXBT", price=0.5, amount=0.1, order_state=order_state[EXCHANGE.KRAKEN])
         sleep_for(30)
 
     ts2 = get_now_seconds_local()
@@ -112,9 +112,9 @@ def test_kraken_market_utils(krak_key):
     bit_key = get_key_by_exchange(EXCHANGE.BITTREX)
     r = get_balance_bittrex(bit_key)
     print r
-    add_buy_order_kraken(krak_key, "XETHXXBT", 0.07220, 0.02)
-    add_sell_order_kraken(krak_key, "XETHXXBT", 0.07220, 0.02)
-    add_sell_order_kraken(krak_key, "XETHXXBT", 0.07220, 0.02)
+    add_buy_order_kraken_try_till_the_end(krak_key, "XETHXXBT", 0.07220, 0.02)
+    add_sell_order_kraken_till_the_end(krak_key, "XETHXXBT", 0.07220, 0.02)
+    add_sell_order_kraken_till_the_end(krak_key, "XETHXXBT", 0.07220, 0.02)
 
     cancel_order_kraken(krak_key, 'O6PGMG-DXKYV-UU4MNM')
 
