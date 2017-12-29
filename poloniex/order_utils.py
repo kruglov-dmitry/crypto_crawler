@@ -12,10 +12,10 @@ from data.Trade import Trade
 from utils.key_utils import signed_body
 
 
-def get_open_orders_poloniex_post_details(key, currency_name):
+def get_open_orders_poloniex_post_details(key, pair_name):
     body = {
         'command': 'returnOpenOrders',
-        'currencyPair': currency_name,
+        'currencyPair': pair_name,
         'nonce': generate_nonce()
     }
     headers = {"Key": key.api_key, "Sign": signed_body(body, key.secret)}
@@ -33,28 +33,27 @@ def get_open_orders_poloniex_post_details(key, currency_name):
     return res
 
 
-def get_open_orders_poloniex(key, currency_name):
-    post_details = get_open_orders_poloniex_post_details(key, currency_name)
+def get_open_orders_poloniex(key, pair_name):
+    post_details = get_open_orders_poloniex_post_details(key, pair_name)
 
     err_msg = "get poloniex open orders"
-    print err_msg
 
     error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
                                                     err_msg, max_tries=3)
 
-    print res
+    print "get_open_orders_poloniex", res
     orders = []
     if error_code == STATUS.SUCCESS and res is not None:
-        orders = get_open_orders_poloniex_result_processor(res)
+        orders = get_open_orders_poloniex_result_processor(res, pair_name)
 
     return error_code, orders
 
 
-def get_open_orders_poloniex_result_processor(json_document):
+def get_open_orders_poloniex_result_processor(json_document, pair_name):
     orders = []
     if json_document is not None:
         for entry in json_document:
-            order = Trade.from_poloniex(entry)
+            order = Trade.from_poloniex(entry, pair_name)
             if order is not None:
                 orders.append(order)
 

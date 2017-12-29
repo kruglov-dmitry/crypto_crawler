@@ -36,3 +36,9 @@ def get_date_time_from_epoch(ts_epoch):
 
 def ts_to_string(timest_second_epoch):
     return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timest_second_epoch))
+
+
+def parse_time(time_string, regex_string):
+    utc_time = datetime.strptime(time_string, regex_string)
+    epoch_time = (utc_time - datetime(1970, 1, 1)).total_seconds()
+    return long(epoch_time)

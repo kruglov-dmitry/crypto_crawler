@@ -51,7 +51,7 @@ class Balance(BaseData):
         if CURRENCY.BITCOIN in self.available_balance:
             return self.available_balance[CURRENCY.BITCOIN] > threahold
 
-	print "NONOOOO"
+        print "do_we_have_enough_bitcoin: no bitcoin within Balance 0_o"
         return False
 
     def get_bitcoin_balance(self):

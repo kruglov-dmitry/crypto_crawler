@@ -8,11 +8,13 @@ from debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.string_utils import float_to_str
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.currency_utils import get_currency_name_by_id
+from utils.file_utils import log_to_file
+from utils.time_utils import parse_time
+
 from kraken.currency_utils import get_currency_pair_from_kraken
 from binance.currency_utils import get_currency_pair_from_binance
 from bittrex.currency_utils import get_currency_pair_from_bittrex
 from poloniex.currency_utils import get_currency_pair_from_poloniex
-from utils.file_utils import log_to_file
 
 
 class Trade(Deal):
@@ -164,7 +166,7 @@ class Trade(Deal):
         """
         print json_document
         pair_id = get_currency_pair_from_bittrex(json_document["Exchange"])
-        timest = parse_time(json_document["Opened"], )
+        timest = parse_time(json_document["Opened"], '%Y-%m-%dT%H:%M:%S.%f')
 
         price = json_document["Limit"]
         volume = json_document["Quantity"]
@@ -178,6 +180,29 @@ class Trade(Deal):
                          execute_time=timest, deal_id=trade_id, executed_volume=executed_volume)
 
     @classmethod
-    def from_poloniex(cls, json_document):
+    def from_poloniex(cls, json_document, pair_name):
+        """
+        {u'orderNumber': u'22641967545',
+        u'margin': 0,
+        u'amount': u'10000.00000000',
+        u'rate': u'0.00014568',
+        u'date': u'2017-12-27 20:29:56',
+        u'total': u'1.45680000',
+        u'type': u'sell',
+        u'startingAmount': u'10000.00000000'}
+        """
         print json_document
-        pass
+        pair_id = get_currency_pair_from_poloniex(pair_name)
+
+        timest = parse_time(json_document["date"], '%Y-%m-%d %H:%M:%S')
+        price = json_document["rate"]
+        volume = float(json_document["startingAmount"])
+
+        trade_type = DEAL_TYPE.BUY
+        if "sell" in json_document["type"]:
+            trade_type = DEAL_TYPE.SELL
+
+        trade_id = json_document["orderNumber"]
+        executed_volume = volume - float(json_document["amount"])
+        return Trade(trade_type, EXCHANGE.POLONIEX, pair_id, price, volume, timest, timest,
+                         execute_time=timest, deal_id=trade_id, executed_volume=executed_volume)
