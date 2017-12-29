@@ -2,7 +2,7 @@ import sys
 
 sys.setrecursionlimit(10000)
 
-from dao.dao import buy_by_exchange, sell_by_exchange, get_updated_order_state
+from dao.dao import buy_by_exchange, sell_by_exchange, get_updated_order_state, parse_deal_id_by_exchange_id
 from dao.balance_utils import get_updated_balance
 
 from dao.order_book_utils import get_order_book_by_pair
@@ -231,6 +231,7 @@ def get_method_for_create_url_trade_by_exchange_id(trade):
 
 def return_with_no_change(json_document, corresponding_trade):
     corresponding_trade.execute_time = get_now_seconds_utc()
+    corresponding_trade.deal_id = parse_deal_id_by_exchange_id(corresponding_trade.exchange_id, json_document)
     return json_document, corresponding_trade
 
 

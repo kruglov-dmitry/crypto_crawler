@@ -30,3 +30,6 @@ KRAKEN_CHECK_BALANCE = "/0/private/Balance"
 
 KRAKEN_GET_OPEN_ORDERS = "/0/private/OpenOrders"
 KRAKEN_GET_CLOSE_ORDERS = "/0/private/ClosedOrders"
+
+KRAKEN_NUM_OF_DEAL_RETRY = 1
+KRAKEN_DEAL_TIMEOUT = 5

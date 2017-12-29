@@ -53,6 +53,16 @@ class Trade(Deal):
 
         return str_repr
 
+    def __cmp__(self, other):
+        return self.__eq__(other)
+
+    def __eq__(self, other):
+        # NOTE: we actually don't care about timest related crap as it will not be the same :(
+        # return self.__dict__ == other.__dict__
+        return self.trade_type == other.trade_type and self.exchange_id == other.exchange_id and \
+            self.pair_id == other.pair_id and self.price == other.price and \
+                        self.volume == other.volume and self.deal_id == other.deal_id
+
     def set_deal_id(self, deal_id):
         self.deal_id = deal_id
 

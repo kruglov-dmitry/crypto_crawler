@@ -7,6 +7,9 @@ from core.backtest import common_cap_init, dummy_balance_init, dummy_order_state
 
 from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
+from dao.order_utils import get_open_orders_for_arbitrage_pair
+from dao.dao import cancel_by_exchange
+
 from data.ArbitrageConfig import ArbitrageConfig
 
 from data_access.ConnectionPool import ConnectionPool
@@ -15,6 +18,7 @@ from data_access.telegram_notifications import send_single_message
 
 from enums.deal_type import DEAL_TYPE
 from enums.notifications import NOTIFICATION
+from enums.status import STATUS
 
 from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for
@@ -26,8 +30,30 @@ from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG, set_log
 BALANCE_EXPIRED_THRESHOLD = 60
 
 
-def get_list_of_expired_deals(deals):
-    return []
+def log_balance_expired_errors(cfg):
+    msg = """
+                                <b> !!! CRITICAL !!! </b>
+                    Balance is OUTDATED for {exch1} or {exch2} for more than {tt} seconds
+                    Arbitrage process will be stopped just in case.
+                    Check log file: {lf}
+                    """.format(
+        exch1=get_exchange_name_by_id(cfg.buy_exchange_id),
+        exch2=get_exchange_name_by_id(cfg.sell_exchange_id),
+        tt=BALANCE_EXPIRED_THRESHOLD,
+        lf=cfg.log_file_name
+    )
+    print_to_console(msg, LOG_ALL_ERRORS)
+    send_single_message(msg, NOTIFICATION.DEAL)
+    log_to_file(msg, cfg.log_file_name)
+    log_to_file(balance_state, cfg.log_file_name)
+
+
+def deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
+    for deal in open_orders_at_both_exchanges:
+        if deal == every_deal:
+            return True
+
+    return False
 
 
 if __name__ == "__main__":
@@ -74,21 +100,7 @@ if __name__ == "__main__":
             balance_state = get_updated_balance_arbitrage(cfg, balance_state, local_cache)
 
             if balance_state.expired(cur_timest_sec, cfg.buy_exchange_id, cfg.sell_exchange_id, BALANCE_EXPIRED_THRESHOLD):
-                msg = """
-                            <b> !!! CRITICAL !!! </b>
-                Balance is OUTDATED for {exch1} or {exch2} for more than {tt} seconds
-                Arbitrage process will be stopped just in case.
-                Check log file: {lf}
-                """.format(
-                    exch1=get_exchange_name_by_id(cfg.buy_exchange_id),
-                    exch2=get_exchange_name_by_id(cfg.sell_exchange_id),
-                    tt=BALANCE_EXPIRED_THRESHOLD,
-                    lf=cfg.log_file_name
-                )
-                print_to_console(msg, LOG_ALL_ERRORS)
-                send_single_message(msg, NOTIFICATION.DEAL)
-                log_to_file(msg, cfg.log_file_name)
-                log_to_file(balance_state, cfg.log_file_name)
+                log_balance_expired_errors(cfg)
                 raise
 
             order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec, processor)
@@ -98,7 +110,6 @@ if __name__ == "__main__":
                     msg = "CAN'T retrieve order book for {nn}".format(nn=get_exchange_name_by_id(cfg.sell_exchange_id))
                     print_to_console(msg, LOG_ALL_ERRORS)
                     log_to_file(msg, cfg.log_file_name)
-                    print
 
                 sleep_for(1)
                 continue
@@ -108,12 +119,27 @@ if __name__ == "__main__":
                                             init_deals_with_logging_speedy,
                                             balance_state, deal_cap, type_of_deal=mode_id, worker_pool=processor)
 
+            # cache deals to be checked
+            time_key = (deal_pair.deal_1.execute_time) / cfg.deal_expire_timeout
+            list_of_deals[time_key].append(deal_pair.deal_1)
+            time_key = (deal_pair.deal_2.execute_time) / cfg.deal_expire_timeout
+            list_of_deals[time_key].append(deal_pair.deal_2)
+
             print_to_console("I am still allive! ", LOG_ALL_DEBUG)
             sleep_for(1)
 
-            deals_to_check = get_list_of_expired_deals(cur_timest_sec)
-            if len(deals_to_check) > 0:
-                deals_state = get_open_orders_by_exchange_speedup(cfg, processor)
-                for every_deal in deals_to_check:
-                    if deal_is_not_closed(deals_state, every_deal):
-                        close_deal_by_exchange(every_deal)
+        time_key = get_now_seconds_utc() / cfg.deal_expire_timeout
+
+        for ts in list_of_deals:
+            if cfg.deal_expire_timeout > time_key - ts:
+                continue
+            deals_to_check = list_of_deals[ts]
+            if len(deals_to_check) == 0:
+                continue
+
+            open_orders_at_both_exchanges = get_open_orders_for_arbitrage_pair(cfg, processor)
+            for every_deal in deals_to_check:
+                if deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
+                    err_code, responce = cancel_by_exchange(every_deal)
+                    if err_code == STATUS.SUCCESS:
+                        market_deal(every_deal)

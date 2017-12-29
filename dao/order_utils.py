@@ -16,7 +16,6 @@ from data_access.ConnectionPool import WorkUnit
 
 from debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.key_utils import get_key_by_exchange
-from utils.file_utils import log_to_file
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 
 
@@ -58,7 +57,7 @@ def get_open_orders_constructor_by_exchange_id(exchange_id):
     }[exchange_id]
 
 
-def get_order_books_for_arbitrage_pair(cfg, processor):
+def get_open_orders_for_arbitrage_pair(cfg, processor):
 
     open_orders = []
 

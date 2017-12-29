@@ -7,22 +7,22 @@
 from bittrex.buy_utils import add_buy_order_bittrex
 from bittrex.sell_utils import add_sell_order_bittrex
 from bittrex.order_utils import get_open_orders_bittrix
-from bittrex.market_utils import cancel_order_bittrex
+from bittrex.market_utils import cancel_order_bittrex, parse_deal_id_bittrex
 
 from kraken.buy_utils import add_buy_order_kraken
 from kraken.sell_utils import add_sell_order_kraken
 from kraken.order_utils import get_open_orders_kraken
-from kraken.market_utils import cancel_order_kraken
+from kraken.market_utils import cancel_order_kraken, parse_deal_id_kraken
 
 from poloniex.buy_utils import add_buy_order_poloniex
 from poloniex.sell_utils import add_sell_order_poloniex
 from poloniex.order_utils import get_open_orders_poloniex
-from poloniex.market_utils import cancel_order_poloniex
+from poloniex.market_utils import cancel_order_poloniex, parse_deal_id_poloniex
 
 from binance.buy_utils import add_buy_order_binance
 from binance.sell_utils import add_sell_order_binance
 from binance.order_utils import get_open_orders_binance
-from binance.market_utils import cancel_order_binance
+from binance.market_utils import cancel_order_binance, parse_deal_id_binance
 
 from bittrex.currency_utils import get_currency_pair_to_bittrex
 from kraken.currency_utils import get_currency_pair_to_kraken
@@ -106,6 +106,17 @@ def cancel_by_exchange(trade):
         log_to_file(msg, "error.log")
 
     return res
+
+
+def parse_deal_id_by_exchange_id(exchange_id, json_document):
+
+    method = {EXCHANGE.POLONIEX: parse_deal_id_poloniex,
+              EXCHANGE.BITTREX: parse_deal_id_bittrex,
+              EXCHANGE.BINANCE: parse_deal_id_binance,
+              EXCHANGE.KRAKEN: parse_deal_id_kraken,
+            }[exchange_id]
+
+    return method(json_document)
 
 
 def get_open_orders_by_exchange(exchange_id, pair_id):

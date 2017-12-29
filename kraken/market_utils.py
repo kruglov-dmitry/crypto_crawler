@@ -1,4 +1,4 @@
-from constants import KRAKEN_BASE_API_URL, KRAKEN_CANCEL_ORDER
+from constants import KRAKEN_BASE_API_URL, KRAKEN_CANCEL_ORDER, KRAKEN_NUM_OF_DEAL_RETRY, KRAKEN_DEAL_TIMEOUT
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
 from utils.key_utils import sign_kraken
@@ -27,7 +27,8 @@ def cancel_order_kraken(key, deal_id):
 
     err_msg = "cancel kraken called for {deal_id}".format(deal_id=deal_id)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=5)
+    res = send_post_request_with_header(final_url, headers, body, err_msg,
+                                        max_tries=KRAKEN_NUM_OF_DEAL_RETRY, timeout=KRAKEN_DEAL_TIMEOUT)
 
     if should_print_debug():
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
@@ -36,4 +37,14 @@ def cancel_order_kraken(key, deal_id):
     return res
 
 
+def parse_deal_id_kraken(json_document):
+    """
+    {u'result': {u'descr':
+            {u'order': u'sell 10.00000000 XMRXBT @ limit 0.045000'},
+            u'txid': [u'OY3ZML-PE3LG-L4NG7C']},
+    u'error': []}
+    """
+    if json_document is not None and 'result' in json_document and 'txid' in json_document['result']:
+        return json_document['result']['txid']
 
+    return None

@@ -1,4 +1,4 @@
-from constants import KRAKEN_BASE_API_URL, KRAKEN_BUY_ORDER
+from constants import KRAKEN_BASE_API_URL, KRAKEN_BUY_ORDER, KRAKEN_NUM_OF_DEAL_RETRY, KRAKEN_DEAL_TIMEOUT
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
 from utils.key_utils import sign_kraken
@@ -52,6 +52,7 @@ def add_buy_order_kraken_try_till_the_end(key, pair_name, price, amount):
     return error_code, res
 """
 
+
 def add_buy_order_kraken_url(key, pair_name, price, amount):
     # https://api.kraken.com/0/private/AddOrder
     final_url = KRAKEN_BASE_API_URL + KRAKEN_BUY_ORDER
@@ -83,9 +84,13 @@ def add_buy_order_kraken(key, pair_name, price, amount):
 
     post_details = add_buy_order_kraken_url(key, pair_name, price, amount)
 
-    err_msg = "add_buy_order kraken called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
+    err_msg = "add_buy_order kraken called for {pair} for amount = {amount} with price {price}".format(pair=pair_name,
+                                                                                                       amount=amount,
+                                                                                                       price=price)
 
-    res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg, max_tries=1)     # FailFast motherfucker!
+    # FailFast motherfucker!
+    res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg,
+                                        max_tries=KRAKEN_NUM_OF_DEAL_RETRY, timeout=KRAKEN_DEAL_TIMEOUT)
 
     if should_print_debug():
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)

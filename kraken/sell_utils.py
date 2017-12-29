@@ -1,10 +1,9 @@
-from constants import KRAKEN_BASE_API_URL, KRAKEN_SELL_ORDER
+from constants import KRAKEN_BASE_API_URL, KRAKEN_SELL_ORDER, KRAKEN_NUM_OF_DEAL_RETRY, KRAKEN_DEAL_TIMEOUT
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
 from utils.key_utils import sign_kraken
 from utils.string_utils import float_to_str
 from utils.file_utils import log_to_file
-
 
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
@@ -87,9 +86,12 @@ def add_sell_order_kraken(key, pair_name, price, amount):
 
     posr_details = add_sell_order_kraken_url(key, pair_name, price, amount)
 
-    err_msg = "add_sell_order kraken called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
+    err_msg = "add_sell_order kraken called for {pair} for amount = {amount} with price {price}".format(pair=pair_name,
+                                                                                                        amount=amount,
+                                                                                                        price=price)
 
-    res = send_post_request_with_header(posr_details.final_url, posr_details.headers, posr_details.body, err_msg, max_tries=1)
+    res = send_post_request_with_header(posr_details.final_url, posr_details.headers, posr_details.body, err_msg,
+                                        max_tries=KRAKEN_NUM_OF_DEAL_RETRY, timeout=KRAKEN_DEAL_TIMEOUT)
 
     if should_print_debug():
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
