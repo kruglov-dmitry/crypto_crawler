@@ -261,5 +261,11 @@ def check_open_order_retrieval():
     for r in res:
         print r
 
+def test_kraken_buy_sell_utils():
+    load_keys("./secret_keys")
+    krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
+    # pair_name, price, amount
+    err_code, res = add_sell_order_kraken(krak_key, "XXMRXXBT", price=0.045, amount=10.0)
+    print res
 
-check_open_order_retrieval()
+# check_open_order_retrieval()
