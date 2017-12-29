@@ -24,7 +24,7 @@ def get_currency_id_from_kraken(currency_name):
         'ZEC': CURRENCY.ZEC,
         'XREP': CURRENCY.REP,
         'REP': CURRENCY.REP,
-        'XXMR': CURRENCY.XMR
+        'XXMR': CURRENCY.XMR,
         'XMR': CURRENCY.XMR
     }.get(currency_name)
 
