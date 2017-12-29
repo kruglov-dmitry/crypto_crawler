@@ -84,7 +84,6 @@ class Trade(Deal):
  				"opentm": 1509591188.429
  			}
         """
-
         price = json_doc["descr"]["price"]
         volume = json_doc["vol"]
         executed_volume = json_doc["vol_exec"]
