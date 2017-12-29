@@ -46,8 +46,8 @@ def get_open_orders_bittrix(key, pair_name):
 
     print "get_open_orders_bittrix", res
     orders = []
-    if error_code == STATUS.SUCCESS and res is not None:
-        orders = get_open_orders_bittrex_result_processor(res)
+    if error_code == STATUS.SUCCESS and res is not None and "result" in res:
+        orders = get_open_orders_bittrex_result_processor(res["result"])
 
     return error_code, orders
 

@@ -100,17 +100,15 @@ class Trade(Deal):
 
         pair_name = json_doc["descr"]["pair"]
 
-        try:
-            pair_id = get_currency_pair_from_kraken(pair_name)
-
-            return Trade(trade_type, EXCHANGE.KRAKEN, pair_id, price, volume, order_book_time, create_time,
-                         execute_time=create_time, deal_id=trade_id, executed_volume=executed_volume)
-        except Exception, e:
-            msg = "NON supported currency? name: {n} exception: {e}".format(n=pair_name, e=str(e))
+        pair_id = get_currency_pair_from_kraken(pair_name)
+        if pair_id is None:
+            msg = "Trade.from_kraken - unsupported pair_name - {n}".format(n=pair_name)
             print_to_console(msg, LOG_ALL_ERRORS)
             log_to_file(msg, "error.log")
+            return None
 
-        return None
+        return Trade(trade_type, EXCHANGE.KRAKEN, pair_id, price, volume, order_book_time, create_time,
+                         execute_time=create_time, deal_id=trade_id, executed_volume=executed_volume)
 
     @classmethod
     def from_binance(cls, json_document):
@@ -131,6 +129,12 @@ class Trade(Deal):
         u'executedQty': u'0.00000000'}
         """
         pair_id = get_currency_pair_from_binance(json_document["symbol"])
+        if pair_id is None:
+            msg = "Trade.from_binance - unsupported pair_name - {n}".format(n=json_document["symbol"])
+            print_to_console(msg, LOG_ALL_ERRORS)
+            log_to_file(msg, "error.log")
+            return None
+
         timest = json_document["time"]
         price = json_document["price"]
         volume = json_document["origQty"]
@@ -164,8 +168,13 @@ class Trade(Deal):
         u'Condition': u'NONE',
         u'Quantity': 8500.0}
         """
-        print json_document
         pair_id = get_currency_pair_from_bittrex(json_document["Exchange"])
+        if pair_id is None:
+            msg = "Trade.from_bittrex - unsupported pair_name - {n}".format(n=json_document["Exchange"])
+            print_to_console(msg, LOG_ALL_ERRORS)
+            log_to_file(msg, "error.log")
+            return None
+
         timest = parse_time(json_document["Opened"], '%Y-%m-%dT%H:%M:%S.%f')
 
         price = json_document["Limit"]
@@ -191,8 +200,12 @@ class Trade(Deal):
         u'type': u'sell',
         u'startingAmount': u'10000.00000000'}
         """
-        print json_document
         pair_id = get_currency_pair_from_poloniex(pair_name)
+        if pair_id is None:
+            msg = "Trade.from_poloiniex - unsupported pair_name - {n}".format(n=pair_name)
+            print_to_console(msg, LOG_ALL_ERRORS)
+            log_to_file(msg, "error.log")
+            return None
 
         timest = parse_time(json_document["date"], '%Y-%m-%d %H:%M:%S')
         price = json_document["rate"]

@@ -245,17 +245,17 @@ def check_open_order_retrieval():
     pol_key = get_key_by_exchange(EXCHANGE.POLONIEX)
     bittrex_key = get_key_by_exchange(EXCHANGE.BITTREX)
 
-    # err_code, res = get_open_orders_binance(bin_key, "XMRBTC")
-    # for r in res:
-    #     print r
+    err_code, res = get_open_orders_binance(bin_key, "XMRBTC")
+    for r in res:
+        print r
 
-    # err_code, res = get_open_orders_bittrix(bittrex_key, None)
-    # for r in res:
-    #     print r
+    err_code, res = get_open_orders_bittrix(bittrex_key, None)
+    for r in res:
+        print r
 
-    # err_code, res = get_open_orders_kraken(krak_key, None)
-    # for r in res:
-    #     print r
+    err_code, res = get_open_orders_kraken(krak_key, None)
+    for r in res:
+        print r
 
     err_code, res = get_open_orders_poloniex(pol_key, "BTC_ARDR")
     for r in res:
