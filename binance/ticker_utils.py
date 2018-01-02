@@ -37,3 +37,27 @@ def get_tickers_binance(currency_names, timest):
                 res.append(Ticker.from_binance(entry["symbol"], timest, entry))
 
     return res
+
+
+def get_ticker_binance(pair_name, timest):
+    final_url = get_tickers_binance_url(pair_name, timest)
+
+    err_msg = "get_ticker_binance called for {pair} at {timest}".format(pair=pair_name, timest=timest)
+    error_code, r = send_request(final_url, err_msg)
+
+    res = None
+    if error_code == STATUS.SUCCESS and r is not None:
+        for entry in r:
+            if pair_name in entry["symbol"]:
+                res = Ticker.from_binance(entry["symbol"], timest, entry)
+                break
+
+    return res
+
+
+def get_ticker_binance_result_processor(json_document, pair_name, timest):
+    if json_document is not None:
+        for entry in json_document:
+            if pair_name in entry["symbol"]:
+                return Ticker.from_binance(entry["symbol"], timest, entry)
+    return None

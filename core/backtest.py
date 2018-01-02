@@ -88,7 +88,7 @@ def custom_balance_init(timest):
     return BalanceState(balance)
 
 
-def common_cap_init():
+def common_cap_init(timest=get_now_seconds_utc()):
 
     min_volume_cap = {CURRENCY.BITCOIN: 0.0,
                       CURRENCY.DASH: 0.03,
@@ -130,7 +130,7 @@ def common_cap_init():
           "If this is one of the LAST message in stack trace it mean that deal Cap and Arbitrage currencies not update!")
     # assert(len(ARBITRAGE_CURRENCY) == len(max_volume_cap))
 
-    return MarketCap(min_volume_cap, max_volume_cap, min_price_cap, max_price_cap)
+    return MarketCap(min_volume_cap, max_volume_cap, min_price_cap, max_price_cap, timest)
 
 
 def run_analysis_over_db(deal_threshold, some_functor_method):

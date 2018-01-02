@@ -8,6 +8,7 @@ from core.backtest import common_cap_init, dummy_balance_init, dummy_order_state
 from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
 from dao.order_utils import get_open_orders_for_arbitrage_pair
+from dao.ticker_utils import get_ticker_for_arbitrage
 from dao.dao import cancel_by_exchange
 
 from data.ArbitrageConfig import ArbitrageConfig
@@ -24,10 +25,12 @@ from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for
 from utils.file_utils import log_to_file
 from utils.exchange_utils import get_exchange_name_by_id
+from utils.currency_utils import split_currency_pairs
 
 from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG, set_logging_level
 
 BALANCE_EXPIRED_THRESHOLD = 60
+MIN_CAP_UPDATE_TIMEOUT = 900
 
 
 def log_balance_expired_errors(cfg):
@@ -54,6 +57,24 @@ def deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
             return True
 
     return False
+
+
+def compute_new_min_cap_from_tickers(tickers):
+    min_volume = 0.0
+
+    for ticker in tickers:
+        min_volume = max(min_volume, ticker.ask)
+
+    return 0.002 / min_volume
+
+
+def update_min_cap(cfg, deal_cap, processor):
+    cur_timest_sec = get_now_seconds_utc()
+    tickers = get_ticker_for_arbitrage(cfg.pair_id, cur_timest_sec,
+                                       [cfg.buy_exchange_id, cfg.sell_exchange_id], processor)
+    new_cap = compute_new_min_cap_from_tickers(tickers)
+    base_currency_id, dst_currency_id = split_currency_pairs(cfg.pair_id)
+    deal_cap.update_min_cap(dst_currency_id, new_cap, cur_timest_sec)
 
 
 if __name__ == "__main__":
@@ -90,6 +111,9 @@ if __name__ == "__main__":
     list_of_deals = defaultdict(list)
 
     while True:
+
+        if get_now_seconds_utc() - deal_cap.last_updated > MIN_CAP_UPDATE_TIMEOUT:
+            update_min_cap(cfg, deal_cap, processor)
 
         for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
             cur_timest_sec = get_now_seconds_utc()
