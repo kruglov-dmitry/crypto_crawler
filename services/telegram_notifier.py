@@ -16,6 +16,7 @@ if __name__ == "__main__":
         for topic_id in QUEUE_TOPICS:
             msg = msg_queue.get_message_nowait(topic_id)
             if msg is not None:
+                print "FOUND: ", msg
                 notification_id = get_notification_id_by_topic_name(topic_id)
                 err_code = send_single_message(msg, notification_id)
                 if err_code != STATUS.SUCCESS:
