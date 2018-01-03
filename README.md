@@ -8,6 +8,9 @@ MacOs dependencies:
 pip install python-telegram-bot --user
 
 
+How to run services from subfolder:
+python -m services.telegram_notifier
+
 Removing dubplicate rows:
 DELETE FROM tablename
 WHERE id IN (SELECT id
