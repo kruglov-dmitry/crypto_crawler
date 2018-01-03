@@ -44,7 +44,7 @@ def inform_big_boss(info_to_report, pg_conn, error_timeout):
         if STATUS.SUCCESS != error_code:
             err_msg = "inform_big_boss can't send message to telegram. Lets try one more time after timeout: {r}".format(r=msg)
             log_to_file(err_msg, "telegram.log")
-            print_to_console(err_msg, err_msg)
+            print_to_console(err_msg, LOG_ALL_ERRORS)
             sleep_for(error_timeout)
             send_single_message(msg, NOTIFICATION.ARBITRAGE)
 

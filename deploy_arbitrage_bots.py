@@ -14,6 +14,14 @@ from debug_utils import get_logging_level_id_by_name
 from data.ArbitrageConfig import ArbitrageConfig
 
 
+def form_balance_update_command(base_command, list_of_exchanges):
+    base_command += " --exchanges_ids"
+    for exchange_id in list_of_exchanges:
+        base_command += " " + str(exchange_id)
+
+    return base_command
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print "Usage: {prg_name} your_config.cfg".format(prg_name=sys.argv[0])
@@ -28,6 +36,7 @@ if __name__ == "__main__":
     arbitrage_threshold = config.get("common", "arbitrage_threshold")
     balance_adjust_threshold = config.get("common", "balance_adjust_threshold")
     logging_level_name = config.get("common", "log_level")
+    deal_expiration_timeout = config.get("common", "deal_expiration_timeout")
 
     exchanges = [x.strip() for x in config.get("common","exchanges").split(",") if len(x.strip()) > 0]
 
@@ -68,6 +77,7 @@ if __name__ == "__main__":
                     pair_id = get_pair_id_by_name(every_pair_name)
                     commands_per_screen.append(ArbitrageConfig(sell_exchange_id, buy_exchange_id, pair_id,
                                                                arbitrage_threshold, balance_adjust_threshold,
+                                                               deal_expiration_timeout,
                                                                get_logging_level_id_by_name(logging_level_name)))
                     deploy_units[screen_name] = commands_per_screen
 
@@ -75,7 +85,8 @@ if __name__ == "__main__":
     # 1st stage - initialization balance polling service
     create_screen(BALANCE_SCREEN_NAME)
     create_screen_window(BALANCE_SCREEN_NAME, BALANCE_WINDOW_NAME)
-    run_command_in_screen(BALANCE_SCREEN_NAME, BALANCE_WINDOW_NAME, BALANCE_UPDATE_COMMAND)
+    balance_monitoring_command = form_balance_update_command(BALANCE_UPDATE_COMMAND, exchange_settings.keys())
+    run_command_in_screen(BALANCE_SCREEN_NAME, BALANCE_WINDOW_NAME, balance_monitoring_command)
 
     # Let it update balance first
     sleep_for(5)

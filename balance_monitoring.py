@@ -1,3 +1,5 @@
+import argparse
+
 from utils.time_utils import sleep_for, get_now_seconds_utc
 from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
@@ -13,23 +15,42 @@ from enums.notifications import NOTIFICATION
 from dao.balance_utils import update_balance_by_exchange, init_balances
 
 BITCOIN_ALARM_THRESHOLD = 0.1
+TIMEOUT_HEALTH_CHECK = 60
+MAX_EXPIRE_TIMEOUT = 59
+POLL_TIMEOUT = 3
+
 
 if __name__ == "__main__":
 
-    # FIXME use config from deploy here
-    exchanges_ids = [EXCHANGE.BITTREX, EXCHANGE.POLONIEX, EXCHANGE.BINANCE]
+    parser = argparse.ArgumentParser(description="Balance monitoring service, every {POLL_TIMEOUT} for configured via "
+                                                 "--exchanges_ids list of exchange".format(POLL_TIMEOUT=POLL_TIMEOUT))
 
-    print "Starting balance monitoring for following exchanges"
-    print exchanges_ids
+    parser.add_argument('--exchanges_ids', action='append', required=True)
+
+    exchanges_ids = []
+    results = parser.parse_args()
+
+    for exchanges_id in results.exchanges_ids:
+        new_exchange_id = int(exchanges_id)
+        if new_exchange_id in EXCHANGE.values():
+            exchanges_ids.append(new_exchange_id)
+        else:
+            msg = "UNKNOWN exchange id provided - {idx}".format(idx=exchanges_id)
+            print_to_console(msg, LOG_ALL_ERRORS)
+            log_to_file(msg, "balance.log")
+            raise
+
+    msg = "Starting balance monitoring for following exchanges: "
+    for exchanges_id in exchanges_ids:
+        msg += get_exchange_name_by_id(exchanges_id)
+    print_to_console(msg, LOG_ALL_DEBUG)
+    log_to_file(msg, "balance.log")
 
     cache = connect_to_cache()
 
     load_keys("./secret_keys")
     init_balances(exchanges_ids, cache)
 
-    TIMEOUT_HEALTH_CHECK = 60
-    MAX_EXPIRE_TIMEOUT = 59
-    POLL_TIMEOUT = 3
     cnt = 0
 
     while True:
