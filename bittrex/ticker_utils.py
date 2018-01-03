@@ -41,7 +41,7 @@ def get_ticker_bittrex_result_processor(json_document, pair_name, timest):
             return Ticker.from_bittrex(pair_name, timest, json_document["result"])
         except Exception, e:
             msg = "get_ticker_bittrex: Error get ticket bitrex: {excp} for data: {dd}".format(excp=str(e),
-                                                                                              dd=r["result"])
+                                                                                              dd=json_document["result"])
             print_to_console(msg, LOG_ALL_ERRORS)
             log_to_file(msg, "error.log")
 
