@@ -60,13 +60,15 @@ def deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
 
 
 def compute_new_min_cap_from_tickers(tickers):
-    min_volume = 0.0
+    min_price = 0.0
 
     for ticker in tickers:
-        min_volume = max(min_volume, ticker.ask)
+        min_price = max(min_price, ticker.ask)
 
-    return 0.002 / min_volume
+    if min_price != 0.0
+        return  0.002 / min_price
 
+    return 0.0
 
 def update_min_cap(cfg, deal_cap, processor):
     cur_timest_sec = get_now_seconds_utc()
