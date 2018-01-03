@@ -43,18 +43,19 @@ class MessageQueue(BaseData):
 
         If optional args block is true and timeout is None (the default), block
         if necessary until an item is available."""
-        if block:
-            item = self.r.blpop(topic_id, timeout=timeout)
-        else:
-            item = self.r.lpop(topic_id)
+        # if block:
+        #     item = self.r.blpop(topic_id, timeout=timeout)
+        # else:
+        #     item = self.r.lpop(topic_id)
 
-        if item:
-            item = item[1]
+        # if item:
+        #     item = item[1]
+        item = self.r.lpop(topic_id)
         return item
 
     def get_message_nowait(self, topic_id):
         """Equivalent to get(False)."""
-        return self.get_message(topic_id, False)
+        return self.get_message(topic_id, True)
 
 
 def connect_to_message_queue():

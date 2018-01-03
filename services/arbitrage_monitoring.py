@@ -14,7 +14,7 @@ from utils.string_utils import float_to_str
 from data_access.ConnectionPool import ConnectionPool
 from data_access.MessageQueue import get_message_queue, ARBITRAGE_MSG
 
-from debug_utils import print_to_console, LOG_ALL_DEBUG
+from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG
 
 # time to poll
 POLL_PERIOD_SECONDS = 120
@@ -34,12 +34,13 @@ def analyse_tickers(msg_queue):
         res = compare_price(tickers, TRIGGER_THRESHOLD, check_highest_bid_bigger_than_lowest_ask)
 
         for entry in res:
-            msg = """Condition: {msg}
+            msg = """NEW CODE Condition: {msg}
             Pair: {pair_name}, {ask_exchange}: {ask_price} {sell_exchange}: {sell_price}
             TAG: {ask_exchange}-{sell_exchange}
             """.format(msg=entry[0], pair_name=get_pair_name_by_id(entry[1]),
                        ask_exchange=entry[2].exchange, ask_price=float_to_str(entry[2].bid),
                        sell_exchange=entry[3].exchange, sell_price=float_to_str(entry[3].ask))
+            print_to_console(msg, LOG_ALL_ERRORS)
 
             msg_queue.add_message(ARBITRAGE_MSG, msg)
             save_alarm_into_pg(entry[2], entry[3], pg_conn)
