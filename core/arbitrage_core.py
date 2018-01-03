@@ -206,8 +206,7 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
         send_single_message(msg, NOTIFICATION.DEBUG)
         log_to_file(msg, file_name)
 
-    # FIXME NOTE: and now good question - what to do with failed deals.
-    # FIXME NOTE 2: What if we can't update balance?
+    # NOTE: if we can't update balance for more than TIMEOUT seconds arbitrage process will exit
     for exchange_id in [trade_pairs.deal_1.exchange_id, trade_pairs.deal_2.exchange_id]:
         update_balance_by_exchange(exchange_id)
 
@@ -287,7 +286,21 @@ def round_minimum_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, mi
     if sell_exchange_id == EXCHANGE.BINANCE or buy_exchange_id == EXCHANGE.BINANCE:
         return round_minimum_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
     return min_volume
-    
+
+
+def adjust_price_by_order_book(orders, min_volume):
+    new_price = 0.0
+    acc_volume = min_volume
+    max_volume = 2 * acc_volume
+    max_len = len(orders)
+
+    idx = 0
+    while acc_volume < max_volume and idx < max_len:
+        new_price = orders[idx].price
+        acc_volume += orders[idx].volume
+        idx += 1
+
+    return new_price
 
 def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
                          action_to_perform,
@@ -352,11 +365,14 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
 
             return deal_status
 
+        sell_price = adjust_price_by_order_book(sell_order_book.bid, min_volume)
+
         create_time = get_now_seconds_utc()
         trade_at_first_exchange = Trade(DEAL_TYPE.SELL, sell_order_book.exchange_id, sell_order_book.pair_id,
                                         sell_order_book.bid[FIRST].price, min_volume, sell_order_book.timest,
                                         create_time)
 
+        buy_price = adjust_price_by_order_book(buy_order_book.ask, min_volume)
         trade_at_second_exchange = Trade(DEAL_TYPE.BUY, buy_order_book.exchange_id, buy_order_book.pair_id,
                                          buy_order_book.ask[LAST].price, min_volume, buy_order_book.timest,
                                          create_time)
@@ -364,10 +380,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
         trade_pair = TradePair(trade_at_first_exchange, trade_at_second_exchange, sell_order_book.timest,
                                buy_order_book.timest, type_of_deal)
 
-        placement_status = action_to_perform(trade_pair,
-                                             difference,
-                                             "history_trades.log",
-                                             worker_pool)
+        placement_status = action_to_perform(trade_pair, difference, "history_trades.log", worker_pool)
 
         deal_status = placement_status, trade_pair
 

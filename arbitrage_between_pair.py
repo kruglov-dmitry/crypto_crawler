@@ -2,7 +2,7 @@ import argparse
 from collections import defaultdict
 
 from core.arbitrage_core import search_for_arbitrage, init_deals_with_logging_speedy, adjust_currency_balance, \
-    init_deals_with_logging_speedy_fake
+    init_deals_with_logging_speedy_fake, adjust_price_by_order_book, init_deal, parse_deal_id_by_exchange_id
 from core.backtest import common_cap_init, dummy_balance_init, dummy_order_state_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
@@ -51,6 +51,50 @@ def log_balance_expired_errors(cfg):
     log_to_file(balance_state, cfg.log_file_name)
 
 
+def log_failed_to_retrieve_order_book(cfg):
+    msg = "CAN'T retrieve order book for {nn} or {nnn}".format(nn=get_exchange_name_by_id(cfg.sell_exchange_id),
+                                                               nnn=get_exchange_name_by_id(cfg.buy_exchange_id))
+    print_to_console(msg, LOG_ALL_ERRORS)
+    log_to_file(msg, cfg.log_file_name)
+
+
+def log_cant_cancel_deal(every_deal, cfg):
+    msg = "CAN'T cancel deal - {deal}".format(deal=every_deal)
+    send_single_message(msg, NOTIFICATION.DEAL)
+    print_to_console(msg, LOG_ALL_ERRORS)
+    log_to_file(msg, cfg.log_file_name)
+
+
+def log_placing_new_deal(every_deal, cfg):
+    msg = """ We try to send following deal to exchange as replacement for expired order. 
+    Deal details: {deal}""".format(deal=str(every_deal))
+
+    log_to_file(msg, cfg.log_file_name)
+    send_single_message(msg, NOTIFICATION.DEAL)
+    print_to_console(msg, LOG_ALL_ERRORS)
+
+
+def log_cant_placing_new_deal(every_deal, cfg):
+    msg = """   We <b> !!! FAILED !!! </b> 
+    to send following deal to exchange as replacement for expired order.
+    Deal details:
+    {deal}
+    """.format(deal=str(every_deal))
+
+    log_to_file(msg, cfg.log_file_name)
+    send_single_message(msg, NOTIFICATION.DEAL)
+    print_to_console(msg, LOG_ALL_ERRORS)
+
+
+def log_cant_find_order_book(every_deal, cfg):
+    msg = """ Can't find order book for deal with expired orders! 
+        Order details: {deal}""".format(deal=str(every_deal))
+
+    log_to_file(msg, cfg.log_file_name)
+    send_single_message(msg, NOTIFICATION.DEAL)
+    print_to_console(msg, LOG_ALL_ERRORS)
+
+
 def deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
     for deal in open_orders_at_both_exchanges:
         if deal == every_deal:
@@ -65,10 +109,11 @@ def compute_new_min_cap_from_tickers(tickers):
     for ticker in tickers:
         min_price = max(min_price, ticker.ask)
 
-    if min_price != 0.0
-        return  0.002 / min_price
+    if min_price != 0.0:
+        return 0.002 / min_price
 
     return 0.0
+
 
 def update_min_cap(cfg, deal_cap, processor):
     cur_timest_sec = get_now_seconds_utc()
@@ -80,12 +125,65 @@ def update_min_cap(cfg, deal_cap, processor):
         deal_cap.update_min_cap(dst_currency_id, new_cap, cur_timest_sec)
     else:
         msg = """CAN'T update minimum_volume_cap for {pair_id} at following 
-        exchanges: {exch1} {exch2}""".format(pair_id=cfg.pair_id, 
-        exch1=get_exchange_name_by_id(cfg.buy_exchange_id), 
-        exch2=get_exchange_name_by_id(cfg.sell_exchange_id))
+        exchanges: {exch1} {exch2}""".format(pair_id=cfg.pair_id, exch1=get_exchange_name_by_id(cfg.buy_exchange_id),
+                                             exch2=get_exchange_name_by_id(cfg.sell_exchange_id))
         print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, cfg.log_file_name)
         
+
+def add_deals_to_watch_list(list_of_deals, deal_pair):
+    # cache deals to be checked
+    time_key = long(deal_pair.deal_1.execute_time / cfg.deal_expire_timeout)
+    list_of_deals[time_key].append(deal_pair.deal_1)
+    time_key = long(deal_pair.deal_2.execute_time / cfg.deal_expire_timeout)
+    list_of_deals[time_key].append(deal_pair.deal_2)
+
+
+def process_expired_deals(list_of_deals, cfg):
+    time_key = long(get_now_seconds_utc() / cfg.deal_expire_timeout)
+
+    for ts in list_of_deals:
+        if cfg.deal_expire_timeout > time_key - ts:
+            continue
+
+        deals_to_check = list_of_deals[ts]
+        if len(deals_to_check) == 0:
+            continue
+
+        updated_list = []
+
+        open_orders_at_both_exchanges = get_open_orders_for_arbitrage_pair(cfg, processor)
+        for every_deal in deals_to_check:
+            if deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
+                err_code, responce = cancel_by_exchange(every_deal)
+                if err_code == STATUS.FAILURE:
+                    log_cant_cancel_deal(every_deal, cfg)
+                    updated_list.append(every_deal)
+
+                if every_deal.exchange_id in last_order_book:
+                    new_price = adjust_price_by_order_book(last_order_book[every_deal.exchange_id], every_deal.volume)
+                    every_deal.price = new_price
+                    every_deal.create_time = get_now_seconds_utc()
+                    msg = "Replace existing deal with new one - {tt}".format(tt=every_deal)
+                    err_code, json_document = init_deal(every_deal, msg)
+                    if err_code == STATUS.SUCCESS:
+
+                        new_time_key = long(get_now_seconds_utc() / cfg.deal_expire_timeout)
+                        list_of_deals[new_time_key].append(every_deal)
+
+                        every_deal.execute_time = get_now_seconds_utc()
+                        every_deal.order_book_time = long(last_order_book[every_deal.exchange_id].timest)
+                        every_deal.deal_id = parse_deal_id_by_exchange_id(every_deal.exchange_id, json_document)
+
+                        log_placing_new_deal(every_deal, cfg)
+                    else:
+                        log_cant_placing_new_deal(every_deal, cfg)
+                else:
+                    log_cant_find_order_book(every_deal, cfg)
+                    updated_list.append(every_deal)
+
+        # Hopefully it is empty
+        list_of_deals[ts] = updated_list
 
 
 if __name__ == "__main__":
@@ -121,6 +219,8 @@ if __name__ == "__main__":
     # key is timest rounded to minutes
     list_of_deals = defaultdict(list)
 
+    last_order_book = {}
+
     while True:
 
         if get_now_seconds_utc() - deal_cap.last_updated > MIN_CAP_UPDATE_TIMEOUT:
@@ -141,11 +241,7 @@ if __name__ == "__main__":
             order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec, processor)
 
             if order_book_dst is None or order_book_src is None:
-                if order_book_dst is None:
-                    msg = "CAN'T retrieve order book for {nn}".format(nn=get_exchange_name_by_id(cfg.sell_exchange_id))
-                    print_to_console(msg, LOG_ALL_ERRORS)
-                    log_to_file(msg, cfg.log_file_name)
-
+                log_failed_to_retrieve_order_book(cfg)
                 sleep_for(1)
                 continue
 
@@ -154,27 +250,12 @@ if __name__ == "__main__":
                                             init_deals_with_logging_speedy,
                                             balance_state, deal_cap, type_of_deal=mode_id, worker_pool=processor)
 
-            # cache deals to be checked
-            time_key = (deal_pair.deal_1.execute_time) / cfg.deal_expire_timeout
-            list_of_deals[time_key].append(deal_pair.deal_1)
-            time_key = (deal_pair.deal_2.execute_time) / cfg.deal_expire_timeout
-            list_of_deals[time_key].append(deal_pair.deal_2)
+            add_deals_to_watch_list(list_of_deals, deal_pair)
+
+            last_order_book[order_book_src.exchange_id] = order_book_src
+            last_order_book[order_book_dst.exchange_id] = order_book_dst
 
             print_to_console("I am still allive! ", LOG_ALL_DEBUG)
             sleep_for(1)
 
-        time_key = get_now_seconds_utc() / cfg.deal_expire_timeout
-
-        for ts in list_of_deals:
-            if cfg.deal_expire_timeout > time_key - ts:
-                continue
-            deals_to_check = list_of_deals[ts]
-            if len(deals_to_check) == 0:
-                continue
-
-            open_orders_at_both_exchanges = get_open_orders_for_arbitrage_pair(cfg, processor)
-            for every_deal in deals_to_check:
-                if deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
-                    err_code, responce = cancel_by_exchange(every_deal)
-                    if err_code == STATUS.SUCCESS:
-                        market_deal(every_deal)
+        process_expired_deals(list_of_deals, cfg)
