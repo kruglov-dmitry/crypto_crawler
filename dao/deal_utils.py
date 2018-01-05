@@ -1,6 +1,3 @@
-from constants import DEAL_MAX_TIMEOUT
-
-from dao.balance_utils import update_balance_by_exchange
 from dao.dao import sell_by_exchange, buy_by_exchange, parse_deal_id_by_exchange_id, \
     get_method_for_create_url_trade_by_exchange_id
 
@@ -154,7 +151,3 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
         print_to_console(msg, LOG_ALL_ERRORS)
         msg_queue.add_message(DEBUG_INFO_MSG, msg)
         log_to_file(msg, file_name)
-
-    # NOTE: if we can't update balance for more than TIMEOUT seconds arbitrage process will exit
-    for exchange_id in [trade_pairs.deal_1.exchange_id, trade_pairs.deal_2.exchange_id]:
-        update_balance_by_exchange(exchange_id)

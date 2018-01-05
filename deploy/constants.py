@@ -4,7 +4,7 @@ from deploy.DeployUnit import DeployUnit
 # pypy is option as well. NOTE: it can be 2x-3x faster
 PYTHON_INTERPETATOR = "python"
 
-FULL_COMMAND = PYTHON_INTERPETATOR + " arbitrage_between_pair.py"
+FULL_COMMAND = PYTHON_INTERPETATOR + " -m services.arbitrage_between_pair"
 
 BALANCE_SCREEN_NAME = "Balance_Retrieval"
 BALANCE_WINDOW_NAME = "balance_update"

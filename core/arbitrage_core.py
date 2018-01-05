@@ -23,6 +23,8 @@ from constants import FIRST, LAST
 from core.arbitrage_core_logging import log_arbitrage_hear_beat, log_arbitrage_determined_volume_not_enough, \
     log_currency_disbalance_present, log_currency_disbalance_heart_beat
 
+from dao.balance_utils import update_balance_by_exchange
+
 
 # FIXME NOTES:
 # 1. load current deals set?
@@ -87,6 +89,10 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
                                buy_order_book.timest, type_of_deal)
 
         placement_status = action_to_perform(trade_pair, difference, "history_trades.log", worker_pool, msg_queue)
+
+        # NOTE: if we can't update balance for more than TIMEOUT seconds arbitrage process will exit
+        for exchange_id in [trade_pair.deal_1.exchange_id, trade_pair.deal_2.exchange_id]:
+            update_balance_by_exchange(exchange_id)
 
         deal_status = placement_status, trade_pair
 
