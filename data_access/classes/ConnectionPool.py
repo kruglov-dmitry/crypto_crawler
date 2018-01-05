@@ -45,7 +45,9 @@ class ConnectionPool:
                 if some_ticker is not None:
                     res.append(some_ticker)
                 else:
-                    msg = "For url {url} response {resp}".format(url=work_unit.url, resp=work_unit.future_result.value.json())
+                    res.append(None)
+                    msg = "For url {url} response {resp} can't be parsed to ticker".format(url=work_unit.url, resp=work_unit.future_result.value.json())
+                    log_to_file(msg, "error.txt")
                     log_to_file(msg, "bad_tickers.txt")
             else:
                 res.append(None)

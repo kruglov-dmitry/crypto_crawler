@@ -5,7 +5,7 @@ from data_access.message_queue import get_message_queue, DEAL_INFO_MSG
 from data_access.memory_cache import connect_to_cache
 from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, LOG_ALL_ERRORS, LOG_ALL_DEBUG
 from enums.exchange import EXCHANGE
-from utils.exchange_utils import get_exchange_name_by_id
+from utils.exchange_utils import get_exchange_id_by_name, get_exchange_name_by_id
 from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
 from utils.time_utils import sleep_for, get_now_seconds_utc
@@ -25,9 +25,9 @@ def log_wrong_exchange_id(exchange_id):
 
 
 def log_initial_settings(exchanges_ids):
-    msg = "Starting balance monitoring for following exchanges: "
+    msg = "Starting balance monitoring for following exchanges: \n"
     for exchange_id in exchanges_ids:
-        msg += get_exchange_name_by_id(exchange_id)
+        msg += str(exchange_id) + " - " + get_exchange_name_by_id(exchange_id) + "\n"
     print_to_console(msg, LOG_ALL_ERRORS)
     log_to_file(msg, "balance.log")
 
@@ -61,17 +61,17 @@ def log_balance_heart_beat(idx, balance):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Balance monitoring service, every {POLL_TIMEOUT} for configured via "
-                                                 "--exchanges_ids comma-separated list of exchange ids".format(POLL_TIMEOUT=POLL_TIMEOUT))
+                                                 "--exchanges_ids comma-separated list of exchange names ".format(POLL_TIMEOUT=POLL_TIMEOUT))
 
-    parser.add_argument('--exchanges_ids', action='store', required=True)
+    parser.add_argument('--exchanges', action='store', required=True)
 
     results = parser.parse_args()
 
-    ids_list = [int(x) for x in results.exchanges_ids.split(',') if x.strip().isdigit()]
+    ids_list = [x.strip() for x in results.exchanges.split(',') if x.strip()]
 
     exchanges_ids = []
-    for exchanges_id in ids_list:
-        new_exchange_id = int(exchanges_id)
+    for exchange_name in ids_list:
+        new_exchange_id = get_exchange_id_by_name(exchange_name)
         if new_exchange_id in EXCHANGE.values():
             exchanges_ids.append(new_exchange_id)
         else:
