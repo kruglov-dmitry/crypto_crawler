@@ -29,7 +29,7 @@ def should_print_debug():
 
 
 def print_to_console(msg, debug_level):
-    if get_logging_level() <= debug_level:
+    if get_logging_level() >= debug_level:
         print msg
 
 
