@@ -1,6 +1,6 @@
 from urllib import urlencode as _urlencode
 
-from constants import BITTREX_CANCEL_ORDER, BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT
+from bittrex.constants import BITTREX_CANCEL_ORDER, BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
 from utils.key_utils import signed_string

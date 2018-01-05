@@ -1,8 +1,13 @@
-from constants import BITTREX_GET_TICKER
+from bittrex.constants import BITTREX_GET_TICKER
+
 from data.Ticker import Ticker
+
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_OTHER_STUFF, LOG_ALL_ERRORS
+
 from utils.file_utils import log_to_file
+
 from data_access.internet import send_request
+
 from enums.status import STATUS
 
 
