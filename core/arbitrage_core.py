@@ -181,10 +181,10 @@ def adjust_price_by_order_book(orders, min_volume):
         acc_volume += orders[idx].volume
         idx += 1
 
-    msg = """Order book:
-    {ob}
-    res_price: {rp}
-    """.format(ob=str(orders), rp=new_price)
+    msg = "Order book:\n"
+    for o in orders:
+        msg += str(o) + "\n"
+    msg += "res_price: " + str(new_price)
     log_to_file(msg, "price_adjustment.log")
 
     return new_price

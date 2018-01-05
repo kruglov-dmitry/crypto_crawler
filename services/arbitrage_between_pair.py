@@ -182,7 +182,8 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
                     updated_list.append(every_deal)
 
                 if every_deal.exchange_id in last_order_book:
-                    new_price = adjust_price_by_order_book(last_order_book[every_deal.exchange_id], every_deal.volume)
+                    orders = last_order_book[every_deal.exchange_id].bid if every_deal.trade_type == DEAL_TYPE.SELL else last_order_book[every_deal.exchange_id].ask
+                    new_price = adjust_price_by_order_book(orders, every_deal.volume)
                     every_deal.price = new_price
                     every_deal.create_time = get_now_seconds_utc()
                     msg = "Replace existing deal with new one - {tt}".format(tt=every_deal)
@@ -228,21 +229,21 @@ if __name__ == "__main__":
                           results.reverse_threshold, results.deal_expire_timeout,
                           results.logging_level)
 
-
     if cfg.logging_level_id is not None:
         set_logging_level(cfg.logging_level_id)
 
+    # FIXME to log
     print cfg
+
+    msg_queue1 = get_message_queue()
+    processor = ConnectionPool(pool_size=2)
 
     load_keys("./secret_keys")
 
     deal_cap = common_cap_init()
+    update_min_cap(cfg, deal_cap, processor)
 
     balance_state = dummy_balance_init(timest=0, default_volume=0, default_available_volume=0)
-
-    msg_queue1 = get_message_queue()
-    print msg_queue1
-    processor = ConnectionPool(pool_size=2)
 
     # key is timest rounded to minutes
     list_of_deals = defaultdict(list)
