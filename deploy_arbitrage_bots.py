@@ -3,7 +3,7 @@ from collections import defaultdict
 import ConfigParser
 
 from deploy.screen_utils import create_screen, create_screen_window, run_command_in_screen, generate_screen_name
-from deploy.constants import FULL_COMMAND, BALANCE_UPDATE_COMMAND, BALANCE_SCREEN_NAME, BALANCE_WINDOW_NAME
+from deploy.constants import FULL_COMMAND, BALANCE_UPDATE_DEPLOY_UNIT
 from deploy.ExchangeArbitrageSettings import ExchangeArbitrageSettings
 
 from utils.exchange_utils import get_exchange_id_by_name, get_exchange_name_by_id
@@ -83,10 +83,10 @@ if __name__ == "__main__":
 
     # Create named screen
     # 1st stage - initialization balance polling service
-    create_screen(BALANCE_SCREEN_NAME)
-    create_screen_window(BALANCE_SCREEN_NAME, BALANCE_WINDOW_NAME)
+    create_screen(BALANCE_UPDATE_DEPLOY_UNIT.screen_name)
+    create_screen_window(BALANCE_UPDATE_DEPLOY_UNIT.screen_name, BALANCE_UPDATE_DEPLOY_UNIT.window_name)
     balance_monitoring_command = form_balance_update_command(BALANCE_UPDATE_COMMAND, exchange_settings.keys())
-    run_command_in_screen(BALANCE_SCREEN_NAME, BALANCE_WINDOW_NAME, balance_monitoring_command)
+    run_command_in_screen(BALANCE_UPDATE_DEPLOY_UNIT.screen_name, BALANCE_UPDATE_DEPLOY_UNIT.window_name, balance_monitoring_command)
 
     # Let it update balance first
     sleep_for(5)

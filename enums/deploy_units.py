@@ -1,0 +1,14 @@
+class DEPLOY_UNIT:
+    BALANCE_MONITORING = 1
+    ARBITRAGE_NOTIFIER = 2
+    ORDER_HISTORY = 3
+    ORDER_BOOK = 4
+    TELEGRAM_NOTIFIER = 5
+
+    @classmethod
+    def values(cls):
+        return [DEPLOY_UNIT.BALANCE_MONITORING,
+                DEPLOY_UNIT.ARBITRAGE_NOTIFIER,
+                DEPLOY_UNIT.ORDER_HISTORY,
+                DEPLOY_UNIT.ORDER_BOOK,
+                DEPLOY_UNIT.TELEGRAM_NOTIFIER]
