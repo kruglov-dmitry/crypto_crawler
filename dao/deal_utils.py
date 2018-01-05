@@ -119,8 +119,7 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
     global overall_profit_so_far
     overall_profit_so_far += trade_pairs.current_profit
 
-    msg = """ <b> DEMO MODE ON </b>
-        We try to send following deals to exchange.
+    msg = """We try to send following deals to exchange.
     <b>Expected profit:</b> <i>{cur}</i>.
     <b>Overall:</b> <i>{tot}</i>
     <b>Difference in percents:</b> <i>{diff}</i>
