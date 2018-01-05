@@ -26,7 +26,8 @@ def send_single_message(some_message, notification_type):
     chat_id = get_chat_id_by_type(notification_type)
     res = STATUS.FAILURE
     try:
-        bot.send_message(chat_id=chat_id, text=str(some_message), parse_mode=telegram.ParseMode.HTML)
+        bot.send_message(chat_id=chat_id, text=str(some_message), timeout=5,
+                         parse_mode=telegram.ParseMode.HTML)
         res = STATUS.SUCCESS
     except Exception, e:
         msg = "send_single_message FAILED: {msg} {ee}".format(msg=some_message, ee=str(e))
