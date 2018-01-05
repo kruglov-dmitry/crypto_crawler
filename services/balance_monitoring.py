@@ -42,7 +42,7 @@ def log_not_enough_bitcoins(exchange_id, res, msg_queue):
 
 
 def log_warn_balance_not_updating(last_balance, msg_queue):
-    msg = """           <b> !!! WARNING !!! </b> 
+    msg = """           <b> !!! WARNING !!! </b>
     BALANCE were not updated for a {tm} seconds!
     last balance {bl}""".format(tm=MAX_EXPIRE_TIMEOUT, bl=last_balance)
 
@@ -52,7 +52,7 @@ def log_warn_balance_not_updating(last_balance, msg_queue):
 
 
 def log_balance_heart_beat(idx, balance):
-    msg = """Updated balance sucessfully for exch={exch}: 
+    msg = """Updated balance sucessfully for exch={exch}:
     {balance}""".format(exch=get_exchange_name_by_id(idx), balance=balance)
     print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
     log_to_file(msg, "balance.log")
@@ -61,14 +61,16 @@ def log_balance_heart_beat(idx, balance):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Balance monitoring service, every {POLL_TIMEOUT} for configured via "
-                                                 "--exchanges_ids list of exchange".format(POLL_TIMEOUT=POLL_TIMEOUT))
+                                                 "--exchanges_ids comma-separated list of exchange ids".format(POLL_TIMEOUT=POLL_TIMEOUT))
 
-    parser.add_argument('--exchanges_ids', action='append', required=True)
+    parser.add_argument('--exchanges_ids', action='store', required=True)
 
-    exchanges_ids = []
     results = parser.parse_args()
 
-    for exchanges_id in results.exchanges_ids:
+    ids_list = [int(x) for x in results.exchanges_ids.split(',') if x.strip().isdigit()]
+
+    exchanges_ids = []
+    for exchanges_id in ids_list:
         new_exchange_id = int(exchanges_id)
         if new_exchange_id in EXCHANGE.values():
             exchanges_ids.append(new_exchange_id)

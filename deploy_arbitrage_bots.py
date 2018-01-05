@@ -19,7 +19,7 @@ from data.ArbitrageConfig import ArbitrageConfig
 def form_balance_update_command(base_command, list_of_exchanges):
     base_command += " --exchanges_ids"
     for exchange_id in list_of_exchanges:
-        base_command += " " + str(exchange_id)
+        base_command += "," + str(exchange_id)
 
     return base_command
 
@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
     # 2nd stage - initialization balance polling service
     balance_monitoring_command = form_balance_update_command(BALANCE_UPDATE_DEPLOY_UNIT.command, exchange_settings.keys())
-    deploy_balance_monitoring(balance_monitoring_command, screen_name=screen_name, should_create_screen=True)
+    deploy_balance_monitoring(balance_monitoring_command, screen_name=screen_name, should_create_screen=False)
 
     # Let it update balance first
     sleep_for(5)

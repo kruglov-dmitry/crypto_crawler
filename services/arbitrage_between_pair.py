@@ -10,6 +10,7 @@ from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
 from dao.order_utils import get_open_orders_for_arbitrage_pair
 from dao.ticker_utils import get_ticker_for_arbitrage
+from dao.dao import cancel_by_exchange, parse_deal_id_by_exchange_id
 from dao.deal_utils import init_deal, init_deals_with_logging_speedy
 
 from data.ArbitrageConfig import ArbitrageConfig
@@ -62,7 +63,7 @@ def log_cant_cancel_deal(every_deal, cfg, msg_queue):
 
 
 def log_placing_new_deal(every_deal, cfg, msg_queue):
-    msg = """ We try to send following deal to exchange as replacement for expired order. 
+    msg = """ We try to send following deal to exchange as replacement for expired order.
     Deal details: {deal}""".format(deal=str(every_deal))
 
     log_to_file(msg, cfg.log_file_name)
@@ -73,7 +74,7 @@ def log_placing_new_deal(every_deal, cfg, msg_queue):
 
 
 def log_cant_placing_new_deal(every_deal, cfg, msg_queue):
-    msg = """   We <b> !!! FAILED !!! </b> 
+    msg = """   We <b> !!! FAILED !!! </b>
     to send following deal to exchange as replacement for expired order.
     Deal details:
     {deal}
@@ -87,7 +88,7 @@ def log_cant_placing_new_deal(every_deal, cfg, msg_queue):
 
 
 def log_cant_find_order_book(every_deal, cfg, msg_queue):
-    msg = """ Can't find order book for deal with expired orders! 
+    msg = """ Can't find order book for deal with expired orders!
         Order details: {deal}""".format(deal=str(every_deal))
 
     log_to_file(msg, cfg.log_file_name)
@@ -126,12 +127,12 @@ def update_min_cap(cfg, deal_cap, processor):
         base_currency_id, dst_currency_id = split_currency_pairs(cfg.pair_id)
         deal_cap.update_min_cap(dst_currency_id, new_cap, cur_timest_sec)
     else:
-        msg = """CAN'T update minimum_volume_cap for {pair_id} at following 
+        msg = """CAN'T update minimum_volume_cap for {pair_id} at following
         exchanges: {exch1} {exch2}""".format(pair_id=cfg.pair_id, exch1=get_exchange_name_by_id(cfg.buy_exchange_id),
                                              exch2=get_exchange_name_by_id(cfg.sell_exchange_id))
         print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, cfg.log_file_name)
-        
+
 
 def add_deals_to_watch_list(list_of_deals, deal_pair):
     # cache deals to be checked
@@ -142,7 +143,6 @@ def add_deals_to_watch_list(list_of_deals, deal_pair):
 
 
 def process_expired_deals(list_of_deals, cfg, msg_queue):
-    from dao.dao import cancel_by_exchange, parse_deal_id_by_exchange_id
     """
     Current approach to deal with tracked deals that expire.
     Details and discussion at https://gitlab.com/crypto_trade/crypto_crawler/issues/15
@@ -214,11 +214,16 @@ if __name__ == "__main__":
 
     results = parser.parse_args()
 
-    cfg = ArbitrageConfig(results.threshold, results.reverse_threshold, results.sell_exchange_id,
-                          results.buy_exchange_id, results.pair_id, results.deal_expire_timeout, results.logging_level)
+    cfg = ArbitrageConfig(results.sell_exchange_id, results.buy_exchange_id,
+                          results.pair_id, results.threshold,
+                          results.reverse_threshold, results.deal_expire_timeout,
+                          results.logging_level)
+
 
     if cfg.logging_level_id is not None:
         set_logging_level(cfg.logging_level_id)
+
+    print cfg
 
     load_keys("./secret_keys")
 

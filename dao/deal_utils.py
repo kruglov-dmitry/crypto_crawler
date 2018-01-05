@@ -1,5 +1,6 @@
-from dao.dao import sell_by_exchange, buy_by_exchange, parse_deal_id_by_exchange_id, \
-    get_method_for_create_url_trade_by_exchange_id
+import dao
+# from dao.dao import sell_by_exchange, buy_by_exchange, parse_deal_id_by_exchange_id, \
+#     get_method_for_create_url_trade_by_exchange_id
 
 from data_access.classes.WorkUnit import WorkUnit
 from data_access.message_queue import DEAL_INFO_MSG, DEBUG_INFO_MSG
@@ -119,7 +120,7 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
 
     msg = """ <b> DEMO MODE ON </b>
         We try to send following deals to exchange.
-    <b>Expected profit:</b> <i>{cur}</i>. 
+    <b>Expected profit:</b> <i>{cur}</i>.
     <b>Overall:</b> <i>{tot}</i>
     <b>Difference in percents:</b> <i>{diff}</i>
 
