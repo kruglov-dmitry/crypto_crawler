@@ -1,6 +1,18 @@
 import re
 import commands
+from subprocess import check_output
+
 from utils.exchange_utils import get_exchange_name_by_id
+
+
+def is_screen_present(screen_name):
+    var = check_output(["screen -ls; true"],shell=True)
+    if "." + screen_name + "\t(" in var:
+        print screen_name + " is running!"
+        return True
+    else:
+        print screen_name + " is not running"
+        return False
 
 
 def generate_screen_name(sell_exchange_id, buy_exchange_id):
@@ -22,6 +34,10 @@ def create_screen(screen_name):
     :param screen_name:
     :return: output if any
     """
+
+    if is_screen_present(screen_name):
+        print "NONONO! You already have with exact same name - {screen_name} It will lead to trouble.".format(screen_name=screen_name)
+        raise
 
     if isinstance(screen_name, str):
         out = commands.getoutput('screen -dmS "%s"' % screen_name)
