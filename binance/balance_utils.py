@@ -1,16 +1,13 @@
 from urllib import urlencode as _urlencode
 
-from data_access.internet import send_get_request_with_header
-from data_access.PostRequestDetails import PostRequestDetails
-
+from constants import BINANCE_CHECK_BALANCE, BINANCE_DEAL_TIMEOUT
 from data.Balance import Balance
-
+from data_access.classes.PostRequestDetails import PostRequestDetails
+from data_access.internet import send_get_request_with_header
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP
+from enums.status import STATUS
 from utils.key_utils import signed_body_256
 from utils.time_utils import get_now_seconds_utc, get_now_seconds_utc_ms
-
-from constants import BINANCE_CHECK_BALANCE, BINANCE_DEAL_TIMEOUT
-from enums.status import STATUS
 
 
 def get_balance_binance_post_details(key):

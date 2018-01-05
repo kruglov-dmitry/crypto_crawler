@@ -1,20 +1,16 @@
-from bittrex.constants import BITTREX_CURRENCY_PAIRS
-from kraken.constants import KRAKEN_CURRENCY_PAIRS
-from poloniex.constants import POLONIEX_CURRENCY_PAIRS
 from binance.constants import BINANCE_CURRENCY_PAIRS
-
-from bittrex.history_utils import get_history_bittrex, get_history_bittrex_url, get_history_bittrex_result_processor
-from kraken.history_utils import get_history_kraken, get_history_kraken_url, get_history_kraken_result_processor
-from poloniex.history_utils import get_history_poloniex, get_history_poloniex_url, get_history_poloniex_result_processor
 from binance.history_utils import get_history_binance, get_history_binance_url, get_history_binance_result_processor
-
-from enums.exchange import EXCHANGE
-from enums.currency_pair import CURRENCY_PAIR
-
-from utils.currency_utils import get_currency_pair_name_by_exchange_id
-from data_access.ConnectionPool import WorkUnit
-
+from bittrex.constants import BITTREX_CURRENCY_PAIRS
+from bittrex.history_utils import get_history_bittrex, get_history_bittrex_url, get_history_bittrex_result_processor
 from constants import HTTP_TIMEOUT_SECONDS
+from data_access.classes.WorkUnit import WorkUnit
+from enums.currency_pair import CURRENCY_PAIR
+from enums.exchange import EXCHANGE
+from kraken.constants import KRAKEN_CURRENCY_PAIRS
+from kraken.history_utils import get_history_kraken, get_history_kraken_url, get_history_kraken_result_processor
+from poloniex.constants import POLONIEX_CURRENCY_PAIRS
+from poloniex.history_utils import get_history_poloniex, get_history_poloniex_url, get_history_poloniex_result_processor
+from utils.currency_utils import get_currency_pair_name_by_exchange_id
 
 
 def get_history_speedup(date_start, date_end, processor):

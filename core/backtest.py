@@ -8,7 +8,6 @@ from data.BalanceState import BalanceState
 from data.MarketCap import MarketCap
 
 from utils.time_utils import get_now_seconds_utc
-
 from utils.file_utils import log_to_file
 
 from dao.db import init_pg_connection, get_order_book_by_time, get_time_entries
@@ -134,6 +133,10 @@ def common_cap_init(timest=get_now_seconds_utc()):
 
 
 def run_analysis_over_db(deal_threshold, some_functor_method):
+    print "<<< WARNING >>> Non UPDATED FOR AGES."
+    if 1:
+        return
+
     # FIXME NOTE: accumulate profit
 
     pg_conn = init_pg_connection()

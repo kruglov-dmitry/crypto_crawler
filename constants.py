@@ -19,3 +19,10 @@ CORE_NUM = multiprocessing.cpu_count()
 POOL_SIZE = 8 * CORE_NUM
 
 LOGS_FOLDER = "./logs/"
+
+
+# FIXME NOTE: arbitrage_core
+# This is indexes for comparison bid\ask within order books
+# yeap, global constants is very bad
+FIRST = 0
+LAST = 0

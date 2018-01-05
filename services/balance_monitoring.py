@@ -1,18 +1,17 @@
 import argparse
 
-from utils.time_utils import sleep_for, get_now_seconds_utc
+from dao.balance_utils import update_balance_by_exchange, init_balances
+from data_access.message_queue import get_message_queue, DEAL_INFO_MSG
+from data_access.memory_cache import connect_to_cache
+from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, LOG_ALL_ERRORS, LOG_ALL_DEBUG
+from enums.exchange import EXCHANGE
+from utils.exchange_utils import get_exchange_name_by_id
 from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
-from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, LOG_ALL_ERRORS, LOG_ALL_DEBUG
-from utils.exchange_utils import get_exchange_name_by_id
+from utils.time_utils import sleep_for, get_now_seconds_utc
 
-from data_access.memory_cache import connect_to_cache
-from data_access.MessageQueue import get_message_queue, DEAL_INFO_MSG
 
-from enums.exchange import EXCHANGE
-
-from dao.balance_utils import update_balance_by_exchange, init_balances
-
+# FIXME NOTE read it from settings
 BITCOIN_ALARM_THRESHOLD = 0.1
 TIMEOUT_HEALTH_CHECK = 60
 MAX_EXPIRE_TIMEOUT = 59

@@ -1,12 +1,9 @@
+from data_access.classes.MessageQueue import QUEUE_TOPICS, get_message_queue, get_notification_id_by_topic_name
 from data_access.telegram_notifications import send_single_message
-from data_access.MessageQueue import QUEUE_TOPICS, get_message_queue, get_notification_id_by_topic_name
-
 from debug_utils import print_to_console, LOG_ALL_ERRORS
+from enums.status import STATUS
 from utils.file_utils import log_to_file
 from utils.time_utils import sleep_for
-
-from enums.status import STATUS
-
 
 if __name__ == "__main__":
 

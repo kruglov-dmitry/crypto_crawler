@@ -1,53 +1,41 @@
 from profilehooks import timecall
 
+from binance.balance_utils import get_balance_binance
+from binance.buy_utils import add_buy_order_binance
 from binance.constants import BINANCE_CURRENCY_PAIRS
 from binance.market_utils import cancel_order_binance
 from binance.ohlc_utils import get_ohlc_binance
 from binance.order_book_utils import get_order_book_binance
-from binance.ticker_utils import get_tickers_binance
-from binance.sell_utils import add_sell_order_binance
-from binance.buy_utils import add_buy_order_binance
-from binance.balance_utils import get_balance_binance
 from binance.order_utils import get_open_orders_binance
-
-from bittrex.market_utils import cancel_order_bittrex
+from binance.sell_utils import add_sell_order_binance
+from binance.ticker_utils import get_tickers_binance
 from bittrex.balance_utils import get_balance_bittrex
 from bittrex.buy_utils import add_buy_order_bittrex
-from bittrex.sell_utils import add_sell_order_bittrex
+from bittrex.market_utils import cancel_order_bittrex
 from bittrex.order_utils import get_open_orders_bittrix
-
-from poloniex.market_utils import get_orders_history_poloniex
-from poloniex.market_utils import cancel_order_poloniex
-from poloniex.balance_utils import get_balance_poloniex
-from poloniex.buy_utils import add_buy_order_poloniex
-from poloniex.sell_utils import add_sell_order_poloniex
-from poloniex.order_utils import get_open_orders_poloniex
-
-from kraken.market_utils import cancel_order_kraken
-from kraken.balance_utils import get_balance_kraken
-from kraken.buy_utils import add_buy_order_kraken
-from kraken.sell_utils import add_sell_order_kraken
-from kraken.order_utils import get_orders_kraken, get_open_orders_kraken
-
-
-from enums.deal_type import DEAL_TYPE
-from data.Trade import Trade
-from data.TradePair import TradePair
-from core.arbitrage_core import init_deals_with_logging_speedy
-from enums.currency_pair import CURRENCY_PAIR
-
+from bittrex.sell_utils import add_sell_order_bittrex
 from core.arbitrage_core import dummy_order_state_init
+from dao.deal_utils import init_deals_with_logging_speedy
 from dao.dao import get_updated_order_state
 from dao.history_utils import get_history_speedup
-
-from data_access.memory_cache import generate_nonce
 from dao.ohlc_utils import get_ohlc_speedup, get_ohlc
 from dao.order_book_utils import get_order_book_speedup
 from dao.ticker_utils import get_ticker_speedup
-from data_access.ConnectionPool import ConnectionPool
+from data.Trade import Trade
+from data.TradePair import TradePair
+from data_access.classes.ConnectionPool import ConnectionPool
+from data_access.memory_cache import generate_nonce
 from enums.currency import CURRENCY
+from enums.currency_pair import CURRENCY_PAIR
+from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
-
+from kraken.balance_utils import get_balance_kraken
+from kraken.market_utils import cancel_order_kraken
+from kraken.order_utils import get_orders_kraken, get_open_orders_kraken
+from kraken.sell_utils import add_sell_order_kraken
+from poloniex.balance_utils import get_balance_poloniex
+from poloniex.market_utils import get_orders_history_poloniex
+from poloniex.order_utils import get_open_orders_poloniex
 from utils.key_utils import load_keys, get_key_by_exchange
 from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
 
@@ -143,7 +131,7 @@ def test_kraken_market_utils(krak_key):
     cancel_order_kraken(krak_key, 'O6PGMG-DXKYV-UU4MNM')
 
 
-def test_binance_market_utils():
+def test_binance_market_utils(bin_key):
     error_code, r = get_balance_binance(bin_key)
     print r
     error_code, r = add_buy_order_binance(bin_key, "RDNBTC", price=0.00022220, amount=10)

@@ -1,18 +1,14 @@
 from urllib import urlencode as _urlencode
 
 from constants import BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT, BITTREX_GET_OPEN_ORDERS
-
 from data.Trade import Trade
-
-from enums.status import STATUS
-
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
-from utils.key_utils import signed_string
-from utils.file_utils import log_to_file
-
-from data_access.memory_cache import generate_nonce
+from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
-from data_access.PostRequestDetails import PostRequestDetails
+from data_access.memory_cache import generate_nonce
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
+from enums.status import STATUS
+from utils.file_utils import log_to_file
+from utils.key_utils import signed_string
 
 
 def get_open_orders_bittrix_post_details(key, pair_name):

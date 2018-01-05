@@ -4,23 +4,23 @@
 #   Reconsider imports below
 #
 
-from bittrex.buy_utils import add_buy_order_bittrex
-from bittrex.sell_utils import add_sell_order_bittrex
+from bittrex.buy_utils import add_buy_order_bittrex, add_buy_order_bittrex_url
+from bittrex.sell_utils import add_sell_order_bittrex, add_sell_order_bittrex_url
 from bittrex.order_utils import get_open_orders_bittrix
 from bittrex.market_utils import cancel_order_bittrex, parse_deal_id_bittrex
 
-from kraken.buy_utils import add_buy_order_kraken
-from kraken.sell_utils import add_sell_order_kraken
+from kraken.buy_utils import add_buy_order_kraken, add_buy_order_kraken_url
+from kraken.sell_utils import add_sell_order_kraken, add_sell_order_kraken_url
 from kraken.order_utils import get_open_orders_kraken
 from kraken.market_utils import cancel_order_kraken, parse_deal_id_kraken
 
-from poloniex.buy_utils import add_buy_order_poloniex
-from poloniex.sell_utils import add_sell_order_poloniex
+from poloniex.buy_utils import add_buy_order_poloniex, add_buy_order_poloniex_url
+from poloniex.sell_utils import add_sell_order_poloniex, add_sell_order_poloniex_url
 from poloniex.order_utils import get_open_orders_poloniex
 from poloniex.market_utils import cancel_order_poloniex, parse_deal_id_poloniex
 
-from binance.buy_utils import add_buy_order_binance
-from binance.sell_utils import add_sell_order_binance
+from binance.buy_utils import add_buy_order_binance, add_buy_order_binance_url
+from binance.sell_utils import add_sell_order_binance, add_sell_order_binance_url
 from binance.order_utils import get_open_orders_binance
 from binance.market_utils import cancel_order_binance, parse_deal_id_binance
 
@@ -31,6 +31,7 @@ from binance.currency_utils import get_currency_pair_to_binance
 
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
+from enums.deal_type import DEAL_TYPE
 
 from utils.key_utils import get_key_by_exchange
 from debug_utils import print_to_console, LOG_ALL_ERRORS
@@ -106,6 +107,23 @@ def cancel_by_exchange(trade):
         log_to_file(msg, "error.log")
 
     return res
+
+
+def get_method_for_create_url_trade_by_exchange_id(trade):
+    return {
+        DEAL_TYPE.BUY: {
+            EXCHANGE.BINANCE: add_buy_order_binance_url,
+            EXCHANGE.BITTREX: add_buy_order_bittrex_url,
+            EXCHANGE.POLONIEX: add_buy_order_poloniex_url,
+            EXCHANGE.KRAKEN: add_buy_order_kraken_url,
+        },
+        DEAL_TYPE.SELL: {
+            EXCHANGE.BINANCE: add_sell_order_binance_url,
+            EXCHANGE.BITTREX: add_sell_order_bittrex_url,
+            EXCHANGE.POLONIEX: add_sell_order_poloniex_url,
+            EXCHANGE.KRAKEN: add_sell_order_kraken_url,
+        }
+    }[trade.trade_type][trade.exchange_id]
 
 
 def parse_deal_id_by_exchange_id(exchange_id, json_document):

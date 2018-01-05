@@ -1,27 +1,25 @@
-from bittrex.constants import BITTREX_CURRENCY_PAIRS
-from kraken.constants import KRAKEN_CURRENCY_PAIRS
-from poloniex.constants import POLONIEX_CURRENCY_PAIRS
-from binance.constants import BINANCE_CURRENCY_PAIRS
-
-from bittrex.order_book_utils import get_order_book_bittrex, get_order_book_bittrex_url, get_order_book_bittrex_result_processor
-from kraken.order_book_utils import get_order_book_kraken, get_order_book_kraken_url, get_order_book_kraken_result_processor
-from poloniex.order_book_utils import get_order_book_poloniex, get_order_book_poloniex_url, get_order_book_poloniex_result_processor
-from binance.order_book_utils import get_order_book_binance, get_order_book_binance_url, get_order_book_binance_result_processor
-
-from poloniex.currency_utils import get_currency_pair_to_poloniex
-from bittrex.currency_utils import get_currency_pair_to_bittrex
-
-from enums.exchange import EXCHANGE
-from enums.currency_pair import CURRENCY_PAIR
-
-from utils.currency_utils import get_currency_pair_name_by_exchange_id
-from data_access.ConnectionPool import WorkUnit
-
 from collections import defaultdict
 
-from utils.time_utils import get_now_seconds_utc
-
+from binance.constants import BINANCE_CURRENCY_PAIRS
+from binance.order_book_utils import get_order_book_binance, get_order_book_binance_url, \
+    get_order_book_binance_result_processor
+from bittrex.constants import BITTREX_CURRENCY_PAIRS
+from bittrex.currency_utils import get_currency_pair_to_bittrex
+from bittrex.order_book_utils import get_order_book_bittrex, get_order_book_bittrex_url, \
+    get_order_book_bittrex_result_processor
 from constants import HTTP_TIMEOUT_SECONDS
+from data_access.classes.WorkUnit import WorkUnit
+from enums.currency_pair import CURRENCY_PAIR
+from enums.exchange import EXCHANGE
+from kraken.constants import KRAKEN_CURRENCY_PAIRS
+from kraken.order_book_utils import get_order_book_kraken, get_order_book_kraken_url, \
+    get_order_book_kraken_result_processor
+from poloniex.constants import POLONIEX_CURRENCY_PAIRS
+from poloniex.currency_utils import get_currency_pair_to_poloniex
+from poloniex.order_book_utils import get_order_book_poloniex, get_order_book_poloniex_url, \
+    get_order_book_poloniex_result_processor
+from utils.currency_utils import get_currency_pair_name_by_exchange_id
+from utils.time_utils import get_now_seconds_utc
 
 
 def get_order_book_constructor_by_exchange_id(exchange_id):

@@ -1,23 +1,19 @@
-from bittrex.constants import BITTREX_CURRENCY_PAIRS
-from kraken.constants import KRAKEN_CURRENCY_PAIRS
-from poloniex.constants import POLONIEX_CURRENCY_PAIRS
 from binance.constants import BINANCE_CURRENCY_PAIRS
-
-from bittrex.ticker_utils import get_ticker_bittrex, get_ticker_bittrex_url, get_ticker_bittrex_result_processor
-from kraken.ticker_utils import get_ticker_kraken, get_ticker_kraken_url, get_ticker_kraken_result_processor
-from poloniex.ticker_utils import get_tickers_poloniex, get_ticker_poloniex_url, get_ticker_poloniex, \
-    get_ticker_poloniex_result_processor
 from binance.ticker_utils import get_tickers_binance, get_tickers_binance_url, get_ticker_binance, \
     get_ticker_binance_result_processor
-
-from utils.time_utils import get_now_seconds_utc
-from utils.currency_utils import get_currency_pair_name_by_exchange_id
+from bittrex.constants import BITTREX_CURRENCY_PAIRS
+from bittrex.ticker_utils import get_ticker_bittrex, get_ticker_bittrex_url, get_ticker_bittrex_result_processor
+from data_access.classes.WorkUnit import WorkUnit
 from debug_utils import print_to_console, LOG_ALL_ERRORS
-
-from enums.exchange import EXCHANGE
 from enums.currency_pair import CURRENCY_PAIR
-
-from data_access.ConnectionPool import WorkUnit
+from enums.exchange import EXCHANGE
+from kraken.constants import KRAKEN_CURRENCY_PAIRS
+from kraken.ticker_utils import get_ticker_kraken, get_ticker_kraken_url, get_ticker_kraken_result_processor
+from poloniex.constants import POLONIEX_CURRENCY_PAIRS
+from poloniex.ticker_utils import get_tickers_poloniex, get_ticker_poloniex_url, get_ticker_poloniex, \
+    get_ticker_poloniex_result_processor
+from utils.currency_utils import get_currency_pair_name_by_exchange_id
+from utils.time_utils import get_now_seconds_utc
 
 
 def get_ticker_constructor_by_exchange_id(exchange_id):
@@ -89,7 +85,6 @@ def get_ticker():
     binance_tickers = get_tickers_binance(BINANCE_CURRENCY_PAIRS, timest)
     all_tickers[EXCHANGE.BINANCE] = binance_tickers
 
-    # return bittrex_tickers, kraken_tickers, poloniex_tickers, binance_tickers
     return all_tickers
 
 

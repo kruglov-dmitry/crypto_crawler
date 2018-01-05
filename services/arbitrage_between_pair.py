@@ -1,32 +1,33 @@
 import argparse
 from collections import defaultdict
 
-from core.arbitrage_core import search_for_arbitrage, init_deals_with_logging_speedy, adjust_currency_balance, \
-    init_deals_with_logging_speedy_fake, adjust_price_by_order_book, init_deal, parse_deal_id_by_exchange_id
-from core.backtest import common_cap_init, dummy_balance_init, dummy_order_state_init
+from data_access.message_queue import get_message_queue, DEAL_INFO_MSG
+
+from core.arbitrage_core import search_for_arbitrage, adjust_currency_balance, adjust_price_by_order_book
+from core.backtest import common_cap_init, dummy_balance_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
+from dao.dao import cancel_by_exchange, parse_deal_id_by_exchange_id
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
 from dao.order_utils import get_open_orders_for_arbitrage_pair
 from dao.ticker_utils import get_ticker_for_arbitrage
-from dao.dao import cancel_by_exchange
+from dao.deal_utils import init_deal, init_deals_with_logging_speedy
 
 from data.ArbitrageConfig import ArbitrageConfig
 
-from data_access.ConnectionPool import ConnectionPool
+from data_access.classes.ConnectionPool import ConnectionPool
 from data_access.memory_cache import local_cache
-from data_access.MessageQueue import get_message_queue, DEAL_INFO_MSG
+
+from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG, set_logging_level
 
 from enums.deal_type import DEAL_TYPE
 from enums.status import STATUS
 
+from utils.currency_utils import split_currency_pairs
+from utils.exchange_utils import get_exchange_name_by_id
+from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for
-from utils.file_utils import log_to_file
-from utils.exchange_utils import get_exchange_name_by_id
-from utils.currency_utils import split_currency_pairs
-
-from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG, set_logging_level
 
 BALANCE_EXPIRED_THRESHOLD = 60
 MIN_CAP_UPDATE_TIMEOUT = 900
@@ -142,6 +143,15 @@ def add_deals_to_watch_list(list_of_deals, deal_pair):
 
 
 def process_expired_deals(list_of_deals, cfg, msg_queue):
+    """
+    Current approach to deal with tracked deals that expire.
+    Details and discussion at https://gitlab.com/crypto_trade/crypto_crawler/issues/15
+
+    :param list_of_deals: tracked deals
+    :param cfg: arbitrage settings, includeing deal expire timeout
+    :param msg_queue: cache for Telegram notification
+    :return:
+    """
     time_key = long(get_now_seconds_utc() / cfg.deal_expire_timeout)
 
     for ts in list_of_deals:

@@ -1,16 +1,12 @@
-from data_access.memory_cache import generate_nonce
-
-from data_access.internet import send_post_request_with_header
-from data_access.PostRequestDetails import PostRequestDetails
-
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP
 from constants import POLONIEX_CHECK_BALANCE, POLONIEX_NUM_OF_DEAL_RETRY, POLONIEX_DEAL_TIMEOUT
-from utils.time_utils import get_now_seconds_utc
-
 from data.Balance import Balance
+from data_access.classes.PostRequestDetails import PostRequestDetails
+from data_access.internet import send_post_request_with_header
+from data_access.memory_cache import generate_nonce
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP
 from enums.status import STATUS
-
 from utils.key_utils import signed_body
+from utils.time_utils import get_now_seconds_utc
 
 
 def get_balance_poloniex_post_details(key):

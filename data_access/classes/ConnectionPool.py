@@ -6,19 +6,6 @@ from constants import POOL_SIZE
 from utils.file_utils import log_to_file
 
 
-class WorkUnit:
-    def __init__(self, url, method, *args):
-        self.url = url
-        self.method = method
-        self.args = args
-
-    def add_future(self, some_future):
-        self.future_result = some_future
-
-    def add_post_details(self, post_details):
-        self.post_details = post_details
-
-
 class ConnectionPool:
     def __init__(self, pool_size=POOL_SIZE):
         self.session = requests.Session()
