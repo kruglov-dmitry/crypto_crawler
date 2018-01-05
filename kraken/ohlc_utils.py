@@ -1,8 +1,13 @@
-from constants import KRAKEN_GET_OHLC
+from kraken.constants import KRAKEN_GET_OHLC
+
 from data.Candle import Candle
+
 from debug_utils import should_print_debug
+
 from data_access.internet import send_request
+
 from enums.status import STATUS
+
 from debug_utils import print_to_console, LOG_ALL_DEBUG
 
 

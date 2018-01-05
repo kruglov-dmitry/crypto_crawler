@@ -1,9 +1,12 @@
-from constants import POLONIEX_CANCEL_ORDER, POLONIEX_GET_ORDER_HISTORY, POLONIEX_NUM_OF_DEAL_RETRY, \
+from poloniex.constants import POLONIEX_CANCEL_ORDER, POLONIEX_GET_ORDER_HISTORY, POLONIEX_NUM_OF_DEAL_RETRY, \
     POLONIEX_DEAL_TIMEOUT
+
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
+
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
+
 from utils.file_utils import log_to_file
 from utils.key_utils import signed_body
 

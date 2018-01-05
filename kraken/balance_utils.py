@@ -1,10 +1,15 @@
-from constants import KRAKEN_BASE_API_URL, KRAKEN_CHECK_BALANCE
+from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_CHECK_BALANCE
+
 from data.Balance import Balance
+
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
+
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP
+
 from enums.status import STATUS
+
 from utils.key_utils import sign_kraken
 from utils.time_utils import get_now_seconds_utc
 

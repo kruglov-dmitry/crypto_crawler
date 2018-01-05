@@ -1,4 +1,4 @@
-from constants import KRAKEN_BASE_API_URL, KRAKEN_CANCEL_ORDER, KRAKEN_NUM_OF_DEAL_RETRY, KRAKEN_DEAL_TIMEOUT
+from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_CANCEL_ORDER, KRAKEN_NUM_OF_DEAL_RETRY, KRAKEN_DEAL_TIMEOUT
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
 from utils.key_utils import sign_kraken

@@ -2,11 +2,16 @@ from binance.order_utils import get_open_orders_binance, get_open_orders_binance
     get_open_orders_binance_result_processor
 from bittrex.order_utils import get_open_orders_bittrix, get_open_orders_bittrex_result_processor, \
     get_open_orders_bittrix_post_details
+
 from constants import HTTP_TIMEOUT_SECONDS
+
 from data_access.classes.WorkUnit import WorkUnit
+
 from debug_utils import print_to_console, LOG_ALL_ERRORS
+
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
+
 from kraken.order_utils import get_open_orders_kraken, get_open_orders_kraken_post_details, \
     get_open_orders_kraken_result_processor
 from poloniex.order_utils import get_open_orders_poloniex, get_open_orders_poloniex_post_details, \

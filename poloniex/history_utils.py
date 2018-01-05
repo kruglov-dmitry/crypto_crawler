@@ -1,7 +1,11 @@
-from constants import POLONIEX_GET_HISTORY
+from poloniex.constants import POLONIEX_GET_HISTORY
+
 from data.OrderHistory import OrderHistory
+
 from debug_utils import should_print_debug
+
 from data_access.internet import send_request
+
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_OTHER_STUFF
 from enums.status import STATUS
 
