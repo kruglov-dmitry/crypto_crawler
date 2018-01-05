@@ -170,9 +170,9 @@ def adjust_price_by_order_book(orders, min_volume):
     :param min_volume: volume determined according to various check
     :return:
     """
-    new_price = 0.0
-    acc_volume = min_volume
-    max_volume = 2 * acc_volume
+    new_price = -10.0
+    acc_volume = 0.0
+    max_volume = 2 * min_volume
     max_len = len(orders)
 
     idx = 0

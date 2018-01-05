@@ -128,7 +128,7 @@ def update_min_cap(cfg, deal_cap, processor):
         base_currency_id, dst_currency_id = split_currency_pairs(cfg.pair_id)
         msg = """old cap {op}:
                 new_cap: {rp}
-                """.format(op=str(deal_cap.min_volume_cap[dst_currency_id]), rp=str(new_cap))
+                """.format(op=str(deal_cap.get_min_cap(dst_currency_id)), rp=str(new_cap))
         log_to_file(msg, "price_adjustment.log")
         deal_cap.update_min_cap(dst_currency_id, new_cap, cur_timest_sec)
     else:
