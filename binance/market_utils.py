@@ -3,11 +3,12 @@ from urllib import urlencode as _urlencode
 from data_access.internet import send_delete_request_with_header
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
+
 from utils.key_utils import signed_body_256
 from utils.time_utils import get_now_seconds_utc
 from utils.file_utils import log_to_file
 
-from constants import BINANCE_CANCEL_ORDER
+from binance.constants import BINANCE_CANCEL_ORDER
 
 
 def cancel_order_binance(key, pair_name, deal_id):

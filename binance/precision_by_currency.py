@@ -1,4 +1,5 @@
-from currency_utils import get_currency_pair_to_binance
+from binance.currency_utils import get_currency_pair_to_binance
+
 
 # BASE_CURRENCY = BTC
 PRECISIONS = {

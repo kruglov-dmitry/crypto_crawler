@@ -1,7 +1,11 @@
-from constants import BINANCE_GET_HISTORY
+from binance.constants import BINANCE_GET_HISTORY
+
 from data.OrderHistory import OrderHistory
+
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_OTHER_STUFF
+
 from data_access.internet import send_request
+
 from enums.status import STATUS
 
 

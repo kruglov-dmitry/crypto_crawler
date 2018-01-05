@@ -1,7 +1,11 @@
-from constants import BINANCE_GET_OHLC
+from binance.constants import BINANCE_GET_OHLC
+
 from data.Candle import Candle
+
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG
+
 from data_access.internet import send_request
+
 from enums.status import STATUS
 
 

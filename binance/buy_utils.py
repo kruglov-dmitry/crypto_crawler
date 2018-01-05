@@ -1,9 +1,12 @@
 from urllib import urlencode as _urlencode
 
-from constants import BINANCE_BUY_ORDER, BINANCE_NUM_OF_DEAL_RETRY, BINANCE_DEAL_TIMEOUT
+from binance.constants import BINANCE_BUY_ORDER, BINANCE_NUM_OF_DEAL_RETRY, BINANCE_DEAL_TIMEOUT
+
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
+
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
+
 from utils.file_utils import log_to_file
 from utils.key_utils import signed_body_256
 from utils.time_utils import get_now_seconds_utc_ms

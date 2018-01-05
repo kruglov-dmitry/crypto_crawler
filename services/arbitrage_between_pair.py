@@ -7,7 +7,6 @@ from core.arbitrage_core import search_for_arbitrage, adjust_currency_balance, a
 from core.backtest import common_cap_init, dummy_balance_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
-from dao.dao import cancel_by_exchange, parse_deal_id_by_exchange_id
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
 from dao.order_utils import get_open_orders_for_arbitrage_pair
 from dao.ticker_utils import get_ticker_for_arbitrage
@@ -143,6 +142,7 @@ def add_deals_to_watch_list(list_of_deals, deal_pair):
 
 
 def process_expired_deals(list_of_deals, cfg, msg_queue):
+    from dao.dao import cancel_by_exchange, parse_deal_id_by_exchange_id
     """
     Current approach to deal with tracked deals that expire.
     Details and discussion at https://gitlab.com/crypto_trade/crypto_crawler/issues/15
