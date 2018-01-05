@@ -115,12 +115,13 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
 
         parallel_deals.append(wu)
 
-    res = processor.process_async_post(parallel_deals, DEAL_MAX_TIMEOUT)
+    res = [] #  processor.process_async_post(parallel_deals, DEAL_MAX_TIMEOUT)
 
     global overall_profit_so_far
     overall_profit_so_far += trade_pairs.current_profit
 
-    msg = """ We try to send following deals to exchange.
+    msg = """ <b> DEMO MODE ON </b>
+        We try to send following deals to exchange.
     <b>Expected profit:</b> <i>{cur}</i>. 
     <b>Overall:</b> <i>{tot}</i>
     <b>Difference in percents:</b> <i>{diff}</i>

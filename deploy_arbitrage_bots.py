@@ -2,9 +2,11 @@ import sys
 from collections import defaultdict
 import ConfigParser
 
-from deploy.screen_utils import create_screen, create_screen_window, run_command_in_screen, generate_screen_name
+from deploy.screen_utils import create_screen, generate_screen_name
 from deploy.constants import FULL_COMMAND, BALANCE_UPDATE_DEPLOY_UNIT
 from deploy.ExchangeArbitrageSettings import ExchangeArbitrageSettings
+from deploy.service_utils import deploy_telegram_notifier, deploy_balance_monitoring, deploy_process_in_screen
+from deploy.DeployUnit import DeployUnit
 
 from utils.exchange_utils import get_exchange_id_by_name, get_exchange_name_by_id
 from utils.currency_utils import get_pair_id_by_name
@@ -57,7 +59,7 @@ if __name__ == "__main__":
         for x in exchange_settings[b]:
             print x
 
-    deploy_units = {}
+    arbitrage_unit = {}
 
     for exchange_id in exchange_settings:
 
@@ -79,23 +81,26 @@ if __name__ == "__main__":
                                                                arbitrage_threshold, balance_adjust_threshold,
                                                                deal_expiration_timeout,
                                                                get_logging_level_id_by_name(logging_level_name)))
-                    deploy_units[screen_name] = commands_per_screen
+                    arbitrage_unit[screen_name] = commands_per_screen
 
     # Create named screen
-    # 1st stage - initialization balance polling service
-    create_screen(BALANCE_UPDATE_DEPLOY_UNIT.screen_name)
-    create_screen_window(BALANCE_UPDATE_DEPLOY_UNIT.screen_name, BALANCE_UPDATE_DEPLOY_UNIT.window_name)
-    balance_monitoring_command = form_balance_update_command(BALANCE_UPDATE_COMMAND, exchange_settings.keys())
-    run_command_in_screen(BALANCE_UPDATE_DEPLOY_UNIT.screen_name, BALANCE_UPDATE_DEPLOY_UNIT.window_name, balance_monitoring_command)
+    screen_name = "common_crypto"
+
+    # 1st stage - initialization of TG notifier
+    deploy_telegram_notifier(screen_name=screen_name, should_create_screen=True)
+
+    # 2nd stage - initialization balance polling service
+    balance_monitoring_command = form_balance_update_command(BALANCE_UPDATE_DEPLOY_UNIT.command, exchange_settings.keys())
+    deploy_balance_monitoring(balance_monitoring_command, screen_name=screen_name, should_create_screen=True)
 
     # Let it update balance first
     sleep_for(5)
 
     # 2nd stage - spawn a shit load of arbitrage checkers
-    for screen_name in deploy_units:
+    for screen_name in arbitrage_unit:
         create_screen(screen_name)
 
-        for deploy_unit in deploy_units[screen_name]:
-            window_name = deploy_unit.generate_window_name()
-            create_screen_window(screen_name, window_name)
-            run_command_in_screen(screen_name, window_name, deploy_unit.generate_command(FULL_COMMAND))
+        for entry in arbitrage_unit[screen_name]:
+            deploy_unit = DeployUnit(screen_name, entry.generate_window_name(), entry.generate_command(FULL_COMMAND))
+
+            deploy_process_in_screen(screen_name, deploy_unit)
