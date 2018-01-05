@@ -1,6 +1,6 @@
 from data.BaseData import BaseData
 import redis as _redis
-from utils.time_utils import get_now_seconds_utc
+from utils.time_utils import get_now_seconds_utc_ms
 
 
 class MessageQueue(BaseData):
@@ -13,7 +13,7 @@ class MessageQueue(BaseData):
         self.r = _redis.StrictRedis(host=self.host, port=self.port, db=0)
 
     def add_message(self, topic_id, msg):
-        msg = msg + "\nTS: " + str(get_now_seconds_utc())
+        msg = msg + "\nTS: " + str(get_now_seconds_utc_ms())
         self.r.rpush(topic_id, msg)
 
     def get_topic_size(self, topic_id):
