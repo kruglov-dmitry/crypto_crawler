@@ -9,6 +9,10 @@ LOG_ALL_OTHER_STUFF = 1000
 DEBUG_LEVEL = LOG_ALL_OTHER_STUFF
 
 
+DEBUG_LOG_FILE_NAME = "debug.log"
+ERROR_LOG_FILE_NAME = "error.log"
+
+
 def set_logging_level(effective_debug_level):
     global DEBUG_LEVEL
     DEBUG_LEVEL = effective_debug_level

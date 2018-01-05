@@ -8,7 +8,7 @@ from enums.status import STATUS
 
 from utils.time_utils import sleep_for
 from utils.file_utils import log_to_file
-from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_MARKET_RELATED_CRAP, \
+from debug_utils import print_to_console, LOG_ALL_ERRORS, DEBUG_LOG_FILE_NAME, ERROR_LOG_FILE_NAME, \
     LOG_ALL_MARKET_NETWORK_RELATED_CRAP
 
 """
@@ -22,12 +22,12 @@ def send_request(final_url, error_msg):
     try:
         responce = requests.get(final_url, timeout=HTTP_TIMEOUT_SECONDS).json()
         res = STATUS.SUCCESS, responce
-        log_to_file(responce, "debug.txt")
+        log_to_file(responce, DEBUG_LOG_FILE_NAME)
     except Exception, e:
         res = STATUS.FAILURE, error_msg + str(e)
         msg = "send_request ERROR: {excp} MSG: {e_msg}".format(e_msg=error_msg, excp=str(e))
         print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, "error.txt")
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
 
     return res
 
@@ -39,12 +39,12 @@ def send_get_request_with_header(final_url, header, error_msg, timeout=HTTP_TIME
         print responce
         responce = responce.json()
         res = STATUS.SUCCESS, responce
-        log_to_file(responce, "debug.txt")
+        log_to_file(responce, DEBUG_LOG_FILE_NAME)
     except Exception, e:
         res = STATUS.FAILURE, error_msg + str(e)
         msg = "send_get_request_with_header ERROR: {excp} MSG: {e_msg}".format(e_msg=error_msg, excp=str(e))
         print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, "error.txt")
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
 
     return res
 
@@ -64,13 +64,13 @@ def send_post_request_with_header(final_url, header, body, error_msg, max_tries,
                 sleep_for(1)
             else:
                 msg = "send_post_request_with_header: YEAH, RESULT: {res} for url={url}".format(res=str_repr, url=final_url)
-                log_to_file(msg, "debug.txt")
+                log_to_file(msg, DEBUG_LOG_FILE_NAME)
                 # NOTE: Consider it as success then, if not - extend possible checks above
                 return STATUS.SUCCESS, response
 
             msg = "send_post_request_with_header: SOME ERROR: RESULT: {res} for url={url}".format(res=response, url=final_url)
             print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
-            log_to_file(msg, "error.txt")
+            log_to_file(msg, ERROR_LOG_FILE_NAME)
 
             res = STATUS.FAILURE, response
 
@@ -79,7 +79,7 @@ def send_post_request_with_header(final_url, header, body, error_msg, max_tries,
             msg = "send_post_request_with_header: Exception: {excp} Msg: {msg} for url={url}".format(excp=error_msg, msg=str(e),
                                                                                          url=final_url)
             print_to_console(msg, LOG_ALL_ERRORS)
-            log_to_file(msg, "error.txt")
+            log_to_file(msg, ERROR_LOG_FILE_NAME)
             sleep_for(1)
 
     return res
@@ -100,13 +100,13 @@ def send_delete_request_with_header(final_url, header, body, error_msg, max_trie
                 sleep_for(1)
             else:
                 msg = "YEAH, RESULT: {res}".format(res=str_repr)
-                log_to_file(msg, "debug.txt")
+                log_to_file(msg, DEBUG_LOG_FILE_NAME)
                 # NOTE: Consider it as success then, if not - extend possible checks above
                 return STATUS.SUCCESS, response
 
             msg = "SOME ERROR: RESULT: {res}".format(res=response)
             print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
-            log_to_file(msg, "debug.txt")
+            log_to_file(msg, DEBUG_LOG_FILE_NAME)
 
             res = STATUS.FAILURE, response
 
@@ -114,7 +114,7 @@ def send_delete_request_with_header(final_url, header, body, error_msg, max_trie
             res = STATUS.FAILURE, error_msg + str(e)
             msg = "send_post_request_with_header: Exception: {excp} Msg: {msg}".format(excp=error_msg, msg=str(e))
             print_to_console(msg, LOG_ALL_ERRORS)
-            log_to_file(msg, "debug.txt")
+            log_to_file(msg, DEBUG_LOG_FILE_NAME)
             sleep_for(1)
 
     return res

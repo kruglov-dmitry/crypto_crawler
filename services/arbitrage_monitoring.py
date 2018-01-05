@@ -34,7 +34,7 @@ def analyse_tickers(msg_queue):
         res = compare_price(tickers, TRIGGER_THRESHOLD, check_highest_bid_bigger_than_lowest_ask)
 
         for entry in res:
-            msg = """NEW CODE Condition: {msg}
+            msg = """Condition: {msg}
             Pair: {pair_name}, {ask_exchange}: {ask_price} {sell_exchange}: {sell_price}
             TAG: {ask_exchange}-{sell_exchange}
             """.format(msg=entry[0], pair_name=get_pair_name_by_id(entry[1]),

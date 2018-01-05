@@ -57,6 +57,8 @@ class MessageQueue(BaseData):
         """Equivalent to get(False)."""
         return self.get_message(topic_id, True)
 
+    def add_message_to_start(self, topic_id, msg):
+        self.r.lpush(topic_id, msg)
 
 def connect_to_message_queue():
     global message_queue
