@@ -28,9 +28,9 @@ class Trade(Deal):
         self.volume = float(volume)
         self.order_book_time = long(order_book_time)
         self.create_time = long(create_time)
-        self.execute_time = long(execute_time)
+        self.execute_time = long(execute_time) if execute_time is not None else execute_time
         self.deal_id = deal_id
-        self.executed_volume = float(executed_volume)
+        self.executed_volume = float(executed_volume) if executed_volume is not None else executed_volume
 
     def __str__(self):
         str_repr = """

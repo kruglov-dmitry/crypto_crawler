@@ -26,9 +26,9 @@ def init_deal(trade_to_perform, debug_msg):
     res = STATUS.FAILURE, None
     try:
         if trade_to_perform.trade_type == DEAL_TYPE.SELL:
-            res = sell_by_exchange(trade_to_perform)
+            res = dao.sell_by_exchange(trade_to_perform)
         else:
-            res = buy_by_exchange(trade_to_perform)
+            res = dao.buy_by_exchange(trade_to_perform)
     except Exception, e:
         msg = "init_deal: FAILED ERROR WE ALL DIE with following exception: {excp} {dbg}".format(excp=str(e),
                                                                                                  dbg=debug_msg)
@@ -93,7 +93,7 @@ def init_deals_with_logging_speedy_fake(trade_pairs, difference, file_name, proc
 
 def return_with_no_change(json_document, corresponding_trade):
     corresponding_trade.execute_time = get_now_seconds_utc()
-    corresponding_trade.deal_id = parse_deal_id_by_exchange_id(corresponding_trade.exchange_id, json_document)
+    corresponding_trade.deal_id = dao.parse_deal_id_by_exchange_id(corresponding_trade.exchange_id, json_document)
     return json_document, corresponding_trade
 
 
@@ -101,7 +101,7 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
     parallel_deals = []
 
     for trade in [trade_pairs.deal_1, trade_pairs.deal_2]:
-        method_for_url = get_method_for_create_url_trade_by_exchange_id(trade)
+        method_for_url = dao.get_method_for_create_url_trade_by_exchange_id(trade)
         # key, pair_name, price, amount
         key = get_key_by_exchange(trade.exchange_id)
         pair_name = get_currency_pair_name_by_exchange_id(trade.pair_id, trade.exchange_id)
@@ -113,7 +113,7 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
 
         parallel_deals.append(wu)
 
-    res = [] #  processor.process_async_post(parallel_deals, DEAL_MAX_TIMEOUT)
+    res = processor.process_async_post(parallel_deals, DEAL_MAX_TIMEOUT)
 
     global overall_profit_so_far
     overall_profit_so_far += trade_pairs.current_profit

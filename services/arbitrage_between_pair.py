@@ -138,10 +138,12 @@ def add_deals_to_watch_list(list_of_deals, deal_pair):
     if deal_pair is None:
         return
     # cache deals to be checked
-    time_key = long(deal_pair.deal_1.execute_time / cfg.deal_expire_timeout)
-    list_of_deals[time_key].append(deal_pair.deal_1)
-    time_key = long(deal_pair.deal_2.execute_time / cfg.deal_expire_timeout)
-    list_of_deals[time_key].append(deal_pair.deal_2)
+    if deal_pair.deal_1 is not None:
+        time_key = long(deal_pair.deal_1.execute_time / cfg.deal_expire_timeout)
+        list_of_deals[time_key].append(deal_pair.deal_1)
+    if deal_pair.deal_2 is not None:
+        time_key = long(deal_pair.deal_2.execute_time / cfg.deal_expire_timeout)
+        list_of_deals[time_key].append(deal_pair.deal_2)
 
 
 def process_expired_deals(list_of_deals, cfg, msg_queue):

@@ -40,6 +40,6 @@ class MarketCap(BaseData):
     def update_time(self, timest):
         self.last_updated = timest
 
-    def update_cap(self, currency_id, new_cap, cur_timest_sec):
+    def update_min_cap(self, currency_id, new_cap, cur_timest_sec):
         self.last_updated = cur_timest_sec
         self.min_volume_cap[currency_id] = new_cap

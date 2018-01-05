@@ -70,7 +70,15 @@ class BalanceState(BaseData):
         diff1 = timest - self.balance_per_exchange[src_exchange_id].last_update
         diff2 = timest - self.balance_per_exchange[dst_exchange_id].last_update
 
-        return diff1 > threshold or diff2 > threshold
+        res = diff1 > threshold or diff2 > threshold
+        if res:
+            print "BALANCE_EXPIRE TRACE"
+            print "src_exchange_id", src_exchange_id, "diff", diff1, "ts", timest, "last_update", self.balance_per_exchange[src_exchange_id].last_update
+            print "src", self.balance_per_exchange[src_exchange_id]
+            print "dst_exchange_id", dst_exchange_id, "diff", diff2, "ts", timest, "last_update", self.balance_per_exchange[dst_exchange_id].last_update
+            print "dst", self.balance_per_exchange[dst_exchange_id]
+
+        return res
 
     def is_there_disbalance(self, currency_id, src_exchange_id, dst_exchange_id, threshold):
         """
