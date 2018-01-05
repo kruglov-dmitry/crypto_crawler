@@ -23,8 +23,12 @@ def get_now_seconds_utc():
 
 
 def get_now_seconds_utc_ms():
-    return 1000 * get_now_seconds_utc()
-
+    """
+        For a long discussion what is optimal way check this:
+            https://stackoverflow.com/questions/38319606/how-to-get-millisecond-and-microsecond-resolution-timestamps-in-python
+            https://stackoverflow.com/questions/5998245/get-current-time-in-milliseconds-in-python/21858377#21858377
+    """
+    return int((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds() * 1000)
 
 def sleep_for(num_of_seconds):
     time.sleep(num_of_seconds)
