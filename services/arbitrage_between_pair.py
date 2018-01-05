@@ -135,6 +135,8 @@ def update_min_cap(cfg, deal_cap, processor):
 
 
 def add_deals_to_watch_list(list_of_deals, deal_pair):
+    if deal_pair is None:
+        return
     # cache deals to be checked
     time_key = long(deal_pair.deal_1.execute_time / cfg.deal_expire_timeout)
     list_of_deals[time_key].append(deal_pair.deal_1)
@@ -231,7 +233,8 @@ if __name__ == "__main__":
 
     balance_state = dummy_balance_init(timest=0, default_volume=0, default_available_volume=0)
 
-    msg_queue = get_message_queue()
+    msg_queue1 = get_message_queue()
+    print msg_queue1
     processor = ConnectionPool(pool_size=2)
 
     # key is timest rounded to minutes
@@ -253,7 +256,7 @@ if __name__ == "__main__":
             balance_state = get_updated_balance_arbitrage(cfg, balance_state, local_cache)
 
             if balance_state.expired(cur_timest_sec, cfg.buy_exchange_id, cfg.sell_exchange_id, BALANCE_EXPIRED_THRESHOLD):
-                log_balance_expired_errors(cfg, msg_queue)
+                log_balance_expired_errors(cfg, msg_queue1)
                 raise
 
             order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec, processor)
@@ -267,7 +270,7 @@ if __name__ == "__main__":
             status_code, deal_pair = method(order_book_src, order_book_dst, active_threshold,
                                             init_deals_with_logging_speedy,
                                             balance_state, deal_cap, type_of_deal=mode_id, worker_pool=processor,
-                                            msg_queue=msg_queue)
+                                            msg_queue=msg_queue1)
 
             add_deals_to_watch_list(list_of_deals, deal_pair)
 
@@ -277,4 +280,4 @@ if __name__ == "__main__":
             print_to_console("I am still allive! ", LOG_ALL_DEBUG)
             sleep_for(1)
 
-        process_expired_deals(list_of_deals, cfg, msg_queue)
+        process_expired_deals(list_of_deals, cfg, msg_queue1)

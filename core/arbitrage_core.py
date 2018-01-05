@@ -189,6 +189,8 @@ def adjust_currency_balance(first_order_book, second_order_book, treshold_revers
                             balance_state, deal_cap,
                             type_of_deal,
                             worker_pool, msg_queue):
+    deal_status = STATUS.FAILURE, None
+
     pair_id = first_order_book.pair_id
     src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
     src_exchange_id = first_order_book.exchange_id
@@ -199,8 +201,10 @@ def adjust_currency_balance(first_order_book, second_order_book, treshold_revers
 
         log_currency_disbalance_present(src_exchange_id, dst_exchange_id, dst_currency_id, treshold_reverse)
 
-        search_for_arbitrage(first_order_book, second_order_book, treshold_reverse,
+        deal_status = search_for_arbitrage(first_order_book, second_order_book, treshold_reverse,
                              action_to_perform, balance_state, deal_cap,
                              type_of_deal, worker_pool, msg_queue)
     else:
         log_currency_disbalance_heart_beat(src_exchange_id, dst_exchange_id, dst_currency_id, treshold_reverse)
+
+    return deal_status
