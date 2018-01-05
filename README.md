@@ -29,6 +29,11 @@ based on  https://stackoverflow.com/questions/1509677/kill-detached-screen-sessi
 alias cleanscreen="screen -ls | tail -n +2 | head -n -2 | awk '{print $1}'| xargs -I{} screen -S {} -X quit"
 ```
 
+## Rename existing screen session
+``` bash
+screen -S old_session_name -X sessionname new_session_name
+```
+
 ### REMOTE_ACCESS:
 ``` bash
 ssh -v -N -L 7777:192.168.1.106:5432 86.97.142.164 -i .ssh/crptdb_sec_openssh -l dima -p 8883

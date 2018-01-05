@@ -29,7 +29,7 @@ def log_initial_settings(exchanges_ids):
     msg = "Starting balance monitoring for following exchanges: "
     for exchange_id in exchanges_ids:
         msg += get_exchange_name_by_id(exchange_id)
-    print_to_console(msg, LOG_ALL_DEBUG)
+    print_to_console(msg, LOG_ALL_ERRORS)
     log_to_file(msg, "balance.log")
 
 
@@ -38,7 +38,7 @@ def log_not_enough_bitcoins(exchange_id, res, msg_queue):
                     BTC balance on exchange {exch} BELOW threshold {thrs} - only {am} LEFT!""".format(
         thrs=BITCOIN_ALARM_THRESHOLD, exch=get_exchange_name_by_id(exchange_id), am=res.get_bitcoin_balance())
     msg_queue.add_message(DEAL_INFO_MSG, msg)
-    print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
+    print_to_console(msg, LOG_ALL_ERRORS)
     print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
 
 
