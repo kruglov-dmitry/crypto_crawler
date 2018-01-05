@@ -6,6 +6,7 @@ from data_access.classes.WorkUnit import WorkUnit
 from data_access.message_queue import DEAL_INFO_MSG, DEBUG_INFO_MSG
 
 from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, ERROR_LOG_FILE_NAME
+from constants import DEAL_MAX_TIMEOUT
 
 from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
