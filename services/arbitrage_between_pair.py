@@ -15,10 +15,9 @@ from data.ArbitrageConfig import ArbitrageConfig
 
 from data_access.ConnectionPool import ConnectionPool
 from data_access.memory_cache import local_cache
-from data_access.telegram_notifications import send_single_message
+from data_access.MessageQueue import get_message_queue, DEAL_INFO_MSG
 
 from enums.deal_type import DEAL_TYPE
-from enums.notifications import NOTIFICATION
 from enums.status import STATUS
 
 from utils.key_utils import load_keys
@@ -33,20 +32,15 @@ BALANCE_EXPIRED_THRESHOLD = 60
 MIN_CAP_UPDATE_TIMEOUT = 900
 
 
-def log_balance_expired_errors(cfg):
-    msg = """
-                                <b> !!! CRITICAL !!! </b>
-                    Balance is OUTDATED for {exch1} or {exch2} for more than {tt} seconds
-                    Arbitrage process will be stopped just in case.
-                    Check log file: {lf}
-                    """.format(
-        exch1=get_exchange_name_by_id(cfg.buy_exchange_id),
-        exch2=get_exchange_name_by_id(cfg.sell_exchange_id),
-        tt=BALANCE_EXPIRED_THRESHOLD,
-        lf=cfg.log_file_name
-    )
+def log_balance_expired_errors(cfg, msg_queue):
+    msg = """<b> !!! CRITICAL !!! </b>
+    Balance is OUTDATED for {exch1} or {exch2} for more than {tt} seconds
+    Arbitrage process will be stopped just in case.
+    Check log file: {lf}""".format(exch1=get_exchange_name_by_id(cfg.buy_exchange_id),
+                                   exch2=get_exchange_name_by_id(cfg.sell_exchange_id),
+                                   tt=BALANCE_EXPIRED_THRESHOLD, lf=cfg.log_file_name)
     print_to_console(msg, LOG_ALL_ERRORS)
-    send_single_message(msg, NOTIFICATION.DEAL)
+    msg_queue.add_message(DEAL_INFO_MSG, msg)
     log_to_file(msg, cfg.log_file_name)
     log_to_file(balance_state, cfg.log_file_name)
 
@@ -58,23 +52,27 @@ def log_failed_to_retrieve_order_book(cfg):
     log_to_file(msg, cfg.log_file_name)
 
 
-def log_cant_cancel_deal(every_deal, cfg):
+def log_cant_cancel_deal(every_deal, cfg, msg_queue):
     msg = "CAN'T cancel deal - {deal}".format(deal=every_deal)
-    send_single_message(msg, NOTIFICATION.DEAL)
+
+    msg_queue.add_message(DEAL_INFO_MSG, msg)
+
     print_to_console(msg, LOG_ALL_ERRORS)
     log_to_file(msg, cfg.log_file_name)
 
 
-def log_placing_new_deal(every_deal, cfg):
+def log_placing_new_deal(every_deal, cfg, msg_queue):
     msg = """ We try to send following deal to exchange as replacement for expired order. 
     Deal details: {deal}""".format(deal=str(every_deal))
 
     log_to_file(msg, cfg.log_file_name)
-    send_single_message(msg, NOTIFICATION.DEAL)
+
+    msg_queue.add_message(DEAL_INFO_MSG, msg)
+
     print_to_console(msg, LOG_ALL_ERRORS)
 
 
-def log_cant_placing_new_deal(every_deal, cfg):
+def log_cant_placing_new_deal(every_deal, cfg, msg_queue):
     msg = """   We <b> !!! FAILED !!! </b> 
     to send following deal to exchange as replacement for expired order.
     Deal details:
@@ -82,16 +80,20 @@ def log_cant_placing_new_deal(every_deal, cfg):
     """.format(deal=str(every_deal))
 
     log_to_file(msg, cfg.log_file_name)
-    send_single_message(msg, NOTIFICATION.DEAL)
+
+    msg_queue.add_message(DEAL_INFO_MSG, msg)
+
     print_to_console(msg, LOG_ALL_ERRORS)
 
 
-def log_cant_find_order_book(every_deal, cfg):
+def log_cant_find_order_book(every_deal, cfg, msg_queue):
     msg = """ Can't find order book for deal with expired orders! 
         Order details: {deal}""".format(deal=str(every_deal))
 
     log_to_file(msg, cfg.log_file_name)
-    send_single_message(msg, NOTIFICATION.DEAL)
+
+    msg_queue.add_message(DEAL_INFO_MSG, msg)
+
     print_to_console(msg, LOG_ALL_ERRORS)
 
 
@@ -139,7 +141,7 @@ def add_deals_to_watch_list(list_of_deals, deal_pair):
     list_of_deals[time_key].append(deal_pair.deal_2)
 
 
-def process_expired_deals(list_of_deals, cfg):
+def process_expired_deals(list_of_deals, cfg, msg_queue):
     time_key = long(get_now_seconds_utc() / cfg.deal_expire_timeout)
 
     for ts in list_of_deals:
@@ -157,7 +159,7 @@ def process_expired_deals(list_of_deals, cfg):
             if deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
                 err_code, responce = cancel_by_exchange(every_deal)
                 if err_code == STATUS.FAILURE:
-                    log_cant_cancel_deal(every_deal, cfg)
+                    log_cant_cancel_deal(every_deal, cfg, msg_queue)
                     updated_list.append(every_deal)
 
                 if every_deal.exchange_id in last_order_book:
@@ -175,11 +177,11 @@ def process_expired_deals(list_of_deals, cfg):
                         every_deal.order_book_time = long(last_order_book[every_deal.exchange_id].timest)
                         every_deal.deal_id = parse_deal_id_by_exchange_id(every_deal.exchange_id, json_document)
 
-                        log_placing_new_deal(every_deal, cfg)
+                        log_placing_new_deal(every_deal, cfg, msg_queue)
                     else:
-                        log_cant_placing_new_deal(every_deal, cfg)
+                        log_cant_placing_new_deal(every_deal, cfg, msg_queue)
                 else:
-                    log_cant_find_order_book(every_deal, cfg)
+                    log_cant_find_order_book(every_deal, cfg, msg_queue)
                     updated_list.append(every_deal)
 
         # Hopefully it is empty
@@ -214,6 +216,7 @@ if __name__ == "__main__":
 
     balance_state = dummy_balance_init(timest=0, default_volume=0, default_available_volume=0)
 
+    msg_queue = get_message_queue()
     processor = ConnectionPool(pool_size=2)
 
     # key is timest rounded to minutes
@@ -235,7 +238,7 @@ if __name__ == "__main__":
             balance_state = get_updated_balance_arbitrage(cfg, balance_state, local_cache)
 
             if balance_state.expired(cur_timest_sec, cfg.buy_exchange_id, cfg.sell_exchange_id, BALANCE_EXPIRED_THRESHOLD):
-                log_balance_expired_errors(cfg)
+                log_balance_expired_errors(cfg, msg_queue)
                 raise
 
             order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec, processor)
@@ -258,4 +261,4 @@ if __name__ == "__main__":
             print_to_console("I am still allive! ", LOG_ALL_DEBUG)
             sleep_for(1)
 
-        process_expired_deals(list_of_deals, cfg)
+        process_expired_deals(list_of_deals, cfg, msg_queue)
