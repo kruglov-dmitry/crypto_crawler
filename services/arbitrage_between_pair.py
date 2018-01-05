@@ -124,12 +124,17 @@ def update_min_cap(cfg, deal_cap, processor):
                                        [cfg.buy_exchange_id, cfg.sell_exchange_id], processor)
     new_cap = compute_new_min_cap_from_tickers(tickers)
 
+    msg = "tickers: "
+    for b in tickers:
+        msg += str(b.ask) + "  FULL_OBJECT: "+ str(b)
+    log_to_file(msg, "cap_price_adjustment.log")
+
     if new_cap > 0:
         base_currency_id, dst_currency_id = split_currency_pairs(cfg.pair_id)
         msg = """old cap {op}:
                 new_cap: {rp}
                 """.format(op=str(deal_cap.get_min_cap(dst_currency_id)), rp=str(new_cap))
-        log_to_file(msg, "price_adjustment.log")
+        log_to_file(msg, "cap_price_adjustment.log")
         deal_cap.update_min_cap(dst_currency_id, new_cap, cur_timest_sec)
     else:
         msg = """CAN'T update minimum_volume_cap for {pair_id} at following
@@ -137,7 +142,7 @@ def update_min_cap(cfg, deal_cap, processor):
                                              exch2=get_exchange_name_by_id(cfg.sell_exchange_id))
         print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, cfg.log_file_name)
-        log_to_file(msg, "price_adjustment.log")
+        log_to_file(msg, "cap_price_adjustment.log")
 
 def add_deals_to_watch_list(list_of_deals, deal_pair):
     if deal_pair is None:
