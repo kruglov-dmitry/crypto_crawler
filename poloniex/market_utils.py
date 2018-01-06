@@ -45,8 +45,10 @@ def parse_deal_id_poloniex(json_document):
     """
      {u'orderNumber': u'15573359248', u'resultingTrades': []}
     """
-    if json_document is not None and "orderNumber" in json_document:
-        return json_document["orderNumber"]
+    if json_document.status_code == 200:
+        json_document = json_document.json()
+        if json_document is not None and "orderNumber" in json_document:
+            return json_document["orderNumber"]
 
     log_to_file("poloniex\n" + str(json_document), "parse_id.log")
 
