@@ -5,7 +5,8 @@ from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, \
+    LOG_ALL_TRACE
 
 from utils.file_utils import log_to_file
 from utils.key_utils import signed_body
@@ -45,12 +46,18 @@ def parse_deal_id_poloniex(json_document):
     """
      {u'orderNumber': u'15573359248', u'resultingTrades': []}
     """
+
+    if get_logging_level() >= LOG_ALL_TRACE:
+        log_to_file("poloniex\n" + str(json_document), "parse_id.log")
+        try:
+            log_to_file("poloniex\n" + str(json_document.json()), "parse_id.log")
+        except:
+            pass
+
     if json_document.status_code == 200:
         json_document = json_document.json()
         if json_document is not None and "orderNumber" in json_document:
             return json_document["orderNumber"]
-
-    log_to_file("poloniex\n" + str(json_document), "parse_id.log")
 
     return None
 
@@ -68,8 +75,8 @@ def get_order_history_poloniex_post_details(key, currency_name):
 
     res = PostRequestDetails(final_url, headers, body)
 
-    # if should_print_debug():
-    #    print res
+    if get_logging_level() >= LOG_ALL_TRACE:
+        print res
 
     return res
 

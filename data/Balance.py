@@ -7,7 +7,7 @@ from utils.currency_utils import get_currency_name_by_id
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.time_utils import ts_to_string
 from utils.file_utils import log_to_file
-from debug_utils import print_to_console, LOG_ALL_ERRORS
+from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 
 from bittrex.currency_utils import get_currency_name_for_bittrex
 from kraken.currency_utils import get_currency_name_for_kraken
@@ -106,7 +106,7 @@ class Balance(BaseData):
                 error_msg = "Can't find currency_id - {id}".format(id=currency_id)
                 msg = "Balance.from_kraken Exception: {excp} {msg}".format(excp=error_msg, msg=str(e))
                 print_to_console(msg, LOG_ALL_ERRORS)
-                log_to_file(msg, "error.txt")
+                log_to_file(msg, ERROR_LOG_FILE_NAME)
 
         return Balance(EXCHANGE.KRAKEN, last_update, initial_balance, initial_balance)
 

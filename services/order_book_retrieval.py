@@ -39,7 +39,7 @@ if __name__ == "__main__":
             Order book size - {num1} Order book asks - {num10} Order book bids - {num20}""".format(
                 tt=end_time, num1=order_book_size, num10=order_book_ask_size, num20=order_book_bid_size)
             print_to_console(msg, LOG_ALL_ERRORS)
-            log_to_file(msg, "sock_other_data.txt")
+            log_to_file(msg, "order_book.log")
 
         print_to_console("Before sleep...", LOG_ALL_ERRORS)
         sleep_for(POLL_PERIOD_SECONDS)
