@@ -48,6 +48,8 @@ def parse_deal_id_poloniex(json_document):
     if json_document is not None and "orderNumber" in json_document:
         return json_document["orderNumber"]
 
+    log_to_file("poloniex\n" + str(json_document), "parse_id.log")
+
     return None
 
 

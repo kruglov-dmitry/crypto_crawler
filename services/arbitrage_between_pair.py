@@ -148,6 +148,11 @@ def update_min_cap(cfg, deal_cap, processor):
         log_to_file(msg, cfg.log_file_name)
         log_to_file(msg, "cap_price_adjustment.log")
 
+
+def compute_time_key(timest, rounding_interval):
+    return rounding_interval * long(timest / rounding_interval)
+
+
 def add_deals_to_watch_list(list_of_deals, deal_pair):
     msg = "Add order to watch list - {pair}".format(pair=str(deal_pair))
     log_to_file(msg, "expire_deal.log")
@@ -155,10 +160,10 @@ def add_deals_to_watch_list(list_of_deals, deal_pair):
         return
     # cache deals to be checked
     if deal_pair.deal_1 is not None:
-        time_key = long(deal_pair.deal_1.execute_time / cfg.deal_expire_timeout)
+        time_key = compute_time_key(deal_pair.deal_1.execute_time, cfg.deal_expire_timeout)
         list_of_deals[time_key].append(deal_pair.deal_1)
     if deal_pair.deal_2 is not None:
-        time_key = long(deal_pair.deal_2.execute_time / cfg.deal_expire_timeout)
+        time_key = compute_time_key(deal_pair.deal_2.execute_time, cfg.deal_expire_timeout)
         list_of_deals[time_key].append(deal_pair.deal_2)
 
 
@@ -203,7 +208,7 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
                     err_code, json_document = init_deal(every_deal, msg)
                     if err_code == STATUS.SUCCESS:
 
-                        new_time_key = long(get_now_seconds_utc() / cfg.deal_expire_timeout)
+                        new_time_key = compute_time_key(get_now_seconds_utc(), cfg.deal_expire_timeout)
                         list_of_deals[new_time_key].append(every_deal)
 
                         every_deal.execute_time = get_now_seconds_utc()
@@ -219,6 +224,12 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
 
         # Hopefully it is empty
         list_of_deals[ts] = updated_list
+
+        for tkey in list_of_deals:
+            msg = "For ts = {ts} cached deals are:".format(ts=str(tkey))
+            log_to_file(msg, "expire_deal.log")
+            for b in list_of_deals[tkey]:
+                log_to_file(str(b), "expire_deal.log")
 
 
 if __name__ == "__main__":

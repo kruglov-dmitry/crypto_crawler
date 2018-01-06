@@ -65,4 +65,6 @@ def parse_deal_id_binance(json_document):
     if json_document is not None and "orderId" in json_document:
         return json_document["orderId"]
 
+    log_to_file("binnace\n" + str(json_document), "parse_id.log")
+
     return None
