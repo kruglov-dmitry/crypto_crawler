@@ -196,6 +196,15 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
         updated_list = []
 
         open_orders_at_both_exchanges = get_open_orders_for_arbitrage_pair(cfg, processor)
+
+        for v in open_orders_at_both_exchanges:
+            log_to_file(v, "expire_deal.log")
+
+        if 135 in open_orders_at_both_exchanges:
+            msg = "Detected NONE at open_orders - we have to skip this cycle of iteration"
+            log_to_file(msg, "expire_deal.log")
+            continue
+
         for every_deal in deals_to_check:
             msg = "Check deal from watch list - {pair}".format(pair=str(every_deal))
             log_to_file(msg, "expire_deal.log")

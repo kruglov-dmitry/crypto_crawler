@@ -70,7 +70,7 @@ def get_open_orders_for_arbitrage_pair(cfg, processor):
         post_details = method_for_url(key, pair_name)
         constructor = get_open_orders_constructor_by_exchange_id(exchange_id)
 
-        wu = WorkUnit(post_details.final_url, constructor)
+        wu = WorkUnit(post_details.final_url, constructor, pair_name)
         wu.add_post_details(post_details)
 
         open_orders.append(wu)
