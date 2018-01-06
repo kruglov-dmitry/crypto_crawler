@@ -16,7 +16,7 @@ from binance.balance_utils import get_balance_binance, get_balance_binance_post_
 
 from data_access.memory_cache import get_cache
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS
+from debug_utils import print_to_console, LOG_ALL_ERRORS, DEBUG_LOG_FILE_NAME
 from utils.key_utils import get_key_by_exchange
 from utils.file_utils import log_to_file
 from utils.exchange_utils import get_exchange_name_by_id
@@ -54,7 +54,7 @@ def get_updated_balance(prev_balance):
 
         if status_code == STATUS.SUCCESS:
             balance[exchange_id] = new_balance_value
-            log_to_file(new_balance_value, "debug.txt")
+            log_to_file(new_balance_value, DEBUG_LOG_FILE_NAME)
 
     return BalanceState(balance)
 

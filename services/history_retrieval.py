@@ -33,7 +33,7 @@ if __name__ == "__main__":
             Candle size - {num}
             Trade history size - {num2}""".format(tt=end_time, num=len(candles), num2=len(trade_history))
             print_to_console(msg, LOG_ALL_ERRORS)
-            log_to_file(msg, "sock_other_data.txt")
+            log_to_file(msg, "candles_trade_history.log")
 
         print_to_console("Before sleep...", LOG_ALL_ERRORS)
         sleep_for(POLL_PERIOD_SECONDS)

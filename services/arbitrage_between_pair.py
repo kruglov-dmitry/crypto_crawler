@@ -128,17 +128,14 @@ def update_min_cap(cfg, deal_cap, processor):
                                        [cfg.buy_exchange_id, cfg.sell_exchange_id], processor)
     new_cap = compute_new_min_cap_from_tickers(tickers)
 
-    msg = "tickers: "
-    for b in tickers:
-        msg += str(b.ask) + "  FULL_OBJECT: "+ str(b)
-    log_to_file(msg, "cap_price_adjustment.log")
-
     if new_cap > 0:
         base_currency_id, dst_currency_id = split_currency_pairs(cfg.pair_id)
+
         msg = """old cap {op}:
                 new_cap: {rp}
                 """.format(op=str(deal_cap.get_min_cap(dst_currency_id)), rp=str(new_cap))
         log_to_file(msg, "cap_price_adjustment.log")
+
         deal_cap.update_min_cap(dst_currency_id, new_cap, cur_timest_sec)
     else:
         msg = """CAN'T update minimum_volume_cap for {pair_id} at following
@@ -182,7 +179,9 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
         return
 
     time_key = compute_time_key(get_now_seconds_utc(), cfg.deal_expire_timeout)
-    msg = "process_expired_deals - for time)key - {tk}".format(tk=str(time_key))
+
+    # REMOVE ME I AM DEBUG
+    msg = "process_expired_deals - for time key - {tk}".format(tk=str(time_key))
     log_to_file(msg, "expire_deal.log")
 
     for ts in list_of_deals:
@@ -197,6 +196,7 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
 
         open_orders_at_both_exchanges = get_open_orders_for_arbitrage_pair(cfg, processor)
 
+        # REMOVE ME I AM DEBUG
         for v in open_orders_at_both_exchanges:
             log_to_file(v, "expire_deal.log")
 
@@ -206,19 +206,26 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
             continue
 
         for every_deal in deals_to_check:
+
+            # REMOVE ME I AM DEBUG
             msg = "Check deal from watch list - {pair}".format(pair=str(every_deal))
             log_to_file(msg, "expire_deal.log")
+
             if deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
                 err_code, responce = cancel_by_exchange(every_deal)
                 if err_code == STATUS.FAILURE:
                     log_cant_cancel_deal(every_deal, cfg, msg_queue)
                     updated_list.append(every_deal)
+                    continue
 
                 if every_deal.exchange_id in last_order_book:
+
                     orders = last_order_book[every_deal.exchange_id].bid if every_deal.trade_type == DEAL_TYPE.SELL else last_order_book[every_deal.exchange_id].ask
+
                     new_price = adjust_price_by_order_book(orders, every_deal.volume)
                     every_deal.price = new_price
                     every_deal.create_time = get_now_seconds_utc()
+
                     msg = "Replace existing deal with new one - {tt}".format(tt=every_deal)
                     err_code, json_document = init_deal(every_deal, msg)
                     if err_code == STATUS.SUCCESS:
@@ -240,6 +247,7 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
         # Hopefully it is empty
         list_of_deals[ts] = updated_list
 
+        # REMOVE ME I AM DEBUG
         for tkey in list_of_deals:
             msg = "For ts = {ts} cached deals are:".format(ts=str(tkey))
             log_to_file(msg, "expire_deal.log")

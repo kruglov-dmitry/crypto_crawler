@@ -2,7 +2,8 @@ from urllib import urlencode as _urlencode
 
 from bittrex.constants import BITTREX_CANCEL_ORDER, BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, \
+    LOG_ALL_TRACE
 from utils.key_utils import signed_string
 from utils.file_utils import log_to_file
 
@@ -48,11 +49,16 @@ def parse_deal_id_bittrex(json_document):
         u'success': True
     }
     """
+    if get_logging_level() >= LOG_ALL_TRACE:
+        log_to_file("bittrex\n" + str(json_document), "parse_id.log")
+        try:
+            log_to_file("bittrex\n" + str(json_document.json()), "parse_id.log")
+        except:
+            pass
+
     if json_document.status_code == 200:
         json_document = json_document.json()
         if "result" in json_document and "uuid" in json_document["result"]:
             return json_document["result"]["uuid"]
-
-    log_to_file("bittrex\n" + str(json_document), "parse_id.log")
 
     return None
