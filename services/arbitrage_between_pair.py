@@ -114,7 +114,8 @@ def compute_new_min_cap_from_tickers(tickers):
     min_price = 0.0
 
     for ticker in tickers:
-        min_price = max(min_price, ticker.ask)
+        if ticker is not None:
+            min_price = max(min_price, ticker.ask)
 
     if min_price != 0.0:
         return 0.002 / min_price
