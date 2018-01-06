@@ -48,8 +48,10 @@ def parse_deal_id_bittrex(json_document):
         u'success': True
     }
     """
-    if "result" in json_document and "uuid" in json_document["result"]:
-        return json_document["result"]["uuid"]
+    if json_document.status_code == 200:
+        json_document = json_document.json()
+        if "result" in json_document and "uuid" in json_document["result"]:
+            return json_document["result"]["uuid"]
 
     log_to_file("bittrex\n" + str(json_document), "parse_id.log")
 

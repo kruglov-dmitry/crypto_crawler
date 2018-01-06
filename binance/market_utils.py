@@ -62,8 +62,10 @@ def parse_deal_id_binance(json_document):
     u'price': u'0.00111100',
     u'executedQty': u'27.79000000'}
     """
-    if json_document is not None and "orderId" in json_document:
-        return json_document["orderId"]
+    if json_document.status_code == 200:
+        json_document = json_document.json()
+        if json_document is not None and "orderId" in json_document:
+            return json_document["orderId"]
 
     log_to_file("binnace\n" + str(json_document), "parse_id.log")
 

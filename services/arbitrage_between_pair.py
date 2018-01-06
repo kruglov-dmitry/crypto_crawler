@@ -155,8 +155,9 @@ def compute_time_key(timest, rounding_interval):
 
 
 def add_deals_to_watch_list(list_of_deals, deal_pair):
-    msg = "Add order to watch list - {pair}".format(pair=str(deal_pair))
-    log_to_file(msg, "expire_deal.log")
+    if deal_pair is not None:
+        msg = "Add order to watch list - {pair}".format(pair=str(deal_pair))
+        log_to_file(msg, "expire_deal.log")
     if deal_pair is None:
         return
     # cache deals to be checked
@@ -178,7 +179,12 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
     :param msg_queue: cache for Telegram notification
     :return:
     """
-    time_key = long(get_now_seconds_utc() / cfg.deal_expire_timeout)
+    if len(list_of_deals) == 0:
+        return
+
+    time_key = compute_time_key(get_now_seconds_utc(), cfg.deal_expire_timeout)
+    msg = "process_expired_deals - for time)key - {tk}".format(tk=str(time_key))
+    log_to_file(msg, "expire_deal.log")
 
     for ts in list_of_deals:
         if cfg.deal_expire_timeout > time_key - ts:
