@@ -60,6 +60,7 @@ def log_cant_cancel_deal(every_deal, cfg, msg_queue):
 
     print_to_console(msg, LOG_ALL_ERRORS)
     log_to_file(msg, cfg.log_file_name)
+    log_to_file(msg, "expire_deal.log")
 
 
 def log_placing_new_deal(every_deal, cfg, msg_queue):
@@ -67,6 +68,7 @@ def log_placing_new_deal(every_deal, cfg, msg_queue):
     Deal details: {deal}""".format(deal=str(every_deal))
 
     log_to_file(msg, cfg.log_file_name)
+    log_to_file(msg, "expire_deal.log")
 
     msg_queue.add_message(DEAL_INFO_MSG, msg)
 
@@ -81,6 +83,7 @@ def log_cant_placing_new_deal(every_deal, cfg, msg_queue):
     """.format(deal=str(every_deal))
 
     log_to_file(msg, cfg.log_file_name)
+    log_to_file(msg, "expire_deal.log")
 
     msg_queue.add_message(DEAL_INFO_MSG, msg)
 
@@ -93,6 +96,7 @@ def log_cant_find_order_book(every_deal, cfg, msg_queue):
 
     log_to_file(msg, cfg.log_file_name)
 
+    log_to_file(msg, "expire_deal.log")
     msg_queue.add_message(DEAL_INFO_MSG, msg)
 
     print_to_console(msg, LOG_ALL_ERRORS)
@@ -145,6 +149,8 @@ def update_min_cap(cfg, deal_cap, processor):
         log_to_file(msg, "cap_price_adjustment.log")
 
 def add_deals_to_watch_list(list_of_deals, deal_pair):
+    msg = "Add order to watch list - {pair}".format(pair=str(deal_pair))
+    log_to_file(msg, "expire_deal.log")
     if deal_pair is None:
         return
     # cache deals to be checked
@@ -180,6 +186,8 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
 
         open_orders_at_both_exchanges = get_open_orders_for_arbitrage_pair(cfg, processor)
         for every_deal in deals_to_check:
+            msg = "Check deal from watch list - {pair}".format(pair=str(every_deal))
+            log_to_file(msg, "expire_deal.log")
             if deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
                 err_code, responce = cancel_by_exchange(every_deal)
                 if err_code == STATUS.FAILURE:

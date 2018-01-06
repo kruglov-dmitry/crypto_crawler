@@ -73,14 +73,14 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
             log_arbitrage_determined_volume_not_enough(sell_order_book, buy_order_book, msg_queue)
             return deal_status
 
-        sell_price = adjust_price_by_order_book(sell_order_book.bid, min_volume)
+        sell_price = sell_order_book.bid[0].price #  adjust_price_by_order_book(sell_order_book.bid, min_volume)
 
         create_time = get_now_seconds_utc()
         trade_at_first_exchange = Trade(DEAL_TYPE.SELL, sell_order_book.exchange_id, sell_order_book.pair_id,
                                         sell_price, min_volume, sell_order_book.timest,
                                         create_time)
 
-        buy_price = adjust_price_by_order_book(buy_order_book.ask, min_volume)
+        buy_price = buy_order_book.ask[0].price  # adjust_price_by_order_book(buy_order_book.ask, min_volume)
         trade_at_second_exchange = Trade(DEAL_TYPE.BUY, buy_order_book.exchange_id, buy_order_book.pair_id,
                                          buy_price, min_volume, buy_order_book.timest,
                                          create_time)
