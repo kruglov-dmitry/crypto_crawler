@@ -60,4 +60,3 @@ def log_arbitrage_determined_volume_not_enough(sell_order_book, buy_order_book, 
         vol2=float_to_str(buy_order_book.ask[LAST].volume))
     print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
     log_to_file(msg, DEBUG_LOG_FILE_NAME)
-    msg_queue.add_message(DEBUG_INFO_MSG, msg)
