@@ -16,8 +16,13 @@ BINANCE_GET_HISTORY = "https://api.binance.com/api/v1/aggTrades?symbol="
 
 
 BINANCE_CURRENCY_PAIRS = ["DASHBTC", "ETHBTC", "LTCBTC", "XRPBTC", "BCCBTC", "ETCBTC", "OMGBTC", "ZECBTC", "XMRBTC",
-                      "DASHETH", "XRPETH", "BCCETH", "ETCETH", "OMGETH", "ZECETH", "XMRETH",
-                      "BTCUSDT", "ETHUSDT", "BCCUSDT"
+                          "NEOBTC", "QTUMBTC", "EOSBTC", "IOTABTC", "BTGBTC", "WTCBTC", "KNCBTC", "BATBTC", "ZRXBTC",
+                          "RDNBTC", "GASBTC", "ADABTC", "RCNBTC", "ICXBTC", "WABIBTC", "XLMBTC", "TRXBTC", "AIONBTC",
+                          "DASHETH", "XRPETH", "BCCETH", "ETCETH", "OMGETH", "ZECETH", "XMRETH",
+                          "NEOETH", "QTUMETH", "EOSETH", "IOTAETH", "BTGETH", "WTCETH", "KNCETH", "BATETH", "ZRXETH",
+                          "RDNETH", "ADAETH", "RCNETH", "ICXETH", "WABIETH", "XLMETH", "TRXETH", "AIONETH",
+                          "BTCUSDT", "ETHUSDT", "BCCUSDT",
+                          "NEOUSDT"
                           ]
 
 BINANCE_NUM_OF_DEAL_RETRY = 1

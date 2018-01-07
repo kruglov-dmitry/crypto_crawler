@@ -29,16 +29,16 @@ class CURRENCY_PAIR:
     BTC_TO_GAS = 27
     BTC_TO_ADA = 28
     BTC_TO_RCN = 29
-    BTC_TO_QSB = 30
-    BTC_TO_XBY = 31
-    BTC_TO_PAC = 32
-    BTC_TO_RDD = 33
+    BTC_TO_QSB = 30         # Not exist on binance
+    BTC_TO_XBY = 31         # Not exist on binance
+    BTC_TO_PAC = 32         # Not exist on binance
+    BTC_TO_RDD = 33         # Not exist on binance
     BTC_TO_ICX = 34
     BTC_TO_WABI = 35
     BTC_TO_XLM = 36
     BTC_TO_TRX = 37
     BTC_TO_AION = 38
-    BTC_TO_ITC = 39
+    BTC_TO_ITC = 39         # Not exist on binance
 
     ETH_TO_DASH = 1001
     ETH_TO_BTC = 1002       # NOT EXIST ON kraken, poloniex, bittrex
@@ -54,6 +54,30 @@ class CURRENCY_PAIR:
     ETH_TO_ZEC = 1012
     ETH_TO_REP = 1013
     ETH_TO_XMR = 1014
+
+    ETH_TO_NEO = 1015       #
+    ETH_TO_QTUM = 1016      #
+    ETH_TO_EOS = 1017       #
+    ETH_TO_IOTA = 1018
+    ETH_TO_BTG = 1019
+    ETH_TO_WTC = 1020
+    ETH_TO_KNC = 1021
+    ETH_TO_BAT = 1022
+    ETH_TO_ZRX = 1023
+    ETH_TO_RDN = 1024
+    ETH_TO_GAS = 1025       # Not exist on binance
+    ETH_TO_ADA = 1026
+    ETH_TO_RCN = 1027
+    ETH_TO_QSB = 1028       # Not exist on binance
+    ETH_TO_XBY = 1029       # Not exist on binance
+    ETH_TO_PAC = 1030       # Not exist on binance
+    ETH_TO_RDD = 1031       # Not exist on binance
+    ETH_TO_ICX = 1032
+    ETH_TO_WABI = 1033
+    ETH_TO_XLM = 1034
+    ETH_TO_TRX = 1035
+    ETH_TO_AION = 1036
+    ETH_TO_ITC = 1037       # Not exist on binance
 
     USD_TO_DASH = 2001
     USD_TO_ETH = 2002
@@ -86,6 +110,30 @@ class CURRENCY_PAIR:
     USDT_TO_ZEC = 3012      # NOT EXIST ON kraken
     USDT_TO_REP = 3013      # NOT EXIST ON kraken
     USDT_TO_XMR = 3014      # NOT EXIST ON kraken
+
+    USDT_TO_NEO = 3015      # binance
+    USDT_TO_QTUM = 3016
+    USDT_TO_EOS = 3017
+    USDT_TO_IOTA = 3018
+    USDT_TO_BTG = 3019
+    USDT_TO_WTC = 3020
+    USDT_TO_KNC = 3021
+    USDT_TO_BAT = 3022
+    USDT_TO_ZRX = 3023
+    USDT_TO_RDN = 3024
+    USDT_TO_GAS = 3025
+    USDT_TO_ADA = 3026
+    USDT_TO_RCN = 3027
+    USDT_TO_QSB = 3028
+    USDT_TO_XBY = 3029
+    USDT_TO_PAC = 3030
+    USDT_TO_RDD = 3031
+    USDT_TO_ICX = 3032
+    USDT_TO_WABI = 3033
+    USDT_TO_XLM = 3034
+    USDT_TO_TRX = 3035
+    USDT_TO_AION = 3036
+    USDT_TO_ITC = 3037
 
     USD_TO_USDT = 4000      # kraken only
 
