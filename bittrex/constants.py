@@ -13,10 +13,13 @@ BITTREX_GET_ORDER_BOOK = "https://bittrex.com/api/v1.1/public/getorderbook?type=
 BITTREX_GET_HISTORY = "https://bittrex.com/api/v1.1/public/getmarkethistory?market="
 
 BITTREX_CURRENCY_PAIRS = ["BTC-DASH", "BTC-ETH", "BTC-LTC", "BTC-XRP", "BTC-BCC", "BTC-ETC", "BTC-SC", "BTC-DGB",
-                      "BTC-XEM", "BTC-ARDR", "BTC-OMG", "BTC-ZEC", "BTC-REP", "BTC-XMR", "BTC-DOGE",
-                      "ETH-DASH", "ETH-LTC", "ETH-XRP", "ETH-BCC", "ETH-ETC", "ETH-SC", "ETH-DGB", "ETH-XEM", "ETH-OMG",
-                      "ETH-ZEC", "ETH-REP", "ETH-XMR",
-                      "USDT-DASH", "USDT-BTC", "USDT-ETH", "USDT-LTC", "USDT-XRP", "USDT-ETC", "USDT-BCC", "USDT-ZEC", "USDT-XMR"
+                          "BTC-XEM", "BTC-ARDR", "BTC-OMG", "BTC-ZEC", "BTC-REP", "BTC-XMR", "BTC-DOGE",
+                          "BTC-NEO", "BTC-QTUM", "BTC-BTG", "BTC-BAT", "BTC-ADA", "BTC-RCN", "BTC-RDD", "BTC-XLM",
+                          "ETH-DASH", "ETH-LTC", "ETH-XRP", "ETH-BCC", "ETH-ETC", "ETH-SC", "ETH-DGB", "ETH-XEM",
+                          "ETH-OMG", "ETH-ZEC", "ETH-REP", "ETH-XMR", "ETH-NEO", "ETH-QTUM", "ETH-BTG", "ETH-BAT",
+                          "ETH-ADA", "ETH-RCN", "ETH-XLM",
+                          "USDT-DASH", "USDT-BTC", "USDT-ETH", "USDT-LTC", "USDT-XRP", "USDT-ETC", "USDT-BCC",
+                          "USDT-ZEC", "USDT-XMR", "USDT-NEO", "USDT-BTG", "USDT-ADA"
                           ]
 
 # https://bittrex.com/api/v1.1/market/buylimit?apikey=API_KEY&market=BTC-LTC&quantity=1.2&rate=1.3

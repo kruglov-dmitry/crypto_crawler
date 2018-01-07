@@ -72,3 +72,8 @@ How to check what the fuck is happening with the bot:
 https://api.telegram.org/bot438844686:AAE8lS3VyMsNgtytR4I1uWy4DLUaot2e5hU/getUpdates
 
 """
+
+
+### Get all tradable pairs
+https://www.binance.com/api/v1/ticker/allBookTickers
+https://bittrex.com/api/v1.1/public/getmarkets
