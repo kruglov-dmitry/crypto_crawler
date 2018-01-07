@@ -25,7 +25,10 @@ def get_currency_id_from_kraken(currency_name):
         'XREP': CURRENCY.REP,
         'REP': CURRENCY.REP,
         'XXMR': CURRENCY.XMR,
-        'XMR': CURRENCY.XMR
+        'XMR': CURRENCY.XMR,
+        'EOS': CURRENCY.EOS,
+        'XLM': CURRENCY.XLM,
+        'XXLM': CURRENCY.XLM,
     }.get(currency_name)
 
 
@@ -43,7 +46,9 @@ def get_currency_name_for_kraken(currency_id):
         CURRENCY.USDT: 'USDT',
         CURRENCY.ZEC: 'XZEC',
         CURRENCY.REP: 'XREP',
-        CURRENCY.XMR: 'XXMR'
+        CURRENCY.XMR: 'XXMR',
+        CURRENCY.EOS: 'EOS',
+        CURRENCY.XLM: 'XLM',
     }.get(currency_id)
 
 
@@ -67,10 +72,14 @@ def get_currency_pair_from_kraken(pair_name):
         'REPXBT': CURRENCY_PAIR.BTC_TO_REP,
         'XXMRXXBT': CURRENCY_PAIR.BTC_TO_XMR,
         'XMRXBT': CURRENCY_PAIR.BTC_TO_XMR,
+        'EOSXBT': CURRENCY_PAIR.BTC_TO_EOS,
+        'XLMXBT': CURRENCY_PAIR.BTC_TO_XLM,
+        'XXLMXBT': CURRENCY_PAIR.BTC_TO_XLM,
         'XETCXETH': CURRENCY_PAIR.ETH_TO_ETC,
         'ETCETH': CURRENCY_PAIR.ETH_TO_ETC,
         'XREPXETH': CURRENCY_PAIR.ETH_TO_REP,
         'REPETH': CURRENCY_PAIR.ETH_TO_REP,
+        'EOSETH': CURRENCY_PAIR.ETH_TO_EOS,
         'DASHUSD': CURRENCY_PAIR.USD_TO_DASH,
         'XETHZUSD': CURRENCY_PAIR.USD_TO_ETH,
         'ETHUSD': CURRENCY_PAIR.USD_TO_ETH,
@@ -101,8 +110,11 @@ def get_currency_pair_to_kraken(pair_id):
         CURRENCY_PAIR.BTC_TO_REP: 'XREPXXBT',
         CURRENCY_PAIR.BTC_TO_DOGE: 'XXDGXXBT',
         CURRENCY_PAIR.BTC_TO_XMR: 'XXMRXXBT',
+        CURRENCY_PAIR.BTC_TO_EOS: 'EOSXBT',
+        CURRENCY_PAIR.BTC_TO_XLM: 'XLMXBT',
         CURRENCY_PAIR.ETH_TO_ETC: 'XETCXETH',
         CURRENCY_PAIR.ETH_TO_REP:'XREPXETH',
+        CURRENCY_PAIR.ETH_TO_EOS: 'EOSETH',
         CURRENCY_PAIR.USD_TO_DASH: 'DASHUSD',
         CURRENCY_PAIR.USD_TO_ETH: 'XETHZUSD',
         CURRENCY_PAIR.USD_TO_LTC: 'XLTCZUSD',

@@ -77,3 +77,6 @@ https://api.telegram.org/bot438844686:AAE8lS3VyMsNgtytR4I1uWy4DLUaot2e5hU/getUpd
 ### Get all tradable pairs
 https://www.binance.com/api/v1/ticker/allBookTickers
 https://bittrex.com/api/v1.1/public/getmarkets
+
+https://api.kraken.com/0/public/Assets
+https://api.kraken.com/0/public/AssetPairs
