@@ -30,7 +30,7 @@ class CURRENCY:
     GAS = 27
     ADA = 28
     RCN = 29
-    QSB = 30
+    QSP = 30
     XBY = 31
     PAC = 32
     RDD = 33
@@ -79,7 +79,7 @@ class CURRENCY:
                 CURRENCY.GAS,
                 CURRENCY.ADA,
                 CURRENCY.RCN,
-                CURRENCY.QSB,
+                CURRENCY.QSP,
                 CURRENCY.XBY,
                 CURRENCY.PAC,
                 CURRENCY.RDD,

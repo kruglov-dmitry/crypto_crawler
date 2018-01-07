@@ -21,6 +21,8 @@ def get_currency_id_from_poloniex(currency_name):
         'XMR': CURRENCY.XMR,
         'DOGE': CURRENCY.DOGE,
         'DCR': CURRENCY.DCR,
+        'ZRX': CURRENCY.ZRX,
+        'GAS': CURRENCY.GAS,
         'USDT': CURRENCY.USDT
     }.get(currency_name)
 
@@ -44,6 +46,8 @@ def get_currency_name_for_poloniex(currency_id):
         CURRENCY.XMR: 'XMR',
         CURRENCY.DOGE: 'DOGE',
         CURRENCY.DCR: 'DCR',
+        CURRENCY.ZRX: 'ZRX',
+        CURRENCY.GAS: 'GAS',
         CURRENCY.USDT: 'USDT'
     }.get(currency_id)
 
@@ -66,11 +70,15 @@ def get_currency_pair_from_poloniex(pair_name):
         'BTC_XMR': CURRENCY_PAIR.BTC_TO_XMR,
         'BTC_DOGE': CURRENCY_PAIR.BTC_TO_DOGE,
         'BTC_DCR': CURRENCY_PAIR.BTC_TO_DCR,
+        'BTC_ZRX': CURRENCY_PAIR.BTC_TO_ZRX,
+        'BTC_GAS':CURRENCY_PAIR.BTC_TO_GAS,
         'ETH_ETC': CURRENCY_PAIR.ETH_TO_ETC,
         'ETH_BCH': CURRENCY_PAIR.ETH_TO_BCC,
         'ETH_OMG': CURRENCY_PAIR.ETH_TO_OMG,
         'ETH_ZEC': CURRENCY_PAIR.ETH_TO_ZEC,
         'ETH_REP': CURRENCY_PAIR.ETH_TO_REP,
+        'ETH_ZRX': CURRENCY_PAIR.ETH_TO_ZRX,
+        'ETH_GAS': CURRENCY_PAIR.ETH_TO_GAS,
         'USDT_DASH': CURRENCY_PAIR.USDT_TO_DASH,
         'USDT_BTC': CURRENCY_PAIR.USDT_TO_BTC,
         'USDT_ETH': CURRENCY_PAIR.USDT_TO_ETH,
@@ -102,11 +110,15 @@ def get_currency_pair_to_poloniex(pair_id):
         CURRENCY_PAIR.BTC_TO_XMR: 'BTC_XMR',
         CURRENCY_PAIR.BTC_TO_DOGE: 'BTC_DOGE',
         CURRENCY_PAIR.BTC_TO_DCR: 'BTC_DCR',
+        CURRENCY_PAIR.BTC_TO_ZRX: 'BTC_ZRX',
+        CURRENCY_PAIR.BTC_TO_GAS: 'BTC_GAS',
         CURRENCY_PAIR.ETH_TO_ETC: 'ETH_ETC',
         CURRENCY_PAIR.ETH_TO_BCC: 'ETH_BCH',
         CURRENCY_PAIR.ETH_TO_OMG: 'ETH_OMG',
         CURRENCY_PAIR.ETH_TO_ZEC: 'ETH_ZEC',
         CURRENCY_PAIR.ETH_TO_REP: 'ETH_REP',
+        CURRENCY_PAIR.ETH_TO_ZRX: 'ETH_ZRX',
+        CURRENCY_PAIR.ETH_TO_GAS: 'ETH_GAS',
         CURRENCY_PAIR.USDT_TO_DASH: 'USDT_DASH',
         CURRENCY_PAIR.USDT_TO_BTC: 'USDT_BTC',
         CURRENCY_PAIR.USDT_TO_ETH: 'USDT_ETH',

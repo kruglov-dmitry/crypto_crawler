@@ -80,3 +80,5 @@ https://bittrex.com/api/v1.1/public/getmarkets
 
 https://api.kraken.com/0/public/Assets
 https://api.kraken.com/0/public/AssetPairs
+
+https://poloniex.com/public?command=returnTicker

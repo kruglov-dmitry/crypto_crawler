@@ -16,29 +16,29 @@ class CURRENCY_PAIR:
     BTC_TO_DOGE = 15
     BTC_TO_DCR = 16         # NOT EXIST on kraken
 
-    BTC_TO_NEO = 17         # NOT EXIST on kraken
-    BTC_TO_QTUM = 18        # NOT EXIST on kraken
-    BTC_TO_EOS = 19         # not exist on bittrex
-    BTC_TO_IOTA = 20        # not exist on bittrex, kraken
-    BTC_TO_BTG = 21         # NOT EXIST on kraken
-    BTC_TO_WTC = 22         # not exist on bittrex, kraken
-    BTC_TO_KNC = 23         # not exist on bittrex, kraken
-    BTC_TO_BAT = 24         # NOT EXIST on kraken
+    BTC_TO_NEO = 17         # NOT EXIST on kraken, poloniex
+    BTC_TO_QTUM = 18        # NOT EXIST on kraken, poloniex
+    BTC_TO_EOS = 19         # not exist on bittrex, poloniex
+    BTC_TO_IOTA = 20        # not exist on bittrex, kraken, poloniex
+    BTC_TO_BTG = 21         # NOT EXIST on kraken, poloniex
+    BTC_TO_WTC = 22         # not exist on bittrex, kraken, poloniex
+    BTC_TO_KNC = 23         # not exist on bittrex, kraken, poloniex
+    BTC_TO_BAT = 24         # NOT EXIST on kraken, poloniex
     BTC_TO_ZRX = 25         # not exist on bittrex, kraken
-    BTC_TO_RDN = 26         # not exist on bittrex, kraken
+    BTC_TO_RDN = 26         # not exist on bittrex, kraken, poloniex
     BTC_TO_GAS = 27         # not exist on bittrex, kraken
-    BTC_TO_ADA = 28         # not exist on kraken
-    BTC_TO_RCN = 29         # not exist on kraken
-    BTC_TO_QSB = 30         # Not exist on binance, bittrex, kraken
-    BTC_TO_XBY = 31         # Not exist on binance, bittrex, kraken
-    BTC_TO_PAC = 32         # Not exist on binance, bittrex, kraken
-    BTC_TO_RDD = 33         # Not exist on binance, kraken
-    BTC_TO_ICX = 34         # Not exist on bittrex, kraken
-    BTC_TO_WABI = 35        # Not exist on bittrex, kraken
-    BTC_TO_XLM = 36
-    BTC_TO_TRX = 37         # Not exist on bittrex, kraken
-    BTC_TO_AION = 38        # Not exist on bittrex, kraken
-    BTC_TO_ITC = 39         # Not exist on binance, bittrex, kraken
+    BTC_TO_ADA = 28         # not exist on kraken, poloniex
+    BTC_TO_RCN = 29         # not exist on kraken, poloniex
+    BTC_TO_QSP = 30         # Not exist on bittrex, kraken, poloniex
+    BTC_TO_XBY = 31         # Not exist on binance, bittrex, kraken, poloniex
+    BTC_TO_PAC = 32         # Not exist on binance, bittrex, kraken, poloniex
+    BTC_TO_RDD = 33         # Not exist on binance, kraken, poloniex
+    BTC_TO_ICX = 34         # Not exist on bittrex, kraken, poloniex
+    BTC_TO_WABI = 35        # Not exist on bittrex, kraken, poloniex
+    BTC_TO_XLM = 36         # not exist at poloniex
+    BTC_TO_TRX = 37         # Not exist on bittrex, kraken, poloniex
+    BTC_TO_AION = 38        # Not exist on bittrex, kraken, poloniex
+    BTC_TO_ITC = 39         # Not exist on binance, bittrex, kraken, poloniex
 
     ETH_TO_DASH = 1001
     ETH_TO_BTC = 1002       # NOT EXIST ON kraken, poloniex, bittrex
@@ -55,29 +55,29 @@ class CURRENCY_PAIR:
     ETH_TO_REP = 1013
     ETH_TO_XMR = 1014
 
-    ETH_TO_NEO = 1015       # NOT EXIST on kraken
-    ETH_TO_QTUM = 1016      # NOT EXIST on kraken
-    ETH_TO_EOS = 1017       # not exist on bittrex
-    ETH_TO_IOTA = 1018      # not exist on bittrex, kraken
-    ETH_TO_BTG = 1019       # NOT EXIST on kraken
-    ETH_TO_WTC = 1020       # not exist on bittrex, kraken
-    ETH_TO_KNC = 1021       # not exist on bittrex, kraken
-    ETH_TO_BAT = 1022       # NOT EXIST on kraken
+    ETH_TO_NEO = 1015       # NOT EXIST on kraken, poloniex
+    ETH_TO_QTUM = 1016      # NOT EXIST on kraken, poloniex
+    ETH_TO_EOS = 1017       # not exist on bittrex, poloniex
+    ETH_TO_IOTA = 1018      # not exist on bittrex, kraken, poloniex
+    ETH_TO_BTG = 1019       # NOT EXIST on kraken, poloniex
+    ETH_TO_WTC = 1020       # not exist on bittrex, kraken, poloniex
+    ETH_TO_KNC = 1021       # not exist on bittrex, kraken, poloniex
+    ETH_TO_BAT = 1022       # NOT EXIST on kraken, poloniex
     ETH_TO_ZRX = 1023       # not exist on bittrex, kraken
-    ETH_TO_RDN = 1024       # not exist on bittrex, kraken
+    ETH_TO_RDN = 1024       # not exist on bittrex, kraken, poloniex
     ETH_TO_GAS = 1025       # Not exist on binance, bittrex, kraken
-    ETH_TO_ADA = 1026       # not exist on kraken
-    ETH_TO_RCN = 1027       # not exist on kraken
-    ETH_TO_QSB = 1028       # Not exist on binance, bittrex, kraken
-    ETH_TO_XBY = 1029       # Not exist on binance, bittrex, kraken
-    ETH_TO_PAC = 1030       # Not exist on binance, bittrex, kraken
-    ETH_TO_RDD = 1031       # Not exist on binance, bittrex, kraken
-    ETH_TO_ICX = 1032       # Not exist on bittrex, kraken
-    ETH_TO_WABI = 1033      # Not exist on bittrex, kraken
-    ETH_TO_XLM = 1034       # not exist on kraken
-    ETH_TO_TRX = 1035       # Not exist on bittrex, kraken
-    ETH_TO_AION = 1036      # Not exist on bittrex, kraken
-    ETH_TO_ITC = 1037       # Not exist on binance, bittrex
+    ETH_TO_ADA = 1026       # not exist on kraken, poloniex
+    ETH_TO_RCN = 1027       # not exist on kraken, poloniex
+    ETH_TO_QSP = 1028       # Not exist on bittrex, kraken, poloniex
+    ETH_TO_XBY = 1029       # Not exist on binance, bittrex, kraken, poloniex
+    ETH_TO_PAC = 1030       # Not exist on binance, bittrex, kraken, poloniex
+    ETH_TO_RDD = 1031       # Not exist on binance, bittrex, kraken, poloniex
+    ETH_TO_ICX = 1032       # Not exist on bittrex, kraken, poloniex
+    ETH_TO_WABI = 1033      # Not exist on bittrex, kraken, poloniex
+    ETH_TO_XLM = 1034       # not exist on kraken, poloniex
+    ETH_TO_TRX = 1035       # Not exist on bittrex, kraken, poloniex
+    ETH_TO_AION = 1036      # Not exist on bittrex, kraken, poloniex
+    ETH_TO_ITC = 1037       # Not exist on binance, bittrex, poloniex
 
     USD_TO_DASH = 2001
     USD_TO_ETH = 2002
@@ -124,7 +124,7 @@ class CURRENCY_PAIR:
     USDT_TO_GAS = 3025
     USDT_TO_ADA = 3026
     USDT_TO_RCN = 3027
-    USDT_TO_QSB = 3028
+    USDT_TO_QSP = 3028
     USDT_TO_XBY = 3029
     USDT_TO_PAC = 3030
     USDT_TO_RDD = 3031
@@ -168,7 +168,7 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.BTC_TO_GAS,
                 CURRENCY_PAIR.BTC_TO_ADA,
                 CURRENCY_PAIR.BTC_TO_RCN,
-                CURRENCY_PAIR.BTC_TO_QSB,
+                CURRENCY_PAIR.BTC_TO_QSP,
                 CURRENCY_PAIR.BTC_TO_XBY,
                 CURRENCY_PAIR.BTC_TO_PAC,
                 CURRENCY_PAIR.BTC_TO_RDD,
@@ -190,6 +190,29 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.ETH_TO_ZEC,
                 CURRENCY_PAIR.ETH_TO_REP,
                 CURRENCY_PAIR.ETH_TO_XMR,
+                CURRENCY_PAIR.ETH_TO_NEO,
+                CURRENCY_PAIR.ETH_TO_QTUM,
+                CURRENCY_PAIR.ETH_TO_EOS,
+                CURRENCY_PAIR.ETH_TO_IOTA,
+                CURRENCY_PAIR.ETH_TO_BTG,
+                CURRENCY_PAIR.ETH_TO_WTC,
+                CURRENCY_PAIR.ETH_TO_KNC,
+                CURRENCY_PAIR.ETH_TO_BAT,
+                CURRENCY_PAIR.ETH_TO_ZRX,
+                CURRENCY_PAIR.ETH_TO_RDN,
+                CURRENCY_PAIR.ETH_TO_GAS,
+                CURRENCY_PAIR.ETH_TO_ADA,
+                CURRENCY_PAIR.ETH_TO_RCN,
+                CURRENCY_PAIR.ETH_TO_QSP,
+                CURRENCY_PAIR.ETH_TO_XBY,
+                CURRENCY_PAIR.ETH_TO_PAC,
+                CURRENCY_PAIR.ETH_TO_RDD,
+                CURRENCY_PAIR.ETH_TO_ICX,
+                CURRENCY_PAIR.ETH_TO_WABI,
+                CURRENCY_PAIR.ETH_TO_XLM,
+                CURRENCY_PAIR.ETH_TO_TRX,
+                CURRENCY_PAIR.ETH_TO_AION,
+                CURRENCY_PAIR.ETH_TO_ITC,
                 CURRENCY_PAIR.USD_TO_DASH,
                 CURRENCY_PAIR.USD_TO_BTC,
                 CURRENCY_PAIR.USD_TO_LTC,
@@ -214,5 +237,29 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.USDT_TO_ZEC,
                 CURRENCY_PAIR.USDT_TO_REP,
                 CURRENCY_PAIR.USDT_TO_XMR,
+
+                CURRENCY_PAIR.USDT_TO_NEO,
+                CURRENCY_PAIR.USDT_TO_QTUM,
+                CURRENCY_PAIR.USDT_TO_EOS,
+                CURRENCY_PAIR.USDT_TO_IOTA,
+                CURRENCY_PAIR.USDT_TO_BTG,
+                CURRENCY_PAIR.USDT_TO_WTC,
+                CURRENCY_PAIR.USDT_TO_KNC,
+                CURRENCY_PAIR.USDT_TO_BAT,
+                CURRENCY_PAIR.USDT_TO_ZRX,
+                CURRENCY_PAIR.USDT_TO_RDN,
+                CURRENCY_PAIR.USDT_TO_GAS,
+                CURRENCY_PAIR.USDT_TO_ADA,
+                CURRENCY_PAIR.USDT_TO_RCN,
+                CURRENCY_PAIR.USDT_TO_QSP,
+                CURRENCY_PAIR.USDT_TO_XBY,
+                CURRENCY_PAIR.USDT_TO_PAC,
+                CURRENCY_PAIR.USDT_TO_RDD,
+                CURRENCY_PAIR.USDT_TO_ICX,
+                CURRENCY_PAIR.USDT_TO_WABI,
+                CURRENCY_PAIR.USDT_TO_XLM,
+                CURRENCY_PAIR.USDT_TO_TRX,
+                CURRENCY_PAIR.USDT_TO_AION,
+                CURRENCY_PAIR.USDT_TO_ITC,
                 CURRENCY_PAIR.USD_TO_USDT
                 ]
