@@ -186,6 +186,11 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
     log_to_file(msg, "expire_deal.log")
 
     for ts in list_of_deals:
+
+        log_to_file("For key {ts} in cached orders - {num} orders".format(ts=ts, num=len(list_of_deals[ts])), "expire_deal.log")
+        for bbb in list_of_deals[ts]:
+            log_to_file(str(bbb), "expire_deal.log")
+
         if cfg.deal_expire_timeout > time_key - ts:
             continue
 
@@ -197,6 +202,7 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
 
         open_orders_at_both_exchanges = get_open_orders_for_arbitrage_pair(cfg, processor)
 
+        log_to_file("Open orders below:", "expire_deal.log")
         # REMOVE ME I AM DEBUG
         for v in open_orders_at_both_exchanges:
             log_to_file(v, "expire_deal.log")

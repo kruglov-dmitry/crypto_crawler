@@ -75,7 +75,7 @@ if __name__ == "__main__":
         if new_exchange_id in EXCHANGE.values():
             exchanges_ids.append(new_exchange_id)
         else:
-            log_wrong_exchange_id(exchanges_id)
+            log_wrong_exchange_id(new_exchange_id)
             raise
 
     log_initial_settings(exchanges_ids)
