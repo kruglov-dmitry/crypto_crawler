@@ -39,6 +39,9 @@ def get_balance_by_exchange(exchange_id):
         msg = "get_balance_by_exchange - Unknown exchange! {idx}".format(idx=exchange_id)
         print_to_console(msg, LOG_ALL_ERRORS)
 
+    a, b = res
+    log_to_file(b, "balance.log")
+
     return res
 
 
