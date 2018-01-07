@@ -66,7 +66,7 @@ class CURRENCY:
                 CURRENCY.XMR,
                 CURRENCY.DOGE,
                 CURRENCY.DCR,
-                CURRENCY.NEO, #  << ---
+                CURRENCY.NEO,
                 CURRENCY.QTUM,
                 CURRENCY.EOS,
                 CURRENCY.IOTA,

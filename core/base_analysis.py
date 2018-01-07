@@ -34,7 +34,7 @@ def compare_price(tickers, threshold, predicate):
 
             if len(tickers_to_check) < 2:
                 for b in tickers_to_check:
-                    log_to_file("Ticker: not found pair tickers for: " + str(b),
+                    log_to_file("Ticker: not found ticker from other markets: " + str(b),
                                 "ticker.log")
             else:
                 current_result = check_all_combinations_list(tickers_to_check, threshold, predicate)
