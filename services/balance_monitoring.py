@@ -97,20 +97,25 @@ if __name__ == "__main__":
         for idx in exchanges_ids:
             tr = "Updating for exch = {exch}".format(exch=get_exchange_name_by_id(idx))
             print_to_console(tr, LOG_ALL_DEBUG)
+            log_to_file(tr, "balance.log")
 
             res = update_balance_by_exchange(idx, cache)
             while res is None:
-                print_to_console("Balance is NONE:", LOG_ALL_MARKET_RELATED_CRAP)
+                print_to_console("Balance is NONE for exchange {exch}".format(exch=get_exchange_name_by_id(idx)), LOG_ALL_MARKET_RELATED_CRAP)
+                log_to_file(tr, "balance.log")
                 sleep_for(1)
                 res = update_balance_by_exchange(idx, cache)
 
             if not res.do_we_have_enough_bitcoin(BITCOIN_ALARM_THRESHOLD):
+                log_to_file(str(res), "balance.log")
                 log_not_enough_bitcoins(idx, res, msg_queue)
 
         if cnt >= TIMEOUT_HEALTH_CHECK:
             cnt = 0
             timest = get_now_seconds_utc()
-            print "At ts={ts} what we have at cache".format(ts=timest)
+            ttl= "At ts={ts} what we have at cache".format(ts=timest)
+            print_to_console(ttl, LOG_ALL_ERRORS)
+            log_to_file(ttl, "balance.log")
             for idx in exchanges_ids:
                 some_balance = cache.get_balance(idx)
                 if some_balance is None or (timest - some_balance.last_update) > MAX_EXPIRE_TIMEOUT:
