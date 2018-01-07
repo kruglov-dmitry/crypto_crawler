@@ -17,6 +17,32 @@ class CURRENCY:
     DOGE = 15
     DCR = 16
 
+    NEO = 17
+    QTUM = 18
+    EOS = 19
+    IOTA = 20
+    BTG = 21
+    WTC = 22
+    KNC = 23
+    BAT = 24
+    ZRX = 25
+    RDN = 26
+    GAS = 27
+    ADA = 28
+    RCN = 29
+    QSB = 30
+    XBY = 31
+    PAC = 32
+    RDD = 33
+    ICX = 34
+    WABI = 35
+    XLM = 36
+    TRX = 37
+    AION = 38
+    ITC = 39
+
+
+
     USD = 1000
     USDT = 1001
 
@@ -40,6 +66,29 @@ class CURRENCY:
                 CURRENCY.XMR,
                 CURRENCY.DOGE,
                 CURRENCY.DCR,
+                CURRENCY.NEO,
+                CURRENCY.QTUM,
+                CURRENCY.EOS,
+                CURRENCY.IOTA,
+                CURRENCY.BTG,
+                CURRENCY.WTC,
+                CURRENCY.KNC,
+                CURRENCY.BAT,
+                CURRENCY.ZRX,
+                CURRENCY.RDN,
+                CURRENCY.GAS,
+                CURRENCY.ADA,
+                CURRENCY.RCN,
+                CURRENCY.QSB,
+                CURRENCY.XBY,
+                CURRENCY.PAC,
+                CURRENCY.RDD,
+                CURRENCY.ICX,
+                CURRENCY.WABI,
+                CURRENCY.XLM,
+                CURRENCY.TRX,
+                CURRENCY.AION,
+                CURRENCY.ITC,
                 CURRENCY.USD,
                 CURRENCY.USDT
                 ]

@@ -16,6 +16,30 @@ class CURRENCY_PAIR:
     BTC_TO_DOGE = 15
     BTC_TO_DCR = 16         # NOT EXIST on kraken
 
+    BTC_TO_NEO = 17
+    BTC_TO_QTUM = 18
+    BTC_TO_EOS = 19
+    BTC_TO_IOTA = 20
+    BTC_TO_BTG = 21
+    BTC_TO_WTC = 22
+    BTC_TO_KNC = 23
+    BTC_TO_BAT = 24
+    BTC_TO_ZRX = 25
+    BTC_TO_RDN = 26
+    BTC_TO_GAS = 27
+    BTC_TO_ADA = 28
+    BTC_TO_RCN = 29
+    BTC_TO_QSB = 30
+    BTC_TO_XBY = 31
+    BTC_TO_PAC = 32
+    BTC_TO_RDD = 33
+    BTC_TO_ICX = 34
+    BTC_TO_WABI = 35
+    BTC_TO_XLM = 36
+    BTC_TO_TRX = 37
+    BTC_TO_AION = 38
+    BTC_TO_ITC = 39
+
     ETH_TO_DASH = 1001
     ETH_TO_BTC = 1002       # NOT EXIST ON kraken, poloniex, bittrex
     ETH_TO_LTC = 1003
@@ -83,6 +107,29 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.BTC_TO_XMR,
                 CURRENCY_PAIR.BTC_TO_DOGE,
                 CURRENCY_PAIR.BTC_TO_DCR,
+                CURRENCY_PAIR.BTC_TO_NEO,
+                CURRENCY_PAIR.BTC_TO_QTUM,
+                CURRENCY_PAIR.BTC_TO_EOS,
+                CURRENCY_PAIR.BTC_TO_IOTA,
+                CURRENCY_PAIR.BTC_TO_BTG,
+                CURRENCY_PAIR.BTC_TO_WTC,
+                CURRENCY_PAIR.BTC_TO_KNC,
+                CURRENCY_PAIR.BTC_TO_BAT,
+                CURRENCY_PAIR.BTC_TO_ZRX,
+                CURRENCY_PAIR.BTC_TO_RDN,
+                CURRENCY_PAIR.BTC_TO_GAS,
+                CURRENCY_PAIR.BTC_TO_ADA,
+                CURRENCY_PAIR.BTC_TO_RCN,
+                CURRENCY_PAIR.BTC_TO_QSB,
+                CURRENCY_PAIR.BTC_TO_XBY,
+                CURRENCY_PAIR.BTC_TO_PAC,
+                CURRENCY_PAIR.BTC_TO_RDD,
+                CURRENCY_PAIR.BTC_TO_ICX,
+                CURRENCY_PAIR.BTC_TO_WABI,
+                CURRENCY_PAIR.BTC_TO_XLM,
+                CURRENCY_PAIR.BTC_TO_TRX,
+                CURRENCY_PAIR.BTC_TO_AION,
+                CURRENCY_PAIR.BTC_TO_ITC,
                 CURRENCY_PAIR.ETH_TO_DASH,
                 CURRENCY_PAIR.ETH_TO_LTC,
                 CURRENCY_PAIR.ETH_TO_XRP,
