@@ -60,6 +60,10 @@ def get_balance_bittrex(key):
 
         {u'Available': 0.0, u'Currency': u'BTS', u'Balance': 0.0, u'Pending': 0.0, u'CryptoAddress': u'490d0054055c43ada6e'},
 
+        Added 07.01.2018
+        Funny bittrex tend to return this:
+        {u'message': u'', u'result': [], u'success': True}
+        It will lead to error message - so such case should not be considered as proper response.
     """
 
     post_details = get_balance_bittrex_post_details(key)
@@ -73,7 +77,7 @@ def get_balance_bittrex(key):
                                                     max_tries=BITTREX_NUM_OF_DEAL_RETRY,
                                                     timeout=BITTREX_DEAL_TIMEOUT)
 
-    if error_code == STATUS.SUCCESS and "result" in res:
+    if error_code == STATUS.SUCCESS and "result" in res and len(res["result"]) > 0:
         res = Balance.from_bittrex(timest, res["result"])
 
     return error_code, res
