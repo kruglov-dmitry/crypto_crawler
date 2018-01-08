@@ -46,17 +46,19 @@ def get_open_orders_poloniex(key, pair_name):
     print "get_open_orders_poloniex", res
     orders = []
     if error_code == STATUS.SUCCESS and res is not None:
-        orders = get_open_orders_poloniex_result_processor(res, pair_name)
+        orders = get_open_orders_poloniex_result_processor(res.json(), pair_name)
 
     return error_code, orders
 
 
 def get_open_orders_poloniex_result_processor(json_document, pair_name):
     orders = []
-    if json_document is not None:
-        for entry in json_document:
-            order = Trade.from_poloniex(entry, pair_name)
-            if order is not None:
-                orders.append(order)
+    if json_document is None:
+        return orders
+
+    for entry in json_document:
+        order = Trade.from_poloniex(entry, pair_name)
+        if order is not None:
+            orders.append(order)
 
     return orders

@@ -13,6 +13,7 @@ from enums.status import STATUS
 
 from utils.key_utils import signed_body_256
 from utils.time_utils import get_now_seconds_utc, get_now_seconds_utc_ms
+from utils.file_utils import log_to_file
 
 
 def get_balance_binance_post_details(key):
@@ -59,6 +60,9 @@ def get_balance_binance(key):
 
     error_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
                                                    timeout=BINANCE_DEAL_TIMEOUT)
+
+    log_to_file("RAW RESPONCE BINANCE", "balance.log")
+    log_to_file(res, "balance.log")
 
     if error_code == STATUS.SUCCESS and res is not None and "balances" in res:
         res = Balance.from_binance(timest, res)

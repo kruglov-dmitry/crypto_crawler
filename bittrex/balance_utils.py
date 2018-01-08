@@ -9,6 +9,7 @@ from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP
+from utils.file_utils import log_to_file
 
 from enums.status import STATUS
 
@@ -72,7 +73,8 @@ def get_balance_bittrex(key):
                                                     err_msg,
                                                     max_tries=BITTREX_NUM_OF_DEAL_RETRY,
                                                     timeout=BITTREX_DEAL_TIMEOUT)
-
+    log_to_file("RAW RESPONCE BITTREX", "balance.log")
+    log_to_file(res, "balance.log")
     if error_code == STATUS.SUCCESS and "result" in res:
         res = Balance.from_bittrex(timest, res["result"])
 
