@@ -14,7 +14,7 @@ from bittrex.buy_utils import add_buy_order_bittrex
 from bittrex.market_utils import cancel_order_bittrex
 from bittrex.order_utils import get_open_orders_bittrix
 from bittrex.sell_utils import add_sell_order_bittrex
-from core.arbitrage_core import dummy_order_state_init
+from core.backtest import dummy_order_state_init
 from dao.deal_utils import init_deals_with_logging_speedy
 from dao.dao import get_updated_order_state
 from dao.history_utils import get_history_speedup
@@ -23,6 +23,7 @@ from dao.order_book_utils import get_order_book_speedup
 from dao.ticker_utils import get_ticker_speedup
 from data.Trade import Trade
 from data.TradePair import TradePair
+from data.ArbitrageConfig import ArbitrageConfig
 from data_access.classes.ConnectionPool import ConnectionPool
 from data_access.memory_cache import generate_nonce
 from enums.currency import CURRENCY
@@ -38,6 +39,11 @@ from poloniex.market_utils import get_orders_history_poloniex
 from poloniex.order_utils import get_open_orders_poloniex
 from utils.key_utils import load_keys, get_key_by_exchange
 from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
+from data_access.message_queue import get_message_queue
+
+from dao.order_utils import get_open_orders_for_arbitrage_pair
+
+from debug_utils import LOG_ALL_DEBUG
 
 POLL_PERIOD_SECONDS = 900
 
@@ -257,3 +263,28 @@ def test_kraken_buy_sell_utils():
     print res
 
 # check_open_order_retrieval()
+
+def test_open_orders_retrieval_arbitrage():
+
+    sell_exchange_id = EXCHANGE.BINANCE
+    buy_exchange_id = EXCHANGE.BITTREX
+    pair_id = CURRENCY_PAIR.BTC_TO_ETH
+    threshold = 2.0
+    reverse_threshold = 2.0
+    deal_expire_timeout = 60
+    logging_level = LOG_ALL_DEBUG
+
+    cfg = ArbitrageConfig(sell_exchange_id, buy_exchange_id,
+                          pair_id, threshold,
+                          reverse_threshold, deal_expire_timeout,
+                          logging_level)
+    load_keys("./secret_keys")
+    msg_queue1 = get_message_queue()
+    processor = ConnectionPool(pool_size=2)
+    print cfg
+    res = get_open_orders_for_arbitrage_pair(cfg, processor)
+    print "Length:", len(res)
+    for r in res:
+        print r
+
+test_open_orders_retrieval_arbitrage()

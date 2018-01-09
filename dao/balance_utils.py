@@ -103,11 +103,14 @@ def update_balance_by_exchange(exchange_id, cache=get_cache()):
     exchange_name = get_exchange_name_by_id(exchange_id)
     if status_code == STATUS.SUCCESS:
         cache.update_balance(exchange_name, balance)
+        log_to_file("Update balance at cache", "balance.log")
+        log_to_file(balance, "balance.log")
         return balance
     else:
         msg = "Can't update balance for exchange_id = {exch1} {exch_name}".format(exch1=exchange_id,
                                                                                             exch_name=exchange_name)
         log_to_file(msg, "cache.log")
+        log_to_file(msg, "balance.log")
 
     return None
 

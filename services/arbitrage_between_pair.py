@@ -179,6 +179,13 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
     if len(list_of_deals) == 0:
         return
 
+    open_orders_at_both_exchanges = get_open_orders_for_arbitrage_pair(cfg, processor)
+    if len(open_orders_at_both_exchanges) == 0:
+        msg = "process_expired_deals - list of open orders from both exchanges is empty, REMOVING all watched deals - consider them closed!"
+        log_to_file(msg, "expire_deal.log")
+        list_of_deals.clear()
+        return
+
     time_key = compute_time_key(get_now_seconds_utc(), cfg.deal_expire_timeout)
 
     # REMOVE ME I AM DEBUG
@@ -191,23 +198,23 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
         for bbb in list_of_deals[ts]:
             log_to_file(str(bbb), "expire_deal.log")
 
-        if cfg.deal_expire_timeout > time_key - ts:
+        if cfg.deal_expire_timeout < time_key - ts:
+            log_to_file("Too early for processing this key", "expire_deal.log")
             continue
 
         deals_to_check = list_of_deals[ts]
         if len(deals_to_check) == 0:
+            log_to_file("THIS CRAP IS ZERO?", "expire_deal.log")
             continue
 
         updated_list = []
-
-        open_orders_at_both_exchanges = get_open_orders_for_arbitrage_pair(cfg, processor)
 
         log_to_file("Open orders below:", "expire_deal.log")
         # REMOVE ME I AM DEBUG
         for v in open_orders_at_both_exchanges:
             log_to_file(v, "expire_deal.log")
 
-        if 135 in open_orders_at_both_exchanges:
+        if None in open_orders_at_both_exchanges:
             msg = "Detected NONE at open_orders - we have to skip this cycle of iteration"
             log_to_file(msg, "expire_deal.log")
             continue
@@ -286,13 +293,16 @@ if __name__ == "__main__":
     if cfg.logging_level_id is not None:
         set_logging_level(cfg.logging_level_id)
 
-    # FIXME to log
-    print cfg
-
+    load_keys("./secret_keys")
     msg_queue1 = get_message_queue()
     processor = ConnectionPool(pool_size=2)
 
-    load_keys("./secret_keys")
+    # to avoid time-consuming check in future - validate arguments here
+    for exchange_id in [results.sell_exchange_id, results.buy_exchange_id]:
+        pair_name = get_currency_pair_name_by_exchange_id(cfg.pair_id, exchange_id)
+        if pair_name is None:
+            msg = "Not supported currency {idx}-{name} for {exch}".format(idx=cfg.pair_id, name=pair_name, exch=get_exchange_name_by_id(exchange_id))
+            exit()
 
     deal_cap = common_cap_init()
     update_min_cap(cfg, deal_cap, processor)

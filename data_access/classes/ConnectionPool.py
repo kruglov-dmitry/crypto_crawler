@@ -4,6 +4,7 @@ import requests
 from gevent.pool import Pool
 from constants import POOL_SIZE
 from utils.file_utils import log_to_file
+from debug_utils import get_logging_level, LOG_ALL_DEBUG
 
 
 class ConnectionPool:
@@ -46,7 +47,7 @@ class ConnectionPool:
                     res.append(some_ticker)
                 else:
                     res.append(None)
-                    msg = "For url {url} response {resp} can't be parsed to ticker".format(url=work_unit.url, resp=work_unit.future_result.value.json())
+                    msg = "For url {url} response {resp} can't be parsed ".format(url=work_unit.url, resp=work_unit.future_result.value.json())
                     log_to_file(msg, "error.txt")
                     log_to_file(msg, "bad_tickers.txt")
             else:
@@ -69,11 +70,24 @@ class ConnectionPool:
 
         res = []
         for work_unit in work_units:
-            if work_unit.future_result.value.status_code == 200:
-                some_result = work_unit.method(work_unit.future_result.value, *work_unit.args)
-                res.append(some_result)
+            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == 200:
+                if get_logging_level() >= LOG_ALL_DEBUG:
+                    msg = "For url {url} response {resp}".format(url=work_unit.url, resp=work_unit.future_result.value.json())
+                    log_to_file(work_unit.future_result.value.json(), "responce.log")
+                some_result = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
+                # FIXME NOTE performance
+                if type(some_result) is list:
+                    res += some_result
+                else:
+                    res.append(some_result)
             else:
-                res.append(135)
+                res.append(None)
+                msg = "For url {url} response {resp} can't be parsed. Next line should be json if any. ".format(url=work_unit.url, resp=work_unit.future_result.value)
+                log_to_file(msg, "error.txt")
+                try:
+                    log_to_file(work_unit.future_result.value.json(), "error.txt")
+                except:
+                    pass
 
         return res
 

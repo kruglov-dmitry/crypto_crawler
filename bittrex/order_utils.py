@@ -48,17 +48,24 @@ def get_open_orders_bittrix(key, pair_name):
     print "get_open_orders_bittrix", res
     orders = []
     if error_code == STATUS.SUCCESS and res is not None and "result" in res:
-        orders = get_open_orders_bittrex_result_processor(res["result"])
+        orders = get_open_orders_bittrex_result_processor(res["result"], pair_name)
 
     return error_code, orders
 
 
-def get_open_orders_bittrex_result_processor(json_document):
+def get_open_orders_bittrex_result_processor(json_document, pair_name):
+    """
+    json_document - response from exchange api as json string
+    pair_name - for backwords compabilities
+    """
+
     orders = []
-    if json_document is not None:
-        for entry in json_document:
-            order = Trade.from_bittrex(entry)
-            if order is not None:
-                orders.append(order)
+    if json_document is None or "result" not in json_document:
+        return orders
+
+    for entry in json_document["result"]:
+        order = Trade.from_bittrex(entry)
+        if order is not None:
+            orders.append(order)
 
     return orders

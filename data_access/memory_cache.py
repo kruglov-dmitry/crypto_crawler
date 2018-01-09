@@ -22,5 +22,5 @@ def generate_nonce():
     # Additionally, all queries must include a "nonce" POST parameter.
     # The nonce parameter is an integer which must always be greater than the previous nonce used.
     # return int(round(time.time() * 1000))
-    global local_cache
-    return local_cache.get_counter()
+    cache = get_cache()
+    return cache.get_counter()

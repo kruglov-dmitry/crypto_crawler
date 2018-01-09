@@ -177,6 +177,7 @@ class Trade(Deal):
         u'Condition': u'NONE',
         u'Quantity': 8500.0}
         """
+        print json_document
         pair_id = get_currency_pair_from_bittrex(json_document["Exchange"])
         if pair_id is None:
             msg = "Trade.from_bittrex - unsupported pair_name - {n}".format(n=json_document["Exchange"])

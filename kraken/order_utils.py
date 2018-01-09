@@ -8,7 +8,7 @@ from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, LOG_ALL_TRACE
 
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
@@ -81,7 +81,7 @@ def get_open_orders_kraken(key, pair_name=None):
     print "get_open_orders_kraken:", res
     open_orders = []
     if error_code == STATUS.SUCCESS and "result" in res:
-        open_orders = get_open_orders_kraken_result_processor(res)
+        open_orders = get_open_orders_kraken_result_processor(res, pair_name)
 
     if pair_name is not None:
         pair_id = get_currency_pair_from_kraken(pair_name)
@@ -90,14 +90,16 @@ def get_open_orders_kraken(key, pair_name=None):
     return error_code, open_orders
 
 
-def get_open_orders_kraken_result_processor(json_document):
+def get_open_orders_kraken_result_processor(json_document, pair_name):
     open_orders = []
 
-    if json_document is not None and "open" in json_document["result"]:
-        for order_id in json_document["result"]["open"]:
-            new_order = Trade.from_kraken(order_id, json_document["result"]["open"][order_id])
-            if new_order is not None:
-                open_orders.append(new_order)
+    if json_document is None or "result" not in json_document or "open" not in json_document["result"]:
+        return open_orders
+
+    for order_id in json_document["result"]["open"]:
+        new_order = Trade.from_kraken(order_id, json_document["result"]["open"][order_id])
+        if new_order is not None:
+            open_orders.append(new_order)
 
     return open_orders
 
