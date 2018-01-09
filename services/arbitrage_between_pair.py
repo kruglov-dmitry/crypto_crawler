@@ -23,7 +23,7 @@ from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG, set_log
 from enums.deal_type import DEAL_TYPE
 from enums.status import STATUS
 
-from utils.currency_utils import split_currency_pairs
+from utils.currency_utils import split_currency_pairs, get_currency_pair_name_by_exchange_id
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
