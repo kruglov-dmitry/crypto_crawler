@@ -9,3 +9,6 @@ class WorkUnit:
 
     def add_post_details(self, post_details):
         self.post_details = post_details
+
+    def add_http_method(self, http_method):
+        self.http_method = http_method

@@ -11,6 +11,7 @@ from debug_utils import print_to_console, LOG_ALL_ERRORS
 
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
+from enums.http_request import HTTP_REQUEST
 
 from kraken.order_utils import get_open_orders_kraken, get_open_orders_kraken_post_details, \
     get_open_orders_kraken_result_processor
@@ -58,6 +59,14 @@ def get_open_orders_constructor_by_exchange_id(exchange_id):
     }[exchange_id]
 
 
+def get_http_method_open_order_by_exchange_id(exchange_id):
+    return {
+        EXCHANGE.BINANCE: HTTP_REQUEST.GET,
+        EXCHANGE.BITTREX: HTTP_REQUEST.POST,
+        EXCHANGE.POLONIEX: HTTP_REQUEST.POST,
+        EXCHANGE.KRAKEN: HTTP_REQUEST.POST,
+    }[exchange_id]
+
 def get_open_orders_for_arbitrage_pair(cfg, processor):
 
     open_orders = []
@@ -69,10 +78,12 @@ def get_open_orders_for_arbitrage_pair(cfg, processor):
         method_for_url = get_open_orders_post_details_generator(exchange_id)
         post_details = method_for_url(key, pair_name)
         constructor = get_open_orders_constructor_by_exchange_id(exchange_id)
+        http_method = get_http_method_open_order_by_exchange_id(exchange_id)
 
         wu = WorkUnit(post_details.final_url, constructor, pair_name)
         wu.add_post_details(post_details)
+        wu.add_http_method(http_method)
 
         open_orders.append(wu)
 
-    return processor.process_async_post(open_orders, HTTP_TIMEOUT_SECONDS)
+    return processor.process_async_custom(open_orders, HTTP_TIMEOUT_SECONDS)
