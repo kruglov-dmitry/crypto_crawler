@@ -106,9 +106,9 @@ if __name__ == "__main__":
                 sleep_for(1)
                 res = update_balance_by_exchange(idx, cache)
 
-            if not res.do_we_have_enough_bitcoin(BITCOIN_ALARM_THRESHOLD):
-                log_to_file(str(res), "balance.log")
-                log_not_enough_bitcoins(idx, res, msg_queue)
+            # if not res.do_we_have_enough_bitcoin(BITCOIN_ALARM_THRESHOLD):
+            #    log_to_file(str(res), "balance.log")
+            #    log_not_enough_bitcoins(idx, res, msg_queue)
 
         if cnt >= TIMEOUT_HEALTH_CHECK:
             cnt = 0

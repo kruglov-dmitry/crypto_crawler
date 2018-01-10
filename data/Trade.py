@@ -200,7 +200,7 @@ class Trade(Deal):
         trade_id = json_document["OrderUuid"]
         executed_volume = json_document["QuantityRemaining"]
 
-        return Trade(trade_type, EXCHANGE.BINANCE, pair_id, price, volume, timest, timest,
+        return Trade(trade_type, EXCHANGE.BITTREX, pair_id, price, volume, timest, timest,
                          execute_time=timest, deal_id=trade_id, executed_volume=executed_volume)
 
     @classmethod

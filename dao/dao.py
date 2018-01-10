@@ -41,6 +41,11 @@ from utils.currency_utils import get_currency_pair_name_by_exchange_id
 
 def buy_by_exchange(trade):
     res = STATUS.FAILURE, None
+    if trade.trade_type != DEAL_TYPE.BUY:
+        msg = "Deal type do NOT correspond to method invocation. {d}".format(d=trade)
+        print_to_console(msg, LOG_ALL_ERRORS)
+        log_to_file(msg, "error.log")
+        raise
 
     key = get_key_by_exchange(trade.exchange_id)
     if trade.exchange_id == EXCHANGE.BITTREX:
@@ -65,6 +70,12 @@ def buy_by_exchange(trade):
 
 def sell_by_exchange(trade):
     res = STATUS.FAILURE, None
+
+    if trade.trade_type != DEAL_TYPE.SELL:
+        msg = "Deal type do NOT correspond to method invocation. {d}".format(d=trade)
+        print_to_console(msg, LOG_ALL_ERRORS)
+        log_to_file(msg, "error.log")
+        raise
 
     key = get_key_by_exchange(trade.exchange_id)
     if trade.exchange_id == EXCHANGE.BITTREX:

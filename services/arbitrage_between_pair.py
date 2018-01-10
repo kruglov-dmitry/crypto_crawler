@@ -30,7 +30,7 @@ from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for
 
 from data.Trade import Trade
-from dao.dao import sell_by_exchange
+from dao.dao import sell_by_exchange, buy_by_exchange
 from enums.currency_pair import CURRENCY_PAIR
 
 
@@ -197,13 +197,17 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
     msg = "process_expired_deals - for time key - {tk}".format(tk=str(time_key))
     log_to_file(msg, "expire_deal.log")
 
+    replacement_deals = []
+
+    updated_list = []
+
     for ts in list_of_deals:
 
         log_to_file("For key {ts} in cached orders - {num} orders".format(ts=ts, num=len(list_of_deals[ts])), "expire_deal.log")
         for bbb in list_of_deals[ts]:
             log_to_file(str(bbb), "expire_deal.log")
 
-        if cfg.deal_expire_timeout < time_key - ts:
+        if cfg.deal_expire_timeout > time_key - ts:
             log_to_file("Too early for processing this key", "expire_deal.log")
             continue
 
@@ -211,8 +215,6 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
         if len(deals_to_check) == 0:
             log_to_file("THIS CRAP IS ZERO?", "expire_deal.log")
             continue
-
-        updated_list = []
 
         log_to_file("Open orders below:", "expire_deal.log")
         # REMOVE ME I AM DEBUG
@@ -250,12 +252,11 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
                     err_code, json_document = init_deal(every_deal, msg)
                     if err_code == STATUS.SUCCESS:
 
-                        new_time_key = compute_time_key(get_now_seconds_utc(), cfg.deal_expire_timeout)
-                        list_of_deals[new_time_key].append(every_deal)
-
                         every_deal.execute_time = get_now_seconds_utc()
                         every_deal.order_book_time = long(last_order_book[every_deal.exchange_id].timest)
                         every_deal.deal_id = parse_deal_id_from_json_by_exchange_id(every_deal.exchange_id, json_document)
+
+                        replacement_deals.append(every_deal)
 
                         log_placing_new_deal(every_deal, cfg, msg_queue)
                     else:
@@ -264,15 +265,21 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
                     log_cant_find_order_book(every_deal, cfg, msg_queue)
                     updated_list.append(every_deal)
 
-        # Hopefully it is empty
-        list_of_deals[ts] = updated_list
+    # FIXME NOTE: how to update it?
+    # We have to clean it
+    # Hopefully it is empty
+    # list_of_deals[ts] = updated_list
 
-        # REMOVE ME I AM DEBUG
-        for tkey in list_of_deals:
-            msg = "For ts = {ts} cached deals are:".format(ts=str(tkey))
-            log_to_file(msg, "expire_deal.log")
-            for b in list_of_deals[tkey]:
-                log_to_file(str(b), "expire_deal.log")
+    for tt in replacement_deals:
+        new_time_key = compute_time_key(tt.execute_time, cfg.deal_expire_timeout)
+        list_of_deals[new_time_key].append(tt)
+
+    # REMOVE ME I AM DEBUG
+    for tkey in list_of_deals:
+        msg = "For ts = {ts} cached deals are:".format(ts=str(tkey))
+        log_to_file(msg, "expire_deal.log")
+        for b in list_of_deals[tkey]:
+            log_to_file(str(b), "expire_deal.log")
 
 
 if __name__ == "__main__":
@@ -319,17 +326,17 @@ if __name__ == "__main__":
     list_of_deals = defaultdict(list)
 
     """
-
     debug part
+    """
 
-    some_price = 0.1
-    some_volume = 1.0
+    some_price = 0.01
+    some_volume = 0.1
     create_time = get_now_seconds_utc()
-    trade_at_first_exchange = Trade(DEAL_TYPE.SELL, cfg.sell_exchange_id, cfg.pair_id,
+    trade_at_first_exchange = Trade(DEAL_TYPE.BUY, cfg.sell_exchange_id, cfg.pair_id,
                                     some_price, some_volume, -1,
                                     create_time)
 
-    err_code, res = sell_by_exchange(trade_at_first_exchange)
+    err_code, res = buy_by_exchange(trade_at_first_exchange)
 
     deal_id = parse_deal_id_from_json_by_exchange_id(cfg.sell_exchange_id, res)
     time_key = compute_time_key(create_time, cfg.deal_expire_timeout)
@@ -338,6 +345,7 @@ if __name__ == "__main__":
 
     list_of_deals[time_key].append(trade_at_first_exchange)
 
+    """
     """
 
     last_order_book = {}
