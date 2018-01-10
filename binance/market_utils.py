@@ -6,7 +6,7 @@ from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_REL
     LOG_ALL_TRACE
 
 from utils.key_utils import signed_body_256
-from utils.time_utils import get_now_seconds_utc
+from utils.time_utils import get_now_seconds_utc_ms
 from utils.file_utils import log_to_file
 
 from binance.constants import BINANCE_CANCEL_ORDER
@@ -18,7 +18,7 @@ def cancel_order_binance(key, pair_name, deal_id):
 
     body = {
         "recvWindow": 5000,
-        "timestamp": get_now_seconds_utc(),
+        "timestamp": get_now_seconds_utc_ms(),
         "symbol": pair_name,
         "orderId": deal_id
     }
@@ -49,7 +49,22 @@ def cancel_order_binance(key, pair_name, deal_id):
     return res
 
 
-def parse_deal_id_binance(json_document):
+def parse_deal_id_binance(http_responce):
+    if get_logging_level() >= LOG_ALL_TRACE:
+        log_to_file("binnace\n" + str(http_responce), "parse_id.log")
+        try:
+            log_to_file("binnace\n" + str(http_responce.json()), "parse_id.log")
+        except:
+            pass
+
+    if http_responce.status_code == 200:
+        json_document = http_responce.json()
+        return parse_deal_id_binance_from_json(json_document)
+
+    return None
+
+
+def parse_deal_id_binance_from_json(json_document):
     """
     {u'orderId': 6599290,
     u'clientOrderId': u'oGDxv6VeLXRdvUA8PiK8KR',
@@ -64,16 +79,7 @@ def parse_deal_id_binance(json_document):
     u'executedQty': u'27.79000000'}
     """
 
-    if get_logging_level() >= LOG_ALL_TRACE:
-        log_to_file("binnace\n" + str(json_document), "parse_id.log")
-        try:
-            log_to_file("binnace\n" + str(json_document.json()), "parse_id.log")
-        except:
-            pass
-
-    if json_document.status_code == 200:
-        json_document = json_document.json()
-        if json_document is not None and "orderId" in json_document:
-            return json_document["orderId"]
+    if json_document is not None and "orderId" in json_document:
+        return json_document["orderId"]
 
     return None

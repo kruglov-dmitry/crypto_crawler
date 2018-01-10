@@ -41,7 +41,22 @@ def cancel_order_bittrex(key, deal_id):
     return res
 
 
-def parse_deal_id_bittrex(json_document):
+def parse_deal_id_bittrex(http_responce):
+    if get_logging_level() >= LOG_ALL_TRACE:
+        log_to_file("bittrex\n" + str(http_responce), "parse_id.log")
+        try:
+            log_to_file("bittrex\n" + str(http_responce.json()), "parse_id.log")
+        except:
+            pass
+
+    if http_responce.status_code == 200:
+        json_document = http_responce.json()
+        return parse_deal_id_bittrex_from_json(json_document)
+
+    return None
+
+
+def parse_deal_id_bittrex_from_json(json_document):
     """
     {u'message': u'',
         u'result': {
@@ -49,16 +64,7 @@ def parse_deal_id_bittrex(json_document):
         u'success': True
     }
     """
-    if get_logging_level() >= LOG_ALL_TRACE:
-        log_to_file("bittrex\n" + str(json_document), "parse_id.log")
-        try:
-            log_to_file("bittrex\n" + str(json_document.json()), "parse_id.log")
-        except:
-            pass
-
-    if json_document.status_code == 200:
-        json_document = json_document.json()
-        if "result" in json_document and "uuid" in json_document["result"]:
-            return json_document["result"]["uuid"]
+    if "result" in json_document and "uuid" in json_document["result"]:
+        return json_document["result"]["uuid"]
 
     return None

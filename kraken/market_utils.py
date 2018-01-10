@@ -38,23 +38,30 @@ def cancel_order_kraken(key, deal_id):
     return res
 
 
-def parse_deal_id_kraken(json_document):
+def parse_deal_id_kraken(http_responce):
+    if get_logging_level() >= LOG_ALL_TRACE:
+        log_to_file("kraken\n" + str(http_responce), "parse_id.log")
+        try:
+            log_to_file("kraken\n" + str(http_responce.json()), "parse_id.log")
+        except :
+            pass
+
+    if http_responce.status_code == 200:
+        json_document = http_responce.json()
+        return parse_deal_id_kraken_from_json(json_document)
+
+    return None
+
+
+def parse_deal_id_kraken_from_json(json_document):
     """
     {u'result': {u'descr':
             {u'order': u'sell 10.00000000 XMRXBT @ limit 0.045000'},
             u'txid': [u'OY3ZML-PE3LG-L4NG7C']},
     u'error': []}
     """
-    if get_logging_level() >= LOG_ALL_TRACE:
-        log_to_file("kraken\n" + str(json_document), "parse_id.log")
-        try:
-            log_to_file("kraken\n" + str(json_document.json()), "parse_id.log")
-        except :
-            pass
 
-    if json_document.status_code == 200:
-        json_document = json_document.json()
-        if json_document is not None and 'result' in json_document and 'txid' in json_document['result']:
-            return json_document['result']['txid']
+    if json_document is not None and 'result' in json_document and 'txid' in json_document['result']:
+        return json_document['result']['txid']
 
     return None

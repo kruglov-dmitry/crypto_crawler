@@ -42,22 +42,27 @@ def cancel_order_poloniex(key, deal_id):
     return res
 
 
-def parse_deal_id_poloniex(json_document):
-    """
-     {u'orderNumber': u'15573359248', u'resultingTrades': []}
-    """
-
+def parse_deal_id_poloniex(http_responce):
     if get_logging_level() >= LOG_ALL_TRACE:
-        log_to_file("poloniex\n" + str(json_document), "parse_id.log")
+        log_to_file("poloniex\n" + str(http_responce), "parse_id.log")
         try:
-            log_to_file("poloniex\n" + str(json_document.json()), "parse_id.log")
+            log_to_file("poloniex\n" + str(http_responce.json()), "parse_id.log")
         except:
             pass
 
-    if json_document.status_code == 200:
-        json_document = json_document.json()
-        if json_document is not None and "orderNumber" in json_document:
-            return json_document["orderNumber"]
+    if http_responce.status_code == 200:
+        json_document = http_responce.json()
+        return parse_deal_id_poloniex_from_json(json_document)
+
+    return None
+
+
+def parse_deal_id_poloniex_from_json(json_document):
+    """
+     {u'orderNumber': u'15573359248', u'resultingTrades': []}
+    """
+    if json_document is not None and "orderNumber" in json_document:
+        return json_document["orderNumber"]
 
     return None
 

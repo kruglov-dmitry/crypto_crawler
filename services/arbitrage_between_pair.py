@@ -10,7 +10,7 @@ from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
 from dao.order_utils import get_open_orders_for_arbitrage_pair
 from dao.ticker_utils import get_ticker_for_arbitrage
-from dao.dao import cancel_by_exchange, parse_deal_id_by_exchange_id
+from dao.dao import cancel_by_exchange, parse_deal_id_from_json_by_exchange_id
 from dao.deal_utils import init_deal, init_deals_with_logging_speedy
 
 from data.ArbitrageConfig import ArbitrageConfig
@@ -28,6 +28,11 @@ from utils.exchange_utils import get_exchange_name_by_id
 from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for
+
+from data.Trade import Trade
+from dao.dao import sell_by_exchange
+from enums.currency_pair import CURRENCY_PAIR
+
 
 BALANCE_EXPIRED_THRESHOLD = 60
 MIN_CAP_UPDATE_TIMEOUT = 900
@@ -227,6 +232,7 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
 
             if deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
                 err_code, responce = cancel_by_exchange(every_deal)
+                print "WTF", err_code, responce
                 if err_code == STATUS.FAILURE:
                     log_cant_cancel_deal(every_deal, cfg, msg_queue)
                     updated_list.append(every_deal)
@@ -249,7 +255,7 @@ def process_expired_deals(list_of_deals, cfg, msg_queue):
 
                         every_deal.execute_time = get_now_seconds_utc()
                         every_deal.order_book_time = long(last_order_book[every_deal.exchange_id].timest)
-                        every_deal.deal_id = parse_deal_id_by_exchange_id(every_deal.exchange_id, json_document)
+                        every_deal.deal_id = parse_deal_id_from_json_by_exchange_id(every_deal.exchange_id, json_document)
 
                         log_placing_new_deal(every_deal, cfg, msg_queue)
                     else:
@@ -311,6 +317,28 @@ if __name__ == "__main__":
 
     # key is timest rounded to minutes
     list_of_deals = defaultdict(list)
+
+    """
+
+    debug part
+
+    some_price = 0.1
+    some_volume = 1.0
+    create_time = get_now_seconds_utc()
+    trade_at_first_exchange = Trade(DEAL_TYPE.SELL, cfg.sell_exchange_id, cfg.pair_id,
+                                    some_price, some_volume, -1,
+                                    create_time)
+
+    err_code, res = sell_by_exchange(trade_at_first_exchange)
+
+    deal_id = parse_deal_id_from_json_by_exchange_id(cfg.sell_exchange_id, res)
+    time_key = compute_time_key(create_time, cfg.deal_expire_timeout)
+
+    trade_at_first_exchange.deal_id = deal_id
+
+    list_of_deals[time_key].append(trade_at_first_exchange)
+
+    """
 
     last_order_book = {}
 

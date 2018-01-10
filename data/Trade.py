@@ -4,7 +4,7 @@ from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
 from enums.deal_type import get_deal_type_by_id
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS
+from debug_utils import get_logging_level, LOG_ALL_DEBUG, print_to_console, LOG_ALL_ERRORS
 from utils.string_utils import float_to_str
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.currency_utils import get_currency_name_by_id
@@ -57,6 +57,11 @@ class Trade(Deal):
         return self.__eq__(other)
 
     def __eq__(self, other):
+        if get_logging_level() >= LOG_ALL_DEBUG:
+            msg = "compare {u} with {b}".format(u=self,b=other)
+            log_to_file(msg,"expire_deal.log")
+        if other is None:
+            return False
         # NOTE: we actually don't care about timest related crap as it will not be the same :(
         # return self.__dict__ == other.__dict__
         return self.trade_type == other.trade_type and self.exchange_id == other.exchange_id and \
