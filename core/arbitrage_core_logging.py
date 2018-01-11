@@ -63,3 +63,18 @@ def log_arbitrage_determined_volume_not_enough(sell_order_book, buy_order_book, 
     log_to_file(msg, DEBUG_LOG_FILE_NAME)
     if get_logging_level() >= LOG_ALL_TRACE:
         msg_queue.add_message(DEBUG_INFO_MSG, msg)
+
+
+def log_arbitrage_determined_price_not_enough(sell_price, buy_price, difference, final_difference, msg_queue):
+    msg = """analyse order book - adjusted prices below 0.2 hardcoded threshold:
+        final_sell: {sell_price}
+        final_buy: {final_buy}
+        final_diff: {final_diff}
+        original_diff: {diff} """.format(
+        sell_price=sell_price,
+        final_buy=buy_price,
+        final_diff=final_difference,
+        diff=difference)
+    print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
+    log_to_file(msg, DEBUG_LOG_FILE_NAME)
+    msg_queue.add_message(DEBUG_INFO_MSG, msg)

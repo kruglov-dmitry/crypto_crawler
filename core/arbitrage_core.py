@@ -21,7 +21,7 @@ from binance.precision_by_currency import round_minimum_volume_by_binance_rules
 from constants import FIRST, LAST
 
 from core.arbitrage_core_logging import log_arbitrage_hear_beat, log_arbitrage_determined_volume_not_enough, \
-    log_currency_disbalance_present, log_currency_disbalance_heart_beat
+    log_currency_disbalance_present, log_currency_disbalance_heart_beat, log_arbitrage_determined_price_not_enough
 
 from dao.balance_utils import update_balance_by_exchange
 
@@ -73,22 +73,27 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
             log_arbitrage_determined_volume_not_enough(sell_order_book, buy_order_book, msg_queue)
             return deal_status
 
-        sell_price = sell_order_book.bid[0].price #  adjust_price_by_order_book(sell_order_book.bid, min_volume)
+        sell_price = adjust_price_by_order_book(sell_order_book.bid, min_volume)
 
         create_time = get_now_seconds_utc()
         trade_at_first_exchange = Trade(DEAL_TYPE.SELL, sell_order_book.exchange_id, sell_order_book.pair_id,
                                         sell_price, min_volume, sell_order_book.timest,
                                         create_time)
 
-        buy_price = buy_order_book.ask[0].price  # adjust_price_by_order_book(buy_order_book.ask, min_volume)
+        buy_price = adjust_price_by_order_book(buy_order_book.ask, min_volume)
         trade_at_second_exchange = Trade(DEAL_TYPE.BUY, buy_order_book.exchange_id, buy_order_book.pair_id,
                                          buy_price, min_volume, buy_order_book.timest,
                                          create_time)
 
+        final_difference = get_change(sell_price, buy_price, provide_abs=False)
+        if final_difference <= 0.2:
+            log_arbitrage_determined_price_not_enough(sell_price, buy_price, difference, final_difference, msg_queue)
+            return deal_status
+
         trade_pair = TradePair(trade_at_first_exchange, trade_at_second_exchange, sell_order_book.timest,
                                buy_order_book.timest, type_of_deal)
 
-        placement_status = action_to_perform(trade_pair, difference, "history_trades.log", worker_pool, msg_queue)
+        placement_status = action_to_perform(trade_pair, final_difference, "history_trades.log", worker_pool, msg_queue)
 
         # NOTE: if we can't update balance for more than TIMEOUT seconds arbitrage process will exit
         for exchange_id in [trade_pair.deal_1.exchange_id, trade_pair.deal_2.exchange_id]:

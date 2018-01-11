@@ -56,6 +56,13 @@ def log_failed_to_retrieve_order_book(cfg):
     log_to_file(msg, cfg.log_file_name)
 
 
+def log_dont_supported_currency(cfg, exchange_id):
+    msg = "Not supported currency {idx}-{name} for {exch}".format(idx=cfg.pair_id, name=pair_name,
+                                                                  exch=get_exchange_name_by_id(exchange_id))
+    print_to_console(msg, LOG_ALL_ERRORS)
+    log_to_file(msg, cfg.log_file_name)
+
+
 def compute_new_min_cap_from_tickers(tickers):
     min_price = 0.0
 
@@ -125,7 +132,7 @@ if __name__ == "__main__":
     for exchange_id in [results.sell_exchange_id, results.buy_exchange_id]:
         pair_name = get_currency_pair_name_by_exchange_id(cfg.pair_id, exchange_id)
         if pair_name is None:
-            msg = "Not supported currency {idx}-{name} for {exch}".format(idx=cfg.pair_id, name=pair_name, exch=get_exchange_name_by_id(exchange_id))
+            log_dont_supported_currency(cfg, exchange_id)
             exit()
 
     deal_cap = common_cap_init()

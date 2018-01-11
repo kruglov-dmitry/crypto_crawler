@@ -1,6 +1,8 @@
+from collections import defaultdict
+
 from core.arbitrage_core import adjust_price_by_order_book
 from core.expired_deal_logging import log_cant_cancel_deal, log_placing_new_deal, log_cant_placing_new_deal, \
-    log_cant_find_order_book
+    log_cant_find_order_book, log_dont_have_open_orders, log_open_orders_bad_result
 
 from dao.order_utils import get_open_orders_for_arbitrage_pair
 from dao.dao import cancel_by_exchange, parse_deal_id_from_json_by_exchange_id
@@ -23,49 +25,55 @@ def process_expired_deals(list_of_deals, last_order_book, cfg, msg_queue, proces
     :param msg_queue: cache for Telegram notification
     :return:
     """
+
     if len(list_of_deals) == 0:
         return
 
     open_orders_at_both_exchanges = get_open_orders_for_arbitrage_pair(cfg, processor)
     if len(open_orders_at_both_exchanges) == 0:
-        msg = "process_expired_deals - list of open orders from both exchanges is empty, REMOVING all watched deals - consider them closed!"
-        log_to_file(msg, "expire_deal.log")
+        log_dont_have_open_orders(cfg)
         list_of_deals.clear()
         return
+
+    if None in open_orders_at_both_exchanges:
+        log_open_orders_bad_result(cfg)
+        return
+
+    # REMOVE ME I AM DEBUG
+    log_to_file("Open orders below:", "expire_deal.log")
+    for v in open_orders_at_both_exchanges:
+        log_to_file(v, "expire_deal.log")
+    # REMOVE ME I AM DEBUG
 
     time_key = compute_time_key(get_now_seconds_utc(), cfg.deal_expire_timeout)
 
     # REMOVE ME I AM DEBUG
     msg = "process_expired_deals - for time key - {tk}".format(tk=str(time_key))
     log_to_file(msg, "expire_deal.log")
+    # REMOVE ME I AM DEBUG
 
-    replacement_deals = []
-
-    updated_list = []
+    replacement_deals = defaultdict(list)
+    problematic_expired_orders = defaultdict(list)
 
     for ts in list_of_deals:
 
-        log_to_file("For key {ts} in cached orders - {num} orders".format(ts=ts, num=len(list_of_deals[ts])), "expire_deal.log")
+        # REMOVE ME I AM DEBUG
+        log_to_file("For key {ts} in cached orders - {num} orders".format(ts=ts, num=len(list_of_deals[ts])),
+                    "expire_deal.log")
         for bbb in list_of_deals[ts]:
             log_to_file(str(bbb), "expire_deal.log")
+        # REMOVE ME I AM DEBUG
 
         if cfg.deal_expire_timeout > time_key - ts:
-            log_to_file("Too early for processing this key", "expire_deal.log")
+            # REMOVE ME I AM DEBUG
+            msg = "Too early for processing this key: {kkk} but ts={ts}".format(kkk=time_key, ts=ts)
+            log_to_file(msg, "expire_deal.log")
+            # REMOVE ME I AM DEBUG
             continue
 
         deals_to_check = list_of_deals[ts]
         if len(deals_to_check) == 0:
             log_to_file("THIS CRAP IS ZERO?", "expire_deal.log")
-            continue
-
-        log_to_file("Open orders below:", "expire_deal.log")
-        # REMOVE ME I AM DEBUG
-        for v in open_orders_at_both_exchanges:
-            log_to_file(v, "expire_deal.log")
-
-        if None in open_orders_at_both_exchanges:
-            msg = "Detected NONE at open_orders - we have to skip this cycle of iteration"
-            log_to_file(msg, "expire_deal.log")
             continue
 
         for every_deal in deals_to_check:
@@ -76,10 +84,15 @@ def process_expired_deals(list_of_deals, last_order_book, cfg, msg_queue, proces
 
             if deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
                 err_code, responce = cancel_by_exchange(every_deal)
-                print "WTF", err_code, responce
+
+                # REMOVE ME I AM DEBUG
+                msg = "We placed deal and raw result is {er_code} {js}".format(er_code=str(err_code),js=responce)
+                print "WTF", msg
+                log_to_file(msg, "expire_deal.log")
+
                 if err_code == STATUS.FAILURE:
                     log_cant_cancel_deal(every_deal, cfg, msg_queue)
-                    updated_list.append(every_deal)
+                    problematic_expired_orders[ts].append(every_deal)
                     continue
 
                 if every_deal.exchange_id in last_order_book:
@@ -98,23 +111,37 @@ def process_expired_deals(list_of_deals, last_order_book, cfg, msg_queue, proces
                         every_deal.order_book_time = long(last_order_book[every_deal.exchange_id].timest)
                         every_deal.deal_id = parse_deal_id_from_json_by_exchange_id(every_deal.exchange_id, json_document)
 
-                        replacement_deals.append(every_deal)
+                        replacement_deals[ts].append(every_deal)
 
                         log_placing_new_deal(every_deal, cfg, msg_queue)
                     else:
                         log_cant_placing_new_deal(every_deal, cfg, msg_queue)
+                        problematic_expired_orders[ts].append(every_deal)
                 else:
                     log_cant_find_order_book(every_deal, cfg, msg_queue)
-                    updated_list.append(every_deal)
+                    problematic_expired_orders[ts].append(every_deal)
 
-    # FIXME NOTE: how to update it?
-    # We have to clean it
-    # Hopefully it is empty
-    # list_of_deals[ts] = updated_list
+    """
+            So,
+            As result of manipulation above what we have:
+            failed deal with time_key
+            replaced_deal with time_key
+            now we have to update our expired deal buffer
+    """
+
+    for every_key in replacement_deals:
+        list_of_deals.pop(every_key)
+
+    for every_key in problematic_expired_orders:
+        list_of_deals.pop(every_key)
+
+    for tt in problematic_expired_orders:
+        list_of_deals[tt] = problematic_expired_orders[tt]
 
     for tt in replacement_deals:
-        new_time_key = compute_time_key(tt.execute_time, cfg.deal_expire_timeout)
-        list_of_deals[new_time_key].append(tt)
+        for every_order in replacement_deals[tt]:
+            new_time_key = compute_time_key(every_order.execute_time, cfg.deal_expire_timeout)
+            list_of_deals[new_time_key].append(every_order)
 
     # REMOVE ME I AM DEBUG
     for tkey in list_of_deals:
@@ -122,6 +149,7 @@ def process_expired_deals(list_of_deals, last_order_book, cfg, msg_queue, proces
         log_to_file(msg, "expire_deal.log")
         for b in list_of_deals[tkey]:
             log_to_file(str(b), "expire_deal.log")
+    # REMOVE ME I AM DEBUG
 
 
 def deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
