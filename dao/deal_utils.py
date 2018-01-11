@@ -1,6 +1,5 @@
+# FIXME NOTE: from dao import * doesnt work and lead to circular import hell. Still not sure how to tackle it properly
 import dao
-# from dao.dao import sell_by_exchange, buy_by_exchange, parse_deal_id_by_exchange_id, \
-#     get_method_for_create_url_trade_by_exchange_id
 
 from data_access.classes.WorkUnit import WorkUnit
 from data_access.message_queue import DEAL_INFO_MSG, DEBUG_INFO_MSG
