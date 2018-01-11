@@ -87,7 +87,10 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
 
         final_difference = get_change(sell_price, buy_price, provide_abs=False)
         if final_difference <= 0.2:
-            log_arbitrage_determined_price_not_enough(sell_price, buy_price, difference, final_difference, msg_queue)
+            log_arbitrage_determined_price_not_enough(sell_price, sell_order_book.bid[FIRST].price,
+                                                      buy_price, buy_order_book.ask[LAST].price,
+                                                      difference, final_difference,
+                                                      sell_order_book.pair_id, msg_queue)
             return deal_status
 
         trade_pair = TradePair(trade_at_first_exchange, trade_at_second_exchange, sell_order_book.timest,

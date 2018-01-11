@@ -67,6 +67,7 @@ def get_http_method_open_order_by_exchange_id(exchange_id):
         EXCHANGE.KRAKEN: HTTP_REQUEST.POST,
     }[exchange_id]
 
+
 def get_open_orders_for_arbitrage_pair(cfg, processor):
 
     open_orders = []

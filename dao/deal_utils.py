@@ -93,11 +93,27 @@ def init_deals_with_logging_speedy_fake(trade_pairs, difference, file_name, proc
 
 def return_with_no_change(json_document, corresponding_trade):
     corresponding_trade.execute_time = get_now_seconds_utc()
-    corresponding_trade.deal_id = dao.parse_deal_id_by_exchange_id(corresponding_trade.exchange_id, json_document)
+    corresponding_trade.deal_id = dao.parse_deal_id_from_json_by_exchange_id(corresponding_trade.exchange_id, json_document)
     return json_document, corresponding_trade
 
 
 def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor, msg_queue):
+    global overall_profit_so_far
+    overall_profit_so_far += trade_pairs.current_profit
+
+    msg = """We try to send following deals to exchange.
+        <b>Expected profit:</b> <i>{cur}</i>.
+        <b>Overall:</b> <i>{tot}</i>
+        <b>Difference in percents:</b> <i>{diff}</i>
+
+                Deal details:
+        {deal}
+        """.format(cur=float_to_str(trade_pairs.current_profit), tot=float_to_str(overall_profit_so_far),
+                   diff=difference, deal=str(trade_pairs))
+
+    msg_queue.add_message(DEAL_INFO_MSG, msg)
+    log_to_file(msg, file_name)
+
     parallel_deals = []
 
     for trade in [trade_pairs.deal_1, trade_pairs.deal_2]:
@@ -114,22 +130,6 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
         parallel_deals.append(wu)
 
     res = processor.process_async_post(parallel_deals, DEAL_MAX_TIMEOUT)
-
-    global overall_profit_so_far
-    overall_profit_so_far += trade_pairs.current_profit
-
-    msg = """We try to send following deals to exchange.
-    <b>Expected profit:</b> <i>{cur}</i>.
-    <b>Overall:</b> <i>{tot}</i>
-    <b>Difference in percents:</b> <i>{diff}</i>
-
-            Deal details:
-    {deal}
-    """.format(cur=float_to_str(trade_pairs.current_profit), tot=float_to_str(overall_profit_so_far),
-               diff=difference, deal=str(trade_pairs))
-
-    msg_queue.add_message(DEAL_INFO_MSG, msg)
-    log_to_file(msg, file_name)
 
     # check for errors only
     for (return_value, trade) in res:

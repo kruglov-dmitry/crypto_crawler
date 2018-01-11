@@ -145,10 +145,9 @@ if __name__ == "__main__":
 
     """
     debug part
-    """
 
-    some_price = 0.01
-    some_volume = 0.1
+    some_price = 0.00005
+    some_volume = 25.0
     create_time = get_now_seconds_utc()
     trade_at_first_exchange = Trade(DEAL_TYPE.BUY, cfg.sell_exchange_id, cfg.pair_id,
                                     some_price, some_volume, -1,
@@ -163,7 +162,6 @@ if __name__ == "__main__":
 
     list_of_deals[time_key].append(trade_at_first_exchange)
 
-    """
     """
 
     last_order_book = {}
