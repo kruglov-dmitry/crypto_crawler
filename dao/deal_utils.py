@@ -133,20 +133,8 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
 
     # check for errors only
     for (return_value, trade) in res:
-        # check for none and error_code may not be jsonable
-        if return_value.status_code == 200:
-            msg = """ For trade {trade}
-            Response is {resp} """.format(trade=trade, resp=return_value.json())
-        else:
-            response_json = "Not provided"
-            try:
-                response_json = return_value.json()
-            except:
-                pass
-            msg = """ For trade {trade}
-            Response is <b>BAD CODE!</b> {resp} and exact json - {js}""".format(trade=trade,
-                                                                                resp=str(return_value.status_code),
-                                                                                js=response_json)
+        msg = """ For trade {trade}
+        Response is {resp} """.format(trade=trade, resp=return_value)
 
         print_to_console(msg, LOG_ALL_ERRORS)
         msg_queue.add_message(DEBUG_INFO_MSG, msg)
