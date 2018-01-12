@@ -39,6 +39,8 @@ def get_currency_name_for_bittrex(currency_id):
         CURRENCY.XLM: 'XLM',
         CURRENCY.TRX: 'TRX',
         CURRENCY.AION: 'AION',
+        CURRENCY.ARK: 'ARK',
+        CURRENCY.STRAT: 'STRAT',
         CURRENCY.USDT: 'USDT'
     }.get(currency_id)
 
@@ -80,6 +82,8 @@ def get_currency_id_from_bittrex(currency_name):
         'XLM': CURRENCY.XLM,
         'TRX': CURRENCY.TRX,
         'AION': CURRENCY.AION,
+        'ARK': CURRENCY.ARK,
+        'STRAT': CURRENCY.STRAT,
         'USDT': CURRENCY.USDT
     }.get(currency_name)
 
@@ -110,6 +114,8 @@ def get_currency_pair_to_bittrex(pair_id):
         CURRENCY_PAIR.BTC_TO_RCN: 'BTC-RCN',
         CURRENCY_PAIR.BTC_TO_RDD: 'BTC-RDD',
         CURRENCY_PAIR.BTC_TO_XLM: 'BTC-XLM',
+        CURRENCY_PAIR.BTC_TO_ARK: 'BTC-ARK',
+        CURRENCY_PAIR.BTC_TO_STRAT: 'BTC-STRAT',
         CURRENCY_PAIR.ETH_TO_DASH: 'ETH-DASH',
         CURRENCY_PAIR.ETH_TO_LTC: 'ETH-LTC',
         CURRENCY_PAIR.ETH_TO_XRP: 'ETH-XRP',
@@ -129,6 +135,7 @@ def get_currency_pair_to_bittrex(pair_id):
         CURRENCY_PAIR.ETH_TO_ADA: 'ETH-ADA',
         CURRENCY_PAIR.ETH_TO_RCN: 'ETH-RCN',
         CURRENCY_PAIR.ETH_TO_XLM: 'ETH-XLM',
+        CURRENCY_PAIR.ETH_TO_STRAT: 'ETH-STRAT',
         CURRENCY_PAIR.USDT_TO_DASH: 'USDT-DASH',
         CURRENCY_PAIR.USDT_TO_BTC: 'USDT-BTC',
         CURRENCY_PAIR.USDT_TO_LTC: 'USDT-LTC',
@@ -170,6 +177,8 @@ def get_currency_pair_from_bittrex(pair_name):
         'BTC-RCN': CURRENCY_PAIR.BTC_TO_RCN,
         'BTC-RDD': CURRENCY_PAIR.BTC_TO_RDD,
         'BTC-XLM': CURRENCY_PAIR.BTC_TO_XLM,
+        'BTC-ARK': CURRENCY_PAIR.BTC_TO_ARK,
+        'BTC-STRAT': CURRENCY_PAIR.BTC_TO_STRAT,
         'ETH-DASH': CURRENCY_PAIR.ETH_TO_DASH,
         'ETH-LTC': CURRENCY_PAIR.ETH_TO_LTC,
         'ETH-XRP': CURRENCY_PAIR.ETH_TO_XRP,
@@ -189,6 +198,7 @@ def get_currency_pair_from_bittrex(pair_name):
         'ETH-ADA': CURRENCY_PAIR.ETH_TO_ADA,
         'ETH-RCN': CURRENCY_PAIR.ETH_TO_RCN,
         'ETH-XLM': CURRENCY_PAIR.ETH_TO_XLM,
+        'ETH-STRAT': CURRENCY_PAIR.ETH_TO_STRAT,
         'USDT-DASH': CURRENCY_PAIR.USDT_TO_DASH,
         'USDT-BTC': CURRENCY_PAIR.USDT_TO_BTC,
         'USDT-LTC': CURRENCY_PAIR.USDT_TO_LTC,

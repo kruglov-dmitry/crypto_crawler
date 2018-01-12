@@ -40,6 +40,9 @@ class CURRENCY_PAIR:
     BTC_TO_AION = 38        # Not exist on bittrex, kraken, poloniex
     BTC_TO_ITC = 39         # Not exist on binance, bittrex, kraken, poloniex
 
+    BTC_TO_ARK = 40
+    BTC_TO_STRAT = 41
+
     ETH_TO_DASH = 1001
     ETH_TO_BTC = 1002       # NOT EXIST ON kraken, poloniex, bittrex
     ETH_TO_LTC = 1003
@@ -78,6 +81,9 @@ class CURRENCY_PAIR:
     ETH_TO_TRX = 1035       # Not exist on bittrex, kraken, poloniex
     ETH_TO_AION = 1036      # Not exist on bittrex, kraken, poloniex
     ETH_TO_ITC = 1037       # Not exist on binance, bittrex, poloniex
+
+    ETH_TO_ARK = 1038         # Not exist at bittrex, poloniex
+    ETH_TO_STRAT = 1039       # Not exist at poloniex
 
     USD_TO_DASH = 2001
     USD_TO_ETH = 2002
@@ -178,6 +184,8 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.BTC_TO_TRX,
                 CURRENCY_PAIR.BTC_TO_AION,
                 CURRENCY_PAIR.BTC_TO_ITC,
+                CURRENCY_PAIR.BTC_TO_ARK,
+                CURRENCY_PAIR.BTC_TO_STRAT,
                 CURRENCY_PAIR.ETH_TO_DASH,
                 CURRENCY_PAIR.ETH_TO_LTC,
                 CURRENCY_PAIR.ETH_TO_XRP,
@@ -213,6 +221,8 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.ETH_TO_TRX,
                 CURRENCY_PAIR.ETH_TO_AION,
                 CURRENCY_PAIR.ETH_TO_ITC,
+                CURRENCY_PAIR.ETH_TO_ARK,
+                CURRENCY_PAIR.ETH_TO_STRAT,
                 CURRENCY_PAIR.USD_TO_DASH,
                 CURRENCY_PAIR.USD_TO_BTC,
                 CURRENCY_PAIR.USD_TO_LTC,

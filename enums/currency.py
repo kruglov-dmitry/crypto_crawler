@@ -40,8 +40,8 @@ class CURRENCY:
     TRX = 37
     AION = 38
     ITC = 39
-
-
+    ARK = 40
+    STRAT = 41
 
     USD = 1000
     USDT = 1001
@@ -89,6 +89,8 @@ class CURRENCY:
                 CURRENCY.TRX,
                 CURRENCY.AION,
                 CURRENCY.ITC,
+                CURRENCY.ARK,
+                CURRENCY.STRAT,
                 CURRENCY.USD,
                 CURRENCY.USDT
                 ]
