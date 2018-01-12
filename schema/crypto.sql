@@ -132,6 +132,9 @@ INSERT INTO public.pair (id, pair) VALUES (37, 'BTC_TO_TRX');
 INSERT INTO public.pair (id, pair) VALUES (38, 'BTC_TO_AION');
 INSERT INTO public.pair (id, pair) VALUES (39, 'BTC_TO_ITC');
 
+INSERT INTO public.pair (id, pair) VALUES (40, 'BTC_TO_ARK');
+INSERT INTO public.pair (id, pair) VALUES (41, 'BTC_TO_STRAT');
+
 INSERT INTO public.pair (id, pair) VALUES (1001, 'ETH_TO_DASH');
 INSERT INTO public.pair (id, pair) VALUES (1002, 'ETH_TO_BTC');
 INSERT INTO public.pair (id, pair) VALUES (1003, 'ETH_TO_LTC');
@@ -169,6 +172,10 @@ INSERT INTO public.pair (id, pair) VALUES (1034, 'ETH_TO_XLM');
 INSERT INTO public.pair (id, pair) VALUES (1035, 'ETH_TO_TRX');
 INSERT INTO public.pair (id, pair) VALUES (1036, 'ETH_TO_AION');
 INSERT INTO public.pair (id, pair) VALUES (1037, 'ETH_TO_ITC');
+
+INSERT INTO public.pair (id, pair) VALUES (1038, 'ETH_TO_ARK');
+INSERT INTO public.pair (id, pair) VALUES (1039, 'ETH_TO_STRAT');
+
 INSERT INTO public.pair (id, pair) VALUES (2001, 'USD_TO_DASH');
 INSERT INTO public.pair (id, pair) VALUES (2002, 'USD_TO_ETH');
 INSERT INTO public.pair (id, pair) VALUES (2003, 'USD_TO_LTC');
