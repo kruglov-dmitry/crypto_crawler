@@ -3,6 +3,12 @@
 * redis in place
 * postgres in place with proper schema
 FIXME: automate this part as part of ticket https://gitlab.com/crypto_trade/crypto_crawler/issues/23
+sudo service docker start
+cd ~/deploy
+sudo /usr/local/bin/docker-compose -f docker_compose.yml up
+/home/ec2-user/crypto_crawler/deploy
+python update_nonce_redis.py
+
 
 ## Deploying data retrieval services: order_book, history, tickers and notification
 python deploy_data_retrieval
@@ -27,6 +33,7 @@ pkill python
 ``` bash
 screen -ls | awk '{print $1}' | xargs -I{} screen -S {} -X quit
 ```
+screen -ls | grep -v deploy | awk '{print $1}' | xargs -I{} screen -S {} -X quit
 based on  https://stackoverflow.com/questions/1509677/kill-detached-screen-session
 
 ``` bash
@@ -86,3 +93,10 @@ https://api.kraken.com/0/public/Assets
 https://api.kraken.com/0/public/AssetPairs
 
 https://poloniex.com/public?command=returnTicker
+
+
+### Setup balance monitoring from the scratch
+sudo curl -L https://github.com/docker/compose/releases/download/1.18.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+sudo yum install docker
+sudo service docker start
+sudo /usr/local/bin/docker-compose -f docker_compose.yml up
