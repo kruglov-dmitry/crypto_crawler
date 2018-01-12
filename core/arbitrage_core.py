@@ -93,6 +93,12 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
                                                       sell_order_book.pair_id, msg_queue)
             return deal_status
 
+        log_to_file("SELL ORDER BOOK", "history_trades.log")
+        log_to_file(sell_order_book, "history_trades.log")
+
+        log_to_file("BUY ORDER BOOK", "history_trades.log")
+        log_to_file(buy_order_book, "history_trades.log")
+
         trade_pair = TradePair(trade_at_first_exchange, trade_at_second_exchange, sell_order_book.timest,
                                buy_order_book.timest, type_of_deal)
 

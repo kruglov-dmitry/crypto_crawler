@@ -2,12 +2,16 @@
 ## Prerequsities:
 * redis in place
 * postgres in place with proper schema
+FIXME: automate this part as part of ticket https://gitlab.com/crypto_trade/crypto_crawler/issues/23
 
-## Deploying data retrieval services:
+## Deploying data retrieval services: order_book, history, tickers and notification
 python deploy_data_retrieval
 
 ## Deploying arbitrage bots
-python deploy
+1. verify settings at config file:
+more deploy/deploy.cfg
+2. Initiate deployment processes
+python deploy_arbitrage_bots.py deploy/deploy.cfg
 
 ### How to run dedicated services from subfolder:
 python -m services.telegram_notifier
