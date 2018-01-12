@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
             if order_book_dst is None or order_book_src is None:
                 log_failed_to_retrieve_order_book(cfg)
-                sleep_for(1)
+                sleep_for(3)
                 continue
 
             # init_deals_with_logging_speedy
@@ -203,5 +203,6 @@ if __name__ == "__main__":
 
             print_to_console("I am still allive! ", LOG_ALL_DEBUG)
             sleep_for(1)
+        sleep_for(2)
 
         process_expired_deals(list_of_deals, last_order_book, cfg, msg_queue1, processor)
