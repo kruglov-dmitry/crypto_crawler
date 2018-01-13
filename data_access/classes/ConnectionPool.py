@@ -15,7 +15,7 @@ def log_responce_cant_be_parsed(work_unit, file_name):
     log_to_file(msg, file_name)
 
     try:
-        log_to_file(work_unit.future_result.value.json(), "error.txt")
+        log_to_file(work_unit.future_result.value.json(), ERROR_LOG_FILE_NAME)
         log_to_file(work_unit.future_result.value.json(), file_name)
     except:
         pass
@@ -47,7 +47,7 @@ class ConnectionPool:
                     log_responce(work_unit)
                 res += work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
             else:
-                log_to_file(work_unit.url, "error.txt")
+                log_to_file(work_unit.url, ERROR_LOG_FILE_NAME)
 
         return res
 
