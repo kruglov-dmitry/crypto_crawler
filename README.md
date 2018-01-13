@@ -97,6 +97,7 @@ https://poloniex.com/public?command=returnTicker
 
 ### Setup balance monitoring from the scratch
 sudo curl -L https://github.com/docker/compose/releases/download/1.18.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
-sudo yum install docker
+sudo yum install docker, mc, git
 sudo service docker start
 sudo /usr/local/bin/docker-compose -f docker_compose.yml up
+scp -i wtf.pem -r crypto_crawler/secret_keys/ ec2-user@ec2-54-183-153-123.us-west-1.compute.amazonaws.com:/tmp/
