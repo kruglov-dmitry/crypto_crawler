@@ -93,12 +93,6 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
                                                       sell_order_book.pair_id, msg_queue)
             return deal_status
 
-        log_to_file("SELL ORDER BOOK", "history_trades.log")
-        log_to_file(sell_order_book, "history_trades.log")
-
-        log_to_file("BUY ORDER BOOK", "history_trades.log")
-        log_to_file(buy_order_book, "history_trades.log")
-
         trade_pair = TradePair(trade_at_first_exchange, trade_at_second_exchange, sell_order_book.timest,
                                buy_order_book.timest, type_of_deal)
 
@@ -107,6 +101,22 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
         # NOTE: if we can't update balance for more than TIMEOUT seconds arbitrage process will exit
         for exchange_id in [trade_pair.deal_1.exchange_id, trade_pair.deal_2.exchange_id]:
             update_balance_by_exchange(exchange_id)
+
+        # REMOVE ME I AM DEBUG
+
+        log_to_file("SELL ORDER BOOK", "order_book.log")
+        log_to_file(trade_at_first_exchange, "order_book.log")
+        log_to_file("BIDS", "order_book.log")
+        for every_bid in sell_order_book.bid:
+            log_to_file(every_bid, "order_book.log")
+
+        log_to_file("BUY ORDER BOOK", "order_book.log")
+        log_to_file(trade_at_second_exchange, "order_book.log")
+        log_to_file("ASKS", "order_book.log")
+        for every_ask in buy_order_book.ask:
+            log_to_file(every_ask, "order_book.log")
+
+        # REMOVE ME I AM DEBUG
 
         deal_status = placement_status, trade_pair
 

@@ -13,8 +13,8 @@ from utils.time_utils import sleep_for, get_now_seconds_utc
 
 # FIXME NOTE read it from settings
 BITCOIN_ALARM_THRESHOLD = 0.1
-TIMEOUT_HEALTH_CHECK = 60
-MAX_EXPIRE_TIMEOUT = 59
+TIMEOUT_HEALTH_CHECK = 180
+MAX_EXPIRE_TIMEOUT = 179
 POLL_TIMEOUT = 3
 
 

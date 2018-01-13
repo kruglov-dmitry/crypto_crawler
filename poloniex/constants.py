@@ -14,7 +14,7 @@ POLONIEX_GET_HISTORY = "https://poloniex.com/public?command=returnTradeHistory&c
 
 POLONIEX_CURRENCY_PAIRS = ["BTC_DASH", "BTC_ETH", "BTC_LTC", "BTC_XRP", "BTC_ETC", "BTC_SC", "BTC_DGB", "BTC_XEM",
                            "BTC_ARDR", "BTC_BCH", "BTC_OMG", "BTC_ZEC", "BTC_REP", "BTC_XMR", "BTC_DOGE", "BTC_ZRX",
-                           "BTC_GAS",
+                           "BTC_GAS", "BTC_STRAT",
                            "ETH_ETC", "ETH_BCH", "ETH_OMG", "ETH_ZEC", "ETH_REP", "ETH_ZRX", "ETH_GAS",
                            "USDT_DASH", "USDT_BTC", "USDT_ETH", "USDT_LTC", "USDT_XRP", "USDT_ETC", "USDT_BCH",
                            "USDT_ZEC", "USDT_REP", "USDT_XMR"
