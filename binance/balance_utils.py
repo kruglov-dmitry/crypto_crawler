@@ -64,7 +64,10 @@ def get_balance_binance(key):
     log_to_file("RAW RESPONCE BINANCE", "balance.log")
     log_to_file(res, "balance.log")
 
+    # FIXME NOTE - reconsider it
+    error_code = STATUS.FAILURE
     if error_code == STATUS.SUCCESS and res is not None and "balances" in res:
+        error_code = STATUS.SUCCESS
         res = Balance.from_binance(timest, res)
 
     return error_code, res

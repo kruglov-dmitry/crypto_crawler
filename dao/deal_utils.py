@@ -131,10 +131,19 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
 
     res = processor.process_async_post(parallel_deals, DEAL_MAX_TIMEOUT)
 
+    if res is None:
+        log_to_file("For TradePair - {tp} result is {res}".format(tp=trade_pairs, res=res), file_name)
+        log_to_file("For TradePair - {tp} result is {res}".format(tp=trade_pairs, res=res), ERROR_LOG_FILE_NAME)
+        return
+
     # check for errors only
-    for (return_value, trade) in res:
-        msg = """ For trade {trade}
-        Response is {resp} """.format(trade=trade, resp=return_value)
+    for entry in res:
+        if entry is None:
+            msg = "ERROR: NONE as result of deal placement!"
+        else:
+            return_value, trade = entry
+            msg = """ For trade {trade}
+            Response is {resp} """.format(trade=trade, resp=return_value)
 
         print_to_console(msg, LOG_ALL_ERRORS)
         msg_queue.add_message(DEBUG_INFO_MSG, msg)
