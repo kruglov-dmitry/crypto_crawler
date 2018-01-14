@@ -36,7 +36,6 @@ def send_get_request_with_header(final_url, header, error_msg, timeout=HTTP_TIME
     res = STATUS.FAILURE, None
     try:
         responce = requests.get(final_url, headers=header, timeout=timeout)
-        print responce
         responce = responce.json()
         res = STATUS.SUCCESS, responce
         log_to_file(responce, DEBUG_LOG_FILE_NAME)
