@@ -153,8 +153,10 @@ def process_expired_deals(list_of_deals, last_order_book, cfg, msg_queue, proces
 
 
 def deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
+    # FIXME NOTE: I do hate functions with side effects this is very vicious practice
     for deal in open_orders_at_both_exchanges:
         if deal == every_deal:
+            every_deal.volume = every_deal.volume - deal.executed_volume
             return True
 
     return False
