@@ -139,7 +139,8 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
     # check for errors only
     for entry in res:
         if entry is None:
-            msg = "ERROR: NONE as result of deal placement!"
+            msg = """ERROR: NONE as result of deal placement! Either for {u1} or {u2}""".format(u1=trade_pairs.deal_1,
+                                                                                    u2=trade_pairs.deal_2)
         else:
             return_value, trade = entry
             msg = """ For trade {trade}

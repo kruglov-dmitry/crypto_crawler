@@ -176,8 +176,14 @@ def add_deals_to_watch_list(list_of_deals, deal_pair, cfg):
         return
     # cache deals to be checked
     if deal_pair.deal_1 is not None:
-        time_key = compute_time_key(deal_pair.deal_1.execute_time, cfg.deal_expire_timeout)
+        ts = deal_pair.deal_1.execute_time
+        if ts is None:
+            ts = deal_pair.deal_1.create_time
+        time_key = compute_time_key(ts, cfg.deal_expire_timeout)
         list_of_deals[time_key].append(deal_pair.deal_1)
     if deal_pair.deal_2 is not None:
-        time_key = compute_time_key(deal_pair.deal_2.execute_time, cfg.deal_expire_timeout)
+        ts = deal_pair.deal_2.execute_time
+        if ts is None:
+            ts = deal_pair.deal_2.create_time
+        time_key = compute_time_key(ts, cfg.deal_expire_timeout)
         list_of_deals[time_key].append(deal_pair.deal_2)
