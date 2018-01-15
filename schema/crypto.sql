@@ -1,14 +1,15 @@
 CREATE TABLE trades (
     id integer NOT NULL,
+    arbitrage_id integer NOT NULL,
     exchange_id integer NOT NULL,
     trade_type integer NOT NULL,
     pair_id integer NOT NULL,
-    price double precision,
-    volume double precision,
+    price double precision NOT NULL,
+    volume double precision NOT NULL,
     executed_volume double precision,
-    deal_id character varying NOT NULL,
+    deal_id character varying,
     order_book_time bigint,
-    create_time bigint,
+    create_time bigint NOT NULL,
     execute_time bigint,
     execute_time_date timestamp without time zone
 );
@@ -24,6 +25,19 @@ CREATE SEQUENCE trade_id_seq
 ALTER TABLE trade_id_seq OWNER TO postgres;
 
 CREATE UNIQUE INDEX trade_id_uindex ON trades USING btree (id);
+ALTER TABLE ONLY trades ALTER COLUMN id SET DEFAULT nextval('trade_id_seq'::regclass);
+
+CREATE SEQUENCE trade_arbitrage_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER TABLE trade_arbitrage_id_seq OWNER TO postgres;
+
+CREATE UNIQUE INDEX trade_arbitrage_id_uindex ON trades USING btree (arbitrage_id);
+ALTER TABLE ONLY trades ALTER COLUMN arbitrage_id SET DEFAULT nextval('trade_arbitrage_id_seq'::regclass);
 
 --
 -- Name: candle_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres

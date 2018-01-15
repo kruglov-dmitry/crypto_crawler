@@ -6,9 +6,9 @@ from utils.file_utils import log_to_file
 from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 
 
-def init_pg_connection(_db_host="192.168.1.106", _db_port=5432):
+def init_pg_connection(_db_host="192.168.1.106", _db_port=5432, _db_name="postgres"):
     # FIXME NOTE hardcoding is baaad Dmitry! pass some config
-    pg_conn = PostgresConnection(db_host=_db_host, db_port=_db_port, db_name="postgres", db_user="postgres",
+    pg_conn = PostgresConnection(db_host=_db_host, db_port=_db_port, db_name=_db_name, db_user="postgres",
                                  db_password="postgres")
     pg_conn.connect()
     return pg_conn
@@ -168,7 +168,7 @@ def save_order_into_pg(order, pg_conn):
         order.order_book_time,
         order.create_time,
         order.execute_time,
-        get_date_time_from_epoch(order.execute_time)
+        get_date_time_from_epoch(order.execute_time) if order.execute_time is not None else order.execute_time
     )
 
     try:

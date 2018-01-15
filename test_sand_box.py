@@ -42,6 +42,7 @@ from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_loc
 from data_access.message_queue import get_message_queue
 
 from dao.order_utils import get_open_orders_for_arbitrage_pair
+from dao.db import save_order_into_pg, init_pg_connection
 
 from debug_utils import LOG_ALL_DEBUG
 
@@ -287,4 +288,14 @@ def test_open_orders_retrieval_arbitrage():
     for r in res:
         print r
 
-test_open_orders_retrieval_arbitrage()
+
+def test_insert_order():
+    from enums.exchange import EXCHANGE
+    from enums.deal_type import DEAL_TYPE
+    from enums.currency_pair import CURRENCY_PAIR
+    wtf = Trade(DEAL_TYPE.SELL, EXCHANGE.POLONIEX, CURRENCY_PAIR.BTC_TO_ARDR, 0.00001, 10.4, 1516039961, 1516039961)
+    pg_conn = init_pg_connection(_db_host="192.168.1.106", _db_port=5432, _db_name="postgres")
+    save_order_into_pg(wtf, pg_conn)
+
+
+test_insert_order()
