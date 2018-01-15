@@ -1,3 +1,36 @@
+CREATE TABLE trades (
+    id integer NOT NULL,
+    exchange_id integer NOT NULL,
+    trade_type integer NOT NULL,
+    pair_id integer NOT NULL,
+    price double precision,
+    volume double precision,
+    executed_volume double precision,
+    deal_id character varying NOT NULL,
+    order_book_time bigint,
+    create_time bigint,
+    execute_time bigint,
+    execute_time_date timestamp without time zone
+);
+
+CREATE SEQUENCE trade_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE trade_id_seq OWNER TO postgres;
+
+CREATE UNIQUE INDEX trade_id_uindex ON trades USING btree (id);
+
+--
+-- Name: candle_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE candle_id_seq OWNED BY candle.id;
+
 --
 -- refactor schema data etc
 --

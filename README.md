@@ -73,6 +73,9 @@ Postgres backups:
 pg_dump -h 192.168.1.106 -p 5432 -U postgres -F c -b -v -f "/home/dima/full_DDMMYYYY"
 pg_dump -h 192.168.1.106 -p 5432 -U postgres -s public
 
+AWS:
+psql --host=orders.cervsj06c8zw.us-west-1.rds.amazonaws.com --port=5432 --username=postgres --password --dbname=crypto
+
 
 ### TELEGRAM BOT
 How to get ID of telegram chat:
