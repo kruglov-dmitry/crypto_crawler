@@ -35,7 +35,7 @@ class CURRENCY_PAIR:
     BTC_TO_RDD = 33         # Not exist on binance, kraken, poloniex
     BTC_TO_ICX = 34         # Not exist on bittrex, kraken, poloniex
     BTC_TO_WABI = 35        # Not exist on bittrex, kraken, poloniex
-    BTC_TO_XLM = 36         # not exist at poloniex
+    BTC_TO_XLM = 36         # at poloniex named STR
     BTC_TO_TRX = 37         # Not exist on bittrex, kraken, poloniex
     BTC_TO_AION = 38        # Not exist on bittrex, kraken, poloniex
     BTC_TO_ITC = 39         # Not exist on binance, bittrex, kraken, poloniex
@@ -136,7 +136,7 @@ class CURRENCY_PAIR:
     USDT_TO_RDD = 3031
     USDT_TO_ICX = 3032
     USDT_TO_WABI = 3033
-    USDT_TO_XLM = 3034
+    USDT_TO_XLM = 3034      # suddenly exist at poloniex
     USDT_TO_TRX = 3035
     USDT_TO_AION = 3036
     USDT_TO_ITC = 3037

@@ -24,6 +24,7 @@ def get_currency_id_from_poloniex(currency_name):
         'ZRX': CURRENCY.ZRX,
         'GAS': CURRENCY.GAS,
         'STRAT': CURRENCY.STRAT,
+        'STR': CURRENCY.XLM,
         'USDT': CURRENCY.USDT
     }.get(currency_name)
 
@@ -50,6 +51,7 @@ def get_currency_name_for_poloniex(currency_id):
         CURRENCY.ZRX: 'ZRX',
         CURRENCY.GAS: 'GAS',
         CURRENCY.STRAT: 'STRAT',
+        CURRENCY.XLM: 'STR',
         CURRENCY.USDT: 'USDT'
     }.get(currency_id)
 
@@ -75,6 +77,7 @@ def get_currency_pair_from_poloniex(pair_name):
         'BTC_ZRX': CURRENCY_PAIR.BTC_TO_ZRX,
         'BTC_GAS': CURRENCY_PAIR.BTC_TO_GAS,
         'BTC_STRAT': CURRENCY_PAIR.BTC_TO_STRAT,
+        'BTC_STR': CURRENCY_PAIR.BTC_TO_XLM,
         'ETH_ETC': CURRENCY_PAIR.ETH_TO_ETC,
         'ETH_BCH': CURRENCY_PAIR.ETH_TO_BCC,
         'ETH_OMG': CURRENCY_PAIR.ETH_TO_OMG,
@@ -91,7 +94,8 @@ def get_currency_pair_from_poloniex(pair_name):
         'USDT_BCH': CURRENCY_PAIR.USDT_TO_BCC,
         'USDT_ZEC': CURRENCY_PAIR.USDT_TO_ZEC,
         'USDT_REP': CURRENCY_PAIR.USDT_TO_REP,
-        'USDT_XMR': CURRENCY_PAIR.USDT_TO_XMR
+        'USDT_XMR': CURRENCY_PAIR.USDT_TO_XMR,
+        'USDT_STR': CURRENCY_PAIR.USDT_TO_XLM,
     }.get(pair_name)
 
 
@@ -116,6 +120,7 @@ def get_currency_pair_to_poloniex(pair_id):
         CURRENCY_PAIR.BTC_TO_ZRX: 'BTC_ZRX',
         CURRENCY_PAIR.BTC_TO_GAS: 'BTC_GAS',
         CURRENCY_PAIR.BTC_TO_STRAT: 'BTC_STRAT',
+        CURRENCY_PAIR.BTC_TO_XLM: 'BTC_STR',
         CURRENCY_PAIR.ETH_TO_ETC: 'ETH_ETC',
         CURRENCY_PAIR.ETH_TO_BCC: 'ETH_BCH',
         CURRENCY_PAIR.ETH_TO_OMG: 'ETH_OMG',
@@ -132,5 +137,6 @@ def get_currency_pair_to_poloniex(pair_id):
         CURRENCY_PAIR.USDT_TO_BCC: 'USDT_BCH',
         CURRENCY_PAIR.USDT_TO_ZEC: 'USDT_ZEC',
         CURRENCY_PAIR.USDT_TO_REP: 'USDT_REP',
-        CURRENCY_PAIR.USDT_TO_XMR: 'USDT_XMR'
+        CURRENCY_PAIR.USDT_TO_XMR: 'USDT_XMR',
+        CURRENCY_PAIR.USDT_TO_XLM: 'USDT_STR',
     }.get(pair_id)
