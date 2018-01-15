@@ -3,7 +3,7 @@ from data.OrderBook import OrderBook, ORDER_BOOK_INSERT_BIDS, ORDER_BOOK_INSERT_
 from data_access.postgres_connection import PostgresConnection
 from utils.time_utils import get_date_time_from_epoch
 from utils.file_utils import log_to_file
-from debug_utils import print_to_console, LOG_ALL_ERRORS
+from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 
 
 def init_pg_connection(_db_host="192.168.1.106", _db_port=5432):
@@ -35,7 +35,7 @@ def insert_data(some_object, pg_conn, dummy_flag):
                                                                                             args=args_list,
                                                                                             excp=str(e))
         print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, "error.log")
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
 
     # Yeap, this crap I am not the biggest fun of!
     if dummy_flag:
@@ -51,7 +51,7 @@ def insert_data(some_object, pg_conn, dummy_flag):
         except Exception, e:
             msg = "Insert data failed for order book exactly. Exception: {excp}".format(excp=str(e))
             print_to_console(msg, LOG_ALL_ERRORS)
-            log_to_file(msg, "error.log")
+            log_to_file(msg, ERROR_LOG_FILE_NAME)
 
 
 def load_to_postgres(array, pattern_name, pg_conn):
@@ -85,7 +85,7 @@ def save_alarm_into_pg(src_ticker, dst_ticker, pg_conn):
     except Exception, e:
         msg = "save_alarm_into_pg insert data failed :( Exception: {excp}. Args: {args}".format(excp=str(e), args=args_list)
         print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, "error.log")
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
 
     pg_conn.commit()
 
@@ -149,3 +149,33 @@ def get_order_book_by_time(pg_conn, timest):
         order_books[int(row[2])].append(OrderBook.from_row(row, order_book_asks, order_book_bids))
 
     return order_books
+
+
+def save_order_into_pg(order, pg_conn):
+    cur = pg_conn.get_cursor()
+
+    PG_INSERT_QUERY = "insert into trades(exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, " \
+                      "order_book_time, create_time, execute_time, execute_time_date) " \
+                      "values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+    args_list = (
+        order.exchange_id,
+        order.trade_type,
+        order.pair_id,
+        order.price,
+        order.volume,
+        order.executed_volume,
+        order.deal_id,
+        order.order_book_time,
+        order.create_time,
+        order.execute_time,
+        get_date_time_from_epoch(order.execute_time)
+    )
+
+    try:
+        cur.execute(PG_INSERT_QUERY, args_list)
+    except Exception, e:
+        msg = "save_order_into_pg insert data failed :( Exception: {excp}. Args: {args}".format(excp=str(e), args=args_list)
+        print_to_console(msg, LOG_ALL_ERRORS)
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
+
+    pg_conn.commit()
