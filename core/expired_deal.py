@@ -86,8 +86,10 @@ def process_expired_deals(list_of_deals, last_order_book, cfg, msg_queue, proces
                 err_code, responce = cancel_by_exchange(every_deal)
 
                 # REMOVE ME I AM DEBUG
-                msg = "We placed deal and raw result is {er_code} {js}".format(er_code=str(err_code),js=responce)
-                print "WTF", msg
+                msg = "We canceling deal - {dd} and raw result is {er_code} {js}".format(dd=str(every_deal),
+                                                                                         er_code=str(err_code),
+                                                                                         js=responce)
+                print msg
                 log_to_file(msg, "expire_deal.log")
 
                 if err_code == STATUS.FAILURE:

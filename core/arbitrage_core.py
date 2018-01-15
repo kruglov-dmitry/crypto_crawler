@@ -199,6 +199,11 @@ def adjust_price_by_order_book(orders, min_volume):
     max_volume = 2 * min_volume
     max_len = len(orders)
 
+    if min_volume == 0.0:
+        msg = "adjust_price_by_order_book: ERROR min volume is ZERO"
+        log_to_file(msg, "price_adjustment.log")
+        raise
+
     idx = 0
     while acc_volume < max_volume and idx < max_len:
         new_price = orders[idx].price

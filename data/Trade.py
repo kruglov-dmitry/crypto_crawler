@@ -4,7 +4,7 @@ from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
 from enums.deal_type import get_deal_type_by_id
 
-from debug_utils import get_logging_level, LOG_ALL_DEBUG, print_to_console, LOG_ALL_ERRORS
+from debug_utils import get_logging_level, LOG_ALL_DEBUG, print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 from utils.string_utils import float_to_str
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.currency_utils import get_currency_name_by_id
@@ -118,7 +118,7 @@ class Trade(Deal):
         if pair_id is None:
             msg = "Trade.from_kraken - unsupported pair_name - {n}".format(n=pair_name)
             print_to_console(msg, LOG_ALL_ERRORS)
-            log_to_file(msg, "error.log")
+            log_to_file(msg, ERROR_LOG_FILE_NAME)
             return None
 
         return Trade(trade_type, EXCHANGE.KRAKEN, pair_id, price, volume, order_book_time, create_time,
@@ -193,12 +193,12 @@ class Trade(Deal):
         timest = parse_time(json_document["Opened"], '%Y-%m-%dT%H:%M:%S.%f')
 
         price = json_document["Limit"]
-        volume = json_document["Quantity"]
+        volume = float(json_document["Quantity"])
         trade_type = DEAL_TYPE.BUY
         if "SELL" in json_document["OrderType"]:
             trade_type = DEAL_TYPE.SELL
         trade_id = json_document["OrderUuid"]
-        executed_volume = json_document["QuantityRemaining"]
+        executed_volume = volume - float(json_document["QuantityRemaining"])
 
         return Trade(trade_type, EXCHANGE.BITTREX, pair_id, price, volume, timest, timest,
                          execute_time=timest, deal_id=trade_id, executed_volume=executed_volume)
@@ -217,9 +217,9 @@ class Trade(Deal):
         """
         pair_id = get_currency_pair_from_poloniex(pair_name)
         if pair_id is None:
-            msg = "Trade.from_poloiniex - unsupported pair_name - {n}".format(n=pair_name)
+            msg = "Trade.from_poloniex - unsupported pair_name - {n}".format(n=pair_name)
             print_to_console(msg, LOG_ALL_ERRORS)
-            log_to_file(msg, "error.log")
+            log_to_file(msg, ERROR_LOG_FILE_NAME)
             return None
 
         timest = parse_time(json_document["date"], '%Y-%m-%d %H:%M:%S')
