@@ -49,4 +49,7 @@ class MessageQueue(BaseData):
         self.r.lpush(topic_id, pickle.dumps(balance))
 
     def get_next_order(self, topic_id):
-        return pickle.loads(self.get_message(topic_id, True))
+        entry = self.get_message(topic_id, True)
+        if entry is not None:
+            return pickle.loads(entry)
+        return None
