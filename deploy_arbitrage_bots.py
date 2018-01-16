@@ -5,7 +5,7 @@ import ConfigParser
 from deploy.screen_utils import create_screen, generate_screen_name
 from deploy.constants import FULL_COMMAND, BALANCE_UPDATE_DEPLOY_UNIT
 from deploy.ExchangeArbitrageSettings import ExchangeArbitrageSettings
-from deploy.service_utils import deploy_telegram_notifier, deploy_balance_monitoring, deploy_process_in_screen
+from deploy.service_utils import deploy_telegram_notifier, deploy_trade_storing, deploy_balance_monitoring, deploy_process_in_screen
 from deploy.DeployUnit import DeployUnit
 
 from utils.exchange_utils import get_exchange_id_by_name, get_exchange_name_by_id
@@ -88,6 +88,9 @@ if __name__ == "__main__":
 
     # 1st stage - initialization of TG notifier
     deploy_telegram_notifier(screen_name=screen_name, should_create_screen=True)
+
+    # 2n stage - initialization of Trade saving service
+    deploy_trade_storing(screen_name=screen_name, should_create_screen=True)
 
     # 2nd stage - initialization balance polling service
     # balance_monitoring_command = form_balance_update_command(BALANCE_UPDATE_DEPLOY_UNIT.command, exchanges)

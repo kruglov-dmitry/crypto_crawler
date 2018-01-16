@@ -109,9 +109,13 @@ scp -i wtf.pem -r crypto_crawler/secret_keys/ ec2-user@ec2-54-183-153-123.us-wes
 ### sysops
 sudo logrotate -s /var/log/logstatus /etc/logrotate.conf
 /home/ec2-user/crypto_crawler/logs/*.log {
-    compress
-    notifempty
-    copytruncate
     size 10M
+    compress
     rotate 10
+    nodateext
 }
+
+sudo vim /etc/crontab
+*/5 * * * * root logrotate -f /etc/logrotate.conf
+
+https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.Scenarios.html#USER_VPC.Scenario3
