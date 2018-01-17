@@ -10,7 +10,7 @@ DEAL_INFO_MSG = "deal_alerts"
 DEBUG_INFO_MSG = "debug_alerts"
 ORDERS_MSG = "orders"
 
-QUEUE_TOPICS = [ARBITRAGE_MSG, DEAL_INFO_MSG, DEBUG_INFO_MSG, ORDERS_MSG]
+QUEUE_TOPICS = [ARBITRAGE_MSG, DEAL_INFO_MSG, DEBUG_INFO_MSG]
 
 
 def get_notification_id_by_topic_name(topic_name):

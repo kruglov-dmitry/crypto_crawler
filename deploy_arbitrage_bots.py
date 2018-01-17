@@ -90,7 +90,7 @@ if __name__ == "__main__":
     deploy_telegram_notifier(screen_name=screen_name, should_create_screen=True)
 
     # 2n stage - initialization of Trade saving service
-    deploy_trade_storing(screen_name=screen_name, should_create_screen=True)
+    deploy_trade_storing(screen_name=screen_name, should_create_screen=False)
 
     # 2nd stage - initialization balance polling service
     # balance_monitoring_command = form_balance_update_command(BALANCE_UPDATE_DEPLOY_UNIT.command, exchanges)
