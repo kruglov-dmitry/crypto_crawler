@@ -30,6 +30,7 @@ def get_now_seconds_utc_ms():
     """
     return int((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds() * 1000)
 
+
 def sleep_for(num_of_seconds):
     time.sleep(num_of_seconds)
 

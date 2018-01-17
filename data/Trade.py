@@ -7,9 +7,9 @@ from enums.deal_type import get_deal_type_by_id
 from debug_utils import get_logging_level, LOG_ALL_DEBUG, print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 from utils.string_utils import float_to_str
 from utils.exchange_utils import get_exchange_name_by_id
-from utils.currency_utils import get_currency_name_by_id
+from utils.currency_utils import get_currency_name_by_id, get_pair_name_by_id
 from utils.file_utils import log_to_file
-from utils.time_utils import parse_time
+from utils.time_utils import parse_time, ts_to_string
 
 from kraken.currency_utils import get_currency_pair_from_kraken
 from binance.currency_utils import get_currency_pair_from_binance
@@ -20,7 +20,7 @@ from poloniex.currency_utils import get_currency_pair_from_poloniex
 class Trade(Deal):
     def __init__(self, trade_type, exchange_id, pair_id, price, volume,
                  order_book_time, create_time, execute_time=None,
-                 deal_id=None, executed_volume=None):
+                 deal_id=None, executed_volume=None, arbitrage_id=None):
         self.trade_type = int(trade_type)
         self.exchange_id = int(exchange_id)
         self.pair_id = int(pair_id)
@@ -31,6 +31,7 @@ class Trade(Deal):
         self.execute_time = long(execute_time) if execute_time is not None else execute_time
         self.deal_id = deal_id
         self.executed_volume = float(executed_volume) if executed_volume is not None else executed_volume
+        self.arbitrage_id = arbitrage_id
 
     def __str__(self):
         str_repr = """
@@ -70,6 +71,18 @@ class Trade(Deal):
 
     def set_deal_id(self, deal_id):
         self.deal_id = deal_id
+
+    @classmethod
+    def get_fields(cls):
+        # for class object you can use dir()
+        return ["arbitrage_id", "exchange_id", "pair_id", "trade_type", "price", "volume", "order_book_time",
+                "create_time", "execute_time", "execute_datetime", "deal_id", "executed_volume"]
+
+    def __iter__(self):
+        return iter([self.arbitrage_id, get_exchange_name_by_id(self.exchange_id), get_pair_name_by_id(self.pair_id),
+                     get_deal_type_by_id(self.trade_type), self.price, self.volume, self.order_book_time,
+                     self.create_time, self.execute_time, ts_to_string(self.execute_time),
+                     self.deal_id, self.executed_volume])
 
     @classmethod
     def from_kraken(cls, trade_id, json_doc):
@@ -122,7 +135,7 @@ class Trade(Deal):
             return None
 
         return Trade(trade_type, EXCHANGE.KRAKEN, pair_id, price, volume, order_book_time, create_time,
-                         execute_time=create_time, deal_id=trade_id, executed_volume=executed_volume)
+                     execute_time=create_time, deal_id=trade_id, executed_volume=executed_volume)
 
     @classmethod
     def from_binance(cls, json_document):
@@ -149,7 +162,7 @@ class Trade(Deal):
             log_to_file(msg, "error.log")
             return None
 
-        timest = json_document["time"]
+        timest = 0.001 * long(json_document["time"])
         price = json_document["price"]
         volume = json_document["origQty"]
         trade_type = DEAL_TYPE.BUY
@@ -158,8 +171,45 @@ class Trade(Deal):
         trade_id = json_document["orderId"]
         executed_volume = json_document["executedQty"]
 
-        return Trade(trade_type, EXCHANGE.BINANCE, pair_id, price, volume, timest, timest,
-                         execute_time=timest, deal_id=trade_id, executed_volume=executed_volume)
+        return Trade(trade_type, EXCHANGE.BINANCE, pair_id, price, volume, timest, timest, execute_time=timest,
+                     deal_id=trade_id, executed_volume=executed_volume)
+
+    @classmethod
+    def from_binance_history(cls, json_document, pair_name):
+        """
+
+            "id": 28457,
+		    "price": "4.00000100",
+		    "qty": "12.00000000",
+		    "commission": "10.10000000",
+		    "commissionAsset": "BNB",
+		    "time": 1499865549590,
+		    "isBuyer": true,
+		    "isMaker": false,
+		    "isBestMatch": true
+
+        :param json_document:
+        :return:
+        """
+        pair_id = get_currency_pair_from_binance(pair_name)
+        if pair_id is None:
+            msg = "Trade.from_binance - unsupported pair_name - {n}".format(n=json_document["symbol"])
+            print_to_console(msg, LOG_ALL_ERRORS)
+            log_to_file(msg, "error.log")
+            return None
+
+        timest = 0.001 * long(json_document["time"])
+        price = json_document["price"]
+        volume = json_document["qty"]
+
+        trade_type = DEAL_TYPE.BUY
+        if not json_document["isBuyer"]:
+            trade_type = DEAL_TYPE.SELL
+        trade_id = json_document["id"]
+        executed_volume = volume
+
+        return Trade(trade_type, EXCHANGE.BINANCE, pair_id, price, volume, timest, timest, execute_time=timest,
+                     deal_id=trade_id, executed_volume=executed_volume)
 
     @classmethod
     def from_bittrex(cls, json_document):
@@ -182,7 +232,7 @@ class Trade(Deal):
         u'Condition': u'NONE',
         u'Quantity': 8500.0}
         """
-        print json_document
+
         pair_id = get_currency_pair_from_bittrex(json_document["Exchange"])
         if pair_id is None:
             msg = "Trade.from_bittrex - unsupported pair_name - {n}".format(n=json_document["Exchange"])
@@ -200,8 +250,56 @@ class Trade(Deal):
         trade_id = json_document["OrderUuid"]
         executed_volume = volume - float(json_document["QuantityRemaining"])
 
-        return Trade(trade_type, EXCHANGE.BITTREX, pair_id, price, volume, timest, timest,
-                         execute_time=timest, deal_id=trade_id, executed_volume=executed_volume)
+        return Trade(trade_type, EXCHANGE.BITTREX, pair_id, price, volume, timest, timest, execute_time=timest,
+                     deal_id=trade_id, executed_volume=executed_volume)
+
+    @classmethod
+    def from_bittrex_history(cls, json_document):
+        """
+        {
+			"OrderUuid" : "fd97d393-e9b9-4dd1-9dbf-f288fc72a185",
+			"Exchange" : "BTC-LTC",
+			"TimeStamp" : "2014-07-09T04:01:00.667",
+			"OrderType" : "LIMIT_BUY",
+			"Limit" : 0.00000001,
+			"Quantity" : 100000.00000000,
+			"QuantityRemaining" : 100000.00000000,
+			"Commission" : 0.00000000,
+			"Price" : 0.00000000,
+			"PricePerUnit" : null,
+			"IsConditional" : false,
+			"Condition" : null,
+			"ConditionTarget" : null,
+			"ImmediateOrCancel" : false
+		}
+
+        :param json_document:
+        :return:
+        """
+        trade_id = json_document["OrderUuid"]
+        pair_id = get_currency_pair_from_bittrex(json_document["Exchange"])
+        if pair_id is None:
+            msg = "Trade.from_bittrex - unsupported pair_name - {n}".format(n=json_document["Exchange"])
+            print_to_console(msg, LOG_ALL_ERRORS)
+            log_to_file(msg, "error.log")
+            return None
+        try:
+            timest = parse_time(json_document["TimeStamp"], '%Y-%m-%dT%H:%M:%S.%f')
+        except:
+            timest = parse_time(json_document["TimeStamp"], '%Y-%m-%dT%H:%M:%S')
+
+        trade_type = DEAL_TYPE.BUY
+        if "SELL" in json_document["OrderType"]:
+            trade_type = DEAL_TYPE.SELL
+
+        price = json_document["PricePerUnit"]
+
+        volume = float(json_document["Quantity"])
+        executed_volume = volume - float(json_document["QuantityRemaining"])
+
+        return Trade(trade_type, EXCHANGE.BITTREX, pair_id, price, volume, timest, timest, execute_time=timest,
+                     deal_id=trade_id, executed_volume=executed_volume)
+
 
     @classmethod
     def from_poloniex(cls, json_document, pair_name):
@@ -232,5 +330,61 @@ class Trade(Deal):
 
         trade_id = json_document["orderNumber"]
         executed_volume = volume - float(json_document["amount"])
-        return Trade(trade_type, EXCHANGE.POLONIEX, pair_id, price, volume, timest, timest,
-                         execute_time=timest, deal_id=trade_id, executed_volume=executed_volume)
+        return Trade(trade_type, EXCHANGE.POLONIEX, pair_id, price, volume, timest, timest, execute_time=timest,
+                     deal_id=trade_id, executed_volume=executed_volume)
+
+    @classmethod
+    def from_poloniex_history(cls, json_document, pair_name):
+        """
+        { "globalTradeID": 25129732,
+        "tradeID": "6325758",
+        "date": "2016-04-05 08:08:40",
+         "rate": "0.02565498",
+         "amount": "0.10000000",
+         "total": "0.00256549",
+         "fee": "0.00200000",
+         "orderNumber": "34225313575",
+         "type": "sell",
+         "category": "exchange" }
+        :return:
+        """
+        pair_id = get_currency_pair_from_poloniex(pair_name)
+        trade_type = DEAL_TYPE.BUY
+        if "sell" in json_document["type"]:
+            trade_type = DEAL_TYPE.SELL
+
+        trade_id = json_document["orderNumber"]
+        timest = parse_time(json_document["date"], '%Y-%m-%d %H:%M:%S')
+        price = json_document["rate"]
+        volume = float(json_document["amount"])
+
+        return Trade(trade_type, EXCHANGE.POLONIEX, pair_id, price, volume, timest, timest, execute_time=timest,
+                     deal_id=trade_id, executed_volume=volume)
+
+    @classmethod
+    def from_row(cls, db_row):
+        """
+        row order:
+        exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, order_book_time,
+        create_time, execute_time
+
+        2, 4, 2, 11, 0.001554, 2.0, None, '9103224', 151612795
+        :param row:
+        :return:
+        """
+        arbitrage_id = db_row[0]
+        exchange_id = db_row[1]
+        trade_type = db_row[2]
+        pair_id = db_row[3]
+        price = db_row[4]
+        volume = db_row[5]
+        executed_volume = db_row[6]
+        deal_id = db_row[7]
+        order_book_time = db_row[8]
+        create_time = db_row[9]
+        execute_time = db_row[10]
+
+        res = Trade(trade_type, exchange_id, pair_id, price, volume, order_book_time, create_time, execute_time,
+                    deal_id, executed_volume, arbitrage_id)
+
+        return res

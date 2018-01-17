@@ -1,6 +1,9 @@
 from urllib import urlencode as _urlencode
 
-from bittrex.constants import BITTREX_CANCEL_ORDER, BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT
+from data_access.classes.PostRequestDetails import PostRequestDetails
+
+from bittrex.constants import BITTREX_CANCEL_ORDER, BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT, \
+    BITTREX_GET_TRADE_HISTORY
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, \
     LOG_ALL_TRACE
@@ -23,16 +26,17 @@ def cancel_order_bittrex(key, deal_id):
 
     headers = {"apisign": signed_string(final_url, key.secret)}
 
+    res = PostRequestDetails(final_url, headers, body)
+
     if should_print_debug():
-        msg = "cancel_order_bittrex: url - {url} headers - {headers} body - {body}".format(url=final_url,
-                                                                                            headers=headers, body=body)
+        msg = "cancel_order_bittrex: {res}".format(res=res)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
     err_msg = "cancel bittrex order with id {id}".format(id=deal_id)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg,
-                                        max_tries=BITTREX_NUM_OF_DEAL_RETRY, timeout=BITTREX_DEAL_TIMEOUT)
+    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY,
+                                        timeout=BITTREX_DEAL_TIMEOUT)
 
     if should_print_debug():
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
@@ -68,3 +72,26 @@ def parse_deal_id_bittrex_from_json(json_document):
         return json_document["result"]["uuid"]
 
     return None
+
+
+def get_order_history_for_time_interval_bittrex(key, pair_name):
+
+    final_url = BITTREX_GET_TRADE_HISTORY + key.api_key + "&nonce=" + str(generate_nonce())
+
+    if pair_name != "all":
+        body = {"market": ""}
+    else:
+        body = {}
+
+    final_url += _urlencode(body)
+
+    headers = {"apisign": signed_string(final_url, key.secret)}
+
+    post_details = PostRequestDetails(final_url, headers, body)
+
+    err_msg = "get bittrex order history for time interval for pp={pp}".format(pp=post_details)
+
+    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
+                                                    err_msg, max_tries=1)
+
+    return error_code, res

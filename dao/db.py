@@ -1,5 +1,8 @@
 from collections import defaultdict
+
 from data.OrderBook import OrderBook, ORDER_BOOK_INSERT_BIDS, ORDER_BOOK_INSERT_ASKS, ORDER_BOOK_TYPE_NAME
+from data.Trade import Trade
+
 from data_access.postgres_connection import PostgresConnection
 from utils.time_utils import get_date_time_from_epoch
 from utils.file_utils import log_to_file
@@ -179,3 +182,19 @@ def save_order_into_pg(order, pg_conn):
         log_to_file(msg, ERROR_LOG_FILE_NAME)
 
     pg_conn.commit()
+
+
+def get_all_orders(pg_conn):
+    orders = []
+
+    select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, 
+    order_book_time, create_time, execute_time from trades"""
+
+    cursor = pg_conn.get_cursor()
+
+    cursor.execute(select_query)
+
+    for row in cursor:
+        orders.append(Trade.from_row(row))
+
+    return orders
