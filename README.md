@@ -20,14 +20,17 @@ more deploy/deploy.cfg
 python deploy_arbitrage_bots.py deploy/deploy.cfg
 
 ### How to run dedicated services from subfolder:
+``` bash
 python -m services.telegram_notifier
-
+```
 ## Kill ALL processes
 ``` bash
 ps -ef | grep arbitrage | awk '{print $2}' | xargs kill -9 $1
 ```
 or just
+``` bash
 pkill python
+```
 
 ## Kill ALL screens with all session MacOs
 ``` bash
@@ -53,7 +56,9 @@ ssh dima@86.96.108.235 -p 8883
 ```
 
 ### MacOs dependencies:
+``` bash
 pip install python-telegram-bot --user
+```
 
 ### redis
 type <key>
@@ -70,11 +75,15 @@ for "zset": zrange <key> 0 -1 withscores
 https://wiki.postgresql.org/wiki/Deleting_duplicates
 
 Postgres backups:
+``` bash
 pg_dump -h 192.168.1.106 -p 5432 -U postgres -F c -b -v -f "/home/dima/full_DDMMYYYY"
 pg_dump -h 192.168.1.106 -p 5432 -U postgres -s public
+```
 
 AWS:
+``` bash
 psql --host=orders.cervsj06c8zw.us-west-1.rds.amazonaws.com --port=5432 --username=postgres --password --dbname=crypto
+```
 
 
 ### TELEGRAM BOT
@@ -99,14 +108,17 @@ https://poloniex.com/public?command=returnTicker
 
 
 ### Setup balance monitoring from the scratch
+``` bash
 sudo curl -L https://github.com/docker/compose/releases/download/1.18.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
 sudo yum install docker, mc, git
 sudo service docker start
 sudo /usr/local/bin/docker-compose -f docker_compose.yml up
 scp -i wtf.pem -r crypto_crawler/secret_keys/ ec2-user@ec2-54-183-153-123.us-west-1.compute.amazonaws.com:/tmp/
+```
 
 
 ### sysops
+``` bash
 sudo logrotate -s /var/log/logstatus /etc/logrotate.conf
 /home/ec2-user/crypto_crawler/logs/*.log {
     size 10M
@@ -117,5 +129,6 @@ sudo logrotate -s /var/log/logstatus /etc/logrotate.conf
 
 sudo vim /etc/crontab
 */5 * * * * root logrotate -f /etc/logrotate.conf
+```
 
 https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.Scenarios.html#USER_VPC.Scenario3
