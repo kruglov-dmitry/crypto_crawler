@@ -4,6 +4,7 @@ from data.Trade import Trade
 
 from dao.db import init_pg_connection, get_all_orders
 from enums.exchange import EXCHANGE
+from enums.deal_type import DEAL_TYPE
 
 from utils.key_utils import load_keys, get_key_by_exchange
 from utils.time_utils import get_now_seconds_utc
@@ -19,6 +20,10 @@ from binance.constants import BINANCE_CURRENCY_PAIRS
 from utils.exchange_utils import get_fee_by_exchange
 
 from collections import defaultdict
+
+from utils.file_utils import log_to_file
+from utils.currency_utils import get_pair_name_by_id
+from utils.string_utils import float_to_str
 
 
 def save_to_csv_file(file_name, fields_list, array_list):
@@ -39,7 +44,10 @@ def group_by_pair_and_arbitrage_id(order_list):
 
     for arbitrage_id in tmp:
         deal_1, deal_2 = tmp[arbitrage_id]
-        res[deal_1.pair_id].append((deal_1, deal_2))
+        if deal_1.trade_type == DEAL_TYPE.BUY:
+            res[deal_1.pair_id].append((deal_1, deal_2))
+        else:
+            res[deal_1.pair_id].append((deal_2, deal_1))
 
     return res
 
@@ -163,11 +171,29 @@ if __name__ == "__main__":
 
     for pair_id in orders_by_pair:
         profit_by_pairs[pair_id] = 0.0
-        for deal_1, deal_2 in orders_by_pair[pair_id]:
-            trade_history1 = get_corresponding_trades(deal_1.exchange_id)
-            trades_1 = find_corresponding_trades(deal_1, trade_history1)
-            trade_history2 = get_corresponding_trades(deal_2.exchange_id)
-            trades_2 = find_corresponding_trades(deal_1, trade_history2)
-            profit_by_pairs[pair_id] += compute_profit_by_arbitrage(deal_1, trade_history1, deal_2, trade_history2)
+        for buy_deal, sell_deal in orders_by_pair[pair_id]:
+            trade_history1 = get_corresponding_trades(buy_deal.exchange_id)
+            trades_1 = find_corresponding_trades(buy_deal, trade_history1)
+            if len(trades_1) == 0:
+                log_to_file("NOT FOUND! {tr}".format(tr=buy_deal),
+                            "what_we_have_at_the_end.log")
+
+            trade_history2 = get_corresponding_trades(sell_deal.exchange_id)
+            trades_2 = find_corresponding_trades(buy_deal, trade_history2)
+            if len(trades_2) == 0:
+                log_to_file("NOT FOUND! {tr}".format(tr=sell_deal),
+                            "what_we_have_at_the_end.log")
+
+            if len(trades_1) > 0 and len(trades_2) > 0:
+                profit_by_pairs[pair_id] += compute_profit_by_arbitrage(buy_deal, trade_history1, sell_deal, trade_history2)
+
 
     overall_profit = sum(profit_by_pairs.itervalues())
+
+    log_to_file("Total profit - {p}".format(p=overall_profit), "what_we_have_at_the_end.log")
+    log_to_file("Profit by pairs", "what_we_have_at_the_end.log")
+    for pair_id in profit_by_pairs:
+        pair_name = get_pair_name_by_id(pair_id)
+        log_to_file("{pn} - {p}".format(pn=pair_name, p=float_to_str(profit_by_pairs[pair_id])),
+                    "what_we_have_at_the_end.log")
+

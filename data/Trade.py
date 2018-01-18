@@ -39,7 +39,9 @@ class Trade(Deal):
         Type: {deal_type}
         Pair: {pair} for volume {vol} with price {price}
         order_book_time {ob_time} create_time {ct_time} execute_time {ex_time}
-        deal_id {deal_id} executed_volume {ex_volume}""".format(
+        deal_id {deal_id} executed_volume {ex_volume}
+        arbitrage_id {a_id}
+        """.format(
             exch=get_exchange_name_by_id(self.exchange_id),
             deal_type=get_deal_type_by_id(self.trade_type),
             pair=get_currency_name_by_id(self.pair_id),
@@ -49,7 +51,8 @@ class Trade(Deal):
             ct_time=self.create_time,
             ex_time=self.execute_time,
             deal_id=self.deal_id,
-            ex_volume=self.executed_volume
+            ex_volume=self.executed_volume,
+            a_id=self.arbitrage_id
         )
 
         return str_repr
