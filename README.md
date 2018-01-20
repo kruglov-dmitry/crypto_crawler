@@ -125,6 +125,8 @@ sudo logrotate -s /var/log/logstatus /etc/logrotate.conf
     compress
     rotate 10
     nodateext
+    missingok
+    notifempty
 }
 
 sudo vim /etc/crontab
