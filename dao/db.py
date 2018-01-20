@@ -156,7 +156,7 @@ def get_order_book_by_time(pg_conn, timest):
 
 def get_arbitrage_id(pg_conn):
     cursor = pg_conn.get_cursor()
-    select_query = """select nextval('trade_id_seq')"""
+    select_query = """select nextval('arbitrage_id_seq')"""
     cursor.execute(select_query)
 
     for row in cursor:

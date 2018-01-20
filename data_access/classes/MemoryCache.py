@@ -16,6 +16,9 @@ class MemoryCache:
     def get_counter(self):
         return self.r.incr('nonce')
 
+    def get_arbitrage_id(self):
+        return self.r.incr('arbitrage_id')
+
     def _init_nonce(self):
         ts = int(round(time.time() * 1000))
         self.r.set('nonce', str(ts))

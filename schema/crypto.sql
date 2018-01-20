@@ -1,4 +1,38 @@
-CREATE TABLE trades (
+-- All tables below store similar objects - data/Trade
+-- orders - contains orders that arbitrage bot thinks that it sent them to exchanges
+-- history - contains actual trades from exchanges
+-- binance_order_history - orders, registered at Binance
+
+CREATE TABLE orders (
+    id integer NOT NULL,
+    arbitrage_id integer NOT NULL,
+    exchange_id integer NOT NULL,
+    trade_type integer NOT NULL,
+    pair_id integer NOT NULL,
+    price double precision NOT NULL,
+    volume double precision NOT NULL,
+    executed_volume double precision,
+    deal_id character varying,
+    order_book_time bigint,
+    create_time bigint NOT NULL,
+    execute_time bigint,
+    execute_time_date timestamp without time zone
+);
+
+CREATE SEQUENCE order_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE order_id_seq OWNER TO postgres;
+
+CREATE UNIQUE INDEX order_id_uindex ON orders USING btree (id);
+ALTER TABLE ONLY orders ALTER COLUMN id SET DEFAULT nextval('order_id_seq'::regclass);
+
+CREATE TABLE trades_history (
     id integer NOT NULL,
     arbitrage_id integer NOT NULL,
     exchange_id integer NOT NULL,
@@ -22,22 +56,52 @@ CREATE SEQUENCE trade_id_seq
     CACHE 1;
 
 
-ALTER TABLE trade_id_seq OWNER TO postgres;
+ALTER TABLE trade_id_seq_seq OWNER TO postgres;
 
-CREATE UNIQUE INDEX trade_id_uindex ON trades USING btree (id);
-ALTER TABLE ONLY trades ALTER COLUMN id SET DEFAULT nextval('trade_id_seq'::regclass);
+CREATE UNIQUE INDEX trade_id_seq_uindex ON trades_history USING btree (id);
+ALTER TABLE ONLY trades_history ALTER COLUMN id SET DEFAULT nextval('trade_id_seq'::regclass);
 
-CREATE SEQUENCE trade_arbitrage_id_seq
+CREATE SEQUENCE arbitrage_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
 
-ALTER TABLE trade_arbitrage_id_seq OWNER TO postgres;
+ALTER TABLE arbitrage_id_seq OWNER TO postgres;
 
-CREATE UNIQUE INDEX trade_arbitrage_id_uindex ON trades USING btree (arbitrage_id);
-ALTER TABLE ONLY trades ALTER COLUMN arbitrage_id SET DEFAULT nextval('trade_arbitrage_id_seq'::regclass);
+
+CREATE TABLE binance_order_history (
+    id integer NOT NULL,
+    arbitrage_id integer NOT NULL,
+    exchange_id integer NOT NULL,
+    trade_type integer NOT NULL,
+    pair_id integer NOT NULL,
+    price double precision NOT NULL,
+    volume double precision NOT NULL,
+    executed_volume double precision,
+    deal_id character varying,
+    order_book_time bigint,
+    create_time bigint NOT NULL,
+    execute_time bigint,
+    execute_time_date timestamp without time zone
+);
+
+CREATE SEQUENCE binance_order_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE binance_order_id_seq OWNER TO postgres;
+
+CREATE UNIQUE INDEX binance_order_id_uindex ON binance_order_history USING btree (id);
+ALTER TABLE ONLY binance_order_history ALTER COLUMN id SET DEFAULT nextval('binance_order_id_seq'::regclass);
+
+
+
 
 --
 -- Name: candle_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
