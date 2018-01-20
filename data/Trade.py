@@ -31,7 +31,7 @@ class Trade(Deal):
         self.execute_time = long(execute_time) if execute_time is not None else execute_time
         self.deal_id = deal_id
         self.executed_volume = float(executed_volume) if executed_volume is not None else executed_volume
-        self.arbitrage_id = arbitrage_id
+        self.arbitrage_id = long(arbitrage_id)
 
     def __str__(self):
         str_repr = """
@@ -39,17 +39,19 @@ class Trade(Deal):
         Type: {deal_type}
         Pair: {pair} for volume {vol} with price {price}
         order_book_time {ob_time} create_time {ct_time} execute_time {ex_time}
+        Executed at: {dt}
         deal_id {deal_id} executed_volume {ex_volume}
         arbitrage_id {a_id}
         """.format(
             exch=get_exchange_name_by_id(self.exchange_id),
             deal_type=get_deal_type_by_id(self.trade_type),
-            pair=get_currency_name_by_id(self.pair_id),
+            pair=get_pair_name_by_id(self.pair_id),
             vol=float_to_str(self.volume),
             price=float_to_str(self.price),
             ob_time=self.order_book_time,
             ct_time=self.create_time,
             ex_time=self.execute_time,
+            dt=ts_to_string(self.execute_time),
             deal_id=self.deal_id,
             ex_volume=self.executed_volume,
             a_id=self.arbitrage_id
@@ -368,8 +370,8 @@ class Trade(Deal):
     def from_row(cls, db_row):
         """
         row order:
-        exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, order_book_time,
-        create_time, execute_time
+        arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id,
+        order_book_time, create_time, execute_time
 
         2, 4, 2, 11, 0.001554, 2.0, None, '9103224', 151612795
         :param row:
@@ -380,7 +382,7 @@ class Trade(Deal):
         trade_type = db_row[2]
         pair_id = db_row[3]
         price = db_row[4]
-        volume = db_row[5]
+        volume = float(db_row[5])
         executed_volume = db_row[6]
         deal_id = db_row[7]
         order_book_time = db_row[8]
