@@ -17,6 +17,8 @@ from enums.status import STATUS
 from data.Trade import Trade
 from data.TradePair import TradePair
 
+from data_access.memory_cache import get_next_arbitrage_id
+
 from binance.precision_by_currency import round_minimum_volume_by_binance_rules
 from constants import FIRST, LAST
 
@@ -92,6 +94,10 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
                                                       difference, final_difference,
                                                       sell_order_book.pair_id, msg_queue)
             return deal_status
+
+        arbitrage_id = get_next_arbitrage_id()
+        trade_at_first_exchange.arbitrage_id = arbitrage_id
+        trade_at_second_exchange.arbitrage_id = arbitrage_id
 
         trade_pair = TradePair(trade_at_first_exchange, trade_at_second_exchange, sell_order_book.timest,
                                buy_order_book.timest, type_of_deal)

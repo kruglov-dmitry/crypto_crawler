@@ -154,13 +154,25 @@ def get_order_book_by_time(pg_conn, timest):
     return order_books
 
 
-def save_order_into_pg(order, pg_conn):
+def get_arbitrage_id(pg_conn):
+    cursor = pg_conn.get_cursor()
+    select_query = """select nextval('trade_id_seq')"""
+    cursor.execute(select_query)
+
+    for row in cursor:
+        return long(row[0])
+
+    return Non
+
+
+def save_order_into_pg(order, pg_conn, table_name="trades"):
     cur = pg_conn.get_cursor()
 
-    PG_INSERT_QUERY = "insert into trades(exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, " \
+    PG_INSERT_QUERY = "insert into {table_name}(arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, " \
                       "order_book_time, create_time, execute_time, execute_time_date) " \
-                      "values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"
+                      "values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(table_name=table_name)
     args_list = (
+        order.arbitrage_id,
         order.exchange_id,
         order.trade_type,
         order.pair_id,
@@ -184,11 +196,11 @@ def save_order_into_pg(order, pg_conn):
     pg_conn.commit()
 
 
-def get_all_orders(pg_conn):
+def get_all_orders(pg_conn, table_name="trades"):
     orders = []
 
     select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, 
-    order_book_time, create_time, execute_time from trades"""
+    order_book_time, create_time, execute_time from {table_name}""".format(table_name=table_name)
 
     cursor = pg_conn.get_cursor()
 
