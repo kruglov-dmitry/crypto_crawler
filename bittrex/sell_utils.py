@@ -10,6 +10,7 @@ from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_REL
 
 from utils.file_utils import log_to_file
 from utils.key_utils import signed_string
+from utils.string_utils import float_to_str
 
 
 def add_sell_order_bittrex_url(key, pair_name, price, amount):
@@ -18,8 +19,8 @@ def add_sell_order_bittrex_url(key, pair_name, price, amount):
 
     body = {
         "market": pair_name,
-        "quantity": amount,
-        "rate": price
+        "quantity": float_to_str(amount),
+        "rate": float_to_str(price)
     }
 
     final_url += _urlencode(body)

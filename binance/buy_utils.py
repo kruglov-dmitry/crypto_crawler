@@ -10,6 +10,7 @@ from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_REL
 from utils.file_utils import log_to_file
 from utils.key_utils import signed_body_256
 from utils.time_utils import get_now_seconds_utc_ms
+from utils.string_utils import float_to_str
 
 """
 time in force:
@@ -31,8 +32,8 @@ def add_buy_order_binance_url(key, pair_name, price, amount):
         "timeInForce": "GTC",
         "recvWindow": 5000,
         "timestamp": get_now_seconds_utc_ms(),
-        "quantity": amount,
-        "price": price
+        "quantity": float_to_str(amount),
+        "price": float_to_str(price)
     }
 
     signature = signed_body_256(body, key.secret)

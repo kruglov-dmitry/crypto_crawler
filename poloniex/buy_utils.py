@@ -8,14 +8,15 @@ from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_REL
 
 from utils.file_utils import log_to_file
 from utils.key_utils import signed_body
+from utils.string_utils import float_to_str
 
 
 def add_buy_order_poloniex_url(key, pair_name, price, amount):
     body = {
         "command": "buy",
         "currencyPair": pair_name,
-        "rate": price,
-        "amount": amount,
+        "rate": float_to_str(price),
+        "amount": float_to_str(amount),
         "nonce": generate_nonce()
     }
 
