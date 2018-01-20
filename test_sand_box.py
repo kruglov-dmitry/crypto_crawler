@@ -39,6 +39,7 @@ from poloniex.market_utils import get_orders_history_poloniex
 from poloniex.order_utils import get_open_orders_poloniex
 from utils.key_utils import load_keys, get_key_by_exchange
 from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
+from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from data_access.message_queue import get_message_queue
 
 from dao.order_utils import get_open_orders_for_arbitrage_pair
@@ -298,4 +299,14 @@ def test_insert_order():
     save_order_into_pg(wtf, pg_conn)
 
 
-test_insert_order()
+# test_insert_order()
+
+def test_binance_xlm():
+    load_keys("./secret_keys")
+    key = get_key_by_exchange(EXCHANGE.BINANCE)
+    pair_id = CURRENCY_PAIR.BTC_TO_XLM
+    pair_name = get_currency_pair_name_by_exchange_id(pair_id, EXCHANGE.BINANCE)
+    err, json_repr = add_buy_order_binance(key, pair_name, price=0.00003000, amount=100)
+    print json_repr
+
+test_binance_xlm()
