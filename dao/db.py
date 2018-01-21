@@ -165,7 +165,7 @@ def get_arbitrage_id(pg_conn):
     return Non
 
 
-def save_order_into_pg(order, pg_conn, table_name="trades"):
+def save_order_into_pg(order, pg_conn, table_name="orders"):
     cur = pg_conn.get_cursor()
 
     PG_INSERT_QUERY = "insert into {table_name}(arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, " \
