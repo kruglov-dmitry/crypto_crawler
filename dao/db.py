@@ -196,7 +196,7 @@ def save_order_into_pg(order, pg_conn, table_name="trades"):
     pg_conn.commit()
 
 
-def get_all_orders(pg_conn, table_name="trades"):
+def get_all_orders(pg_conn, table_name="orders"):
     orders = []
 
     select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, 
