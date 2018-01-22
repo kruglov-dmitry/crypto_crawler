@@ -77,15 +77,16 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
 
         sell_price = adjust_price_by_order_book(sell_order_book.bid, min_volume)
 
+        arbitrage_id = get_next_arbitrage_id()
         create_time = get_now_seconds_utc()
         trade_at_first_exchange = Trade(DEAL_TYPE.SELL, sell_order_book.exchange_id, sell_order_book.pair_id,
                                         sell_price, min_volume, sell_order_book.timest,
-                                        create_time)
+                                        create_time, arbitrage_id=arbitrage_id)
 
         buy_price = adjust_price_by_order_book(buy_order_book.ask, min_volume)
         trade_at_second_exchange = Trade(DEAL_TYPE.BUY, buy_order_book.exchange_id, buy_order_book.pair_id,
                                          buy_price, min_volume, buy_order_book.timest,
-                                         create_time)
+                                         create_time, arbitrage_id=arbitrage_id)
 
         final_difference = get_change(sell_price, buy_price, provide_abs=False)
         if final_difference <= 0.2:
@@ -95,9 +96,6 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
                                                       sell_order_book.pair_id, msg_queue)
             return deal_status
 
-        arbitrage_id = get_next_arbitrage_id()
-        trade_at_first_exchange.arbitrage_id = arbitrage_id
-        trade_at_second_exchange.arbitrage_id = arbitrage_id
 
         trade_pair = TradePair(trade_at_first_exchange, trade_at_second_exchange, sell_order_book.timest,
                                buy_order_book.timest, type_of_deal)

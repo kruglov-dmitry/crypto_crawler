@@ -20,7 +20,7 @@ from poloniex.currency_utils import get_currency_pair_from_poloniex
 class Trade(Deal):
     def __init__(self, trade_type, exchange_id, pair_id, price, volume,
                  order_book_time, create_time, execute_time=None,
-                 deal_id=None, executed_volume=None, arbitrage_id=None):
+                 deal_id=None, executed_volume=None, arbitrage_id=-13):
         self.trade_type = int(trade_type)
         self.exchange_id = int(exchange_id)
         self.pair_id = int(pair_id)
