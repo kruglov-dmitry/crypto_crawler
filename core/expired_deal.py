@@ -11,25 +11,29 @@ from dao.deal_utils import init_deal
 from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc
 
+from data_access.message_queue import ORDERS_MSG
+
 from enums.status import STATUS
 from enums.deal_type import DEAL_TYPE
 
 
-def process_expired_deals(list_of_deals, last_order_book, cfg, msg_queue, processor):
+def process_expired_deals(list_of_deals, last_order_book, cfg, msg_queue, worker_pool):
     """
     Current approach to deal with tracked deals that expire.
     Details and discussion at https://gitlab.com/crypto_trade/crypto_crawler/issues/15
 
-    :param list_of_deals: tracked deals
-    :param cfg: arbitrage settings, includeing deal expire timeout
-    :param msg_queue: cache for Telegram notification
+    :param list_of_deals:       tracked deals
+    :param last_order_book:     recent version of order_book for exchange
+    :param cfg:                 arbitrage settings, includeing deal expire timeout
+    :param msg_queue:           cache for Telegram notification
+    :param worker_pool:         gevent based connection pool for speedy deal placement
     :return:
     """
 
     if len(list_of_deals) == 0:
         return
 
-    open_orders_at_both_exchanges = get_open_orders_for_arbitrage_pair(cfg, processor)
+    open_orders_at_both_exchanges = get_open_orders_for_arbitrage_pair(cfg, worker_pool)
     if len(open_orders_at_both_exchanges) == 0:
         log_dont_have_open_orders(cfg)
         list_of_deals.clear()
@@ -89,7 +93,6 @@ def process_expired_deals(list_of_deals, last_order_book, cfg, msg_queue, proces
                 msg = "We canceling deal - {dd} and raw result is {er_code} {js}".format(dd=str(every_deal),
                                                                                          er_code=str(err_code),
                                                                                          js=responce)
-                print msg
                 log_to_file(msg, "expire_deal.log")
 
                 if err_code == STATUS.FAILURE:
@@ -114,6 +117,8 @@ def process_expired_deals(list_of_deals, last_order_book, cfg, msg_queue, proces
                         every_deal.deal_id = parse_deal_id_from_json_by_exchange_id(every_deal.exchange_id, json_document)
 
                         replacement_deals[ts].append(every_deal)
+
+                        msg_queue.add_order(ORDERS_MSG, every_deal)
 
                         log_placing_new_deal(every_deal, cfg, msg_queue)
                     else:
