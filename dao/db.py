@@ -210,3 +210,44 @@ def get_all_orders(pg_conn, table_name="orders"):
         orders.append(Trade.from_row(row))
 
     return orders
+
+
+def is_order_present_in_order_history(pg_conn, trade, table_name="orders"):
+
+    select_query = """select * from {table_name} where deal_id = '{trade_id}'""".format(table_name=table_name,
+                                                                                       trade_id=trade.deal_id)
+
+    cursor = pg_conn.get_cursor()
+
+    cursor.execute(select_query)
+
+    return cursor.rowcount > 0
+
+
+def is_trade_present_in_trade_history(pg_conn, trade, table_name="trades_history"):
+    """
+            For every order we can have multiple trades executed.
+            In ideal case they all will be connected to the same order_id
+            but not all exchange support it - Binance for example.
+
+            Another tricky case python and how it deal with float point number and rounding
+
+            So query below just an approximation to minimize possible duplicates
+
+    :param pg_conn:
+    :param trade:
+    :param table_name:
+    :return:
+    """
+
+    select_query = """select * from {table_name} where exchange_id = {exchange_id} and trade_type = {trade_type} and 
+    pair_id = {pair_id} and price between {min_price} and {max_price} and volume between {min_volume} and {max_volume} 
+    and create_time = {create_time}""".format(table_name=table_name, exchange_id=trade.exchange_id, trade_type=trade.trade_type,
+                                            pair_id=trade.pair_id, min_price=trade.price-1.0, max_price=trade.price+1.0,
+                                            min_volume=trade.volume-1.0, max_volume=trade.volume+1.0, create_time=trade.create_time)
+
+    cursor = pg_conn.get_cursor()
+
+    cursor.execute(select_query)
+
+    return cursor.rowcount > 0

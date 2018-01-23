@@ -45,7 +45,8 @@ from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from data_access.message_queue import get_message_queue
 
 from dao.order_utils import get_open_orders_for_arbitrage_pair
-from dao.db import save_order_into_pg, init_pg_connection
+from dao.db import save_order_into_pg, init_pg_connection, is_order_present_in_order_history, \
+    is_trade_present_in_trade_history
 
 from debug_utils import LOG_ALL_DEBUG
 
@@ -259,6 +260,7 @@ def check_open_order_retrieval():
     for r in res:
         print r
 
+
 def test_kraken_buy_sell_utils():
     load_keys("./secret_keys")
     krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
@@ -266,7 +268,6 @@ def test_kraken_buy_sell_utils():
     err_code, res = add_sell_order_kraken(krak_key, "XXMRXXBT", price=0.045, amount=10.0)
     print res
 
-# check_open_order_retrieval()
 
 def test_open_orders_retrieval_arbitrage():
 
@@ -300,8 +301,6 @@ def test_insert_order():
     pg_conn = init_pg_connection(_db_host="192.168.1.106", _db_port=5432, _db_name="postgres")
     save_order_into_pg(wtf, pg_conn)
 
-
-# test_insert_order()
 
 def test_binance_xlm():
     load_keys("./secret_keys")
@@ -342,9 +341,6 @@ def test_new_sell_api():
     print json_repr
 
 
-test_open_orders_retrieval_arbitrage()
-
-
 def test_poloniex_trade_history():
     from poloniex.market_utils import get_order_history_for_time_interval_poloniex
     load_keys("./secret_keys")
@@ -357,3 +353,29 @@ def test_poloniex_trade_history():
     limit = 100
     get_order_history_for_time_interval_poloniex(key, pair_name, time_start, time_end, limit)
 
+
+def test_order_presence():
+    pg_conn = init_pg_connection(_db_host="192.168.1.106", _db_port=5432)
+    # 6479142
+    ts = get_now_seconds_utc()
+    some_trade = Trade(DEAL_TYPE.BUY, EXCHANGE.BINANCE, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001184, volume=2.08,
+                       order_book_time=ts, create_time=ts, execute_time=ts, deal_id='whatever')
+
+    res = is_order_present_in_order_history(pg_conn, some_trade, table_name="tmp_binance_orders")
+
+    print res
+
+
+def test_trade_present():
+    pg_conn = init_pg_connection(_db_host="192.168.1.106", _db_port=5432)
+    # 6479142
+    ts = 1516142509
+    trade = Trade(DEAL_TYPE.BUY, EXCHANGE.BINANCE, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001184, volume=2.08,
+                       order_book_time=ts, create_time=ts, execute_time=ts, deal_id='whatever')
+
+    res = is_trade_present_in_trade_history(pg_conn, trade, table_name="tmp_history_trades")
+
+    print res
+
+
+test_trade_present()

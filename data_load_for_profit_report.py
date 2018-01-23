@@ -8,7 +8,7 @@ from bittrex.market_utils import get_order_history_for_time_interval_bittrex
 
 from utils.key_utils import get_key_by_exchange
 from data.Trade import Trade
-from dao.db import save_order_into_pg
+from dao.db import save_order_into_pg, is_order_present_in_order_history
 from utils.time_utils import get_now_seconds_utc
 from collections import defaultdict
 
@@ -27,11 +27,14 @@ def get_recent_binance_orders():
     return binance_order
 
 
-def load_recent_binance_orders_to_db(pg_conn):
+def load_recent_binance_orders_to_db(pg_conn, unique_only=True):
     binance_orders = get_recent_binance_orders()
 
     for bb in binance_orders:
         bb.arbitrage_id = -10
+        if unique_only:
+            if is_order_present_in_order_history(pg_conn, bb, table_name="binance_order_history"):
+                continue
         save_order_into_pg(bb, pg_conn, table_name="binance_order_history")
 
 
@@ -43,21 +46,22 @@ def get_recent_binance_trades():
 
     binance_order = []
     for pair_name in BINANCE_CURRENCY_PAIRS:
-        # error_code, json_document = get_order_history_for_time_interval_binance(key, pair_name, limit, last_order_id)
         error_code, json_document = get_trades_history_binance(key, pair_name, limit, last_order_id)
 
         for entry in json_document:
-            pair_id = get_currency_pair_from_binance(pair_name)
             binance_order.append(Trade.from_binance_history(entry, pair_name))
 
     return binance_order
 
 
-def load_recent_binance_trades_to_db(pg_conn):
+def load_recent_binance_trades_to_db(pg_conn, unique_only=True):
     binance_orders = get_recent_binance_trades()
 
     for bb in binance_orders:
         bb.arbitrage_id = -20
+        if unique_only:
+            if is_trade_present_in_trade_history(pg_conn, bb, table_name="trades_history"):
+                continue
         save_order_into_pg(bb, pg_conn, table_name="trades_history")
 
 
@@ -76,12 +80,16 @@ def get_recent_poloniex_trades():
 
     return poloniex_orders_by_pair
 
-def load_recent_poloniex_trades_to_db(pg_conn):
+
+def load_recent_poloniex_trades_to_db(pg_conn, unique_only=True):
     poloniex_orders_by_pair = get_recent_poloniex_trades()
 
     for b in poloniex_orders_by_pair:
         for bb in poloniex_orders_by_pair[b]:
             bb.arbitrage_id = -30
+            if unique_only:
+                if is_trade_present_in_trade_history(pg_conn, bb, table_name="trades_history"):
+                    continue
             save_order_into_pg(bb, pg_conn, table_name="trades_history")
 
 
@@ -97,9 +105,12 @@ def get_recent_bittrex_trades():
     return bittrex_order_by_pair
 
 
-def load_recent_bittrex_trades_to_db(pg_conn):
+def load_recent_bittrex_trades_to_db(pg_conn, unique_only=True):
     bittrex_order_by_pair = get_recent_bittrex_trades()
 
     for b in bittrex_order_by_pair:
         for bb in bittrex_order_by_pair[b]:
+            if unique_only:
+                if is_trade_present_in_trade_history(pg_conn, bb, table_name="trades_history"):
+                    continue
             save_order_into_pg(bb, pg_conn, table_name="trades_history")

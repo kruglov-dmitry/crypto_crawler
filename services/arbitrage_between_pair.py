@@ -4,7 +4,7 @@ from collections import defaultdict
 from data_access.message_queue import get_message_queue, DEAL_INFO_MSG
 
 from core.arbitrage_core import search_for_arbitrage, adjust_currency_balance
-from core.expired_deal import process_expired_deals, compute_time_key, add_deals_to_watch_list
+from core.expired_deal import process_expired_deals, compute_time_key, add_orders_to_watch_list
 from core.backtest import common_cap_init, dummy_balance_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
@@ -196,7 +196,7 @@ if __name__ == "__main__":
                                             balance_state, deal_cap, type_of_deal=mode_id, worker_pool=processor,
                                             msg_queue=msg_queue1)
 
-            add_deals_to_watch_list(list_of_deals, deal_pair, cfg)
+            add_orders_to_watch_list(list_of_deals, deal_pair, cfg)
 
             last_order_book[order_book_src.exchange_id] = order_book_src
             last_order_book[order_book_dst.exchange_id] = order_book_dst
