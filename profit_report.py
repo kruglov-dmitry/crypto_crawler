@@ -16,6 +16,9 @@ from utils.time_utils import get_now_seconds_utc
 from utils.string_utils import float_to_str
 from dao.db import get_all_orders
 
+from data_load_for_profit_report import load_recent_binance_trades_to_db, \
+    load_recent_poloniex_trades_to_db, load_recent_bittrex_trades_to_db
+
 
 def group_by_pair_and_arbitrage_id(order_list):
     res = defaultdict(list)
@@ -346,20 +349,32 @@ def compute_profit_by_pair(trades_to_order_by_pair):
     return profit_by_pair
 
 if __name__ == "__main__":
-    pg_conn = init_pg_connection(_db_host="192.168.1.106", _db_port=5432)
+    # pg_conn = init_pg_connection(_db_host="192.168.1.106", _db_port=5432)
     load_keys("./secret_keys")
 
-    # pg_conn = init_pg_connection(_db_host="orders.cervsj06c8zw.us-west-1.rds.amazonaws.com",
-    #                             _db_port=5432, _db_name="crypto")
+    pg_conn = init_pg_connection(_db_host="orders.cervsj06c8zw.us-west-1.rds.amazonaws.com",
+                                 _db_port=5432, _db_name="crypto")
 
     now_time = get_now_seconds_utc()
     fews_days_ago = now_time - 5 * 24 * 60 * 60
+
+    # add some cfg
+    # at least populate db
+    # some time range
+    # some visualisation
+    # load_recent_binance_orders_to_db(pg_conn)
+    # load_recent_binance_trades_to_db(pg_conn)
+    # load_recent_poloniex_trades_to_db(pg_conn)
+    # load_recent_bittrex_trades_to_db(pg_conn)
+    # raise
 
     orders = get_all_orders(pg_conn, table_name="orders")
     binance_orders_at_bot = [x for x in orders if x.exchange_id == EXCHANGE.BINANCE]
     binance_orders_at_exchange = get_all_orders(pg_conn, table_name="binance_order_history")
     history_trades = get_all_orders(pg_conn, table_name="trades_history")
 
+    # FIXME modify get_all_orders_by_time
+    orders = [x for x in orders if x.create_time >= fews_days_ago]
     binance_orders_at_exchange = [x for x in binance_orders_at_exchange if x.create_time >= fews_days_ago]
     history_trades = [x for x in history_trades if x.create_time >= fews_days_ago]
 
