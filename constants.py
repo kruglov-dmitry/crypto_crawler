@@ -27,3 +27,7 @@ LOGS_FOLDER = "./logs/"
 # yeap, global constants is very bad
 FIRST = 0
 LAST = 0
+
+BALANCE_EXPIRED_THRESHOLD = 60
+MIN_CAP_UPDATE_TIMEOUT = 900
+NO_MAX_CAP_LIMIT = 0
