@@ -4,9 +4,11 @@ from debug_utils import get_debug_level_name_by_id
 
 
 class ArbitrageConfig:
-    def __init__(self, sell_exchange_id, buy_exchange_id, pair_id, threshold, reverse_threshold, deal_expire_timeout, logging_level_id):
+    def __init__(self, sell_exchange_id, buy_exchange_id, pair_id, threshold, reverse_threshold, balance_threshold,
+                 deal_expire_timeout, logging_level_id):
         self.threshold = threshold
         self.reverse_threshold = reverse_threshold
+        self.balance_threshold = balance_threshold
         self.sell_exchange_id = sell_exchange_id
         self.buy_exchange_id = buy_exchange_id
         self.pair_id = pair_id
@@ -15,8 +17,8 @@ class ArbitrageConfig:
         self.log_file_name = self._generate_file_name()
 
     def __str__(self):
-        str_repr = """Sell=Bid exchange - {sell_exch} id = {id1} Buy-Ask exchange - {buy_exch}
-        id = {id2} currency pair - {pair} Arbitrage Threshold = {thrshld} Reverse Threshold = {rv_thr}
+        str_repr = """Sell=Bid exchange - {sell_exch} id = {id1} Buy-Ask exchange - {buy_exch} id = {id2} 
+        currency pair - {pair} Arbitrage Threshold = {thrshld} Reverse Threshold = {rv_thr} Balance Threshold = {b_thr}
         deal_expire_timeout = {deal_expire_timeout}
         logging_level = {loggin_level}
         log_file_name = {log_file_name}""".format(
@@ -28,6 +30,7 @@ class ArbitrageConfig:
             pair_id = self.pair_id,
             thrshld=self.threshold,
             rv_thr=self.reverse_threshold,
+            b_thr=self.balance_threshold,
             loggin_level=get_debug_level_name_by_id(self.logging_level_id),
             deal_expire_timeout=self.deal_expire_timeout,
             log_file_name=self.log_file_name
@@ -48,15 +51,17 @@ class ArbitrageConfig:
         return window_name
 
     def generate_command(self, full_path_to_script):
-        cmd = "{cmd} --threshold {threshold} --reverse_threshold {reverse_threshold} --sell_exchange_id " \
-              "{sell_exchange_id} --buy_exchange_id {buy_exchange_id} --pair_id {pair_id} " \
-              "--deal_expire_timeout {deal_expire_timeout} --logging_level {logging_level_id}".format(cmd=full_path_to_script,
-                                                                                                      threshold=self.threshold,
-                                                                                                      reverse_threshold=self.reverse_threshold,
-                                                                                                      sell_exchange_id=self.sell_exchange_id,
-                                                                                                      buy_exchange_id=self.buy_exchange_id,
-                                                                                                      pair_id=self.pair_id,
-                                                                                                      deal_expire_timeout=self.deal_expire_timeout,
-                                                                                                      logging_level_id=self.logging_level_id)
+        cmd = "{cmd} --threshold {threshold} --reverse_threshold {reverse_threshold} --balance_threshold " \
+              "{balance_threshold} --sell_exchange_id {sell_exchange_id} --buy_exchange_id {buy_exchange_id} " \
+              "--pair_id {pair_id} --deal_expire_timeout {deal_expire_timeout} " \
+              "--logging_level {logging_level_id}".format(cmd=full_path_to_script,
+                                                          threshold=self.threshold,
+                                                          reverse_threshold=self.reverse_threshold,
+                                                          balance_threshold=self.balance_threshold,
+                                                          sell_exchange_id=self.sell_exchange_id,
+                                                          buy_exchange_id=self.buy_exchange_id,
+                                                          pair_id=self.pair_id,
+                                                          deal_expire_timeout=self.deal_expire_timeout,
+                                                          logging_level_id=self.logging_level_id)
 
         return cmd

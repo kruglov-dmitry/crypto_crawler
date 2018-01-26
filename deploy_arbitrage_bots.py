@@ -36,6 +36,7 @@ if __name__ == "__main__":
     config.read(cfg_file_name)
 
     arbitrage_threshold = config.get("common", "arbitrage_threshold")
+    balance_threshold = config.get("common", "balance_threshold")
     balance_adjust_threshold = config.get("common", "balance_adjust_threshold")
     logging_level_name = config.get("common", "log_level")
     deal_expiration_timeout = config.get("common", "deal_expiration_timeout")
@@ -78,7 +79,7 @@ if __name__ == "__main__":
                 for every_pair_name in list_of_pairs:
                     pair_id = get_pair_id_by_name(every_pair_name)
                     commands_per_screen.append(ArbitrageConfig(sell_exchange_id, buy_exchange_id, pair_id,
-                                                               arbitrage_threshold, balance_adjust_threshold,
+                                                               arbitrage_threshold, balance_adjust_threshold, balance_threshold,
                                                                deal_expiration_timeout,
                                                                get_logging_level_id_by_name(logging_level_name)))
                     arbitrage_unit[screen_name] = commands_per_screen
@@ -91,13 +92,6 @@ if __name__ == "__main__":
 
     # 2n stage - initialization of Trade saving service
     deploy_trade_storing(screen_name=screen_name, should_create_screen=False)
-
-    # 2nd stage - initialization balance polling service
-    # balance_monitoring_command = form_balance_update_command(BALANCE_UPDATE_DEPLOY_UNIT.command, exchanges)
-    # deploy_balance_monitoring(balance_monitoring_command, screen_name=screen_name, should_create_screen=False)
-
-    # Let it update balance first
-    # sleep_for(30)
 
     # 2nd stage - spawn a shit load of arbitrage checkers
     for screen_name in arbitrage_unit:
