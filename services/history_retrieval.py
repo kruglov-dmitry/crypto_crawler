@@ -25,6 +25,8 @@ if __name__ == "__main__":
 
         trade_history = get_history_speedup(start_time, end_time, processor)
 
+        trade_history = [x for x in trade_history if x.timest > start_time]
+
         load_to_postgres(candles, CANDLE_TYPE_NAME, pg_conn)
         load_to_postgres(trade_history, TRADE_HISTORY_TYPE_NAME, pg_conn)
 

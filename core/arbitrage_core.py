@@ -5,7 +5,7 @@ sys.setrecursionlimit(10000)
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 
 from utils.time_utils import get_now_seconds_utc
-from utils.currency_utils import split_currency_pairs
+from utils.currency_utils import split_currency_pairs, get_currency_name_by_id
 from utils.file_utils import log_to_file
 
 from core.base_analysis import get_change
@@ -20,9 +20,9 @@ from data.TradePair import TradePair
 from data_access.memory_cache import get_next_arbitrage_id
 
 from binance.precision_by_currency import round_minimum_volume_by_binance_rules
-from constants import FIRST, LAST
+from constants import FIRST, LAST, NO_MAX_CAP_LIMIT
 
-from core.arbitrage_core_logging import log_arbitrage_hear_beat, log_arbitrage_determined_volume_not_enough, \
+from core.arbitrage_core_logging import log_arbitrage_heart_beat, log_arbitrage_determined_volume_not_enough, \
     log_currency_disbalance_present, log_currency_disbalance_heart_beat, log_arbitrage_determined_price_not_enough
 
 from dao.balance_utils import update_balance_by_exchange
@@ -34,7 +34,7 @@ from dao.balance_utils import update_balance_by_exchange
 # 3. take into account that we may need to change frequency of polling based on prospectivness of currency pair
 
 
-def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
+def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_threshold,
                          action_to_perform,
                          balance_state, deal_cap,
                          type_of_deal,
@@ -43,6 +43,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
     :param sell_order_book:         order_book from exchange where we are going to SELL
     :param buy_order_book:          order_book from exchange where we are going to BUY
     :param threshold:               difference in price in percent that MAY trigger MUTUAL deal placement
+    :param balance_threshold:       for interface compatibility with balance_adjustment method
     :param action_to_perform:       method that will be called in case threshold condition are met
     :param balance_state:           balance accross all active exchange for all supported currencies
     :param deal_cap:                dynamically updated minimum volume per currency
@@ -60,7 +61,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
     difference = get_change(sell_order_book.bid[FIRST].price, buy_order_book.ask[LAST].price, provide_abs=False)
 
     if should_print_debug():
-        log_arbitrage_hear_beat(sell_order_book, buy_order_book, difference)
+        log_arbitrage_heart_beat(sell_order_book, buy_order_book, difference)
 
     if difference >= threshold:
 
@@ -70,6 +71,8 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold,
 
         min_volume = round_minimum_volume_by_exchange_rules(sell_order_book.exchange_id, buy_order_book.exchange_id,
                                                             min_volume, sell_order_book.pair_id)
+
+        min_volume = adjust_maximum_volume_by_trading_cap(sell_order_book, buy_order_book, deal_cap, min_volume)
 
         if min_volume <= 0:
             log_arbitrage_determined_volume_not_enough(sell_order_book, buy_order_book, msg_queue)
@@ -180,6 +183,19 @@ def adjust_minimum_volume_by_trading_cap(first_order_book, second_order_book, de
     return min_volume
 
 
+def adjust_maximum_volume_by_trading_cap(sell_order_book, buy_order_book, deal_cap, min_volume):
+
+    if deal_cap.get_max_volume_cap_by_dst(sell_order_book.pair_id) == NO_MAX_CAP_LIMIT:
+        # so we treat it as no max cap
+        return min_volume
+
+    if min_volume > deal_cap.get_max_volume_cap_by_dst(sell_order_book.pair_id):
+        return deal_cap.get_max_volume_cap_by_dst(sell_order_book.pair_id)
+
+    return min_volume
+
+
+
 def round_minimum_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, min_volume, pair_id):
     if sell_exchange_id == EXCHANGE.BINANCE or buy_exchange_id == EXCHANGE.BINANCE:
         return round_minimum_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
@@ -223,7 +239,7 @@ def adjust_price_by_order_book(orders, min_volume):
     return new_price
 
 
-def adjust_currency_balance(first_order_book, second_order_book, treshold_reverse,
+def adjust_currency_balance(first_order_book, second_order_book, threshold, balance_threshold,
                             action_to_perform,
                             balance_state, deal_cap,
                             type_of_deal,
@@ -235,15 +251,22 @@ def adjust_currency_balance(first_order_book, second_order_book, treshold_revers
     src_exchange_id = first_order_book.exchange_id
     dst_exchange_id = second_order_book.exchange_id
 
-    if balance_state.is_there_disbalance(dst_currency_id, src_exchange_id, dst_exchange_id, treshold_reverse) and \
+    if balance_state.is_there_disbalance(dst_currency_id, src_exchange_id, dst_exchange_id, balance_threshold) and \
             is_no_pending_order(pair_id, src_exchange_id, dst_exchange_id):
 
-        log_currency_disbalance_present(src_exchange_id, dst_exchange_id, dst_currency_id, treshold_reverse)
+        max_volume = 0.5 * abs(balance_state.get_available_volume_by_currency(dst_currency_id, dst_currency_id) -
+                            balance_state.get_available_volume_by_currency(dst_currency_id, src_exchange_id))
 
-        deal_status = search_for_arbitrage(first_order_book, second_order_book, treshold_reverse,
-                             action_to_perform, balance_state, deal_cap,
-                             type_of_deal, worker_pool, msg_queue)
+        # FIXME NOTE: side effect here
+        deal_cap.update_max_cap(pair_id, deal_cap, max_volume)
+
+        log_currency_disbalance_present(src_exchange_id, dst_exchange_id, pair_id, dst_currency_id,
+                                        balance_threshold, max_volume, threshold)
+
+        deal_status = search_for_arbitrage(first_order_book, second_order_book, threshold, balance_threshold,
+                                           action_to_perform, balance_state, deal_cap,
+                                           type_of_deal, worker_pool, msg_queue)
     else:
-        log_currency_disbalance_heart_beat(src_exchange_id, dst_exchange_id, dst_currency_id, treshold_reverse)
+        log_currency_disbalance_heart_beat(src_exchange_id, dst_exchange_id, dst_currency_id, threshold)
 
     return deal_status

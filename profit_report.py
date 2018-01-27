@@ -16,6 +16,9 @@ from utils.time_utils import get_now_seconds_utc
 from utils.string_utils import float_to_str
 from dao.db import get_all_orders
 
+from data_load_for_profit_report import load_recent_binance_trades_to_db, \
+    load_recent_poloniex_trades_to_db, load_recent_bittrex_trades_to_db
+
 
 def group_by_pair_and_arbitrage_id(order_list):
     res = defaultdict(list)
@@ -346,20 +349,32 @@ def compute_profit_by_pair(trades_to_order_by_pair):
     return profit_by_pair
 
 if __name__ == "__main__":
-    pg_conn = init_pg_connection(_db_host="192.168.1.106", _db_port=5432)
+    # pg_conn = init_pg_connection(_db_host="192.168.1.106", _db_port=5432)
     load_keys("./secret_keys")
 
-    # pg_conn = init_pg_connection(_db_host="orders.cervsj06c8zw.us-west-1.rds.amazonaws.com",
-    #                             _db_port=5432, _db_name="crypto")
+    pg_conn = init_pg_connection(_db_host="orders.cervsj06c8zw.us-west-1.rds.amazonaws.com",
+                                 _db_port=5432, _db_name="crypto")
 
     now_time = get_now_seconds_utc()
     fews_days_ago = now_time - 5 * 24 * 60 * 60
+
+    # add some cfg
+    # at least populate db
+    # some time range
+    # some visualisation
+    # load_recent_binance_orders_to_db(pg_conn)
+    # load_recent_binance_trades_to_db(pg_conn)
+    # load_recent_poloniex_trades_to_db(pg_conn)
+    # load_recent_bittrex_trades_to_db(pg_conn)
+    # raise
 
     orders = get_all_orders(pg_conn, table_name="orders")
     binance_orders_at_bot = [x for x in orders if x.exchange_id == EXCHANGE.BINANCE]
     binance_orders_at_exchange = get_all_orders(pg_conn, table_name="binance_order_history")
     history_trades = get_all_orders(pg_conn, table_name="trades_history")
 
+    # FIXME modify get_all_orders_by_time
+    orders = [x for x in orders if x.create_time >= fews_days_ago]
     binance_orders_at_exchange = [x for x in binance_orders_at_exchange if x.create_time >= fews_days_ago]
     history_trades = [x for x in history_trades if x.create_time >= fews_days_ago]
 
@@ -425,96 +440,3 @@ if __name__ == "__main__":
 
     for x in failed_deal_ids:
         log_to_file(x, "NULL_deal_id.log")
-
-
-
-
-
-
-
-
-
-
-
-def some_ther_code():
-    # time bucketing option
-    trade_by_timest = defaultdict(list)
-    order_by_timest = defaultdict(list)
-
-
-    for every_trade in binance_trades:
-        trade_by_timest[every_trade.execute_time].append(every_trade)
-
-    for every_order in binance_orders_at_exchange:
-        order_by_timest[every_order.execute_time].append(every_order)
-
-    orders_with_trades = []
-    for ts in order_by_timest:
-        last_idx = 0
-        for order in order_by_timest[ts]:
-            total_volume = 0.0
-            cur_trade_list = []
-            cur_idx = 0
-            for trade in trade_by_timest[ts][last_idx:]:
-                cur_idx += 1
-                if order.volume > total_volume:
-                    total_volume += trade.volume
-                    cur_trade_list.append(trade)
-                else:
-                    last_idx = cur_idx
-                    break
-
-            orders_with_trades.append( (order, cur_trade_list) )
-
-
-
-
-    orders_by_pair = group_by_pair_and_arbitrage_id(orders)
-
-
-
-    binance_orders_by_pair, bittrex_orders_by_pair, poloniex_orders_by_pair = group_by_pair_and_exchange_id(history_trades)
-
-    overall_profit = 0.0
-    profit_by_pairs = {}
-
-
-    def get_corresponding_trades(exchange_id):
-        return {
-            EXCHANGE.BINANCE: binance_orders_by_pair,
-            EXCHANGE.POLONIEX: poloniex_orders_by_pair,
-            EXCHANGE.BITTREX: bittrex_orders_by_pair
-        }[exchange_id]
-
-    # FIXME NOTE: Open question how to choose proper direction of arbitrage?
-
-    for pair_id in orders_by_pair:
-        profit_by_pairs[pair_id] = 0.0
-        for sell_deal, buy_deal in orders_by_pair[pair_id]:
-            trade_history1 = get_corresponding_trades(sell_deal.exchange_id)
-            trades_1 = find_corresponding_trades(sell_deal, trade_history1)
-            if len(trades_1) == 0:
-                log_to_file("NOT FOUND! {tr}".format(tr=sell_deal),
-                            "what_we_have_at_the_end.log")
-
-            trade_history2 = get_corresponding_trades(buy_deal.exchange_id)
-            trades_2 = find_corresponding_trades(buy_deal, trade_history2)
-            if len(trades_2) == 0:
-                log_to_file("NOT FOUND! {tr}".format(tr=buy_deal),
-                            "what_we_have_at_the_end.log")
-
-            if buy_deal.volume == 912.0 and buy_deal.pair_id == 25.0:
-                print "SELL DEAL from BOT", sell_deal
-                print "TOTAL: ",  len(trades_1), "Corresponding trades from history"
-                for b in trades_1:
-                    print b
-
-                print "BUY DEAL from BOT", buy_deal
-                print "TOTAL: ",  len(trades_2), "Corresponding trades from history"
-                for b in trades_2:
-                    print b
-
-                # raise
-
-            if len(trades_1) > 0 and len(trades_2) > 0:
-                profit_by_pairs[pair_id] += compute_profit_by_arbitrage(sell_deal, trades_1, buy_deal, trades_2)

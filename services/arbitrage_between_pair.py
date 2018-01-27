@@ -4,13 +4,12 @@ from collections import defaultdict
 from data_access.message_queue import get_message_queue, DEAL_INFO_MSG
 
 from core.arbitrage_core import search_for_arbitrage, adjust_currency_balance
-from core.expired_deal import process_expired_deals, compute_time_key, add_deals_to_watch_list
+from core.expired_deal import process_expired_deals, add_orders_to_watch_list
 from core.backtest import common_cap_init, dummy_balance_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
 from dao.ticker_utils import get_ticker_for_arbitrage
-from dao.dao import parse_deal_id_from_json_by_exchange_id
 from dao.deal_utils import init_deals_with_logging_speedy
 
 from data.ArbitrageConfig import ArbitrageConfig
@@ -28,12 +27,7 @@ from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for
 
-from data.Trade import Trade
-from dao.dao import sell_by_exchange, buy_by_exchange
-
-
-BALANCE_EXPIRED_THRESHOLD = 60
-MIN_CAP_UPDATE_TIMEOUT = 900
+from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD, MIN_CAP_UPDATE_TIMEOUT
 
 
 def log_balance_expired_errors(cfg, msg_queue):
@@ -106,6 +100,7 @@ if __name__ == "__main__":
                                                  "and initiate sell\\buy deals for arbitrage opportunities")
 
     parser.add_argument('--threshold', action="store", type=float, required=True)
+    parser.add_argument('--balance_threshold', action="store", type=float, required=True)
     parser.add_argument('--reverse_threshold', action="store", type=float, required=True)
     parser.add_argument('--sell_exchange_id', action="store", type=int, required=True)
     parser.add_argument('--buy_exchange_id', action="store", type=int, required=True)
@@ -118,14 +113,15 @@ if __name__ == "__main__":
 
     cfg = ArbitrageConfig(results.sell_exchange_id, results.buy_exchange_id,
                           results.pair_id, results.threshold,
-                          results.reverse_threshold, results.deal_expire_timeout,
+                          results.reverse_threshold, results.balance_threshold,
+                          results.deal_expire_timeout,
                           results.logging_level)
 
     if cfg.logging_level_id is not None:
         set_logging_level(cfg.logging_level_id)
 
     load_keys("./secret_keys")
-    msg_queue1 = get_message_queue()
+    msg_queue = get_message_queue()
     processor = ConnectionPool(pool_size=2)
 
     # to avoid time-consuming check in future - validate arguments here
@@ -137,32 +133,12 @@ if __name__ == "__main__":
 
     deal_cap = common_cap_init()
     update_min_cap(cfg, deal_cap, processor)
+    deal_cap.update_max_cap(cfg.pair_id, NO_MAX_CAP_LIMIT)
 
     balance_state = dummy_balance_init(timest=0, default_volume=0, default_available_volume=0)
 
     # key is timest rounded to minutes
     list_of_deals = defaultdict(list)
-
-    """
-    debug part
-
-    some_price = 0.00005
-    some_volume = 25.0
-    create_time = get_now_seconds_utc()
-    trade_at_first_exchange = Trade(DEAL_TYPE.BUY, cfg.sell_exchange_id, cfg.pair_id,
-                                    some_price, some_volume, -1,
-                                    create_time)
-
-    err_code, res = buy_by_exchange(trade_at_first_exchange)
-
-    deal_id = parse_deal_id_from_json_by_exchange_id(cfg.sell_exchange_id, res)
-    time_key = compute_time_key(create_time, cfg.deal_expire_timeout)
-
-    trade_at_first_exchange.deal_id = deal_id
-
-    list_of_deals[time_key].append(trade_at_first_exchange)
-
-    """
 
     last_order_book = {}
 
@@ -180,7 +156,7 @@ if __name__ == "__main__":
             balance_state = get_updated_balance_arbitrage(cfg, balance_state, local_cache)
 
             if balance_state.expired(cur_timest_sec, cfg.buy_exchange_id, cfg.sell_exchange_id, BALANCE_EXPIRED_THRESHOLD):
-                log_balance_expired_errors(cfg, msg_queue1)
+                log_balance_expired_errors(cfg, msg_queue)
                 raise
 
             order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec, processor)
@@ -191,12 +167,12 @@ if __name__ == "__main__":
                 continue
 
             # init_deals_with_logging_speedy
-            status_code, deal_pair = method(order_book_src, order_book_dst, active_threshold,
+            status_code, deal_pair = method(order_book_src, order_book_dst, active_threshold, cfg.balance_threshold,
                                             init_deals_with_logging_speedy,
                                             balance_state, deal_cap, type_of_deal=mode_id, worker_pool=processor,
-                                            msg_queue=msg_queue1)
+                                            msg_queue=msg_queue)
 
-            add_deals_to_watch_list(list_of_deals, deal_pair, cfg)
+            add_orders_to_watch_list(list_of_deals, deal_pair, cfg)
 
             last_order_book[order_book_src.exchange_id] = order_book_src
             last_order_book[order_book_dst.exchange_id] = order_book_dst
@@ -205,4 +181,6 @@ if __name__ == "__main__":
             sleep_for(1)
         sleep_for(2)
 
-        process_expired_deals(list_of_deals, last_order_book, cfg, msg_queue1, processor)
+        process_expired_deals(list_of_deals, last_order_book, cfg, msg_queue, processor)
+
+        deal_cap.update_max_cap(cfg.pair_id, NO_MAX_CAP_LIMIT)

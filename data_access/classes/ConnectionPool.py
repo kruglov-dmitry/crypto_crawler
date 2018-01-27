@@ -4,7 +4,7 @@ import requests
 from gevent.pool import Pool
 from constants import POOL_SIZE
 from utils.file_utils import log_to_file
-from debug_utils import get_logging_level, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
+from debug_utils import get_logging_level, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME, POST_RESPONCE_FILE_NAME
 from enums.http_request import HTTP_REQUEST
 
 
@@ -23,7 +23,7 @@ def log_responce_cant_be_parsed(work_unit, file_name):
 
 def log_responce(work_unit):
     msg = "For url {url} response {resp}".format(url=work_unit.url, resp=work_unit.future_result.value.json())
-    log_to_file(msg, "responce.log")
+    log_to_file(msg, POST_RESPONCE_FILE_NAME)
 
 
 class ConnectionPool:
@@ -73,7 +73,7 @@ class ConnectionPool:
                     log_responce_cant_be_parsed(work_unit, "bad_tickers.txt")
             else:
                 res.append(None)
-                log_responce_cant_be_parsed(work_unit, "responce.log")
+                log_responce_cant_be_parsed(work_unit, POST_RESPONCE_FILE_NAME)
 
         return res
 
@@ -102,7 +102,7 @@ class ConnectionPool:
                     res.append(some_result)
             else:
                 res.append(None)
-                log_responce_cant_be_parsed(work_unit, "responce.log")
+                log_responce_cant_be_parsed(work_unit, POST_RESPONCE_FILE_NAME)
 
         return res
 
@@ -148,6 +148,6 @@ class ConnectionPool:
                     res.append(some_result)
             else:
                 res.append(None)
-                log_responce_cant_be_parsed(work_unit, "responce.log")
+                log_responce_cant_be_parsed(work_unit, POST_RESPONCE_FILE_NAME)
 
         return res
