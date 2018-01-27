@@ -254,11 +254,11 @@ def adjust_currency_balance(first_order_book, second_order_book, threshold, bala
     if balance_state.is_there_disbalance(dst_currency_id, src_exchange_id, dst_exchange_id, balance_threshold) and \
             is_no_pending_order(pair_id, src_exchange_id, dst_exchange_id):
 
-        max_volume = 0.5 * abs(balance_state.get_available_volume_by_currency(dst_currency_id, dst_currency_id) -
+        max_volume = 0.5 * abs(balance_state.get_available_volume_by_currency(dst_currency_id, dst_exchange_id) -
                             balance_state.get_available_volume_by_currency(dst_currency_id, src_exchange_id))
 
         # FIXME NOTE: side effect here
-        deal_cap.update_max_cap(pair_id, deal_cap, max_volume)
+        deal_cap.update_max_cap(pair_id, max_volume)
 
         log_currency_disbalance_present(src_exchange_id, dst_exchange_id, pair_id, dst_currency_id,
                                         balance_threshold, max_volume, threshold)

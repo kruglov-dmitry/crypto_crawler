@@ -44,9 +44,9 @@ class MarketCap(BaseData):
         self.last_updated = cur_timest_sec
         self.min_volume_cap[currency_id] = new_cap
 
-    def update_max_cap(self, pair_id, deal_cap, max_limit):
+    def update_max_cap(self, pair_id, max_limit):
         base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
-        deal_cap.max_volume_cap[dst_currency_id] = max_limit
+        self.max_volume_cap[dst_currency_id] = max_limit
 
     def get_min_cap(self, currency_id):
         if currency_id in self.min_volume_cap:
