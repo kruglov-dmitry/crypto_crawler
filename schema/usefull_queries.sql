@@ -73,3 +73,9 @@ delete from order_history WHERE id IN (SELECT id
                              ROW_NUMBER() OVER (partition BY pair_id, exchange_id, deal_type, price, amount, timest ORDER BY id) AS rnum
                      FROM order_history) t
               WHERE t.rnum > 1);
+
+-- how many dublicate tickers do we have
+select count(*) from tickers WHERE id IN (SELECT id FROM (SELECT id, ROW_NUMBER() OVER (partition BY exchange_id, pair_id, lowest_ask, highest_bid, timest ORDER BY id) AS rnum FROM tickers) t WHERE t.rnum > 1);
+
+-- delete dublicates
+delete from tickers WHERE id IN (SELECT id FROM (SELECT id, ROW_NUMBER() OVER (partition BY exchange_id, pair_id, lowest_ask, highest_bid, timest ORDER BY id) AS rnum FROM tickers) t WHERE t.rnum > 1);

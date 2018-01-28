@@ -1,23 +1,21 @@
-from data.Trade import Trade
-
-from dao.db import init_pg_connection
-from enums.exchange import EXCHANGE
-from enums.deal_type import DEAL_TYPE
-
-from utils.key_utils import load_keys
-
-from utils.exchange_utils import get_fee_by_exchange
-from utils.currency_utils import get_pair_name_by_id
-
 from collections import defaultdict, Counter
+import sys
+import ConfigParser
 
+from dao.db import get_all_orders, init_pg_connection
+
+from enums.deal_type import DEAL_TYPE
+from enums.exchange import EXCHANGE
+
+from utils.currency_utils import get_pair_name_by_id
+from utils.exchange_utils import get_fee_by_exchange
 from utils.file_utils import log_to_file
-from utils.time_utils import get_now_seconds_utc
+from utils.key_utils import load_keys
 from utils.string_utils import float_to_str
-from dao.db import get_all_orders
+from utils.time_utils import get_now_seconds_utc
 
-from data_load_for_profit_report import load_recent_binance_trades_to_db, \
-    load_recent_poloniex_trades_to_db, load_recent_bittrex_trades_to_db
+from analysis.data_load_for_profit_report import fetch_trades_history_to_db
+from analysis.binance_order_by_trades import group_binance_trades_per_order
 
 
 def group_by_pair_and_arbitrage_id(order_list):
@@ -138,102 +136,9 @@ def group_by_pair_id(binance_trades):
     return res
 
 
-def group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_group_by_pair):
-    orders_with_trades = []
-
-    last_trade_idx = Counter()
-    for order in binance_orders_at_exchange:
-        if order.executed_volume == 0.0:
-            continue
-
-        # DBG
-        # if order.pair_id != 41:
-        #    continue
-
-        # msg = """STARTED for order - {wtf}
-        #   LAST_ID is {lid}
-        #    """.format(wtf=order, lid=last_trade_idx[order.pair_id])
-        #log_to_file(msg, get_pair_name_by_id(order.pair_id) + ".txt")
-
-
-        list_to_check = binance_trades_group_by_pair[order.pair_id][last_trade_idx[order.pair_id]:]
-
-        if len(list_to_check) == 0:
-            msg = """LENGTH IS ZERO
-                current order: {o}
-                current last_id - {lid}
-                PREV list:""".format(o=order, lid=last_trade_idx[order.pair_id])
-            log_to_file(msg, get_pair_name_by_id(order.pair_id) + ".txt")
-            for twt in binance_trades_group_by_pair[order.pair_id]:
-                log_to_file(twt, get_pair_name_by_id(order.pair_id) + ".txt")
-
-            raise
-
-        total_volume = float(0.0)
-        cur_trade_list = []
-
-        for trade in list_to_check:
-            if abs(order.executed_volume - total_volume) > 0.00000001:
-
-                total_volume += trade.volume
-                cur_trade_list.append(trade)
-                last_trade_idx[order.pair_id] += 1
-
-                # msg = """ADD NEW TRADE - {o}
-                #    LAST_ID NOW IS {lid}
-                #    total_volume = {tv}
-                #    order.executed_volume = {ev}
-                #    WTF = {wtf}
-                #    DIFF: {wtf1}
-                #    """.format(o=trade, lid=last_trade_idx[order.pair_id], tv=total_volume, ev=order.executed_volume,
-                #               wtf=order.executed_volume > total_volume, wtf1=order.executed_volume - total_volume)
-                #log_to_file(msg, get_pair_name_by_id(order.pair_id) + ".txt")
-
-                if total_volume - order.executed_volume > 0.000001:
-                    msg = """current order: {o}
-                                    current last_id - {lid}
-                                    PREV list:""".format(o=order, lid=last_trade_idx[order.pair_id])
-                    log_to_file(msg, get_pair_name_by_id(order.pair_id) + ".txt")
-                    for twt in binance_trades_group_by_pair[order.pair_id]:
-                        log_to_file(twt, get_pair_name_by_id(order.pair_id) + ".txt")
-                    print "YOUR PROBLEM IS ", order.pair_id, get_pair_name_by_id(order.pair_id)
-                    raise
-            else:
-                # log_to_file("SHOULD BE ENOUGH VOLUME", get_pair_name_by_id(order.pair_id) + ".txt")
-                break
-
-        # msg = """Added succesfully: {o}
-        #    Tweak id - {lid}
-        #    Deals size: {ds}
-        #    CORRESPONDING TRADES:
-        #    """.format(o=order, lid=last_trade_idx[order.pair_id], ds=len(cur_trade_list))
-        #log_to_file(msg, get_pair_name_by_id(order.pair_id) + ".txt")
-        #for x in cur_trade_list:
-        #    log_to_file(x, get_pair_name_by_id(order.pair_id) + ".txt")
-
-        orders_with_trades.append((order, cur_trade_list))
-
-    cnt = 0
-    for order, trade_list in orders_with_trades:
-        log_to_file("For order - {o} CORRESPONDING trades are".format(o=order), "fucking_binance.txt")
-        wut = next((x for x in binance_orders_at_bot if x.deal_id == order.deal_id), None)
-
-        if len(trade_list) == 0 and wut is not None:
-            msg = """NOT FOUND TRADES FOR: {o} 
-                within bot it was registered as: {oo}""".format(o=order, oo=wut)
-
-            log_to_file(msg, "missing_binance_orders.txt")
-
-        # for trade in trade_list:
-        #    log_to_file(trade, "fucking_binance.txt")
-
-    # raise
-
-    return orders_with_trades
-
-
 def compute_time_key(timest, rounding_interval):
     return rounding_interval * long(timest / rounding_interval)
+
 
 def compute_profit_by_pair(trades_to_order_by_pair):
     profit_by_pair = 0.0
@@ -348,35 +253,47 @@ def compute_profit_by_pair(trades_to_order_by_pair):
 
     return profit_by_pair
 
+
 if __name__ == "__main__":
-    # pg_conn = init_pg_connection(_db_host="192.168.1.106", _db_port=5432)
+    if len(sys.argv) < 2:
+        print "Usage: {prg_name} your_config.cfg".format(prg_name=sys.argv[0])
+        print "FIXME TODO: we should use argparse module"
+        exit(0)
+
+    cfg_file_name = sys.argv[1]
+
+    config = ConfigParser.RawConfigParser()
+    config.read(cfg_file_name)
+
+    db_host = config.get("postgres", "db_host")
+    db_port = config.get("postgres", "db_port")
+    db_name = config.get("postgres", "crypto")
+
+    # start_time = config.getint("common", "start_time")
+    # end_time = config.getint("common", "end_time")
+
+    end_time = get_now_seconds_utc()
+    start_time = end_time - 5 * 24 * 60 * 60
+
+    should_fetch_history_to_db = config.getboolean("common", "fetch_history_from_exchanges")
+
+    pg_conn = init_pg_connection(_db_host=db_host, _db_port=db_port, _db_name=db_name)
+    if should_fetch_history_to_db:
+        fetch_trades_history_to_db(pg_conn, start_time)
+
     load_keys("./secret_keys")
 
-    pg_conn = init_pg_connection(_db_host="orders.cervsj06c8zw.us-west-1.rds.amazonaws.com",
-                                 _db_port=5432, _db_name="crypto")
-
-    now_time = get_now_seconds_utc()
-    fews_days_ago = now_time - 5 * 24 * 60 * 60
-
-    # add some cfg
-    # at least populate db
-    # some time range
-    # some visualisation
-    # load_recent_binance_orders_to_db(pg_conn)
-    # load_recent_binance_trades_to_db(pg_conn)
-    # load_recent_poloniex_trades_to_db(pg_conn)
-    # load_recent_bittrex_trades_to_db(pg_conn)
-    # raise
-
-    orders = get_all_orders(pg_conn, table_name="orders")
+    orders = get_all_orders(pg_conn, table_name="orders", time_start=start_time)
     binance_orders_at_bot = [x for x in orders if x.exchange_id == EXCHANGE.BINANCE]
-    binance_orders_at_exchange = get_all_orders(pg_conn, table_name="binance_order_history")
-    history_trades = get_all_orders(pg_conn, table_name="trades_history")
+    binance_orders_at_exchange = get_all_orders(pg_conn, table_name="binance_order_history", time_start=start_time)
+    history_trades = get_all_orders(pg_conn, table_name="trades_history", time_start=start_time)
 
+    """
     # FIXME modify get_all_orders_by_time
-    orders = [x for x in orders if x.create_time >= fews_days_ago]
-    binance_orders_at_exchange = [x for x in binance_orders_at_exchange if x.create_time >= fews_days_ago]
-    history_trades = [x for x in history_trades if x.create_time >= fews_days_ago]
+    orders = [x for x in orders if x.create_time >= start_time]
+    binance_orders_at_exchange = [x for x in binance_orders_at_exchange if x.create_time >= start_time]
+    history_trades = [x for x in history_trades if x.create_time >= start_time]
+    """
 
     orders_with_corresponding_trades = []
 
@@ -409,9 +326,9 @@ if __name__ == "__main__":
     binance_trades_group_by_pair = group_by_pair_id(binance_trades)
     binance_orders_at_exchange.sort(key=lambda x: x.create_time, reverse=False)
 
-    binance_orders_at_exchange = [x for x in binance_orders_at_exchange if x.create_time >= fews_days_ago]
+    binance_orders_at_exchange = [x for x in binance_orders_at_exchange if x.create_time >= start_time]
 
-    orders_with_trades = group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_group_by_pair)
+    orders_with_trades = group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_group_by_pair, binance_orders_at_bot)
 
     orders_with_corresponding_trades += orders_with_trades
 
@@ -433,7 +350,6 @@ if __name__ == "__main__":
         pair_name = get_pair_name_by_id(pair_id)
         log_to_file("{pn} - {p}".format(pn=pair_name, p=float_to_str(profit_by_pairs[pair_id])),
                     "what_we_have_at_the_end.log")
-
 
     for x in list_of_missing_orders:
         log_to_file(x, "missing_orders.log")
