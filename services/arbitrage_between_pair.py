@@ -181,6 +181,6 @@ if __name__ == "__main__":
             sleep_for(1)
         sleep_for(2)
 
-        process_expired_deals(list_of_deals, last_order_book, cfg, msg_queue, processor)
+        process_expired_deals(list_of_deals, cfg, msg_queue, processor)
 
         deal_cap.update_max_cap(cfg.pair_id, NO_MAX_CAP_LIMIT)

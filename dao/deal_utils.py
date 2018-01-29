@@ -93,7 +93,7 @@ def init_deals_with_logging_speedy_fake(trade_pairs, difference, file_name, proc
 
 def return_with_no_change(json_document, corresponding_trade):
     corresponding_trade.execute_time = get_now_seconds_utc()
-    corresponding_trade.deal_id = dao.parse_deal_id_from_json_by_exchange_id(corresponding_trade.exchange_id, json_document)
+    corresponding_trade.deal_id = dao.parse_deal_id(corresponding_trade.exchange_id, json_document)
     return json_document, corresponding_trade
 
 

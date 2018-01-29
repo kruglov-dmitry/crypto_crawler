@@ -19,15 +19,15 @@ def get_order_book_binance_url(currency, timest):
     return final_url
 
 
-def get_order_book_binance(currency, timest):
+def get_order_book_binance(pair_name, timest):
 
-    final_url = get_order_book_binance_url(currency, timest)
+    final_url = get_order_book_binance_url(pair_name, timest)
 
-    err_msg = "get_order_book_binance called for {pair} at {timest}".format(pair=currency, timest=timest)
+    err_msg = "get_order_book_binance called for {pair} at {timest}".format(pair=pair_name, timest=timest)
     error_code, r = send_request(final_url, err_msg)
 
     if error_code == STATUS.SUCCESS and r is not None:
-        return OrderBook.from_binance(r, currency, timest)
+        return OrderBook.from_binance(r, pair_name, timest)
 
     return None
 

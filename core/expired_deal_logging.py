@@ -35,8 +35,8 @@ def log_cant_placing_new_deal(every_deal, cfg, msg_queue):
     log_to_file(msg, "expire_deal.log")
 
 
-def log_cant_find_order_book(every_deal, cfg, msg_queue):
-    msg = """ Can't find order book for deal with expired orders!
+def log_cant_retrieve_order_book(every_deal, cfg, msg_queue):
+    msg = """ Can't retrieve order book for deal with expired orders!
         Order details: {deal}""".format(deal=str(every_deal))
     msg_queue.add_message(DEAL_INFO_MSG, msg)
     print_to_console(msg, LOG_ALL_ERRORS)

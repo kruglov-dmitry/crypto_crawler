@@ -2,14 +2,15 @@ from collections import defaultdict
 
 from core.arbitrage_core import adjust_price_by_order_book
 from core.expired_deal_logging import log_cant_cancel_deal, log_placing_new_deal, log_cant_placing_new_deal, \
-    log_cant_find_order_book, log_dont_have_open_orders, log_open_orders_bad_result, \
+    log_cant_retrieve_order_book, log_dont_have_open_orders, log_open_orders_bad_result, \
     log_trace_all_open_orders, log_trace_log_time_key, log_trace_log_all_cached_orders_for_time_key, \
     log_trace_order_not_yet_expired, log_trace_processing_oder, log_trace_cancel_request_result, \
     log_trace_warched_orders_after_processing
 
 from dao.order_utils import get_open_orders_for_arbitrage_pair
-from dao.dao import cancel_by_exchange, parse_deal_id_from_json_by_exchange_id
+from dao.dao import cancel_by_exchange, parse_deal_id
 from dao.deal_utils import init_deal
+from dao.order_book_utils import get_order_book
 
 from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc
@@ -20,13 +21,12 @@ from enums.status import STATUS
 from enums.deal_type import DEAL_TYPE
 
 
-def process_expired_deals(list_of_orders, last_order_book, cfg, msg_queue, worker_pool):
+def process_expired_deals(list_of_orders, cfg, msg_queue, worker_pool):
     """
     Current approach to deal with tracked deals that expire.
     Details and discussion at https://gitlab.com/crypto_trade/crypto_crawler/issues/15
 
     :param list_of_orders:      tracked orders
-    :param last_order_book:     recent version of order_book for exchange
     :param cfg:                 arbitrage settings, including order expire timeout
     :param msg_queue:           cache for Telegram notification
     :param worker_pool:         gevent based connection pool for speedy deal placement
@@ -82,9 +82,11 @@ def process_expired_deals(list_of_orders, last_order_book, cfg, msg_queue, worke
                     problematic_expired_orders[ts].append(every_deal)
                     continue
 
-                if every_deal.exchange_id in last_order_book:
+                order_book = get_order_book(every_deal.exchange_id, every_deal.pair_id)
 
-                    orders = last_order_book[every_deal.exchange_id].bid if every_deal.trade_type == DEAL_TYPE.SELL else last_order_book[every_deal.exchange_id].ask
+                if order_book is not None:
+
+                    orders = order_book.bid if every_deal.trade_type == DEAL_TYPE.SELL else order_book.ask
 
                     new_price = adjust_price_by_order_book(orders, every_deal.volume)
                     every_deal.price = new_price
@@ -95,8 +97,8 @@ def process_expired_deals(list_of_orders, last_order_book, cfg, msg_queue, worke
                     if err_code == STATUS.SUCCESS:
 
                         every_deal.execute_time = get_now_seconds_utc()
-                        every_deal.order_book_time = long(last_order_book[every_deal.exchange_id].timest)
-                        every_deal.deal_id = parse_deal_id_from_json_by_exchange_id(every_deal.exchange_id, json_document)
+                        every_deal.order_book_time = long(order_book.timest)
+                        every_deal.deal_id = parse_deal_id(every_deal.exchange_id, json_document)
 
                         replaced_orders[ts].append(every_deal)
 
@@ -107,7 +109,7 @@ def process_expired_deals(list_of_orders, last_order_book, cfg, msg_queue, worke
                         log_cant_placing_new_deal(every_deal, cfg, msg_queue)
                         problematic_expired_orders[ts].append(every_deal)
                 else:
-                    log_cant_find_order_book(every_deal, cfg, msg_queue)
+                    log_cant_retrieve_order_book(every_deal, cfg, msg_queue)
                     problematic_expired_orders[ts].append(every_deal)
 
     """

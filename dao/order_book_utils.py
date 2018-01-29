@@ -77,7 +77,7 @@ def get_order_books_for_arbitrage_pair(cfg, date_end, processor):
     return processor.process_async_to_list(order_book_async_requests, HTTP_TIMEOUT_SECONDS)
 
 
-def get_order_book():
+def get_order_book_sync_and_slow():
 
     all_order_book = defaultdict(list)
 
@@ -151,3 +151,17 @@ def get_order_book_url_by_echange_id(exchange_id):
         EXCHANGE.POLONIEX: get_order_book_poloniex_url,
         EXCHANGE.BINANCE: get_order_book_binance_url
     }[exchange_id]
+
+
+def get_order_book(exchange_id, pair_id):
+    timest = get_now_seconds_utc()
+
+    pair_name = get_currency_pair_name_by_exchange_id(pair_id, exchange_id)
+    if pair_name is None:
+        print "UNSUPPORTED COMBINATION OF PAIR ID AND EXCHANGE", pair_id, exchange_id
+        raise
+
+    method = get_order_book_method_by_echange_id(exchange_id)
+
+    return method(pair_name, timest)
+
