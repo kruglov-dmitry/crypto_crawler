@@ -16,6 +16,13 @@ from collections import defaultdict
 from tqdm import tqdm
 
 
+def fetch_trades_history_to_db(pg_conn, start_time):
+    load_recent_binance_orders_to_db(pg_conn, start_time)
+    load_recent_binance_trades_to_db(pg_conn, start_time)
+    load_recent_poloniex_trades_to_db(pg_conn, start_time)
+    load_recent_bittrex_trades_to_db(pg_conn, start_time)
+
+
 def wrap_with_progress_bar(descr, input_array, functor, *args, **kwargs):
     for entry in tqdm(input_array, desc=descr):
         functor(entry, *args, **kwargs)
@@ -43,11 +50,13 @@ def save_to_pg_adapter(order, pg_conn, unique_only, table_name, init_arbitrage_i
     save_order_into_pg(order, pg_conn, table_name)
 
 
-def load_recent_binance_orders_to_db(pg_conn, unique_only=True):
+def load_recent_binance_orders_to_db(pg_conn, start_time, unique_only=True):
     binance_orders = get_recent_binance_orders()
 
-    wrap_with_progress_bar("Loading recent binance orders to db...", binance_orders, save_to_pg_adapter, pg_conn, unique_only,
-                           init_arbitrage_id=-10, table_name="binance_order_history")
+    binance_orders = [x for x in binance_orders if x.create_time >= start_time]
+
+    wrap_with_progress_bar("Loading recent binance orders to db...", binance_orders, save_to_pg_adapter, pg_conn,
+                           unique_only, init_arbitrage_id=-10, table_name="binance_order_history")
 
 
 def get_recent_binance_trades():
@@ -66,8 +75,10 @@ def get_recent_binance_trades():
     return binance_order
 
 
-def load_recent_binance_trades_to_db(pg_conn, unique_only=True):
+def load_recent_binance_trades_to_db(pg_conn, start_time, unique_only=True):
     binance_trades = get_recent_binance_trades()
+
+    binance_trades = [x for x in binance_trades if x.create_time >= start_time]
 
     wrap_with_progress_bar("Loading recent binance trades to db ...", binance_trades, save_to_pg_adapter, pg_conn, unique_only,
                            init_arbitrage_id=-20, table_name="trades_history")
@@ -88,8 +99,11 @@ def get_recent_poloniex_trades():
 
     return poloniex_orders_by_pair
 
-def load_recent_poloniex_trades_to_db(pg_conn, unique_only=True):
+
+def load_recent_poloniex_trades_to_db(pg_conn, start_time, unique_only=True):
     poloniex_orders_by_pair = get_recent_poloniex_trades()
+
+    poloniex_orders_by_pair = [x for x in poloniex_orders_by_pair if x.create_time >= start_time]
 
     for pair_id in poloniex_orders_by_pair:
         headline = "Loading poloniex trades - {p}".format(p=get_currency_pair_to_poloniex(pair_id))
@@ -109,8 +123,10 @@ def get_recent_bittrex_trades():
     return bittrex_order_by_pair
 
 
-def load_recent_bittrex_trades_to_db(pg_conn, unique_only=True):
+def load_recent_bittrex_trades_to_db(pg_conn, start_time, unique_only=True):
     bittrex_order_by_pair = get_recent_bittrex_trades()
+
+    bittrex_order_by_pair = [x for x in bittrex_order_by_pair if x.create_time >= start_time]
 
     for pair_id in bittrex_order_by_pair:
         headline = "Loading bittrex trades - {p}".format(p=get_currency_pair_to_bittrex(pair_id))

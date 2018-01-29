@@ -195,7 +195,6 @@ def adjust_maximum_volume_by_trading_cap(sell_order_book, buy_order_book, deal_c
     return min_volume
 
 
-
 def round_minimum_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, min_volume, pair_id):
     if sell_exchange_id == EXCHANGE.BINANCE or buy_exchange_id == EXCHANGE.BINANCE:
         return round_minimum_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
@@ -254,11 +253,11 @@ def adjust_currency_balance(first_order_book, second_order_book, threshold, bala
     if balance_state.is_there_disbalance(dst_currency_id, src_exchange_id, dst_exchange_id, balance_threshold) and \
             is_no_pending_order(pair_id, src_exchange_id, dst_exchange_id):
 
-        max_volume = 0.5 * abs(balance_state.get_available_volume_by_currency(dst_currency_id, dst_currency_id) -
+        max_volume = 0.5 * abs(balance_state.get_available_volume_by_currency(dst_currency_id, dst_exchange_id) -
                             balance_state.get_available_volume_by_currency(dst_currency_id, src_exchange_id))
 
         # FIXME NOTE: side effect here
-        deal_cap.update_max_cap(pair_id, deal_cap, max_volume)
+        deal_cap.update_max_cap(pair_id, max_volume)
 
         log_currency_disbalance_present(src_exchange_id, dst_exchange_id, pair_id, dst_currency_id,
                                         balance_threshold, max_volume, threshold)

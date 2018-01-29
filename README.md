@@ -78,6 +78,8 @@ Postgres backups:
 ``` bash
 pg_dump -h 192.168.1.106 -p 5432 -U postgres -F c -b -v -f "/home/dima/full_DDMMYYYY"
 pg_dump -h 192.168.1.106 -p 5432 -U postgres -s public
+-- How to do full dump without particular tables
+pg_dump -h 192.168.1.106 -p 5432 -U postgres -F c -b -v --exclude-table=alarams --exclude-table=tmp_binance_orders --exclude-table=tmp_history_trades --exclude-table=tmp_trades --exclude-table=trades -f "/home/dima/full_DDMMYYYY"
 ```
 
 AWS:

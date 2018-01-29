@@ -1,6 +1,7 @@
 from urllib import urlencode as _urlencode
 
 from binance.constants import BINANCE_BUY_ORDER, BINANCE_NUM_OF_DEAL_RETRY, BINANCE_DEAL_TIMEOUT
+from binance.precision_by_currency import round_volume_by_precisness_binance
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
@@ -32,7 +33,7 @@ def add_buy_order_binance_url(key, pair_name, price, amount):
         "timeInForce": "GTC",
         "recvWindow": 5000,
         "timestamp": get_now_seconds_utc_ms(),
-        "quantity": float_to_str(amount),
+        "quantity": round_volume_by_precisness_binance(pair_name, amount),
         "price": float_to_str(price)
     }
 
