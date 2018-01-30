@@ -71,6 +71,9 @@ def group_by_pair_id(binance_trades):
 
 
 def compute_profit_by_pair(pair_id, trades_to_order_by_pair):
+
+    file_name = get_pair_name_by_id(pair_id) + "_trace.txt"
+
     profit_coin = 0.0
     profit_bitcoin = 0.0
 
@@ -83,19 +86,35 @@ def compute_profit_by_pair(pair_id, trades_to_order_by_pair):
     for arbitrage_id in orders_by_arbitrage_id:
         if len(orders_by_arbitrage_id[arbitrage_id]) == 1:
             number_of_missing_pair += 1
+            msg = "Can't find paired arbitrage order for {o}".format(o=orders_by_arbitrage_id[arbitrage_id][0])
+            log_to_file(msg, file_name)
             continue
         else:
             for order, trades in orders_by_arbitrage_id[arbitrage_id]:
+                msg = "Computing trades for order {o}".format(o=order)
+                log_to_file(msg, file_name)
                 if order.trade_type == DEAL_TYPE.BUY:
                     for trade in trades:
-                        profit_coin += trade.volume
-                        profit_bitcoin -= trade.volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id))
+                        profit_coin += trade.executed_volume
+                        profit_bitcoin -= trade.executed_volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id))
+                        msg = """Analysing trade {o}
+                        ADD coin volume = {cv}
+                        SUBTRACT bitcoin = {btc}
+                        """.format(o=trade, cv=trade.executed_volume, btc=trade.executed_volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id)))
+                        log_to_file(msg, file_name)
                 elif order.trade_type == DEAL_TYPE.SELL:
                     for trade in trades:
-                        profit_coin -= trade.volume
-                        profit_bitcoin += trade.volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id))
+                        profit_coin -= trade.executed_volume
+                        profit_bitcoin += trade.executed_volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id))
+                        msg = """Analysing trade {o}
+                        SUBTRACT coin volume = {cv}
+                        ADD bitcoin = {btc}
+                        """.format(o=trade, cv=trade.executed_volume,
+                                   btc=trade.executed_volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id)))
+                        log_to_file(msg, file_name)
 
-    print get_pair_name_by_id(pair_id), "Number of missing pairs", number_of_missing_pair
+    msg = "For {pair_name} Number of missing paired order is {num}".format(pair_name=get_pair_name_by_id(pair_id), num=number_of_missing_pair)
+    log_to_file(msg, file_name)
 
     return profit_coin, profit_bitcoin
 
@@ -244,12 +263,12 @@ def compute_loss_by_pair(orders_and_trades_by_pair):
     for order, trade_list in orders_and_trades_by_pair:
         if order.trade_type == DEAL_TYPE.BUY:
             for trade in trade_list:
-                volume_pair += trade.volume
-                volume_bitcoin -= trade.volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id))
+                volume_pair += trade.executed_volume
+                volume_bitcoin -= trade.executed_volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id))
         elif order.trade_type == DEAL_TYPE.SELL:
             for trade in trade_list:
-                volume_pair -= trade.volume
-                volume_bitcoin += trade.volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id))
+                volume_pair -= trade.executed_volume
+                volume_bitcoin += trade.executed_volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id))
 
     return volume_pair, volume_bitcoin
 
