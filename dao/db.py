@@ -221,15 +221,36 @@ def get_all_orders(pg_conn, table_name="orders", time_start=START_OF_TIME):
 
 
 def is_order_present_in_order_history(pg_conn, trade, table_name="orders"):
+    """
+                We can execute history retrieval several times.
+                Some exchanges do not have precise mechanism to exclude particular time range.
+                It is possible to have multiple trades per order = deal_id.
+                As this is arbitrage it mean that all other fields may be the same.
+                exchange_id | trade_type | pair_id |   price   |  volume    |   deal_id | timest
 
-    select_query = """select * from {table_name} where deal_id = '{trade_id}'""".format(table_name=table_name,
-                                                                                       trade_id=trade.deal_id)
+                executed_volume
+
+    :param pg_conn:
+    :param trade:
+    :param table_name:
+    :return:
+    """
+
+    select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, 
+        order_book_time, create_time, execute_time from {table_name} where deal_id = '{trade_id}'""".format(
+        table_name=table_name, trade_id=trade.deal_id)
 
     cursor = pg_conn.get_cursor()
 
     cursor.execute(select_query)
 
-    return cursor.rowcount > 0
+    for row in cursor:
+        cur_trade = Trade.from_row(row)
+        if abs(cur_trade.executed_volume - trade.executed_volume) < 0.0000001 and \
+                cur_trade.create_time == trade.create_time:
+            return True
+
+    return False
 
 
 def is_trade_present_in_trade_history(pg_conn, trade, table_name="trades_history"):
