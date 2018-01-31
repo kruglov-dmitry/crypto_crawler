@@ -65,7 +65,7 @@ def compute_new_min_cap_from_tickers(tickers):
             min_price = max(min_price, ticker.ask)
 
     if min_price != 0.0:
-        return 0.002 / min_price
+        return 0.004 / min_price
 
     return 0.0
 
