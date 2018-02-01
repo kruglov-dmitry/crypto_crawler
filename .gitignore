@@ -2,3 +2,5 @@
 *.pyc
 *.key
 *.log
+.DC_Store
+logs/.DS_Store

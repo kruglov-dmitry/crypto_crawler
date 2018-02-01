@@ -147,7 +147,7 @@ def parse_deal_id_by_exchange_id(exchange_id, http_responce):
 
     return method(http_responce)
 
-def parse_deal_id_from_json_by_exchange_id(exchange_id, json_document):
+def parse_deal_id(exchange_id, json_document):
 
     method = {EXCHANGE.POLONIEX: parse_deal_id_poloniex_from_json,
               EXCHANGE.BITTREX: parse_deal_id_bittrex_from_json,

@@ -1,5 +1,6 @@
 from data.BaseData import BaseData
 import redis as _redis
+import pickle
 from utils.time_utils import get_now_seconds_utc_ms
 
 
@@ -43,3 +44,12 @@ class MessageQueue(BaseData):
 
     def add_message_to_start(self, topic_id, msg):
         self.r.lpush(topic_id, msg)
+
+    def add_order(self, topic_id, balance):
+        self.r.lpush(topic_id, pickle.dumps(balance))
+
+    def get_next_order(self, topic_id):
+        entry = self.get_message(topic_id, True)
+        if entry is not None:
+            return pickle.loads(entry)
+        return None

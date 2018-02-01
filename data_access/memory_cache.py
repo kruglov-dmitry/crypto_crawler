@@ -24,3 +24,8 @@ def generate_nonce():
     # return int(round(time.time() * 1000))
     cache = get_cache()
     return cache.get_counter()
+
+
+def get_next_arbitrage_id():
+    cache = get_cache()
+    return cache.get_arbitrage_id()

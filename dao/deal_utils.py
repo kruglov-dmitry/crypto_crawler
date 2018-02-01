@@ -2,7 +2,7 @@
 import dao
 
 from data_access.classes.WorkUnit import WorkUnit
-from data_access.message_queue import DEAL_INFO_MSG, DEBUG_INFO_MSG
+from data_access.message_queue import DEAL_INFO_MSG, DEBUG_INFO_MSG, ORDERS_MSG
 
 from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, ERROR_LOG_FILE_NAME
 from constants import DEAL_MAX_TIMEOUT
@@ -93,7 +93,7 @@ def init_deals_with_logging_speedy_fake(trade_pairs, difference, file_name, proc
 
 def return_with_no_change(json_document, corresponding_trade):
     corresponding_trade.execute_time = get_now_seconds_utc()
-    corresponding_trade.deal_id = dao.parse_deal_id_from_json_by_exchange_id(corresponding_trade.exchange_id, json_document)
+    corresponding_trade.deal_id = dao.parse_deal_id(corresponding_trade.exchange_id, json_document)
     return json_document, corresponding_trade
 
 
@@ -139,7 +139,8 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
     # check for errors only
     for entry in res:
         if entry is None:
-            msg = "ERROR: NONE as result of deal placement!"
+            msg = """ERROR: NONE as result of deal placement! Either for {u1} or {u2}""".format(u1=trade_pairs.deal_1,
+                                                                                    u2=trade_pairs.deal_2)
         else:
             return_value, trade = entry
             msg = """ For trade {trade}
@@ -148,3 +149,6 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
         print_to_console(msg, LOG_ALL_ERRORS)
         msg_queue.add_message(DEBUG_INFO_MSG, msg)
         log_to_file(msg, file_name)
+
+    for trade in [trade_pairs.deal_1, trade_pairs.deal_2]:
+        msg_queue.add_order(ORDERS_MSG, trade)

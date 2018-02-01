@@ -37,11 +37,16 @@ from kraken.sell_utils import add_sell_order_kraken
 from poloniex.balance_utils import get_balance_poloniex
 from poloniex.market_utils import get_orders_history_poloniex
 from poloniex.order_utils import get_open_orders_poloniex
+from poloniex.buy_utils import add_buy_order_poloniex
+from poloniex.sell_utils import add_sell_order_poloniex
 from utils.key_utils import load_keys, get_key_by_exchange
 from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
+from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from data_access.message_queue import get_message_queue
 
 from dao.order_utils import get_open_orders_for_arbitrage_pair
+from dao.db import save_order_into_pg, init_pg_connection, is_order_present_in_order_history, \
+    is_trade_present_in_trade_history
 
 from debug_utils import LOG_ALL_DEBUG
 
@@ -255,6 +260,7 @@ def check_open_order_retrieval():
     for r in res:
         print r
 
+
 def test_kraken_buy_sell_utils():
     load_keys("./secret_keys")
     krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
@@ -262,13 +268,12 @@ def test_kraken_buy_sell_utils():
     err_code, res = add_sell_order_kraken(krak_key, "XXMRXXBT", price=0.045, amount=10.0)
     print res
 
-# check_open_order_retrieval()
 
 def test_open_orders_retrieval_arbitrage():
 
     sell_exchange_id = EXCHANGE.BINANCE
-    buy_exchange_id = EXCHANGE.BITTREX
-    pair_id = CURRENCY_PAIR.BTC_TO_ETH
+    buy_exchange_id = EXCHANGE.POLONIEX
+    pair_id = CURRENCY_PAIR.BTC_TO_OMG
     threshold = 2.0
     reverse_threshold = 2.0
     deal_expire_timeout = 60
@@ -287,4 +292,90 @@ def test_open_orders_retrieval_arbitrage():
     for r in res:
         print r
 
-test_open_orders_retrieval_arbitrage()
+
+def test_insert_order():
+    from enums.exchange import EXCHANGE
+    from enums.deal_type import DEAL_TYPE
+    from enums.currency_pair import CURRENCY_PAIR
+    wtf = Trade(DEAL_TYPE.SELL, EXCHANGE.POLONIEX, CURRENCY_PAIR.BTC_TO_ARDR, 0.00001, 10.4, 1516039961, 1516039961)
+    pg_conn = init_pg_connection(_db_host="192.168.1.106", _db_port=5432, _db_name="postgres")
+    save_order_into_pg(wtf, pg_conn)
+
+
+def test_binance_xlm():
+    load_keys("./secret_keys")
+    key = get_key_by_exchange(EXCHANGE.BINANCE)
+    pair_id = CURRENCY_PAIR.BTC_TO_XLM
+    pair_name = get_currency_pair_name_by_exchange_id(pair_id, EXCHANGE.BINANCE)
+    err, json_repr = add_buy_order_binance(key, pair_name, price=0.00003000, amount=100)
+    print json_repr
+
+
+def test_poloniex_doge():
+    load_keys("./secret_keys")
+    key = get_key_by_exchange(EXCHANGE.POLONIEX)
+    pair_id = CURRENCY_PAIR.BTC_TO_DGB
+    pair_name = get_currency_pair_name_by_exchange_id(pair_id, EXCHANGE.POLONIEX)
+    err, json_repr = add_buy_order_poloniex(key, pair_name, price=0.00000300, amount=100)
+    print json_repr
+
+
+def test_new_sell_api():
+    # STRAT vol 10 sell 0.0015 buy 0.0007
+
+    load_keys("./secret_keys")
+    key = get_key_by_exchange(EXCHANGE.POLONIEX)
+    pair_id = CURRENCY_PAIR.BTC_TO_STRAT
+    pair_name = get_currency_pair_name_by_exchange_id(pair_id, EXCHANGE.POLONIEX)
+    err, json_repr = add_buy_order_poloniex(key, pair_name, price=0.0007, amount=10)
+    print json_repr
+    err, json_repr = add_sell_order_poloniex(key, pair_name, price=0.0015, amount=10)
+    print json_repr
+
+    key = get_key_by_exchange(EXCHANGE.BITTREX)
+    pair_id = CURRENCY_PAIR.BTC_TO_STRAT
+    pair_name = get_currency_pair_name_by_exchange_id(pair_id, EXCHANGE.BITTREX)
+    err, json_repr = add_buy_order_bittrex(key, pair_name, price=0.0007, amount=10)
+    print json_repr
+    err, json_repr = add_sell_order_bittrex(key, pair_name, price=0.0015, amount=10)
+    print json_repr
+
+
+def test_poloniex_trade_history():
+    from poloniex.market_utils import get_order_history_for_time_interval_poloniex
+    load_keys("./secret_keys")
+    key = get_key_by_exchange(EXCHANGE.POLONIEX)
+    pair_id = CURRENCY_PAIR.BTC_TO_OMG
+    pair_name = get_currency_pair_name_by_exchange_id(pair_id, EXCHANGE.POLONIEX)
+    time_end = get_now_seconds_utc()
+    time_start = time_end - 24 * 3600
+
+    limit = 100
+    get_order_history_for_time_interval_poloniex(key, pair_name, time_start, time_end, limit)
+
+
+def test_order_presence():
+    pg_conn = init_pg_connection(_db_host="192.168.1.106", _db_port=5432)
+    # 6479142
+    ts = get_now_seconds_utc()
+    some_trade = Trade(DEAL_TYPE.BUY, EXCHANGE.BINANCE, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001184, volume=2.08,
+                       order_book_time=ts, create_time=ts, execute_time=ts, deal_id='whatever')
+
+    res = is_order_present_in_order_history(pg_conn, some_trade, table_name="tmp_binance_orders")
+
+    print res
+
+
+def test_trade_present():
+    pg_conn = init_pg_connection(_db_host="192.168.1.106", _db_port=5432)
+    # 6479142
+    ts = 1516142509
+    trade = Trade(DEAL_TYPE.BUY, EXCHANGE.BINANCE, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001184, volume=2.08,
+                       order_book_time=ts, create_time=ts, execute_time=ts, deal_id='whatever')
+
+    res = is_trade_present_in_trade_history(pg_conn, trade, table_name="tmp_history_trades")
+
+    print res
+
+
+test_trade_present()

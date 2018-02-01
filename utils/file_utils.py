@@ -1,6 +1,7 @@
 import sys
 import os
 import glob
+import csv
 
 from data.Candle import Candle, CANDLE_TYPE_NAME
 from data.OrderBook import OrderBook, ORDER_BOOK_TYPE_NAME
@@ -57,6 +58,15 @@ def load_data_from_file(every_file, pattern_name, pg_conn):
         #    	load_to_postgres(array, pattern_name, pg_conn)
         # 	array = []
     return array
+
+
+def save_to_csv_file(file_name, fields_list, array_list):
+
+    with open(file_name, 'w') as f:
+        writer = csv.writer(f, delimiter=';', quotechar=';', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(fields_list)
+        for entry in array_list:
+            writer.writerow(list(entry))
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@ from debug_utils import print_to_console, get_logging_level, LOG_ALL_TRACE, LOG_
     DEBUG_LOG_FILE_NAME
 
 from utils.exchange_utils import get_exchange_name_by_id
-from utils.currency_utils import get_pair_name_by_id
+from utils.currency_utils import get_pair_name_by_id, get_currency_name_by_id
 from utils.file_utils import log_to_file
 from utils.string_utils import float_to_str
 
@@ -11,16 +11,23 @@ from data_access.message_queue import DEBUG_INFO_MSG
 from constants import FIRST, LAST
 
 
-def log_currency_disbalance_present(src_exchange_id, dst_exchange_id, currency_id, treshold_reverse):
-    msg = "We have disbalance! Exchanges {exch1} {exch2} for {pair_id} with {thrs}".format(
+def log_currency_disbalance_present(src_exchange_id, dst_exchange_id, pair_id, currency_id,
+                                    balance_threshold, new_max_cap_volume, treshold):
+
+    msg = """We have disbalance! Exchanges {exch1} {exch2} for {pair_id} with {balance_threshold}. 
+    Set max cap for {currency} to {vol} and try to find price diff more than {thrs}""".format(
         exch1=get_exchange_name_by_id(src_exchange_id),
         exch2=get_exchange_name_by_id(dst_exchange_id),
-        pair_id=get_pair_name_by_id(currency_id),
-        thrs=treshold_reverse
+        pair_id=get_pair_name_by_id(pair_id),
+        balance_threshold=balance_threshold,
+        currency=get_currency_name_by_id(currency_id),
+        vol=new_max_cap_volume,
+        thrs=treshold
     )
 
     print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
     log_to_file(msg, "history_trades.log")
+    log_to_file(msg, "cap_price_adjustment.log")
 
 
 def log_currency_disbalance_heart_beat(src_exchange_id, dst_exchange_id, currency_id, treshold_reverse):
@@ -34,7 +41,7 @@ def log_currency_disbalance_heart_beat(src_exchange_id, dst_exchange_id, currenc
     log_to_file(msg, DEBUG_LOG_FILE_NAME)
 
 
-def log_arbitrage_hear_beat(sell_order_book, buy_order_book, difference):
+def log_arbitrage_heart_beat(sell_order_book, buy_order_book, difference):
     msg = """check_highest_bid_bigger_than_lowest_ask:
             For pair - {pair_name}
             Exchange1 - {exch1} BID = {bid}

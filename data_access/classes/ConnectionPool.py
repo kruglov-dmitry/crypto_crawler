@@ -2,10 +2,14 @@ import gevent.monkey
 gevent.monkey.patch_all()
 import requests
 from gevent.pool import Pool
+
 from constants import POOL_SIZE
+
 from utils.file_utils import log_to_file
-from debug_utils import get_logging_level, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
+from debug_utils import get_logging_level, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME, POST_RESPONCE_FILE_NAME
+
 from enums.http_request import HTTP_REQUEST
+from enums.status import STATUS
 
 
 def log_responce_cant_be_parsed(work_unit, file_name):
@@ -23,7 +27,7 @@ def log_responce_cant_be_parsed(work_unit, file_name):
 
 def log_responce(work_unit):
     msg = "For url {url} response {resp}".format(url=work_unit.url, resp=work_unit.future_result.value.json())
-    log_to_file(msg, "responce.log")
+    log_to_file(msg, POST_RESPONCE_FILE_NAME)
 
 
 class ConnectionPool:
@@ -73,7 +77,7 @@ class ConnectionPool:
                     log_responce_cant_be_parsed(work_unit, "bad_tickers.txt")
             else:
                 res.append(None)
-                log_responce_cant_be_parsed(work_unit, "responce.log")
+                log_responce_cant_be_parsed(work_unit, POST_RESPONCE_FILE_NAME)
 
         return res
 
@@ -102,7 +106,7 @@ class ConnectionPool:
                     res.append(some_result)
             else:
                 res.append(None)
-                log_responce_cant_be_parsed(work_unit, "responce.log")
+                log_responce_cant_be_parsed(work_unit, POST_RESPONCE_FILE_NAME)
 
         return res
 
@@ -122,6 +126,14 @@ class ConnectionPool:
         }[http_method_type]
 
     def process_async_custom(self, work_units, timeout):
+        """
+        :param work_units:
+        :param timeout:
+        :return:    error_code, failure in case at least one of query were problematic in processing
+                    list of results, for failed query must be set to None
+        """
+
+        err_code = STATUS.SUCCESS
 
         futures = []
         for work_unit in work_units:
@@ -147,7 +159,8 @@ class ConnectionPool:
                 else:
                     res.append(some_result)
             else:
+                err_code = STATUS.FAILURE
                 res.append(None)
-                log_responce_cant_be_parsed(work_unit, "responce.log")
+                log_responce_cant_be_parsed(work_unit, POST_RESPONCE_FILE_NAME)
 
-        return res
+        return err_code, res

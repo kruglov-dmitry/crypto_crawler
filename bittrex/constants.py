@@ -39,6 +39,9 @@ BITTREX_CHECK_BALANCE = "https://bittrex.com/api/v1.1/account/getbalances?apikey
 # https://bittrex.com/api/v1.1/market/getopenorders?apikey=API_KEY&market=BTC-LTC
 BITTREX_GET_OPEN_ORDERS = "https://bittrex.com/api/v1.1/market/getopenorders?apikey="
 
+BITTREX_GET_TRADE_HISTORY = "https://bittrex.com/api/v1.1/account/getorderhistory?apikey="
+
+
 
 BITTREX_NUM_OF_DEAL_RETRY = 1
 BITTREX_DEAL_TIMEOUT = 5
