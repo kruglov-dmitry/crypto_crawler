@@ -36,14 +36,14 @@ def process_expired_deals(list_of_orders, cfg, msg_queue, worker_pool):
     if len(list_of_orders) == 0:
         return
 
-    open_orders_at_both_exchanges = get_open_orders_for_arbitrage_pair(cfg, worker_pool)
+    err_code, open_orders_at_both_exchanges = get_open_orders_for_arbitrage_pair(cfg, worker_pool)
+    if err_code == STATUS.FAILURE:
+        log_open_orders_bad_result(cfg)
+        return
+
     if len(open_orders_at_both_exchanges) == 0:
         log_dont_have_open_orders(cfg)
         list_of_orders.clear()
-        return
-
-    if None in open_orders_at_both_exchanges:
-        log_open_orders_bad_result(cfg)
         return
 
     log_trace_all_open_orders(open_orders_at_both_exchanges)
@@ -127,10 +127,7 @@ def process_expired_deals(list_of_orders, cfg, msg_queue, worker_pool):
         list_of_orders.pop(every_key)
 
     for every_key in problematic_expired_orders:
-        list_of_orders.pop(every_key)
-
-    for tt in problematic_expired_orders:
-        list_of_orders[tt] = problematic_expired_orders[tt]
+        list_of_orders[every_key] = problematic_expired_orders[every_key]
 
     for tt in replaced_orders:
         for every_order in replaced_orders[tt]:
