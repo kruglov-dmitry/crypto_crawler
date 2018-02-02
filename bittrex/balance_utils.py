@@ -36,7 +36,7 @@ def get_balance_bittrex_post_details(key):
 
 
 def get_balance_bittrex_result_processor(json_document, timest):
-    if json_document is not None and "result" in json_document:
+    if json_document is not None and "result" in json_document and json_document["result"] is not None:
         return Balance.from_bittrex(timest, json_document["result"])
 
     return None
@@ -78,7 +78,7 @@ def get_balance_bittrex(key):
                                                     max_tries=BITTREX_NUM_OF_DEAL_RETRY,
                                                     timeout=BITTREX_DEAL_TIMEOUT)
 
-    if error_code == STATUS.SUCCESS and "result" in res and len(res["result"]) > 0:
+    if error_code == STATUS.SUCCESS and "result" in res and res["result"] is not None and len(res["result"]) > 0:
         log_to_file("RAW RESPONCE BITTREX", "balance.log")
         log_to_file(res, "balance.log")
         res = Balance.from_bittrex(timest, res["result"])

@@ -245,9 +245,9 @@ class Trade(Deal):
             return None
 
         try:
-            timest = parse_time(json_document["TimeStamp"], '%Y-%m-%dT%H:%M:%S.%f')
+            timest = parse_time(json_document["Opened"], '%Y-%m-%dT%H:%M:%S.%f')
         except:
-            timest = parse_time(json_document["TimeStamp"], '%Y-%m-%dT%H:%M:%S')
+            timest = parse_time(json_document["Opened"], '%Y-%m-%dT%H:%M:%S')
 
         price = json_document["Limit"]
         volume = float(json_document["Quantity"])
