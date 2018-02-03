@@ -18,7 +18,7 @@ from utils.time_utils import get_date_time_from_epoch
 regex_string = "\[amount - (.*) deal_type - (.*) exchange - (.*) exchange_id - (.*) pair - (.*) pair_id - (.*) price - (.*) timest - (.*) total - (.*)\]"
 regex = re.compile(regex_string)
 
-ORDER_HISTORY_INSERT_QUERY = "insert into order_history(pair_id, exchange_id, deal_type, price, amount, total, " \
+ORDER_HISTORY_INSERT_QUERY = "insert into order_history.py.py(pair_id, exchange_id, deal_type, price, amount, total, " \
                              "timest, date_time) values(%s, %s, %s, %s, %s, %s, %s, %s);"
 TRADE_HISTORY_TYPE_NAME = "trade_history"
 

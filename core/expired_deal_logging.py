@@ -82,8 +82,9 @@ def log_open_orders_is_empty(order):
 #   Methods for verbose debug
 #
 
+
 def log_trace_all_open_orders(open_orders_at_both_exchanges):
-    log_to_file("Open orders below:", "expire_deal.log")
+    log_to_file("Open orders below:", EXPIRED_ORDER_PROCESSING_FILE_NAME)
     for v in open_orders_at_both_exchanges:
         log_to_file(v, EXPIRED_ORDER_PROCESSING_FILE_NAME)
 

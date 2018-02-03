@@ -301,7 +301,7 @@ ALTER SEQUENCE order_book_id_seq OWNED BY order_book.id;
 
 
 --
--- Name: order_history; Type: TABLE; Schema: public; Owner: postgres
+-- Name: order_history.py.py; Type: TABLE; Schema: public; Owner: postgres
 --
 
 CREATE TABLE order_history (
@@ -461,7 +461,7 @@ ALTER TABLE ONLY order_book_bid ALTER COLUMN id SET DEFAULT nextval('order_book_
 
 
 --
--- Name: order_history id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: order_history.py.py id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY order_history ALTER COLUMN id SET DEFAULT nextval('order_history_id_seq'::regclass);
@@ -538,7 +538,7 @@ ALTER TABLE ONLY order_book
 
 
 --
--- Name: order_history order_history_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: order_history.py.py order_history_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY order_history
@@ -706,7 +706,7 @@ ALTER TABLE ONLY order_book
 
 
 --
--- Name: order_history order_history_deal_type_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: order_history.py.py order_history_deal_type_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY order_history
@@ -714,7 +714,7 @@ ALTER TABLE ONLY order_history
 
 
 --
--- Name: order_history order_history_exchange_id__fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: order_history.py.py order_history_exchange_id__fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY order_history
@@ -722,7 +722,7 @@ ALTER TABLE ONLY order_history
 
 
 --
--- Name: order_history order_history_pair_id___fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: order_history.py.py order_history_pair_id___fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY order_history

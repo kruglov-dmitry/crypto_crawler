@@ -14,6 +14,7 @@ DEBUG_LOG_FILE_NAME = "debug.log"
 ERROR_LOG_FILE_NAME = "error.log"
 POST_RESPONCE_FILE_NAME = "responce.log"
 EXPIRED_ORDER_PROCESSING_FILE_NAME = "expire_deal.log"
+FAILED_ORDER_PROCESSING_FILE_NAME = "failed_orders.log"
 
 
 def set_logging_level(effective_debug_level):

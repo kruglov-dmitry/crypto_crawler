@@ -242,7 +242,7 @@ def add_orders_to_watch_list(orders_pair, priority_queue):
 
     # cache deals to be checked
     if orders_pair.deal_1 is not None:
-        priority_queue.add_order_to_watch_queue(orders_pair.deal_1)
+        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, orders_pair.deal_1)
 
     if orders_pair.deal_2 is not None:
-        priority_queue.add_order_to_watch_queue(orders_pair.deal_2)
+        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG,orders_pair.deal_2)

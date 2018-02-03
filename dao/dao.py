@@ -173,21 +173,3 @@ def get_open_orders_by_exchange(exchange_id, pair_id):
     res = method(key, pair_name)
 
     return res
-
-
-def get_updated_order_state(order_state):
-
-    print "DAO: get_updated_order_state"
-    raise
-
-    new_order_state = {EXCHANGE.BITTREX: None,
-                       EXCHANGE.POLONIEX: None,
-                       EXCHANGE.KRAKEN: order_state[EXCHANGE.KRAKEN],
-                       EXCHANGE.BINANCE: None}
-
-    # krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
-    # error_code, res = get_orders_kraken(krak_key)
-    # if error_code == STATUS.SUCCESS:
-    #    new_order_state[EXCHANGE.KRAKEN] = res
-
-    return new_order_state

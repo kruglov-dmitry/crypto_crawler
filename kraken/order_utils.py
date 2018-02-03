@@ -1,5 +1,6 @@
-from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_GET_CLOSE_ORDERS, KRAKEN_GET_OPEN_ORDERS
+from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_GET_OPEN_ORDERS
 from kraken.currency_utils import get_currency_pair_from_kraken
+from kraken.order_history import get_order_history_kraken
 
 from data.OrderState import OrderState
 from data.Trade import Trade
@@ -104,50 +105,11 @@ def get_open_orders_kraken_result_processor(json_document, pair_name):
     return open_orders
 
 
-def get_closed_orders_kraken_post_details(key, pair_name=None):
-    final_url = KRAKEN_BASE_API_URL + KRAKEN_GET_CLOSE_ORDERS
-
-    body = {
-        "nonce": generate_nonce()
-    }
-
-    headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_GET_CLOSE_ORDERS, key.secret)}
-
-    res = PostRequestDetails(final_url, headers, body)
-
-    if should_print_debug():
-        msg = "get_closed_orders_kraken: {res}".format(res=res)
-        print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
-        log_to_file(msg, "market_utils.log")
-
-    return res
-
-
-def get_closed_orders_kraken(key, pair_name=None):
-
-    post_details = get_closed_orders_kraken_post_details(key, pair_name)
-
-    err_msg = "check kraken closed orders called"
-
-    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
-                                                    err_msg, max_tries=5)
-
-    closed_orders = []
-    if error_code == STATUS.SUCCESS and "result" in res:
-        if "closed" in res["result"]:
-            for order_id in res["result"]["closed"]:
-                new_order = Trade.from_kraken(order_id, res["result"]["closed"][order_id])
-                if new_order is not None:
-                    closed_orders.append(new_order)
-
-    return error_code, closed_orders
-
-
 def get_orders_kraken(key):
 
     timest = get_now_seconds_utc()
     error_code_1, open_orders = get_open_orders_kraken(key)
-    error_code_2, closed_orders = get_closed_orders_kraken(key)
+    error_code_2, closed_orders = get_order_history_kraken(key)
 
     if error_code_1 == STATUS.FAILURE or error_code_2 == STATUS.FAILURE:
         return STATUS.FAILURE, None

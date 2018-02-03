@@ -16,7 +16,6 @@ from bittrex.order_utils import get_open_orders_bittrix
 from bittrex.sell_utils import add_sell_order_bittrex
 from core.backtest import dummy_order_state_init
 from dao.deal_utils import init_deals_with_logging_speedy
-from dao.dao import get_updated_order_state
 from dao.history_utils import get_history_speedup
 from dao.ohlc_utils import get_ohlc_speedup, get_ohlc
 from dao.order_book_utils import get_order_book_speedup
@@ -92,13 +91,13 @@ def test_bittrex_market_api(bit_key):
 
 def test_kraken_placing_deals(krak_key):
     order_state = dummy_order_state_init()
-    order_state = get_updated_order_state(order_state)
+    # order_state = get_updated_order_state(order_state)
 
     for x in order_state[EXCHANGE.KRAKEN].open_orders:
         if x.pair_id == CURRENCY.BCC and x.volume == 0.1 and x.price == 0.5:
             cancel_order_kraken(krak_key, x.deal_id)
 
-    order_state = get_updated_order_state(order_state)
+    # order_state = get_updated_order_state(order_state)
     cnt = 0
     for x in order_state[EXCHANGE.KRAKEN].open_orders:
         if x.pair_id == CURRENCY.BCC and x.volume == 0.1 and x.price == 0.5:
@@ -114,7 +113,7 @@ def test_kraken_placing_deals(krak_key):
         sleep_for(30)
 
     ts2 = get_now_seconds_local()
-    order_state = get_updated_order_state(order_state)
+    # order_state = get_updated_order_state(order_state)
     print "Goal was to set 10000 deals: "
     print "Total number of open orders: ", len(order_state[EXCHANGE.KRAKEN].open_orders)
     print "It take ", ts2-ts1, " seconds"
