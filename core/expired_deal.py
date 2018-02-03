@@ -5,9 +5,9 @@ from core.expired_deal_logging import log_cant_cancel_deal, log_placing_new_deal
     log_cant_retrieve_order_book, log_dont_have_open_orders, log_open_orders_bad_result, \
     log_trace_all_open_orders, log_trace_log_time_key, log_trace_log_all_cached_orders_for_time_key, \
     log_trace_order_not_yet_expired, log_trace_processing_oder, log_trace_cancel_request_result, \
-    log_trace_warched_orders_after_processing
+    log_trace_warched_orders_after_processing, log_open_orders_by_exchange_bad_result, log_open_orders_is_empty
 
-from dao.order_utils import get_open_orders_for_arbitrage_pair
+from dao.order_utils import get_open_orders_for_arbitrage_pair, get_open_orders_by_exchange
 from dao.dao import cancel_by_exchange, parse_deal_id
 from dao.deal_utils import init_deal
 from dao.order_book_utils import get_order_book
@@ -15,10 +15,89 @@ from dao.order_book_utils import get_order_book
 from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc
 
-from data_access.message_queue import ORDERS_MSG
+from data_access.message_queue import ORDERS_MSG, FAILED_ORDERS_MSG
+from data_access.priority_queue import ORDERS_EXPIRE_MSG
 
 from enums.status import STATUS
 from enums.deal_type import DEAL_TYPE
+
+
+def process_expired_order(order, msg_queue, priority_queue):
+    """
+            In order to speedup and simplify expired deal processing following approach implemented.
+
+            Every successfully placed order go into priority queue sorted by time. Earliest - first.
+            When time come - it will appear in this method.
+            We retrieve open orders and try to find that order there.
+            If it still there:
+                adjust executed volume
+                cancel active order
+                retrieve order book and adjust price
+                place new order with new volume and price
+
+            FIXME NOTE: poloniex(? other ?) executed volume = 0 and volume != original ?
+
+    :param order:  order retrieved from redis cache
+    :param msg_queue: saving to postgres and re-process failed orders
+    :param priority_queue: watch queue for expired orders
+    :return:
+    """
+
+    err_code, open_orders = get_open_orders_by_exchange(order.exchange_id, order.pair_id)
+
+    if err_code == STATUS.FAILURE:
+        log_open_orders_by_exchange_bad_result(order)
+
+        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+
+        return
+
+    if len(open_orders) == 0:
+        log_open_orders_is_empty(order)
+        return
+
+    log_trace_all_open_orders(open_orders)
+
+    if deal_is_not_closed(open_orders, order):
+        err_code, responce = cancel_by_exchange(order)
+
+        log_trace_cancel_request_result(order, err_code, responce)
+
+        if err_code == STATUS.FAILURE:
+            log_cant_cancel_deal(order, msg_queue)
+
+            priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+
+            return
+
+        order_book = get_order_book(order.exchange_id, order.pair_id)
+
+        if order_book is not None:
+
+            orders = order_book.bid if order.trade_type == DEAL_TYPE.SELL else order_book.ask
+
+            order.price = adjust_price_by_order_book(orders, order.volume)
+            order.create_time = get_now_seconds_utc()
+
+            msg = "Replace existing order with new one - {tt}".format(tt=order)
+            err_code, json_document = init_deal(order, msg)
+            if err_code == STATUS.SUCCESS:
+
+                order.execute_time = get_now_seconds_utc()
+                order.order_book_time = long(order_book.timest)
+                order.deal_id = parse_deal_id(order.exchange_id, json_document)
+
+                msg_queue.add_order(ORDERS_MSG, order)
+
+                priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+
+                log_placing_new_deal(order, msg_queue)
+            else:
+                log_cant_placing_new_deal(order, msg_queue)
+
+                msg_queue.add_order(FAILED_ORDERS_MSG, order)
+        else:
+            log_cant_retrieve_order_book(order, msg_queue)
 
 
 def process_expired_deals(list_of_orders, cfg, msg_queue, worker_pool):
@@ -63,54 +142,54 @@ def process_expired_deals(list_of_orders, cfg, msg_queue, worker_pool):
             log_trace_order_not_yet_expired(time_key, ts)
             continue
 
-        deals_to_check = list_of_orders[ts]
-        if len(deals_to_check) == 0:
+        orders_to_check = list_of_orders[ts]
+        if len(orders_to_check) == 0:
             log_to_file("Size of deals_to_check is zero. Nothing to do. :(", "expire_deal.log")
             continue
 
-        for every_deal in deals_to_check:
+        for every_order in orders_to_check:
 
-            log_trace_processing_oder(every_deal)
+            log_trace_processing_oder(every_order)
 
-            if deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
-                err_code, responce = cancel_by_exchange(every_deal)
+            if deal_is_not_closed(open_orders_at_both_exchanges, every_order):
+                err_code, responce = cancel_by_exchange(every_order)
 
-                log_trace_cancel_request_result(every_deal, err_code, responce)
+                log_trace_cancel_request_result(every_order, err_code, responce)
 
                 if err_code == STATUS.FAILURE:
-                    log_cant_cancel_deal(every_deal, cfg, msg_queue)
-                    problematic_expired_orders[ts].append(every_deal)
+                    log_cant_cancel_deal(every_order, msg_queue, log_file_name=cfg.log_file_name)
+                    problematic_expired_orders[ts].append(every_order)
                     continue
 
-                order_book = get_order_book(every_deal.exchange_id, every_deal.pair_id)
+                order_book = get_order_book(every_order.exchange_id, every_order.pair_id)
 
                 if order_book is not None:
 
-                    orders = order_book.bid if every_deal.trade_type == DEAL_TYPE.SELL else order_book.ask
+                    orders = order_book.bid if every_order.trade_type == DEAL_TYPE.SELL else order_book.ask
 
-                    new_price = adjust_price_by_order_book(orders, every_deal.volume)
-                    every_deal.price = new_price
-                    every_deal.create_time = get_now_seconds_utc()
+                    new_price = adjust_price_by_order_book(orders, every_order.volume)
+                    every_order.price = new_price
+                    every_order.create_time = get_now_seconds_utc()
 
-                    msg = "Replace existing deal with new one - {tt}".format(tt=every_deal)
-                    err_code, json_document = init_deal(every_deal, msg)
+                    msg = "Replace existing deal with new one - {tt}".format(tt=every_order)
+                    err_code, json_document = init_deal(every_order, msg)
                     if err_code == STATUS.SUCCESS:
 
-                        every_deal.execute_time = get_now_seconds_utc()
-                        every_deal.order_book_time = long(order_book.timest)
-                        every_deal.deal_id = parse_deal_id(every_deal.exchange_id, json_document)
+                        every_order.execute_time = get_now_seconds_utc()
+                        every_order.order_book_time = long(order_book.timest)
+                        every_order.deal_id = parse_deal_id(every_order.exchange_id, json_document)
 
-                        replaced_orders[ts].append(every_deal)
+                        replaced_orders[ts].append(every_order)
 
-                        msg_queue.add_order(ORDERS_MSG, every_deal)
+                        msg_queue.add_order(ORDERS_MSG, every_order)
 
-                        log_placing_new_deal(every_deal, cfg, msg_queue)
+                        log_placing_new_deal(every_order, msg_queue, log_file_name=cfg.log_file_name)
                     else:
-                        log_cant_placing_new_deal(every_deal, cfg, msg_queue)
-                        problematic_expired_orders[ts].append(every_deal)
+                        log_cant_placing_new_deal(every_order, msg_queue, log_file_name=cfg.log_file_name)
+                        problematic_expired_orders[ts].append(every_order)
                 else:
-                    log_cant_retrieve_order_book(every_deal, cfg, msg_queue)
-                    problematic_expired_orders[ts].append(every_deal)
+                    log_cant_retrieve_order_book(every_order, msg_queue, log_file_name=cfg.log_file_name)
+                    problematic_expired_orders[ts].append(every_order)
 
     """
             So,
@@ -153,7 +232,7 @@ def compute_time_key(timest, rounding_interval):
     return rounding_interval * long(timest / rounding_interval)
 
 
-def add_orders_to_watch_list(list_of_orders, orders_pair, cfg):
+def add_orders_to_watch_list(orders_pair, priority_queue):
 
     msg = "Add order to watch list - {pair}".format(pair=str(orders_pair))
     log_to_file(msg, "expire_deal.log")
@@ -163,15 +242,7 @@ def add_orders_to_watch_list(list_of_orders, orders_pair, cfg):
 
     # cache deals to be checked
     if orders_pair.deal_1 is not None:
-        ts = orders_pair.deal_1.execute_time
-        if ts is None:
-            ts = orders_pair.deal_1.create_time
-        time_key = compute_time_key(ts, cfg.deal_expire_timeout)
-        list_of_orders[time_key].append(orders_pair.deal_1)
+        priority_queue.add_order_to_watch_queue(orders_pair.deal_1)
 
     if orders_pair.deal_2 is not None:
-        ts = orders_pair.deal_2.execute_time
-        if ts is None:
-            ts = orders_pair.deal_2.create_time
-        time_key = compute_time_key(ts, cfg.deal_expire_timeout)
-        list_of_orders[time_key].append(orders_pair.deal_2)
+        priority_queue.add_order_to_watch_queue(orders_pair.deal_2)

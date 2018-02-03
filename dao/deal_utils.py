@@ -2,7 +2,7 @@
 import dao
 
 from data_access.classes.WorkUnit import WorkUnit
-from data_access.message_queue import DEAL_INFO_MSG, DEBUG_INFO_MSG, ORDERS_MSG
+from data_access.message_queue import DEAL_INFO_MSG, DEBUG_INFO_MSG, ORDERS_MSG, FAILED_ORDERS_MSG
 
 from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, ERROR_LOG_FILE_NAME
 from constants import DEAL_MAX_TIMEOUT
@@ -92,8 +92,15 @@ def init_deals_with_logging_speedy_fake(trade_pairs, difference, file_name, proc
 
 
 def return_with_no_change(json_document, corresponding_trade):
+
     corresponding_trade.execute_time = get_now_seconds_utc()
-    corresponding_trade.deal_id = dao.parse_deal_id(corresponding_trade.exchange_id, json_document)
+
+    try:
+        corresponding_trade.deal_id = dao.parse_deal_id(corresponding_trade.exchange_id, json_document)
+    except:
+        log_to_file("Cant parse deal_id! for following document", "parce_deal_id.log")
+        log_to_file(json_document, "parce_deal_id.log")
+
     return json_document, corresponding_trade
 
 
@@ -116,15 +123,15 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
 
     parallel_deals = []
 
-    for trade in [trade_pairs.deal_1, trade_pairs.deal_2]:
-        method_for_url = dao.get_method_for_create_url_trade_by_exchange_id(trade)
+    for order in [trade_pairs.deal_1, trade_pairs.deal_2]:
+        method_for_url = dao.get_method_for_create_url_trade_by_exchange_id(order)
         # key, pair_name, price, amount
-        key = get_key_by_exchange(trade.exchange_id)
-        pair_name = get_currency_pair_name_by_exchange_id(trade.pair_id, trade.exchange_id)
-        post_details = method_for_url(key, pair_name, trade.price, trade.volume)
+        key = get_key_by_exchange(order.exchange_id)
+        pair_name = get_currency_pair_name_by_exchange_id(order.pair_id, order.exchange_id)
+        post_details = method_for_url(key, pair_name, order.price, order.volume)
         constructor = return_with_no_change
 
-        wu = WorkUnit(post_details.final_url, constructor, trade)
+        wu = WorkUnit(post_details.final_url, constructor, order)
         wu.add_post_details(post_details)
 
         parallel_deals.append(wu)
@@ -138,17 +145,23 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
 
     # check for errors only
     for entry in res:
-        if entry is None:
-            msg = """ERROR: NONE as result of deal placement! Either for {u1} or {u2}""".format(u1=trade_pairs.deal_1,
-                                                                                    u2=trade_pairs.deal_2)
+        json_responce, order = entry
+        if "ERROR" in json_responce:
+
+            msg = """   <b>ERROR: </b>NONE 
+            During deal placement: {u1} 
+            Details: {err_msg}
+            """.format(u1=order, err_msg=json_responce)
+
+            msg_queue.add_order(FAILED_ORDERS_MSG, order)
+
         else:
-            return_value, trade = entry
             msg = """ For trade {trade}
-            Response is {resp} """.format(trade=trade, resp=return_value)
+            Response is {resp} """.format(trade=order, resp=json_responce)
 
         print_to_console(msg, LOG_ALL_ERRORS)
         msg_queue.add_message(DEBUG_INFO_MSG, msg)
         log_to_file(msg, file_name)
 
-    for trade in [trade_pairs.deal_1, trade_pairs.deal_2]:
-        msg_queue.add_order(ORDERS_MSG, trade)
+    for order in [trade_pairs.deal_1, trade_pairs.deal_2]:
+        msg_queue.add_order(ORDERS_MSG, order)

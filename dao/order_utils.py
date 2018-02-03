@@ -26,14 +26,16 @@ def get_open_orders_by_exchange(exchange_id, pair_id):
 
     key = get_key_by_exchange(exchange_id)
 
+    pair_name = get_currency_pair_name_by_exchange_id(pair_id, exchange_id)
+
     if exchange_id == EXCHANGE.BITTREX:
-        res = get_open_orders_bittrix(key, pair_id)
+        res = get_open_orders_bittrix(key, pair_name)
     elif exchange_id == EXCHANGE.KRAKEN:
-        res = get_open_orders_kraken(key, pair_id)
+        res = get_open_orders_kraken(key, pair_name)
     elif exchange_id == EXCHANGE.POLONIEX:
-        res = get_open_orders_poloniex(key, pair_id)
+        res = get_open_orders_poloniex(key, pair_name)
     elif exchange_id == EXCHANGE.BINANCE:
-        res = get_open_orders_binance(key, pair_id)
+        res = get_open_orders_binance(key, pair_name)
     else:
         msg = "get_open_orders_by_exchange - Unknown exchange! {idx}".format(idx=exchange_id)
         print_to_console(msg, LOG_ALL_ERRORS)

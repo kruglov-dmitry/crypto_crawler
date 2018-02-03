@@ -9,6 +9,7 @@ ARBITRAGE_MSG = "ticker_alerts"
 DEAL_INFO_MSG = "deal_alerts"
 DEBUG_INFO_MSG = "debug_alerts"
 ORDERS_MSG = "orders"
+FAILED_ORDERS_MSG = "failed_orders"
 
 QUEUE_TOPICS = [ARBITRAGE_MSG, DEAL_INFO_MSG, DEBUG_INFO_MSG]
 

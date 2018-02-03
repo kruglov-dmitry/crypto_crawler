@@ -18,11 +18,16 @@ def log_responce_cant_be_parsed(work_unit, file_name):
     log_to_file(msg, ERROR_LOG_FILE_NAME)
     log_to_file(msg, file_name)
 
+    json_responce = ""
     try:
-        log_to_file(work_unit.future_result.value.json(), ERROR_LOG_FILE_NAME)
-        log_to_file(work_unit.future_result.value.json(), file_name)
+        json_responce = work_unit.future_result.value.json()
+        log_to_file(json_responce, ERROR_LOG_FILE_NAME)
+        log_to_file(json_responce, file_name)
     except:
         pass
+
+    msg = "ERROR: returned code - {err} Json: {js}".format(err=work_unit.future_result.value, js=json_responce)
+    return msg
 
 
 def log_responce(work_unit):
@@ -105,8 +110,10 @@ class ConnectionPool:
                 else:
                     res.append(some_result)
             else:
-                res.append(None)
-                log_responce_cant_be_parsed(work_unit, POST_RESPONCE_FILE_NAME)
+                err_msg = log_responce_cant_be_parsed(work_unit, POST_RESPONCE_FILE_NAME)
+
+                some_result = work_unit.method(err_msg, *work_unit.args)
+                res.append(some_result)
 
         return res
 
