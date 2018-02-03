@@ -82,5 +82,7 @@ def get_balance_bittrex(key):
         log_to_file("RAW RESPONCE BITTREX", "balance.log")
         log_to_file(res, "balance.log")
         res = Balance.from_bittrex(timest, res["result"])
+    else:
+        res = None
 
     return error_code, res
