@@ -136,3 +136,11 @@ sudo vim /etc/crontab
 ```
 
 https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.Scenarios.html#USER_VPC.Scenario3
+
+
+### Logs analysis
+
+How to find last modified files recursively:
+``` bash
+find $1 -type f -print0 | xargs -0 stat --format '%Y :%y %n' | sort -nr | cut -d: -f2- | head
+```
