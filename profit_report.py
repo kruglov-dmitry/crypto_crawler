@@ -361,8 +361,6 @@ if __name__ == "__main__":
     binance_trades_group_by_pair = group_by_pair_id(binance_trades)
     binance_orders_at_exchange.sort(key=lambda x: x.create_time, reverse=False)
 
-    binance_orders_at_exchange = [x for x in binance_orders_at_exchange if x.create_time >= start_time]
-
     orders_with_trades = group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_group_by_pair, binance_orders_at_bot)
 
     orders_with_corresponding_trades += orders_with_trades
