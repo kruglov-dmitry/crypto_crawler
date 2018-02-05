@@ -20,6 +20,7 @@ def get_open_orders_bittrix_post_details(key, pair_name):
     final_url = BITTREX_GET_OPEN_ORDERS + key.api_key + "&nonce=" + str(generate_nonce())
 
     body = {"market": pair_name} if pair_name is not None else {}
+    print "WTF", pair_name, "BODY", body
 
     final_url += _urlencode(body)
 
@@ -49,8 +50,8 @@ def get_open_orders_bittrix(key, pair_name):
         print "get_open_orders_bittrix", res
 
     orders = []
-    if error_code == STATUS.SUCCESS and res is not None and "result" in res:
-        orders = get_open_orders_bittrex_result_processor(res["result"], pair_name)
+    if error_code == STATUS.SUCCESS:
+        orders = get_open_orders_bittrex_result_processor(res, pair_name)
 
     return error_code, orders
 

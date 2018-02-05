@@ -15,6 +15,7 @@ from core.expired_deal_logging import log_open_orders_by_exchange_bad_result, lo
 from debug_utils import print_to_console, LOG_ALL_ERRORS, FAILED_ORDER_PROCESSING_FILE_NAME
 from utils.time_utils import sleep_for, get_now_seconds_utc
 from utils.file_utils import log_to_file
+from utils.key_utils import load_keys
 
 from enums.status import STATUS
 from enums.deal_type import DEAL_TYPE
@@ -27,13 +28,16 @@ FLOAT_POINT_PRECISION = 0.00000001
 
 def try_to_set_deal_id(open_orders, order):
 
+    print "Compare ", order
     for every_order in open_orders:
+        print every_order
         if order.pair_id == every_order.pair_id and \
                         order.deal_type == every_order.deal_type and \
                         abs(order.price - every_order.price) < FLOAT_POINT_PRECISION and \
                         order.create_time >= every_order.create_time and \
                         abs(order.create_time - every_order.create_time) < 15:
             # FIXME
+            print "FOUND!!!"
             order.deal_id = every_order.deal_id
             order.create_time = every_order.create_time
 
@@ -41,17 +45,21 @@ def try_to_set_deal_id(open_orders, order):
 def search_in_open_orders(order, msg_queue):
     err_code, open_orders = get_open_orders_by_exchange(order.exchange_id, order.pair_id)
 
+    print "WHYWHYW"
+    print err_code
+    print open_orders
+
     if err_code == STATUS.FAILURE:
         log_open_orders_by_exchange_bad_result(order)
         msg_queue.add_order(FAILED_ORDERS_MSG, order)
         return
 
-    present_in_open_orders = len(open_orders) != 0
+    if len(open_orders) == 0:
+        return
 
-    if not present_in_open_orders:
-        log_trace_all_open_orders(open_orders)
+    log_trace_all_open_orders(open_orders)
 
-        try_to_set_deal_id(open_orders, order)
+    try_to_set_deal_id(open_orders, order)
 
 
 def log_trace_all_closed_orders(open_orders_at_both_exchanges):
@@ -101,6 +109,7 @@ if __name__ == "__main__":
 
     # FIXME NOTE - read settings from cfg!
 
+    load_keys("./secret_keys")
     msg_queue = get_message_queue()
     pg_conn = init_pg_connection(_db_host="orders.cervsj06c8zw.us-west-1.rds.amazonaws.com",
                                  _db_port=5432, _db_name="crypto")
@@ -113,6 +122,7 @@ if __name__ == "__main__":
 
             search_in_open_orders(order, msg_queue)
             if order.deal_id is not None:
+                print order
                 update_order_details(pg_conn, order)
                 priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
                 continue
@@ -121,6 +131,8 @@ if __name__ == "__main__":
                 if order.deal_id is not None:
                     update_order_details(pg_conn, order)
                     continue
+
+            raise
 
             # If we are still here it mean that exchange have no glue that we try to place order
             # Supposedly paired order were placed properly so we just place with market rate
