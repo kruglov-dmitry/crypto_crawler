@@ -155,7 +155,8 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
         msg = "determine_minimum_volume - something severely wrong - NEGATIVE min price: {pr}".format(pr=min_volume)
         print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, ERROR_LOG_FILE_NAME)
-        raise
+
+        assert min_volume <= 0
 
     base_currency_id, dst_currency_id = split_currency_pairs(first_order_book.pair_id)
 
@@ -221,7 +222,8 @@ def adjust_price_by_order_book(orders, min_volume):
     if min_volume == 0.0:
         msg = "adjust_price_by_order_book: ERROR min volume is ZERO"
         log_to_file(msg, "price_adjustment.log")
-        raise
+
+        assert min_volume == 0
 
     idx = 0
     while acc_volume < max_volume and idx < max_len:

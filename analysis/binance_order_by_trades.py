@@ -22,7 +22,6 @@ def group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_gr
         """.format(wtf=order, lid=last_trade_idx[order.pair_id])
         log_to_file(msg, get_pair_name_by_id(order.pair_id) + ".txt")
 
-
         list_to_check = binance_trades_group_by_pair[order.pair_id][last_trade_idx[order.pair_id]:]
 
         if len(list_to_check) == 0:
@@ -34,7 +33,7 @@ def group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_gr
             for twt in binance_trades_group_by_pair[order.pair_id]:
                 log_to_file(twt, get_pair_name_by_id(order.pair_id) + ".txt")
             
-            raise
+            assert 0 == len(list_to_check)
 
         total_volume = float(0.0)
         cur_trade_list = []
@@ -75,7 +74,8 @@ def group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_gr
                     for twt in binance_trades_group_by_pair[order.pair_id]:
                         log_to_file(twt, get_pair_name_by_id(order.pair_id) + ".txt")
                     print "YOUR PROBLEM IS ", order.pair_id, get_pair_name_by_id(order.pair_id)
-                    raise
+
+                    assert total_volume - order.executed_volume > 0.000001
 
             # floating point arithmetic in python behind good and bad
             if abs(order.executed_volume - total_volume) <= 0.00000001:

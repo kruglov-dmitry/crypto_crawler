@@ -8,7 +8,7 @@ from data_access.postgres_connection import PostgresConnection
 from utils.time_utils import get_date_time_from_epoch
 from utils.file_utils import log_to_file
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
+from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME, FAILED_ORDER_PROCESSING_FILE_NAME
 from constants import START_OF_TIME
 
 
@@ -304,3 +304,35 @@ def get_next_candidates(pg_conn, predicate):
         else:
             if predicate(cur.high, prev.low):
                 yield cur, prev
+
+
+def update_order_details(pg_conn, order):
+
+    """
+            if order.pair_id == every_order.pair_id and \
+                        order.deal_type == every_order.deal_type and \
+                        abs(order.price - every_order.price) < FLOAT_POINT_PRECISION and \
+                        order.create_time >= every_order.create_time and \
+                        abs(order.create_time - every_order.create_time) < 15:
+            # FIXME
+            order.deal_id = every_order.deal_id
+            order.create_time = every_order.create_time
+
+
+    :param pg_conn:
+    :param order:
+    :return:
+    """
+
+    select_query = """update orders set deal_id = {order_id} where exchange_id = {e_id} and pair_id = {p_id} and 
+    deal_type = {d_type} and create_time = {c_time} 
+    """.format(order_id=order.deal_id, e_id=order.exchange_id, p_id=order.pair_id, d_type=order.deal_type,
+               c_time=order.create_time)
+
+    cursor = pg_conn.get_cursor()
+
+    cursor.execute(select_query)
+
+    if 0 == cursor.rowcount:
+        msg = "ZERO number of row affected! For order = {o}".format(o=order)
+        log_to_file(msg, FAILED_ORDER_PROCESSING_FILE_NAME)

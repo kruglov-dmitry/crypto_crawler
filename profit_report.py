@@ -161,8 +161,7 @@ def compute_profit_by_pair_using_volume(trades_to_order_by_pair):
                 trades_by_order_id[x.deal_id].append( (x,y) )
 
             for x in trades_by_order_id[arbitrage_id]:
-                if len(trades_by_order_id[x])!=1:
-                    raise
+                assert len(trades_by_order_id[x])!=1
 
             for order1, trade_list in orders_by_arbitrage_id[arbitrage_id]:
                 order_pair = find_candidates(order1, list_of_orders)
@@ -178,11 +177,11 @@ def compute_profit_by_pair_using_volume(trades_to_order_by_pair):
                     number_of_missing_pair += 1
 
             for grouping_id in deal_ids:
-                if len(deal_ids[grouping_id])!=2:
+                if len(deal_ids[grouping_id])!= 2:
                     print "FUCK"
                     for xxxx in deal_ids[grouping_id]:
                         print xxxx
-                    raise
+                    assert len(deal_ids[grouping_id])!= 2
                 else:
                     deal_1, deal_1_trades = deal_ids[grouping_id][0]
                     deal_2, deal_2_trades = deal_ids[grouping_id][1]

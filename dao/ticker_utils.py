@@ -95,9 +95,11 @@ def get_ticker_for_arbitrage(pair_id, timest, exchange_list, processor):
     for exchange_id in exchange_list:
         pair_name = get_currency_pair_name_by_exchange_id(pair_id, exchange_id)
         if pair_name is None:
+
             msg = "get_ticker for arbitrage - wrong pair_id - {pair_id} for exchange_id = {idd}!".format(pair_id=pair_id, idd=exchange_id)
             print_to_console(msg, LOG_ALL_ERRORS)
-            raise
+
+            assert pair_name is None
 
         method_for_url = get_ticker_url_by_exchange_id(exchange_id)
         request_url = method_for_url(pair_name, timest)

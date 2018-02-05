@@ -159,7 +159,8 @@ if __name__ == "__main__":
 
             if balance_state.expired(cur_timest_sec, cfg.buy_exchange_id, cfg.sell_exchange_id, BALANCE_EXPIRED_THRESHOLD):
                 log_balance_expired_errors(cfg, msg_queue)
-                raise
+
+                assert False
 
             order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec, processor)
 

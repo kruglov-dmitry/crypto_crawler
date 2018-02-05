@@ -37,7 +37,7 @@ def create_screen(screen_name):
 
     if is_screen_present(screen_name):
         print "NONONO! You already have with exact same name - {screen_name} It will lead to trouble.".format(screen_name=screen_name)
-        raise
+        assert False
 
     if isinstance(screen_name, str):
         out = commands.getoutput('screen -dmS "%s"' % screen_name)

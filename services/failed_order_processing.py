@@ -35,6 +35,7 @@ def try_to_set_deal_id(open_orders, order):
                         abs(order.create_time - every_order.create_time) < 15:
             # FIXME
             order.deal_id = every_order.deal_id
+            order.create_time = every_order.create_time
 
 
 def search_in_open_orders(order, msg_queue):
@@ -112,13 +113,13 @@ if __name__ == "__main__":
 
             search_in_open_orders(order, msg_queue)
             if order.deal_id is not None:
-                update_order_details(order)
+                update_order_details(pg_conn, order)
                 priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
                 continue
             else:
                 search_in_order_history(order, msg_queue)
                 if order.deal_id is not None:
-                    update_order_details(order)
+                    update_order_details(pg_conn, order)
                     continue
 
             # If we are still here it mean that exchange have no glue that we try to place order
