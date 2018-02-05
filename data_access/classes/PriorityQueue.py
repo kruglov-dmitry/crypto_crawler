@@ -21,6 +21,9 @@ class PriorityQueue(object):
         :param order:
         :return:
         """
+       
+        assert order is not None
+    
         return self.r.zadd(topic_id, get_now_seconds_utc_ms(), pickle.dumps(order))
 
     def first(self, topic_id):

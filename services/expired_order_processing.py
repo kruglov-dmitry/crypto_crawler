@@ -3,6 +3,7 @@ from data_access.priority_queue import ORDERS_EXPIRE_MSG, get_priority_queue
 
 from debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.time_utils import sleep_for, get_now_seconds_utc
+from utils.key_utils import load_keys
 
 from core.expired_deal import process_expired_order
 
@@ -14,7 +15,7 @@ HEARTBEAT_TIMEOUT = 60
 if __name__ == "__main__":
 
     # FIXME NOTE: read from config redis host \ port pass it to get_*_queue methods
-
+    load_keys("./secret_keys")
     msg_queue = get_message_queue()
     priority_queue = get_priority_queue()
     cnt = 0

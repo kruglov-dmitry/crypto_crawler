@@ -34,7 +34,7 @@ from kraken.market_utils import cancel_order_kraken
 from kraken.order_utils import get_orders_kraken, get_open_orders_kraken
 from kraken.sell_utils import add_sell_order_kraken
 from poloniex.balance_utils import get_balance_poloniex
-from poloniex.market_utils import get_orders_history_poloniex
+from poloniex.order_history import get_orders_history_poloniex
 from poloniex.order_utils import get_open_orders_poloniex
 from poloniex.buy_utils import add_buy_order_poloniex
 from poloniex.sell_utils import add_sell_order_poloniex
@@ -42,7 +42,10 @@ from utils.key_utils import load_keys, get_key_by_exchange
 from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from data_access.message_queue import get_message_queue
+from dao.dao import parse_deal_id
+from data_access.priority_queue import ORDERS_EXPIRE_MSG, get_priority_queue
 
+from dao.deal_utils import init_deal
 from dao.order_utils import get_open_orders_for_arbitrage_pair
 from dao.db import save_order_into_pg, init_pg_connection, is_order_present_in_order_history, \
     is_trade_present_in_trade_history
@@ -377,4 +380,17 @@ def test_trade_present():
     print res
 
 
-test_trade_present()
+def test_expired_deal_placement():
+    load_keys("./secret_keys")
+    priority_queue = get_priority_queue()
+    ts = get_now_seconds_utc()
+    order = Trade(DEAL_TYPE.SELL, EXCHANGE.BINANCE, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001, volume=5.0,
+                       order_book_time=ts, create_time=ts, execute_time=ts, deal_id='whatever')
+    
+    msg = "Replace existing order with new one - {tt}".format(tt=order)
+    err_code, json_document = init_deal(order, msg)
+    print json_document
+    order.deal_id = parse_deal_id(order.exchange_id, json_document)
+    priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+
+test_expired_deal_placement()
