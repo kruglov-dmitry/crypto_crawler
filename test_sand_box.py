@@ -402,23 +402,25 @@ def test_failed_deal_placement():
                                  _db_port=5432, _db_name="crypto")
     priority_queue = get_priority_queue()
     ts = get_now_seconds_utc()
-    order = Trade(DEAL_TYPE.SELL, EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001, volume=5.0,
-                       order_book_time=ts, create_time=ts, execute_time=ts, deal_id=None)
+    # order = Trade(DEAL_TYPE.SELL, EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001, volume=5.0,
+    #                    order_book_time=ts, create_time=ts, execute_time=ts, deal_id=None)
+    ts = 1517938516
+    order = Trade(DEAL_TYPE.SELL, EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_STRAT, price=0.000844, volume=5.0, order_book_time=ts, create_time=ts, execute_time=ts, deal_id=None)
 
-    from dao.order_utils import get_open_orders_by_exchange
-    r = get_open_orders_by_exchange(EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_STRAT)
-
-    for rr in r:
-        print r
-
-    raise
- 
-    msg = "Replace existing order with new one - {tt}".format(tt=order)
-    err_code, json_document = init_deal(order, msg)
-    print json_document
+    #   from dao.order_utils import get_open_orders_by_exchange
+    #   r = get_open_orders_by_exchange(EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_STRAT)
+    
+    #   for rr in r:
+    #       print r
+    
+    #   raise
+    #
+    # msg = "Replace existing order with new one - {tt}".format(tt=order)
+    # err_code, json_document = init_deal(order, msg)
+    # print json_document
     # order.deal_id = parse_deal_id(order.exchange_id, json_document)
     
-    msg_queue.add_order(ORDERS_MSG, order)
+    # msg_queue.add_order(ORDERS_MSG, order)
     sleep_for(3)
     msg_queue.add_order(FAILED_ORDERS_MSG, order)
     print order

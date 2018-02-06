@@ -12,7 +12,7 @@ def get_order_history_bittrex(key, pair_name):
     final_url = BITTREX_GET_TRADE_HISTORY + key.api_key + "&nonce=" + str(generate_nonce())
 
     if pair_name != "all":
-        body = {"market": ""}
+        body = {"market": pair_name}
     else:
         body = {}
 
@@ -26,5 +26,7 @@ def get_order_history_bittrex(key, pair_name):
 
     error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
                                                     err_msg, max_tries=1)
+
+    print "BITTREX", res
 
     return error_code, res

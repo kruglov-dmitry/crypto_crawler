@@ -32,9 +32,9 @@ def try_to_set_deal_id(open_orders, order):
     for every_order in open_orders:
         print every_order
         if order.pair_id == every_order.pair_id and \
-                        order.deal_type == every_order.deal_type and \
+                        order.trade_type == every_order.trade_type and \
                         abs(order.price - every_order.price) < FLOAT_POINT_PRECISION and \
-                        order.create_time >= every_order.create_time and \
+                        every_order.create_time >= order.create_time and \
                         abs(order.create_time - every_order.create_time) < 15:
             # FIXME
             print "FOUND!!!"
@@ -42,7 +42,7 @@ def try_to_set_deal_id(open_orders, order):
             order.create_time = every_order.create_time
 
 
-def search_in_open_orders(order, msg_queue):
+def search_in_open_orders(order):
     err_code, open_orders = get_open_orders_by_exchange(order.exchange_id, order.pair_id)
 
     print "WHYWHYW"
@@ -51,16 +51,16 @@ def search_in_open_orders(order, msg_queue):
 
     if err_code == STATUS.FAILURE:
         log_open_orders_by_exchange_bad_result(order)
-        msg_queue.add_order(FAILED_ORDERS_MSG, order)
-        return
+        return STATUS.FAILURE
 
     if len(open_orders) == 0:
-        return
+        return STATUS.SUCCESS
 
     log_trace_all_open_orders(open_orders)
 
     try_to_set_deal_id(open_orders, order)
 
+    return STATUS.SUCCESS
 
 def log_trace_all_closed_orders(open_orders_at_both_exchanges):
     log_to_file("Closed orders below:", FAILED_ORDER_PROCESSING_FILE_NAME)
@@ -68,13 +68,13 @@ def log_trace_all_closed_orders(open_orders_at_both_exchanges):
         log_to_file(v, FAILED_ORDER_PROCESSING_FILE_NAME)
 
 
-def search_in_order_history(order, msg_queue):
+def search_in_order_history(order):
     err_code, closed_orders = get_order_history_by_exchange(order.exchange_id, order.pair_id)
 
+    print closed_orders
     if err_code == STATUS.FAILURE:
         log_open_orders_by_exchange_bad_result(order)
-        msg_queue.add_order(FAILED_ORDERS_MSG, order)
-        return
+        return STATUS.FAILURE
 
     present_in_old_orders = len(closed_orders) != 0
 
@@ -120,14 +120,22 @@ if __name__ == "__main__":
         order = msg_queue.get_next_order(FAILED_ORDERS_MSG)
         if order is not None:
 
-            search_in_open_orders(order, msg_queue)
+            err_code = search_in_open_orders(order)
+            while err_code == STATUS.FAILURE:
+                sleep_for(1)
+                err_code = search_in_open_orders(order)
+
             if order.deal_id is not None:
-                print order
+                print "FOUND", order
                 update_order_details(pg_conn, order)
                 priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
                 continue
             else:
-                search_in_order_history(order, msg_queue)
+                err_code = search_in_order_history(order)
+                while err_code == STATUS.FAILURE:
+                    sleep_for(1)
+                    err_code = search_in_order_history(order)
+
                 if order.deal_id is not None:
                     update_order_details(pg_conn, order)
                     continue

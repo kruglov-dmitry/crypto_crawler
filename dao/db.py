@@ -324,7 +324,7 @@ def update_order_details(pg_conn, order):
     :return:
     """
 
-    select_query = """update orders set deal_id = {order_id} where exchange_id = {e_id} and pair_id = {p_id} and 
+    select_query = """update orders set deal_id = '{order_id}' where exchange_id = {e_id} and pair_id = {p_id} and 
     trade_type = {d_type} and create_time = {c_time} 
     """.format(order_id=order.deal_id, e_id=order.exchange_id, p_id=order.pair_id, d_type=order.trade_type,
                c_time=order.create_time)
