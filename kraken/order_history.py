@@ -32,21 +32,34 @@ def get_closed_orders_kraken_post_details(key, pair_name=None):
     return res
 
 
+def get_order_history_kraken_result_processor(json_document, pair_name):
+    """
+    json_document - response from exchange api as json string
+    pair_name - for backwords compabilities
+    """
+    orders = []
+    if json_document is None or "result" not in json_document or "closed" not in json_document["result"]:
+        return orders
+
+    for order_id in json_document["result"]["closed"]:
+        new_order = Trade.from_kraken(order_id, json_document["result"]["closed"][order_id])
+        if new_order is not None:
+            orders.append(new_order)
+
+    return orders
+
+
 def get_order_history_kraken(key, pair_name=None):
 
     post_details = get_closed_orders_kraken_post_details(key, pair_name)
 
     err_msg = "check kraken closed orders called"
 
-    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
+    error_code, json_document = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
                                                     err_msg, max_tries=5)
 
     closed_orders = []
-    if error_code == STATUS.SUCCESS and "result" in res:
-        if "closed" in res["result"]:
-            for order_id in res["result"]["closed"]:
-                new_order = Trade.from_kraken(order_id, res["result"]["closed"][order_id])
-                if new_order is not None:
-                    closed_orders.append(new_order)
+    if error_code == STATUS.SUCCESS:
+        closed_orders = get_order_history_kraken_result_processor(json_document, pair_name)
 
     return error_code, closed_orders

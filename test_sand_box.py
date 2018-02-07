@@ -34,7 +34,6 @@ from kraken.market_utils import cancel_order_kraken
 from kraken.order_utils import get_orders_kraken, get_open_orders_kraken
 from kraken.sell_utils import add_sell_order_kraken
 from poloniex.balance_utils import get_balance_poloniex
-from poloniex.order_history import get_orders_history_poloniex
 from poloniex.order_utils import get_open_orders_poloniex
 from poloniex.buy_utils import add_buy_order_poloniex
 from poloniex.sell_utils import add_sell_order_poloniex
@@ -206,10 +205,6 @@ def get_order_book_time_fast():
     trade_history = get_order_book_speedup(start_time, end_time, processor)
     return trade_history
 
-
-def check_order_polonie(pol_key):
-    er_code, res = get_orders_history_poloniex(pol_key, "all")
-    print res
 
 def check_deal_placements():
     create_time = get_now_seconds_utc()
