@@ -13,7 +13,7 @@ from data_access.memory_cache import generate_nonce
 from data_access.internet import send_post_request_with_header
 
 
-def get_order_history_binance_post_details(key, pair_name):
+def get_order_history_bittrex_post_details(key, pair_name):
     final_url = BITTREX_GET_TRADE_HISTORY + key.api_key + "&nonce=" + str(generate_nonce())
 
     if pair_name != "all":
@@ -28,7 +28,7 @@ def get_order_history_binance_post_details(key, pair_name):
     post_details = PostRequestDetails(final_url, headers, body)
 
     if should_print_debug():
-        msg = "get_open_orders_binance: {res}".format(res=post_details)
+        msg = "get_order_history_bittrex_post_details: {res}".format(res=post_details)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
@@ -54,7 +54,7 @@ def get_order_history_bittrex_result_processor(json_document, pair_name):
 
 def get_order_history_bittrex(key, pair_name):
 
-    post_details = get_order_history_binance_post_details(key, pair_name)
+    post_details = get_order_history_bittrex_post_details(key, pair_name)
 
     err_msg = "get bittrex order history for time interval for pp={pp}".format(pp=post_details)
 

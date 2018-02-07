@@ -85,12 +85,14 @@ def search_in_order_history(order):
         log_open_orders_by_exchange_bad_result(order)
         return STATUS.FAILURE
 
-    present_in_old_orders = len(closed_orders) != 0
+    if len(closed_orders) == 0:
+        return STATUS.SUCCESS
 
-    if not present_in_old_orders:
-        log_trace_all_closed_orders(closed_orders)
+    log_trace_all_closed_orders(closed_orders)
 
-        try_to_set_deal_id(closed_orders, order)
+    try_to_set_deal_id(closed_orders, order)
+
+    return STATUS.SUCCESS
 
 
 if __name__ == "__main__":

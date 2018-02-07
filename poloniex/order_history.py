@@ -1,4 +1,4 @@
-from ..constants import START_OF_TIME
+#from constants import START_OF_TIME
 
 from poloniex.constants import POLONIEX_GET_ORDER_HISTORY, POLONIEX_NUM_OF_DEAL_RETRY, POLONIEX_ORDER_HISTORY_LIMIT
 
@@ -58,7 +58,7 @@ def get_order_history_bittrex_result_processor(json_document, pair_name):
     return orders
 
 
-def get_order_history_poloniex(key, pair_name, time_start=START_OF_TIME, time_end=get_now_seconds_utc(), limit=POLONIEX_ORDER_HISTORY_LIMIT):
+def get_order_history_poloniex(key, pair_name, time_start=0, time_end=get_now_seconds_utc(), limit=POLONIEX_ORDER_HISTORY_LIMIT):
     post_details = get_order_history_poloniex_post_details(key, pair_name, time_start, time_end, limit)
 
     err_msg = "get poloniex order history for time interval for pp={pp}".format(pp=post_details)
