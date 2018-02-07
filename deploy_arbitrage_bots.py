@@ -3,9 +3,10 @@ from collections import defaultdict
 import ConfigParser
 
 from deploy.screen_utils import create_screen, generate_screen_name
-from deploy.constants import FULL_COMMAND, BALANCE_UPDATE_DEPLOY_UNIT
+from deploy.constants import FULL_COMMAND
 from deploy.ExchangeArbitrageSettings import ExchangeArbitrageSettings
-from deploy.service_utils import deploy_telegram_notifier, deploy_trade_storing, deploy_balance_monitoring, deploy_process_in_screen
+from deploy.service_utils import deploy_telegram_notifier, deploy_trade_storing, deploy_process_in_screen, \
+    deploy_expired_order_processing, deploy_failed_order_processing
 from deploy.DeployUnit import DeployUnit
 
 from utils.exchange_utils import get_exchange_id_by_name, get_exchange_name_by_id
@@ -90,10 +91,16 @@ if __name__ == "__main__":
     # 1st stage - initialization of TG notifier
     deploy_telegram_notifier(screen_name=screen_name, should_create_screen=True)
 
-    # 2n stage - initialization of Trade saving service
+    # 2nd stage - initialization of Trade saving service
     deploy_trade_storing(screen_name=screen_name, should_create_screen=False)
 
-    # 2nd stage - spawn a shit load of arbitrage checkers
+    # 3th stage - initialization of Expired order processing service
+    deploy_expired_order_processing(screen_name=screen_name, should_create_screen=False)
+
+    # 4th stage - initialization of Expired order processing service
+    deploy_failed_order_processing(screen_name=screen_name, should_create_screen=False)
+
+    # 5th stage - spawn a shit load of arbitrage checkers
     for screen_name in arbitrage_unit:
         create_screen(screen_name)
 
