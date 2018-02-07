@@ -68,10 +68,19 @@ def log_trace_all_closed_orders(open_orders_at_both_exchanges):
         log_to_file(v, FAILED_ORDER_PROCESSING_FILE_NAME)
 
 
+def log_trace_found_failed_order_in_open(order):
+    msg = "Found order {o} among OPEN orders".format(o=order)
+    log_to_file(msg, FAILED_ORDER_PROCESSING_FILE_NAME)
+
+
+def log_trace_found_failed_order_in_history(order):
+    msg = "Found order {o} among HISTORY trades".format(o=order)
+    log_to_file(msg, FAILED_ORDER_PROCESSING_FILE_NAME)
+
+
 def search_in_order_history(order):
     err_code, closed_orders = get_order_history_by_exchange(order.exchange_id, order.pair_id)
 
-    print closed_orders
     if err_code == STATUS.FAILURE:
         log_open_orders_by_exchange_bad_result(order)
         return STATUS.FAILURE
@@ -126,7 +135,9 @@ if __name__ == "__main__":
                 err_code = search_in_open_orders(order)
 
             if order.deal_id is not None:
-                print "FOUND", order
+
+                log_trace_found_failed_order_in_open(order)
+
                 update_order_details(pg_conn, order)
                 priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
                 continue
@@ -137,10 +148,12 @@ if __name__ == "__main__":
                     err_code = search_in_order_history(order)
 
                 if order.deal_id is not None:
+                    log_trace_found_failed_order_in_history(order)
+
                     update_order_details(pg_conn, order)
                     continue
 
-            raise
+            # raise
 
             # If we are still here it mean that exchange have no glue that we try to place order
             # Supposedly paired order were placed properly so we just place with market rate
@@ -153,7 +166,7 @@ if __name__ == "__main__":
                 order.price = adjust_price_by_order_book(orders, order.volume)
                 order.create_time = get_now_seconds_utc()
 
-                msg = "Replace existing order with new one - {tt}".format(tt=order)
+                msg = "Replace FAILED order with new one - {tt}".format(tt=order)
                 err_code, json_document = init_deal(order, msg)
                 if err_code == STATUS.SUCCESS:
 
@@ -165,13 +178,13 @@ if __name__ == "__main__":
 
                     priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
 
-                    log_placing_new_deal(order, msg_queue)
+                    log_placing_new_deal(order, msg_queue, log_file_name=FAILED_ORDER_PROCESSING_FILE_NAME)
                 else:
-                    log_cant_placing_new_deal(order, msg_queue)
+                    log_cant_placing_new_deal(order, msg_queue, log_file_name=FAILED_ORDER_PROCESSING_FILE_NAME)
 
                     msg_queue.add_order(FAILED_ORDERS_MSG, order)
             else:
-                log_cant_retrieve_order_book(order, msg_queue)
+                log_cant_retrieve_order_book(order, msg_queue, log_file_name=FAILED_ORDER_PROCESSING_FILE_NAME)
 
         sleep_for(1)
         cnt += 1

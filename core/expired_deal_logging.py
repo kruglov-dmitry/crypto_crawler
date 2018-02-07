@@ -14,8 +14,8 @@ def log_cant_cancel_deal(every_deal, msg_queue, log_file_name=EXPIRED_ORDER_PROC
 
 
 def log_placing_new_deal(every_deal, msg_queue, log_file_name=EXPIRED_ORDER_PROCESSING_FILE_NAME):
-    msg = """ We try to send following deal to exchange as replacement for expired order.
-    Deal details: {deal}""".format(deal=str(every_deal))
+    msg = """ We try to send following order to exchange as replacement for expired or failed order.
+    Order details: {deal}""".format(deal=str(every_deal))
     msg_queue.add_message(DEAL_INFO_MSG, msg)
     print_to_console(msg, LOG_ALL_ERRORS)
 
@@ -27,8 +27,8 @@ def log_placing_new_deal(every_deal, msg_queue, log_file_name=EXPIRED_ORDER_PROC
 
 def log_cant_placing_new_deal(every_deal, msg_queue, log_file_name=EXPIRED_ORDER_PROCESSING_FILE_NAME):
     msg = """   We <b> !!! FAILED !!! </b>
-    to send following deal to exchange as replacement for expired order.
-    Deal details:
+    to send following order to exchange as replacement for expired or failed order.
+    Order details:
     {deal}
     """.format(deal=str(every_deal))
     msg_queue.add_message(DEAL_INFO_MSG, msg)
@@ -40,7 +40,7 @@ def log_cant_placing_new_deal(every_deal, msg_queue, log_file_name=EXPIRED_ORDER
 
 
 def log_cant_retrieve_order_book(every_deal, msg_queue, log_file_name=EXPIRED_ORDER_PROCESSING_FILE_NAME):
-    msg = """ Can't retrieve order book for deal with expired orders!
+    msg = """ Can't retrieve order book for deal with expired or failed orders!
         Order details: {deal}""".format(deal=str(every_deal))
     msg_queue.add_message(DEAL_INFO_MSG, msg)
     print_to_console(msg, LOG_ALL_ERRORS)
