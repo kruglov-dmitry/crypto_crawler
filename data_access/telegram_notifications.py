@@ -21,6 +21,21 @@ def get_chat_id_by_type(notification_id):
     }[notification_id]
 
 
+def send_single_message_no_parsing(some_message, notification_type):
+    global bot
+    chat_id = get_chat_id_by_type(notification_type)
+    res = STATUS.FAILURE
+    try:
+        bot.send_message(chat_id=chat_id, text=str(some_message), timeout=5, parse_mode=None)
+        res = STATUS.SUCCESS
+    except Exception, e:
+        msg = "send_single_message_no_parsing FAILED: {msg} {ee}".format(msg=some_message, ee=str(e))
+        print_to_console(msg, LOG_ALL_ERRORS)
+        log_to_file(msg, "telegram.log")
+
+    return res
+
+
 def send_single_message(some_message, notification_type):
     global bot
     chat_id = get_chat_id_by_type(notification_type)
@@ -33,5 +48,7 @@ def send_single_message(some_message, notification_type):
         msg = "send_single_message FAILED: {msg} {ee}".format(msg=some_message, ee=str(e))
         print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, "telegram.log")
+
+        res = send_single_message_no_parsing(some_message, notification_type)
 
     return res
