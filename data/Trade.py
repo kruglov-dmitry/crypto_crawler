@@ -264,21 +264,20 @@ class Trade(Deal):
     def from_bittrex_history(cls, json_document):
         """
         {
-			"OrderUuid" : "fd97d393-e9b9-4dd1-9dbf-f288fc72a185",
-			"Exchange" : "BTC-LTC",
-			"TimeStamp" : "2014-07-09T04:01:00.667",
-			"OrderType" : "LIMIT_BUY",
-			"Limit" : 0.00000001,
-			"Quantity" : 100000.00000000,
-			"QuantityRemaining" : 100000.00000000,
-			"Commission" : 0.00000000,
-			"Price" : 0.00000000,
-			"PricePerUnit" : null,
-			"IsConditional" : false,
-			"Condition" : null,
-			"ConditionTarget" : null,
-			"ImmediateOrCancel" : false
-		}
+           u'OrderUuid':u'b9f52a13-571f-4560-91af-a52f0c0c3f1f',
+           u'QuantityRemaining':0.0,
+           u'ImmediateOrCancel':False,
+           u'IsConditional':False,
+           u'Exchange':u'BTC-STRAT',
+           u'TimeStamp':   u'2018-02-07T19:50:03.01   ', u'   Price':0.00440505,
+           u'ConditionTarget':None,
+           u'Commission':1.101e-05,
+           u'Limit':0.00088101,
+           u'Closed':   u'2018-02-08T13:25:55.133   ', u'   OrderType':u'LIMIT_SELL',
+           u'PricePerUnit':0.00088101,
+           u'Condition':u'NONE',
+           u'Quantity':5.0
+        }
 
         :param json_document:
         :return:
@@ -290,10 +289,16 @@ class Trade(Deal):
             print_to_console(msg, LOG_ALL_ERRORS)
             log_to_file(msg, "error.log")
             return None
+
         try:
             timest = parse_time(json_document["TimeStamp"], '%Y-%m-%dT%H:%M:%S.%f')
         except:
             timest = parse_time(json_document["TimeStamp"], '%Y-%m-%dT%H:%M:%S')
+
+        try:
+            execute_timest = parse_time(json_document["Closed"], '%Y-%m-%dT%H:%M:%S.%f')
+        except:
+            execute_timest = parse_time(json_document["Closed"], '%Y-%m-%dT%H:%M:%S')
 
         trade_type = DEAL_TYPE.BUY
         if "SELL" in json_document["OrderType"]:
@@ -304,8 +309,8 @@ class Trade(Deal):
         volume = float(json_document["Quantity"])
         executed_volume = volume - float(json_document["QuantityRemaining"])
 
-        return Trade(trade_type, EXCHANGE.BITTREX, pair_id, price, volume, timest, timest, execute_time=timest,
-                     deal_id=trade_id, executed_volume=executed_volume)
+        return Trade(trade_type, EXCHANGE.BITTREX, pair_id, price, volume, order_book_time=timest, create_time=timest,
+                     execute_time=execute_timest, deal_id=trade_id, executed_volume=executed_volume)
 
 
     @classmethod
