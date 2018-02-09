@@ -43,6 +43,9 @@ from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from data_access.message_queue import get_message_queue, ORDERS_MSG, FAILED_ORDERS_MSG
 from dao.dao import parse_deal_id
 from data_access.priority_queue import ORDERS_EXPIRE_MSG, get_priority_queue
+
+from enums.notifications import NOTIFICATION
+from data_access.telegram_notifications import send_single_message
     
 
 from dao.deal_utils import init_deal
@@ -420,4 +423,10 @@ def test_failed_deal_placement():
     msg_queue.add_order(FAILED_ORDERS_MSG, order)
     print order
 
-test_failed_deal_placement()
+
+def test_send_message_weird_symbols():
+    msg = """My message contains some weird symbols - <Response> [400] Json: {u'msg': u'Market is closed.', u'code': -1013} """
+    send_single_message(msg, NOTIFICATION.DEAL)
+
+
+test_send_message_weird_symbols()
