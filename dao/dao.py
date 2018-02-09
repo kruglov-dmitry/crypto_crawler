@@ -42,10 +42,12 @@ from utils.currency_utils import get_currency_pair_name_by_exchange_id
 def buy_by_exchange(trade):
     res = STATUS.FAILURE, None
     if trade.trade_type != DEAL_TYPE.BUY:
+
         msg = "Deal type do NOT correspond to method invocation. {d}".format(d=trade)
         print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, "error.log")
-        raise
+
+        assert trade.trade_type != DEAL_TYPE.BUY
 
     key = get_key_by_exchange(trade.exchange_id)
     if trade.exchange_id == EXCHANGE.BITTREX:
@@ -72,10 +74,12 @@ def sell_by_exchange(trade):
     res = STATUS.FAILURE, None
 
     if trade.trade_type != DEAL_TYPE.SELL:
+
         msg = "Deal type do NOT correspond to method invocation. {d}".format(d=trade)
         print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, "error.log")
-        raise
+
+        assert trade.trade_type != DEAL_TYPE.SELL
 
     key = get_key_by_exchange(trade.exchange_id)
     if trade.exchange_id == EXCHANGE.BITTREX:
@@ -147,7 +151,8 @@ def parse_deal_id_by_exchange_id(exchange_id, http_responce):
 
     return method(http_responce)
 
-def parse_deal_id_from_json_by_exchange_id(exchange_id, json_document):
+
+def parse_deal_id(exchange_id, json_document):
 
     method = {EXCHANGE.POLONIEX: parse_deal_id_poloniex_from_json,
               EXCHANGE.BITTREX: parse_deal_id_bittrex_from_json,
@@ -172,21 +177,3 @@ def get_open_orders_by_exchange(exchange_id, pair_id):
     res = method(key, pair_name)
 
     return res
-
-
-def get_updated_order_state(order_state):
-
-    print "DAO: get_updated_order_state"
-    raise
-
-    new_order_state = {EXCHANGE.BITTREX: None,
-                       EXCHANGE.POLONIEX: None,
-                       EXCHANGE.KRAKEN: order_state[EXCHANGE.KRAKEN],
-                       EXCHANGE.BINANCE: None}
-
-    # krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
-    # error_code, res = get_orders_kraken(krak_key)
-    # if error_code == STATUS.SUCCESS:
-    #    new_order_state[EXCHANGE.KRAKEN] = res
-
-    return new_order_state

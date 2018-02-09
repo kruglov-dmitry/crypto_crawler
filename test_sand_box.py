@@ -16,7 +16,6 @@ from bittrex.order_utils import get_open_orders_bittrix
 from bittrex.sell_utils import add_sell_order_bittrex
 from core.backtest import dummy_order_state_init
 from dao.deal_utils import init_deals_with_logging_speedy
-from dao.dao import get_updated_order_state
 from dao.history_utils import get_history_speedup
 from dao.ohlc_utils import get_ohlc_speedup, get_ohlc
 from dao.order_book_utils import get_order_book_speedup
@@ -35,15 +34,21 @@ from kraken.market_utils import cancel_order_kraken
 from kraken.order_utils import get_orders_kraken, get_open_orders_kraken
 from kraken.sell_utils import add_sell_order_kraken
 from poloniex.balance_utils import get_balance_poloniex
-from poloniex.market_utils import get_orders_history_poloniex
 from poloniex.order_utils import get_open_orders_poloniex
 from poloniex.buy_utils import add_buy_order_poloniex
 from poloniex.sell_utils import add_sell_order_poloniex
 from utils.key_utils import load_keys, get_key_by_exchange
 from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
-from data_access.message_queue import get_message_queue
+from data_access.message_queue import get_message_queue, ORDERS_MSG, FAILED_ORDERS_MSG
+from dao.dao import parse_deal_id
+from data_access.priority_queue import ORDERS_EXPIRE_MSG, get_priority_queue
 
+from enums.notifications import NOTIFICATION
+from data_access.telegram_notifications import send_single_message
+    
+
+from dao.deal_utils import init_deal
 from dao.order_utils import get_open_orders_for_arbitrage_pair
 from dao.db import save_order_into_pg, init_pg_connection, is_order_present_in_order_history, \
     is_trade_present_in_trade_history
@@ -92,13 +97,13 @@ def test_bittrex_market_api(bit_key):
 
 def test_kraken_placing_deals(krak_key):
     order_state = dummy_order_state_init()
-    order_state = get_updated_order_state(order_state)
+    # order_state = get_updated_order_state(order_state)
 
     for x in order_state[EXCHANGE.KRAKEN].open_orders:
         if x.pair_id == CURRENCY.BCC and x.volume == 0.1 and x.price == 0.5:
             cancel_order_kraken(krak_key, x.deal_id)
 
-    order_state = get_updated_order_state(order_state)
+    # order_state = get_updated_order_state(order_state)
     cnt = 0
     for x in order_state[EXCHANGE.KRAKEN].open_orders:
         if x.pair_id == CURRENCY.BCC and x.volume == 0.1 and x.price == 0.5:
@@ -114,7 +119,7 @@ def test_kraken_placing_deals(krak_key):
         sleep_for(30)
 
     ts2 = get_now_seconds_local()
-    order_state = get_updated_order_state(order_state)
+    # order_state = get_updated_order_state(order_state)
     print "Goal was to set 10000 deals: "
     print "Total number of open orders: ", len(order_state[EXCHANGE.KRAKEN].open_orders)
     print "It take ", ts2-ts1, " seconds"
@@ -203,10 +208,6 @@ def get_order_book_time_fast():
     trade_history = get_order_book_speedup(start_time, end_time, processor)
     return trade_history
 
-
-def check_order_polonie(pol_key):
-    er_code, res = get_orders_history_poloniex(pol_key, "all")
-    print res
 
 def check_deal_placements():
     create_time = get_now_seconds_utc()
@@ -378,4 +379,54 @@ def test_trade_present():
     print res
 
 
-test_trade_present()
+def test_expired_deal_placement():
+    load_keys("./secret_keys")
+    priority_queue = get_priority_queue()
+    ts = get_now_seconds_utc()
+    order = Trade(DEAL_TYPE.SELL, EXCHANGE.BINANCE, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001, volume=5.0,
+                       order_book_time=ts, create_time=ts, execute_time=ts, deal_id='whatever')
+    
+    msg = "Replace existing order with new one - {tt}".format(tt=order)
+    err_code, json_document = init_deal(order, msg)
+    print json_document
+    order.deal_id = parse_deal_id(order.exchange_id, json_document)
+    priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+
+
+def test_failed_deal_placement():
+    load_keys("./secret_keys")
+    msg_queue = get_message_queue()
+    pg_conn = init_pg_connection(_db_host="orders.cervsj06c8zw.us-west-1.rds.amazonaws.com",
+                                 _db_port=5432, _db_name="crypto")
+    priority_queue = get_priority_queue()
+    ts = get_now_seconds_utc()
+    # order = Trade(DEAL_TYPE.SELL, EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001, volume=5.0,
+    #                    order_book_time=ts, create_time=ts, execute_time=ts, deal_id=None)
+    ts = 1517938516
+    order = Trade(DEAL_TYPE.SELL, EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_STRAT, price=0.000844, volume=5.0, order_book_time=ts, create_time=ts, execute_time=ts, deal_id=None)
+
+    #   from dao.order_utils import get_open_orders_by_exchange
+    #   r = get_open_orders_by_exchange(EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_STRAT)
+    
+    #   for rr in r:
+    #       print r
+    
+    #   raise
+    #
+    # msg = "Replace existing order with new one - {tt}".format(tt=order)
+    # err_code, json_document = init_deal(order, msg)
+    # print json_document
+    # order.deal_id = parse_deal_id(order.exchange_id, json_document)
+    
+    # msg_queue.add_order(ORDERS_MSG, order)
+    sleep_for(3)
+    msg_queue.add_order(FAILED_ORDERS_MSG, order)
+    print order
+
+
+def test_send_message_weird_symbols():
+    msg = """My message contains some weird symbols - <Response> [400] Json: {u'msg': u'Market is closed.', u'code': -1013} """
+    send_single_message(msg, NOTIFICATION.DEAL)
+
+
+test_send_message_weird_symbols()

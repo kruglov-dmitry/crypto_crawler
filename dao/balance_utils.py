@@ -101,14 +101,14 @@ def get_balance_constructor_by_exchange_id(exchange_id):
 def update_balance_by_exchange(exchange_id, cache=get_cache()):
     status_code, balance = get_balance_by_exchange(exchange_id)
     exchange_name = get_exchange_name_by_id(exchange_id)
-    if status_code == STATUS.SUCCESS:
+    if status_code == STATUS.SUCCESS and balance is not None:
         cache.update_balance(exchange_name, balance)
         log_to_file("Update balance at cache", "balance.log")
         log_to_file(balance, "balance.log")
         return balance
     else:
         msg = "Can't update balance for exchange_id = {exch1} {exch_name}".format(exch1=exchange_id,
-                                                                                            exch_name=exchange_name)
+                                                                                  exch_name=exchange_name)
         log_to_file(msg, "cache.log")
         log_to_file(msg, "balance.log")
 

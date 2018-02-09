@@ -1,10 +1,10 @@
 import argparse
-from collections import defaultdict
 
 from data_access.message_queue import get_message_queue, DEAL_INFO_MSG
+from data_access.priority_queue import get_priority_queue, ORDERS_EXPIRE_MSG
 
 from core.arbitrage_core import search_for_arbitrage, adjust_currency_balance
-from core.expired_deal import process_expired_deals, add_orders_to_watch_list
+from core.expired_deal import add_orders_to_watch_list
 from core.backtest import common_cap_init, dummy_balance_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
@@ -65,7 +65,7 @@ def compute_new_min_cap_from_tickers(tickers):
             min_price = max(min_price, ticker.ask)
 
     if min_price != 0.0:
-        return 0.002 / min_price
+        return 0.004 / min_price
 
     return 0.0
 
@@ -121,7 +121,12 @@ if __name__ == "__main__":
         set_logging_level(cfg.logging_level_id)
 
     load_keys("./secret_keys")
+
+    # FIXME NOTE: read from config redis host \ port pass it to get_*_queue methods
+
+    priority_queue = get_priority_queue()
     msg_queue = get_message_queue()
+
     processor = ConnectionPool(pool_size=2)
 
     # to avoid time-consuming check in future - validate arguments here
@@ -136,9 +141,6 @@ if __name__ == "__main__":
     deal_cap.update_max_cap(cfg.pair_id, NO_MAX_CAP_LIMIT)
 
     balance_state = dummy_balance_init(timest=0, default_volume=0, default_available_volume=0)
-
-    # key is timest rounded to minutes
-    list_of_deals = defaultdict(list)
 
     last_order_book = {}
 
@@ -157,7 +159,8 @@ if __name__ == "__main__":
 
             if balance_state.expired(cur_timest_sec, cfg.buy_exchange_id, cfg.sell_exchange_id, BALANCE_EXPIRED_THRESHOLD):
                 log_balance_expired_errors(cfg, msg_queue)
-                raise
+
+                assert False
 
             order_book_src, order_book_dst = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec, processor)
 
@@ -172,15 +175,14 @@ if __name__ == "__main__":
                                             balance_state, deal_cap, type_of_deal=mode_id, worker_pool=processor,
                                             msg_queue=msg_queue)
 
-            add_orders_to_watch_list(list_of_deals, deal_pair, cfg)
+            add_orders_to_watch_list(deal_pair, priority_queue)
 
             last_order_book[order_book_src.exchange_id] = order_book_src
             last_order_book[order_book_dst.exchange_id] = order_book_dst
 
             print_to_console("I am still allive! ", LOG_ALL_DEBUG)
             sleep_for(1)
-        sleep_for(2)
 
-        process_expired_deals(list_of_deals, last_order_book, cfg, msg_queue, processor)
+        sleep_for(2)
 
         deal_cap.update_max_cap(cfg.pair_id, NO_MAX_CAP_LIMIT)

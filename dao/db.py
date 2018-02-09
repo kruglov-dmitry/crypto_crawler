@@ -2,11 +2,14 @@ from collections import defaultdict
 
 from data.OrderBook import OrderBook, ORDER_BOOK_INSERT_BIDS, ORDER_BOOK_INSERT_ASKS, ORDER_BOOK_TYPE_NAME
 from data.Trade import Trade
+from data.Candle import Candle
 
 from data_access.postgres_connection import PostgresConnection
 from utils.time_utils import get_date_time_from_epoch
 from utils.file_utils import log_to_file
-from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
+
+from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME, FAILED_ORDER_PROCESSING_FILE_NAME
+from constants import START_OF_TIME
 
 
 def init_pg_connection(_db_host="192.168.1.106", _db_port=5432, _db_name="postgres"):
@@ -162,7 +165,7 @@ def get_arbitrage_id(pg_conn):
     for row in cursor:
         return long(row[0])
 
-    return Non
+    return None
 
 
 def save_order_into_pg(order, pg_conn, table_name="orders"):
@@ -196,11 +199,16 @@ def save_order_into_pg(order, pg_conn, table_name="orders"):
     pg_conn.commit()
 
 
-def get_all_orders(pg_conn, table_name="orders"):
+def get_all_orders(pg_conn, table_name="orders", time_start=START_OF_TIME):
     orders = []
 
-    select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, 
-    order_book_time, create_time, execute_time from {table_name}""".format(table_name=table_name)
+    if time_start == START_OF_TIME:
+        select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, 
+        order_book_time, create_time, execute_time from {table_name}""".format(table_name=table_name)
+    else:
+        select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, 
+        deal_id, order_book_time, create_time, execute_time from {table_name} where create_time >= {create_time}
+        """.format(table_name=table_name, create_time=time_start)
 
     cursor = pg_conn.get_cursor()
 
@@ -213,15 +221,36 @@ def get_all_orders(pg_conn, table_name="orders"):
 
 
 def is_order_present_in_order_history(pg_conn, trade, table_name="orders"):
+    """
+                We can execute history retrieval several times.
+                Some exchanges do not have precise mechanism to exclude particular time range.
+                It is possible to have multiple trades per order = deal_id.
+                As this is arbitrage it mean that all other fields may be the same.
+                exchange_id | trade_type | pair_id |   price   |  volume    |   deal_id | timest
 
-    select_query = """select * from {table_name} where deal_id = '{trade_id}'""".format(table_name=table_name,
-                                                                                       trade_id=trade.deal_id)
+                executed_volume
+
+    :param pg_conn:
+    :param trade:
+    :param table_name:
+    :return:
+    """
+
+    select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, 
+        order_book_time, create_time, execute_time from {table_name} where deal_id = '{trade_id}'""".format(
+        table_name=table_name, trade_id=trade.deal_id)
 
     cursor = pg_conn.get_cursor()
 
     cursor.execute(select_query)
 
-    return cursor.rowcount > 0
+    for row in cursor:
+        cur_trade = Trade.from_row(row)
+        if abs(cur_trade.executed_volume - trade.executed_volume) < 0.0000001 and \
+                cur_trade.create_time == trade.create_time:
+            return True
+
+    return False
 
 
 def is_trade_present_in_trade_history(pg_conn, trade, table_name="trades_history"):
@@ -251,3 +280,59 @@ def is_trade_present_in_trade_history(pg_conn, trade, table_name="trades_history
     cursor.execute(select_query)
 
     return cursor.rowcount > 0
+
+
+def get_next_candidates(pg_conn, predicate):
+    """
+    :param pg_conn:
+    :param predicate: method that should trigger retrieval of pair candles
+    :return:
+    """
+
+    select_query = "select id, pair_id, exchange_id, open, close, high, low, timest, date_time from candle"
+
+    cursor = pg_conn.get_cursor()
+
+    cursor.execute(select_query)
+
+    prev = None
+    for row in cursor:
+        cur = Candle.from_row(row)
+        if prev is None:
+            prev = cur
+            continue
+        else:
+            if predicate(cur.high, prev.low):
+                yield cur, prev
+
+
+def update_order_details(pg_conn, order):
+
+    """
+            if order.pair_id == every_order.pair_id and \
+                        order.deal_type == every_order.deal_type and \
+                        abs(order.price - every_order.price) < FLOAT_POINT_PRECISION and \
+                        order.create_time >= every_order.create_time and \
+                        abs(order.create_time - every_order.create_time) < 15:
+            # FIXME
+            order.deal_id = every_order.deal_id
+            order.create_time = every_order.create_time
+
+
+    :param pg_conn:
+    :param order:
+    :return:
+    """
+
+    select_query = """update orders set deal_id = '{order_id}' where exchange_id = {e_id} and pair_id = {p_id} and 
+    trade_type = {d_type} and create_time = {c_time} 
+    """.format(order_id=order.deal_id, e_id=order.exchange_id, p_id=order.pair_id, d_type=order.trade_type,
+               c_time=order.create_time)
+
+    cursor = pg_conn.get_cursor()
+
+    cursor.execute(select_query)
+
+    if 0 == cursor.rowcount:
+        msg = "ZERO number of row affected! For order = {o}".format(o=order)
+        log_to_file(msg, FAILED_ORDER_PROCESSING_FILE_NAME)

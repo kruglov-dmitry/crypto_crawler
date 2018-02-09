@@ -23,6 +23,9 @@ if __name__ == "__main__":
 
         candles = get_ohlc_speedup(start_time, end_time, processor)
 
+        bad_candles = [x for x in candles if x.timest == 0]
+        candles = [x for x in candles if x.timest > 0]
+
         trade_history = get_history_speedup(start_time, end_time, processor)
 
         trade_history = [x for x in trade_history if x.timest > start_time]
@@ -36,6 +39,9 @@ if __name__ == "__main__":
             Trade history size - {num2}""".format(tt=end_time, num=len(candles), num2=len(trade_history))
             print_to_console(msg, LOG_ALL_ERRORS)
             log_to_file(msg, "candles_trade_history.log")
+
+        for b in bad_candles:
+            log_to_file(b, "bad_candles.log")
 
         print_to_console("Before sleep...", LOG_ALL_ERRORS)
         sleep_for(POLL_PERIOD_SECONDS)

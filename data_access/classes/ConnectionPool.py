@@ -2,10 +2,14 @@ import gevent.monkey
 gevent.monkey.patch_all()
 import requests
 from gevent.pool import Pool
+
 from constants import POOL_SIZE
+
 from utils.file_utils import log_to_file
 from debug_utils import get_logging_level, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME, POST_RESPONCE_FILE_NAME
+
 from enums.http_request import HTTP_REQUEST
+from enums.status import STATUS
 
 
 def log_responce_cant_be_parsed(work_unit, file_name):
@@ -14,11 +18,16 @@ def log_responce_cant_be_parsed(work_unit, file_name):
     log_to_file(msg, ERROR_LOG_FILE_NAME)
     log_to_file(msg, file_name)
 
+    json_responce = ""
     try:
-        log_to_file(work_unit.future_result.value.json(), ERROR_LOG_FILE_NAME)
-        log_to_file(work_unit.future_result.value.json(), file_name)
+        json_responce = work_unit.future_result.value.json()
+        log_to_file(json_responce, ERROR_LOG_FILE_NAME)
+        log_to_file(json_responce, file_name)
     except:
         pass
+
+    msg = "ERROR: returned code - {err} Json: {js}".format(err=work_unit.future_result.value.status_code, js=json_responce)
+    return msg
 
 
 def log_responce(work_unit):
@@ -101,8 +110,10 @@ class ConnectionPool:
                 else:
                     res.append(some_result)
             else:
-                res.append(None)
-                log_responce_cant_be_parsed(work_unit, POST_RESPONCE_FILE_NAME)
+                err_msg = log_responce_cant_be_parsed(work_unit, POST_RESPONCE_FILE_NAME)
+
+                some_result = work_unit.method(err_msg, *work_unit.args)
+                res.append(some_result)
 
         return res
 
@@ -122,6 +133,14 @@ class ConnectionPool:
         }[http_method_type]
 
     def process_async_custom(self, work_units, timeout):
+        """
+        :param work_units:
+        :param timeout:
+        :return:    error_code, failure in case at least one of query were problematic in processing
+                    list of results, for failed query must be set to None
+        """
+
+        err_code = STATUS.SUCCESS
 
         futures = []
         for work_unit in work_units:
@@ -147,7 +166,8 @@ class ConnectionPool:
                 else:
                     res.append(some_result)
             else:
+                err_code = STATUS.FAILURE
                 res.append(None)
                 log_responce_cant_be_parsed(work_unit, POST_RESPONCE_FILE_NAME)
 
-        return res
+        return err_code, res

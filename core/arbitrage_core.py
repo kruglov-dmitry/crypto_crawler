@@ -155,7 +155,8 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
         msg = "determine_minimum_volume - something severely wrong - NEGATIVE min price: {pr}".format(pr=min_volume)
         print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, ERROR_LOG_FILE_NAME)
-        raise
+
+        assert min_volume <= 0
 
     base_currency_id, dst_currency_id = split_currency_pairs(first_order_book.pair_id)
 
@@ -195,7 +196,6 @@ def adjust_maximum_volume_by_trading_cap(sell_order_book, buy_order_book, deal_c
     return min_volume
 
 
-
 def round_minimum_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, min_volume, pair_id):
     if sell_exchange_id == EXCHANGE.BINANCE or buy_exchange_id == EXCHANGE.BINANCE:
         return round_minimum_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
@@ -222,7 +222,8 @@ def adjust_price_by_order_book(orders, min_volume):
     if min_volume == 0.0:
         msg = "adjust_price_by_order_book: ERROR min volume is ZERO"
         log_to_file(msg, "price_adjustment.log")
-        raise
+
+        assert min_volume == 0
 
     idx = 0
     while acc_volume < max_volume and idx < max_len:
@@ -267,6 +268,6 @@ def adjust_currency_balance(first_order_book, second_order_book, threshold, bala
                                            action_to_perform, balance_state, deal_cap,
                                            type_of_deal, worker_pool, msg_queue)
     else:
-        log_currency_disbalance_heart_beat(src_exchange_id, dst_exchange_id, dst_currency_id, threshold)
+        log_currency_disbalance_heart_beat(src_exchange_id, dst_exchange_id, dst_currency_id, balance_threshold)
 
     return deal_status

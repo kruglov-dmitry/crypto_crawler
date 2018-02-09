@@ -73,3 +73,18 @@ delete from order_history WHERE id IN (SELECT id
                              ROW_NUMBER() OVER (partition BY pair_id, exchange_id, deal_type, price, amount, timest ORDER BY id) AS rnum
                      FROM order_history) t
               WHERE t.rnum > 1);
+
+-- how many dublicate tickers do we have
+select count(*) from tickers WHERE id IN (SELECT id FROM (SELECT id, ROW_NUMBER() OVER (partition BY exchange_id, pair_id, lowest_ask, highest_bid, timest ORDER BY id) AS rnum FROM tickers) t WHERE t.rnum > 1);
+
+-- how many dublicate candles do we have
+select count(*) from candle WHERE id IN (SELECT id FROM (SELECT id, ROW_NUMBER() OVER (partition BY pair_id, exchange_id, open, close, high, low, timest ORDER BY id) AS rnum FROM candle) t WHERE t.rnum > 1);
+-- how many dublicate order_history.py.py do we have
+select count(*) from order_history WHERE id IN (SELECT id FROM (SELECT id, ROW_NUMBER() OVER (partition BY pair_id, exchange_id, deal_type, price, amount, timest ORDER BY id) AS rnum FROM order_history) t WHERE t.rnum > 1);
+
+-- retrieve arbitrage_id for orders at poloniex exchanges that were re-placed
+select * from orders WHERE id IN (SELECT id FROM (SELECT id, exchange_id, ROW_NUMBER() OVER (partition BY exchange_id, pair_id, arbitrage_id ORDER BY id) AS rnum FROM orders) t WHERE t.exchange_id = 1 and t.rnum > 1);
+
+
+-- delete dublicates
+delete from tickers WHERE id IN (SELECT id FROM (SELECT id, ROW_NUMBER() OVER (partition BY exchange_id, pair_id, lowest_ask, highest_bid, timest ORDER BY id) AS rnum FROM tickers) t WHERE t.rnum > 1);

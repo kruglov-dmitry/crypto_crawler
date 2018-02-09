@@ -67,6 +67,6 @@ def get_balance_binance(key):
     if error_code == STATUS.SUCCESS and res is not None and "balances" in res:
         res = Balance.from_binance(timest, res)
     else:
-        error_code = STATUS.FAILURE
+        error_code = STATUS.FAILURE   
 
     return error_code, res
