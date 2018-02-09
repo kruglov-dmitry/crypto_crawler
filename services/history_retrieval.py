@@ -13,7 +13,7 @@ POLL_PERIOD_SECONDS = 900
 
 if __name__ == "__main__":
 
-    pg_conn = init_pg_connection()
+    pg_conn = init_pg_connection(_db_host="orders.cervsj06c8zw.us-west-1.rds.amazonaws.com", _db_port=5432, _db_name="crypto")
 
     processor = ConnectionPool()
 

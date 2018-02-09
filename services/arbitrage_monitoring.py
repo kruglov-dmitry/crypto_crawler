@@ -19,7 +19,7 @@ TRIGGER_THRESHOLD = 1.5 # 2 percents only
 
 
 def analyse_tickers(msg_queue):
-    pg_conn = init_pg_connection()
+    pg_conn = init_pg_connection(_db_host="orders.cervsj06c8zw.us-west-1.rds.amazonaws.com", _db_port=5432, _db_name="crypto")
 
     processor = ConnectionPool()
 
