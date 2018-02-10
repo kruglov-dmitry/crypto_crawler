@@ -20,6 +20,7 @@ from data_access.priority_queue import ORDERS_EXPIRE_MSG
 
 from enums.status import STATUS
 from enums.deal_type import DEAL_TYPE
+from enums.exchange import EXCHANGE
 
 
 def process_expired_order(order, msg_queue, priority_queue):
@@ -58,7 +59,7 @@ def process_expired_order(order, msg_queue, priority_queue):
 
     log_trace_all_open_orders(open_orders)
 
-    if deal_is_not_closed(open_orders, order):
+    if update_executed_volume(open_orders, order):
         err_code, responce = cancel_by_exchange(order)
 
         log_trace_cancel_request_result(order, err_code, responce)
@@ -151,7 +152,7 @@ def process_expired_deals(list_of_orders, cfg, msg_queue, worker_pool):
 
             log_trace_processing_oder(every_order)
 
-            if deal_is_not_closed(open_orders_at_both_exchanges, every_order):
+            if update_executed_volume(open_orders_at_both_exchanges, every_order):
                 err_code, responce = cancel_by_exchange(every_order)
 
                 log_trace_cancel_request_result(every_order, err_code, responce)
@@ -216,13 +217,20 @@ def process_expired_deals(list_of_orders, cfg, msg_queue, worker_pool):
     log_trace_warched_orders_after_processing(list_of_orders)
 
 
-def deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
+def update_executed_volume(open_orders_at_both_exchanges, every_deal):
     # FIXME NOTE: I do hate functions with side effects this is very vicious practice
     # Open question: how to do it properly?
 
     for deal in open_orders_at_both_exchanges:
         if deal == every_deal:
-            every_deal.volume = every_deal.volume - deal.executed_volume
+            if every_deal.exchange_id != EXCHANGE.POLONIEX:
+                every_deal.volume = every_deal.volume - deal.executed_volume
+                every_deal.executed_volume = deal.executed_volume
+            else:
+                every_deal.executed_volume = every_deal.volume - deal.volume
+                every_deal.volume = deal.volume
+
+
             return True
 
     return False
