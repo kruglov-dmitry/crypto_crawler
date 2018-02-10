@@ -46,7 +46,7 @@ def get_open_orders_poloniex(key, pair_name):
     print "get_open_orders_poloniex", res
     orders = []
     if error_code == STATUS.SUCCESS and res is not None:
-        orders = get_open_orders_poloniex_result_processor(res.json(), pair_name)
+        orders = get_open_orders_poloniex_result_processor(res, pair_name)
 
     return error_code, orders
 
