@@ -26,7 +26,11 @@ def log_responce_cant_be_parsed(work_unit, file_name):
     except:
         pass
 
-    msg = "ERROR: returned code - {err} Json: {js}".format(err=work_unit.future_result.value.status_code, js=json_responce)
+    if work_unit.future_result.value is not None:
+        msg = "ERROR: returned code - {err} Json: {js}".format(err=work_unit.future_result.value.status_code, js=json_responce)
+    else:
+        msg = "ERROR: returned code - None Json: {js}".format(js=json_responce)
+
     return msg
 
 
