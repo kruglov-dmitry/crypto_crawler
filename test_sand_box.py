@@ -429,4 +429,19 @@ def test_send_message_weird_symbols():
     send_single_message(msg, NOTIFICATION.DEAL)
 
 
-test_send_message_weird_symbols()
+def test_sorted_queue():
+    priority_queue = get_priority_queue(host="192.168.1.106")
+    priority_queue.add_order_to_watch_queue("YOPITOK", "First")
+    priority_queue.add_order_to_watch_queue("YOPITOK", "Second")
+    priority_queue.add_order_to_watch_queue("YOPITOK", "Third")
+    priority_queue.add_order_to_watch_queue("YOPITOK", "fourth")
+    priority_queue.add_order_to_watch_queue("YOPITOK", "Fives")
+    priority_queue.add_order_to_watch_queue("YOPITOK", "Sixest")
+
+    order = priority_queue.get_oldest_order("YOPITOK")
+    while order is not None:
+        print order
+        order = priority_queue.get_oldest_order("YOPITOK")
+
+
+test_sorted_queue()
