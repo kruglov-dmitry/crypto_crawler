@@ -80,10 +80,10 @@ def log_arbitrage_determined_price_not_enough(sell_price, sell_price_order_book,
         final_diff: {final_diff} original_diff: {diff} 
         for pair_id = {p_name}
         """.format(
-        sell_price=sell_price,
-        i_sell=sell_price_order_book,
-        final_buy=buy_price,
-        i_buy=buy_price_order_book,
+        sell_price=float_to_str(sell_price),
+        i_sell=float_to_str(sell_price_order_book),
+        final_buy=float_to_str(buy_price),
+        i_buy=float_to_str(buy_price_order_book),
         final_diff=final_difference,
         p_name=get_pair_name_by_id(pair_id),
         diff=difference)
