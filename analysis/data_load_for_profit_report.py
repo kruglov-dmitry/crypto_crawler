@@ -44,6 +44,7 @@ def get_recent_binance_orders():
     for pair_name in BINANCE_CURRENCY_PAIRS:
         err_code, orders_by_pair = get_order_history_binance(key, pair_name, limit)
 
+        print "Get data for ", pair_name
         while err_code == STATUS.FAILURE:
             sleep_for(2)
             err_code, orders_by_pair = get_order_history_binance(key, pair_name, limit)

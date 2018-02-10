@@ -40,13 +40,13 @@ def get_order_history_poloniex_post_details(key, pair_name, time_start, time_end
     return post_details
 
 
-def get_order_history_bittrex_result_processor(json_document, pair_name):
+def get_order_history_poloniex_result_processor(json_document, pair_name):
     """
     json_document - response from exchange api as json string
     pair_name - for backwords compabilities
     """
     orders = []
-    if json_document is None or "result" not in json_document:
+    if json_document is None:
         return orders
 
     for pair_name in json_document:
@@ -66,9 +66,8 @@ def get_order_history_poloniex(key, pair_name, time_start=0, time_end=get_now_se
     error_code, json_document = send_post_request_with_header(post_details.final_url, post_details.headers,
                                                               post_details.body, err_msg,
                                                               max_tries=POLONIEX_NUM_OF_DEAL_RETRY)
-
     historical_orders = []
     if error_code == STATUS.SUCCESS:
-        historical_orders = get_order_history_bittrex_result_processor(json_document, pair_name)
+        historical_orders = get_order_history_poloniex_result_processor(json_document, pair_name)
 
     return error_code, historical_orders
