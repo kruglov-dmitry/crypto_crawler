@@ -4,17 +4,17 @@ from data_access.classes.MemoryCache import MemoryCache
 local_cache = None
 
 
-def connect_to_cache():
+def connect_to_cache(host=CACHE_HOST, port=CACHE_PORT):
     # FIXME NOTE temporary workaround for in-memory caching
     global local_cache
-    local_cache = MemoryCache(host=CACHE_HOST, port=CACHE_PORT)
+    local_cache = MemoryCache(host, port)
     return local_cache
 
 
-def get_cache():
+def get_cache(host=CACHE_HOST, port=CACHE_PORT):
     global local_cache
     if local_cache is None:
-        return connect_to_cache()
+        return connect_to_cache(host, port)
     return local_cache
 
 

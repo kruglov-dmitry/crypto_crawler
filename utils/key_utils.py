@@ -1,3 +1,4 @@
+import os
 import hmac
 import hashlib
 from urllib import urlencode as _urlencode
@@ -17,7 +18,8 @@ class ExchangeKey(object):
     @classmethod
     def from_file(cls, path, exchange_name):
         array = []
-        with open(path + "/" + exchange_name.lower() + ".key", "r") as myfile:
+        full_path = os.path.join(path, exchange_name.lower() + ".key")
+        with open(full_path, "r") as myfile:
             for line in myfile:
                 array.append(line.rstrip())
                 if len(array) == 2:
