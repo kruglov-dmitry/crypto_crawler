@@ -20,6 +20,8 @@ from utils.key_utils import load_keys
 from enums.status import STATUS
 from enums.deal_type import DEAL_TYPE
 
+from constants import BALANCE_EXPIRED_THRESHOLD
+
 EXPIRATION_TIMEOUT = 15
 HEARTBEAT_TIMEOUT = 60
 
