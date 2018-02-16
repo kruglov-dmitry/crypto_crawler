@@ -1,8 +1,8 @@
 from collections import defaultdict
 
-from core.arbitrage_core import adjust_price_by_order_book, determine_minimum_volume_by_balance_state, \
+from core.arbitrage_core import adjust_price_by_order_book, determine_maximum_volume_by_balance_state, \
     compute_min_cap_from_ticker, round_volume
-from core.expired_deal_logging import log_cant_cancel_deal, log_placing_new_deal, log_cant_placing_new_deal, \
+from core.expired_order_logging import log_cant_cancel_deal, log_placing_new_deal, log_cant_placing_new_deal, \
     log_cant_retrieve_order_book, log_dont_have_open_orders, log_open_orders_bad_result, \
     log_trace_all_open_orders, log_trace_log_time_key, log_trace_log_all_cached_orders_for_time_key, \
     log_trace_order_not_yet_expired, log_trace_processing_oder, log_trace_cancel_request_result, \
@@ -98,7 +98,7 @@ def process_expired_order(order, msg_queue, priority_queue, local_cache):
 
                 assert False
 
-            max_volume = determine_minimum_volume_by_balance_state(order.pair_id, order.trade_type,
+            max_volume = determine_maximum_volume_by_balance_state(order.pair_id, order.trade_type,
                                                                    order.exchange_id, order.volume, order.price,
                                                                    balance_state)
 

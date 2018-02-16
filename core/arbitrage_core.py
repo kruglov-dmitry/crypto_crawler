@@ -176,7 +176,7 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
     return min_volume
 
 
-def determine_minimum_volume_by_balance_state(pair_id, deal_type, exchange_id, min_volume, price, balance_state):
+def determine_maximum_volume_by_balance_state(pair_id, deal_type, exchange_id, min_volume, price, balance_state):
     base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
 
     if deal_type == DEAL_TYPE.SELL:

@@ -3,6 +3,8 @@ from debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.time_utils import sleep_for
 from dao.db import init_pg_connection, save_order_into_pg
 
+from constants import HEARTBEAT_TIMEOUT
+
 
 if __name__ == "__main__":
 
@@ -21,6 +23,6 @@ if __name__ == "__main__":
         sleep_for(1)
         cnt += 1
 
-        if cnt >= 60:
+        if cnt >= HEARTBEAT_TIMEOUT:
             cnt = 0
             print_to_console("Trade storing heartbeat", LOG_ALL_ERRORS)

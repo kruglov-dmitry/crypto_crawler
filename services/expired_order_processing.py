@@ -7,7 +7,7 @@ from utils.time_utils import sleep_for, get_now_seconds_utc
 from utils.key_utils import load_keys
 from utils.file_utils import log_to_file
 
-from core.expired_deal import process_expired_order
+from core.expired_order import process_expired_order
 
 EXPIRATION_TIMEOUT = 15
 HEARTBEAT_TIMEOUT = 60

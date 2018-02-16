@@ -4,7 +4,7 @@ from data_access.message_queue import get_message_queue, DEAL_INFO_MSG
 from data_access.priority_queue import get_priority_queue
 
 from core.arbitrage_core import search_for_arbitrage, adjust_currency_balance, compute_new_min_cap_from_tickers
-from core.expired_deal import add_orders_to_watch_list
+from core.expired_order import add_orders_to_watch_list
 from core.backtest import common_cap_init, dummy_balance_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
