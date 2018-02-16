@@ -154,7 +154,7 @@ find $1 -type f -print0 | xargs -0 stat --format '%Y :%y %n' | sort -nr | cut -d
     pip install redis tqdm
 ```
 4. Run Start->Programs->Jupiter Notebook
-5. Open Notebook
+5. Open Notebook from ipython_notebooks/iPython_local_Input.ipynb
 6. Adjust following parameters:
 * CRYPTO_MODULE
 * should_fetch_data

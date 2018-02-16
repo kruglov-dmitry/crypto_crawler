@@ -15,10 +15,10 @@ BITTREX_GET_HISTORY = "https://bittrex.com/api/v1.1/public/getmarkethistory?mark
 BITTREX_CURRENCY_PAIRS = ["BTC-DASH", "BTC-ETH", "BTC-LTC", "BTC-XRP", "BTC-BCC", "BTC-ETC", "BTC-SC", "BTC-DGB",
                           "BTC-XEM", "BTC-ARDR", "BTC-OMG", "BTC-ZEC", "BTC-REP", "BTC-XMR", "BTC-DOGE",
                           "BTC-NEO", "BTC-QTUM", "BTC-BTG", "BTC-BAT", "BTC-ADA", "BTC-RCN", "BTC-RDD", "BTC-XLM",
-                          "BTC-ARK", "BTC-STRAT",
+                          "BTC-ARK", "BTC-STRAT", "BTC-ZRX",
                           "ETH-DASH", "ETH-LTC", "ETH-XRP", "ETH-BCC", "ETH-ETC", "ETH-SC", "ETH-DGB", "ETH-XEM",
                           "ETH-OMG", "ETH-ZEC", "ETH-REP", "ETH-XMR", "ETH-NEO", "ETH-QTUM", "ETH-BTG", "ETH-BAT",
-                          "ETH-ADA", "ETH-RCN", "ETH-XLM", "ETH-STRAT",
+                          "ETH-ADA", "ETH-RCN", "ETH-XLM", "ETH-STRAT", "ETH-ZRX",
                           "USDT-DASH", "USDT-BTC", "USDT-ETH", "USDT-LTC", "USDT-XRP", "USDT-ETC", "USDT-BCC",
                           "USDT-ZEC", "USDT-XMR", "USDT-NEO", "USDT-BTG", "USDT-ADA"
                           ]
