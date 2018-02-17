@@ -114,35 +114,7 @@ def order_params(data):
 def get_trades_history_binance(key, pair_name, limit, last_order_id=None):
     final_url = BINANCE_GET_ALL_TRADES
 
-    """
-    ('fromId', 1822509), ('symbol', 'NEOBTC'), ('timestamp', 1518800547580), (
-    'signature', '43631cd75957f1310fdcd8b62a2f1663654ef5f430dcfc4f96047864a62ccdca')
-    """
-
-    if last_order_id is not None:
-        body = {
-                "symbol": pair_name,
-                "limit": limit,
-                "fromId": last_order_id,
-                "timestamp": get_now_seconds_utc_ms(),
-                "recvWindow": 5000
-        }
-    else:
-        body = {
-            "symbol": pair_name,
-            "limit": limit,
-            "timestamp": get_now_seconds_utc_ms(),
-            "recvWindow": 5000
-        }
-
-    signature = signed_body_256(body, key.secret)
-
-    body["signature"] = signature
-
-
-    # wtf = order_params(body)
-
-    """body = []
+    body = []
 
     if last_order_id is not None:
         body.append(("fromId", last_order_id))
@@ -152,18 +124,10 @@ def get_trades_history_binance(key, pair_name, limit, last_order_id=None):
     body.append(("timestamp", get_now_seconds_utc_ms()))
     body.append(("recvWindow", 5000))
     body.append(("signature", signed_body_256(body, key.secret)))
-    """
 
     final_url += _urlencode(body)
 
     headers = {"X-MBX-APIKEY": key.api_key}
-
-    """
-    if last_order_id is not None:
-        body = {"fromId": last_order_id}
-    else:
-        body = {}
-    """
 
     post_details = PostRequestDetails(final_url, headers, body)
     print post_details
@@ -173,6 +137,6 @@ def get_trades_history_binance(key, pair_name, limit, last_order_id=None):
     error_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
                                                    timeout=BINANCE_DEAL_TIMEOUT)
 
-    print "get_all_trades_binance", res
+    # print "get_all_trades_binance", res
 
     return error_code, res

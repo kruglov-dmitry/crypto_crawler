@@ -1,6 +1,7 @@
 from enums.exchange import EXCHANGE
 from binance.constants import BINANCE_CURRENCY_PAIRS
 from binance.market_utils import get_trades_history_binance
+from binance.currency_utils import get_currency_pair_to_binance
 
 from poloniex.order_history import get_order_history_poloniex
 from bittrex.order_history import get_order_history_bittrex
@@ -25,10 +26,10 @@ from tqdm import tqdm
 
 
 def fetch_trades_history_to_db(pg_conn, start_time, end_time):
-    # load_recent_binance_orders_to_db(pg_conn, start_time)
+    load_recent_binance_orders_to_db(pg_conn, start_time)
     load_recent_binance_trades_to_db(pg_conn, start_time, end_time)
-    # load_recent_poloniex_trades_to_db(pg_conn, start_time)
-    # load_recent_bittrex_trades_to_db(pg_conn, start_time)
+    load_recent_poloniex_trades_to_db(pg_conn, start_time)
+    load_recent_bittrex_trades_to_db(pg_conn, start_time)
 
 
 def wrap_with_progress_bar(descr, input_array, functor, *args, **kwargs):
@@ -72,7 +73,7 @@ def load_recent_binance_orders_to_db(pg_conn, start_time, unique_only=True):
                            unique_only, init_arbitrage_id=-10, table_name="binance_order_history")
 
 
-def receive_trade_batch(key, pair_name, limit, last_order_id):
+def receive_binance_trade_batch(key, pair_name, limit, last_order_id):
     trades_by_pair = []
 
     error_code, json_document = get_trades_history_binance(key, pair_name, limit, last_order_id)
@@ -89,84 +90,68 @@ def receive_trade_batch(key, pair_name, limit, last_order_id):
 
 
 def get_recent_binance_trades(pg_conn, start_time, end_time):
+
     # 1 get the most recent trade_id from db for that date
     last_trade = get_last_binance_trade(pg_conn, start_time, table_name="trades_history")
-
-    print "TIME_START", start_time
-    print last_trade
 
     # 2 sequentially query binance
 
     key = get_key_by_exchange(EXCHANGE.BINANCE)
 
     last_order_id = last_trade.deal_id if last_trade is not None else 0
-    prev_order_id = 0
+
     limit = 200
 
-    binance_trades = []
+    binance_trades_by_pair = {}
     for pair_name in BINANCE_CURRENCY_PAIRS:
         trades_by_pair = []
 
-        pair_name = "NEOBTC"
+        pair_id = get_currency_pair_to_binance(pair_name)
 
-        prev_time = None
         while True:
-            wtf = receive_trade_batch(key, pair_name, limit, last_order_id)
+            recent_trades = receive_binance_trade_batch(key, pair_name, limit, last_order_id)
 
-            if len(wtf) == 0:
+            if len(recent_trades) == 0:
                 break
 
-            wtf.sort(key=lambda x: long(x.deal_id), reverse=True)
-            binance_trades += wtf
+            # Biggest = Latest - will be first
+            recent_trades.sort(key=lambda x: long(x.deal_id), reverse=True)
+            trades_by_pair += recent_trades
 
-            if end_time >= wtf[0].create_time:
+            if len(recent_trades) < limit:
+                break
+
+            if end_time >= recent_trades[0].create_time:
 
                 prev_order_id = last_order_id
-
-                last_order_id = wtf[0].deal_id
-                prev_time = wtf[0].create_time
-
-                first_order = wtf[-1:][0]
-
-                print "Set last order id", last_order_id
-                print "prev_time", prev_time
-
-                print "First order id", first_order.deal_id
-                print "first time", first_order.create_time
-
-                print "Max trade_id", wtf[-1:][0].deal_id
-                print "Max time", wtf[-1:][0].create_time
-                print "Min trade_id", wtf[:-1][0].deal_id
-                print "Min time", wtf[:-1][0].create_time
+                last_order_id = recent_trades[0].deal_id
 
                 if prev_order_id != 0 and prev_order_id == last_order_id:
-                    wtf.sort(key=lambda x: long(x.deal_id), reverse=False)
-                    print "Max", wtf[-1:][0].deal_id
-                    print "Min", wtf[:-1][0].deal_id
-
+                    recent_trades.sort(key=lambda x: long(x.deal_id), reverse=False)
+                    print "Max", recent_trades[-1:][0].deal_id
+                    print "Min", recent_trades[:-1][0].deal_id
                     print "Last order"
-                    print wtf[:-1][0]
+                    print recent_trades[:-1][0]
 
-                    print len(binance_trades)
-                    raise
+                    print len(trades_by_pair)
+
+                    assert False
             else:
                 break
 
 
-        print len(binance_trades)
+        binance_trades_by_pair[pair_id] = trades_by_pair
 
-        raise
-
-    return binance_trades
+    return binance_trades_by_pair
 
 
 def load_recent_binance_trades_to_db(pg_conn, start_time, end_time, unique_only=True):
-    binance_trades = get_recent_binance_trades(pg_conn, start_time, end_time)
+    binance_trades_by_pair = get_recent_binance_trades(pg_conn, start_time, end_time)
 
-    # binance_trades = [x for x in binance_trades if x.create_time >= start_time]
-
-    wrap_with_progress_bar("Loading recent binance trades to db ...", binance_trades, save_to_pg_adapter, pg_conn, unique_only,
-                           init_arbitrage_id=-20, table_name="trades_history")
+    for pair_id in binance_trades_by_pair:
+        headline = "Loading recent binance trades - {p}".format(p=get_currency_pair_to_poloniex(pair_id))
+        wrap_with_progress_bar(headline, binance_trades_by_pair[pair_id], save_to_pg_adapter, pg_conn, unique_only,
+                               init_arbitrage_id=-20, table_name="trades_history")
 
 
 def get_recent_poloniex_trades(start_time=START_OF_TIME):

@@ -1,5 +1,3 @@
-#from constants import START_OF_TIME
-
 from poloniex.constants import POLONIEX_GET_ORDER_HISTORY, POLONIEX_NUM_OF_DEAL_RETRY, POLONIEX_ORDER_HISTORY_LIMIT
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
