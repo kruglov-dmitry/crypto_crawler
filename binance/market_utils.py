@@ -88,16 +88,44 @@ def parse_deal_id_binance_from_json(json_document):
     return None
 
 
+def order_params(data):
+    from operator import itemgetter
+
+    """Convert params to list with signature as last element
+        :param data:
+        :return:
+    """
+    has_signature = False
+    params = []
+    for key, value in data.items():
+        if key == 'signature':
+            has_signature = True
+        else:
+            params.append((key, value))
+
+    # sort parameters by key
+    params.sort(key=itemgetter(0))
+    if has_signature:
+        params.append(('signature', data['signature']))
+
+    return params
+
+
 def get_trades_history_binance(key, pair_name, limit, last_order_id=None):
     final_url = BINANCE_GET_ALL_TRADES
 
+    """
+    ('fromId', 1822509), ('symbol', 'NEOBTC'), ('timestamp', 1518800547580), (
+    'signature', '43631cd75957f1310fdcd8b62a2f1663654ef5f430dcfc4f96047864a62ccdca')
+    """
+
     if last_order_id is not None:
         body = {
-            "symbol": pair_name,
-            "limit": limit,
-            "orderId": last_order_id,
-            "timestamp": get_now_seconds_utc_ms(),
-            "recvWindow": 5000
+                "symbol": pair_name,
+                "limit": limit,
+                "fromId": last_order_id,
+                "timestamp": get_now_seconds_utc_ms(),
+                "recvWindow": 5000
         }
     else:
         body = {
@@ -111,14 +139,34 @@ def get_trades_history_binance(key, pair_name, limit, last_order_id=None):
 
     body["signature"] = signature
 
+
+    # wtf = order_params(body)
+
+    """body = []
+
+    if last_order_id is not None:
+        body.append(("fromId", last_order_id))
+
+    body.append(("symbol", pair_name))
+    body.append(("limit", limit))
+    body.append(("timestamp", get_now_seconds_utc_ms()))
+    body.append(("recvWindow", 5000))
+    body.append(("signature", signed_body_256(body, key.secret)))
+    """
+
     final_url += _urlencode(body)
 
     headers = {"X-MBX-APIKEY": key.api_key}
 
-    # Yeah, body after that should be empty
-    body = {}
+    """
+    if last_order_id is not None:
+        body = {"fromId": last_order_id}
+    else:
+        body = {}
+    """
 
     post_details = PostRequestDetails(final_url, headers, body)
+    print post_details
 
     err_msg = "get_all_trades_binance for {pair_name}".format(pair_name=pair_name)
 

@@ -44,7 +44,7 @@ if __name__ == "__main__":
     load_keys("./secret_keys")
 
     if should_fetch_history_to_db:
-        fetch_trades_history_to_db(pg_conn, start_time)
+        fetch_trades_history_to_db(pg_conn, start_time, end_time)
 
     orders, history_trades, binance_trades, binance_orders_at_bot, binance_orders_at_exchange = prepare_data(pg_conn, start_time)
 

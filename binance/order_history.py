@@ -79,6 +79,11 @@ def get_order_history_binance(key, pair_name, limit=BINANCE_ORDER_HISTORY_LIMIT,
     error_code, json_responce = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
                                                              timeout=BINANCE_DEAL_TIMEOUT)
 
+    print error_code, json_responce
+    # HTTP Responce code 200, {u'msg': u"Timestamp for this request was 1000ms ahead of the server's time.", u'code': -1021}
+    if 'code' in json_responce:
+        error_code = STATUS.FAILURE
+
     historical_orders = []
     if error_code == STATUS.SUCCESS:
         historical_orders = get_order_history_binance_result_processor(json_responce, pair_name)

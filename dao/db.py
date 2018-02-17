@@ -11,6 +11,8 @@ from utils.file_utils import log_to_file
 from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME, FAILED_ORDER_PROCESSING_FILE_NAME
 from constants import START_OF_TIME
 
+from enums.exchange import EXCHANGE
+
 
 def init_pg_connection(_db_host="192.168.1.106", _db_port=5432, _db_name="postgres"):
     # FIXME NOTE hardcoding is baaad Dmitry! pass some config
@@ -336,3 +338,21 @@ def update_order_details(pg_conn, order):
     if 0 == cursor.rowcount:
         msg = "ZERO number of row affected! For order = {o}".format(o=order)
         log_to_file(msg, FAILED_ORDER_PROCESSING_FILE_NAME)
+
+
+def get_last_binance_trade(pg_conn, start_date, table_name="trades_history"):
+
+    select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, 
+    order_book_time, create_time, execute_time from {table_name} where exchange_id = {exchange_id} and 
+    create_time < {create_time} ORDER BY create_time DESC limit 1""".format(table_name=table_name,
+                                                                            exchange_id=EXCHANGE.BINANCE,
+                                                                            create_time=start_date)
+
+    cursor = pg_conn.get_cursor()
+
+    cursor.execute(select_query)
+
+    for row in cursor:
+        return Trade.from_row(row)
+
+    return None
