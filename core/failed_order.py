@@ -4,7 +4,7 @@ from dao.deal_utils import init_deal
 from dao.dao import parse_deal_id
 
 from core.arbitrage_core import adjust_price_by_order_book, compute_min_cap_from_ticker, \
-    determine_maximum_volume_by_balance_state, round_volume
+    determine_maximum_volume_by_balance, round_volume
 
 from dao.db import update_order_details
 
@@ -81,18 +81,18 @@ def process_failed_order(order, msg_queue, priority_queue, local_cache, pg_conn)
 
         order.price = adjust_price_by_order_book(orders, order.volume)
         # Do we have enough coins at our balance
-        balance_state = local_cache.get_balance(order.exchange_id)
+        balance = local_cache.get_balance(order.exchange_id)
 
-        if balance_state.expired(BALANCE_EXPIRED_THRESHOLD):
+        if balance.expired(BALANCE_EXPIRED_THRESHOLD):
             msg_queue.add_order(FAILED_ORDERS_MSG, order)
 
-            log_balance_expired(order.exchange_id, BALANCE_EXPIRED_THRESHOLD, balance_state, msg_queue)
+            log_balance_expired(order.exchange_id, BALANCE_EXPIRED_THRESHOLD, balance, msg_queue)
 
             assert False
 
-        max_volume = determine_maximum_volume_by_balance_state(order.pair_id, order.trade_type,
-                                                               order.exchange_id, order.volume, order.price,
-                                                               balance_state)
+        max_volume = determine_maximum_volume_by_balance(order.pair_id, order.trade_type,
+                                                         order.volume, order.price,
+                                                         balance)
 
         max_volume = round_volume(order.exchange_id, max_volume, order.pair_id)
 

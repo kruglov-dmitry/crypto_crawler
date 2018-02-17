@@ -176,17 +176,17 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
     return min_volume
 
 
-def determine_maximum_volume_by_balance_state(pair_id, deal_type, exchange_id, min_volume, price, balance_state):
+def determine_maximum_volume_by_balance(pair_id, deal_type, min_volume, price, balance):
     base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
 
     if deal_type == DEAL_TYPE.SELL:
         # What is maximum volume we can SELL at exchange
-        if not balance_state.do_we_have_enough(dst_currency_id, exchange_id, min_volume):
-            min_volume = balance_state.get_available_volume_by_currency(dst_currency_id, exchange_id)
+        if not balance.do_we_have_enough(dst_currency_id, min_volume):
+            min_volume = balance.available_balance[dst_currency_id]
     elif deal_type == DEAL_TYPE.BUY:
         # what is maximum volume we can buy at exchange
-        if not balance_state.do_we_have_enough_by_pair(pair_id, exchange_id, min_volume, price):
-            min_volume = price * balance_state.get_available_volume_by_currency(base_currency_id, exchange_id)
+        if not balance.do_we_have_enough(base_currency_id, min_volume * price):
+            min_volume = price * balance.available_balance[base_currency_id]
     else:
 
         assert deal_type not in [DEAL_TYPE.BUY, DEAL_TYPE.SELL]
@@ -224,6 +224,7 @@ def round_volume(exchange_id, min_volume, pair_id):
         return round_minimum_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
 
     return min_volume
+
 
 def adjust_price_by_order_book(orders, min_volume):
     """

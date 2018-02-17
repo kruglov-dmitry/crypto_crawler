@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from core.arbitrage_core import adjust_price_by_order_book, determine_maximum_volume_by_balance_state, \
+from core.arbitrage_core import adjust_price_by_order_book, determine_maximum_volume_by_balance, \
     compute_min_cap_from_ticker, round_volume
 from core.expired_order_logging import log_cant_cancel_deal, log_placing_new_deal, log_cant_placing_new_deal, \
     log_cant_retrieve_order_book, log_dont_have_open_orders, log_open_orders_bad_result, \
@@ -88,19 +88,19 @@ def process_expired_order(order, msg_queue, priority_queue, local_cache):
             order.price = adjust_price_by_order_book(orders, order.volume)
 
             # Do we have enough coins at our balance
-            balance_state = local_cache.get_balance(order.exchange_id)
+            balance = local_cache.get_balance(order.exchange_id)
 
-            if balance_state.expired(BALANCE_EXPIRED_THRESHOLD):
+            if balance.expired(BALANCE_EXPIRED_THRESHOLD):
 
                 priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
 
-                log_balance_expired(order.exchange_id, BALANCE_EXPIRED_THRESHOLD, balance_state, msg_queue)
+                log_balance_expired(order.exchange_id, BALANCE_EXPIRED_THRESHOLD, balance, msg_queue)
 
                 assert False
 
-            max_volume = determine_maximum_volume_by_balance_state(order.pair_id, order.trade_type,
-                                                                   order.exchange_id, order.volume, order.price,
-                                                                   balance_state)
+            max_volume = determine_maximum_volume_by_balance(order.pair_id, order.trade_type,
+                                                             order.volume, order.price,
+                                                             balance)
 
             max_volume = round_volume(order.exchange_id, max_volume, order.pair_id)
 

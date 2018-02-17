@@ -54,6 +54,14 @@ class Balance(BaseData):
         print_to_console("do_we_have_enough_bitcoin: no bitcoin within Balance 0_o", LOG_ALL_ERRORS)
         return False
 
+    def do_we_have_enough(self, currency_id, threahold):
+        if currency_id in self.available_balance:
+            return self.available_balance[currency_id] > threahold
+
+        print_to_console("do_we_have_enough: no currency {c_id} within Balance 0_o".format(
+            c_id=get_currency_name_by_id(currency_id)), LOG_ALL_ERRORS)
+        return False
+
     def get_bitcoin_balance(self):
         return self.available_balance.get(CURRENCY.BITCOIN)
 
