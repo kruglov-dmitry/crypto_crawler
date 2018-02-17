@@ -65,7 +65,7 @@ def get_updated_balance(prev_balance):
 def get_updated_balance_arbitrage(cfg, balance_state, local_cache):
     """
     Method is frequently called from numerous thread so in order to decrease load and number of request to exchanges,
-    to avoid banning, we use cahed version of balance from memory cache.
+    to avoid banning, we use cached version of balance from memory cache.
 
     :param cfg: type: ArbitrageConfig
     :param balance_state:
@@ -115,11 +115,11 @@ def update_balance_by_exchange(exchange_id, cache=get_cache()):
     return None
 
 
-def get_balance(self, exchange_id, cache=get_cache()):
+def get_balance(exchange_id, cache=get_cache()):
     exchange_name = get_exchange_name_by_id(exchange_id)
     balance = cache.get_balance(exchange_id)
     if balance is None :
-        balance = self.update_balance_by_exchange(exchange_id)
+        balance = update_balance_by_exchange(exchange_id)
         if balance is None:
             msg = "ERROR: BALANCE IS STILL NONE!!! for {n}".format(n=exchange_name)
             print_to_console(msg, LOG_ALL_ERRORS)

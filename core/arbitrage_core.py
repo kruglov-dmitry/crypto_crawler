@@ -99,7 +99,6 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
                                                       sell_order_book.pair_id, msg_queue)
             return deal_status
 
-
         trade_pair = TradePair(trade_at_first_exchange, trade_at_second_exchange, sell_order_book.timest,
                                buy_order_book.timest, type_of_deal)
 
@@ -177,6 +176,24 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
     return min_volume
 
 
+def determine_maximum_volume_by_balance_state(pair_id, deal_type, exchange_id, min_volume, price, balance_state):
+    base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
+
+    if deal_type == DEAL_TYPE.SELL:
+        # What is maximum volume we can SELL at exchange
+        if not balance_state.do_we_have_enough(dst_currency_id, exchange_id, min_volume):
+            min_volume = balance_state.get_available_volume_by_currency(dst_currency_id, exchange_id)
+    elif deal_type == DEAL_TYPE.BUY:
+        # what is maximum volume we can buy at exchange
+        if not balance_state.do_we_have_enough_by_pair(pair_id, exchange_id, min_volume, price):
+            min_volume = price * balance_state.get_available_volume_by_currency(base_currency_id, exchange_id)
+    else:
+
+        assert deal_type not in [DEAL_TYPE.BUY, DEAL_TYPE.SELL]
+
+    return min_volume
+
+
 def adjust_minimum_volume_by_trading_cap(first_order_book, second_order_book, deal_cap, min_volume):
     if min_volume < deal_cap.get_min_volume_cap_by_dst(first_order_book.pair_id):
         min_volume = -1  # Yeap, no need to even bother
@@ -201,6 +218,12 @@ def round_minimum_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, mi
         return round_minimum_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
     return min_volume
 
+
+def round_volume(exchange_id, min_volume, pair_id):
+    if exchange_id == EXCHANGE.BINANCE:
+        return round_minimum_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
+
+    return min_volume
 
 def adjust_price_by_order_book(orders, min_volume):
     """
@@ -271,3 +294,28 @@ def adjust_currency_balance(first_order_book, second_order_book, threshold, bala
         log_currency_disbalance_heart_beat(src_exchange_id, dst_exchange_id, dst_currency_id, balance_threshold)
 
     return deal_status
+
+
+def compute_new_min_cap_from_tickers(tickers):
+    min_price = 0.0
+
+    for ticker in tickers:
+        if ticker is not None:
+            min_price = max(min_price, ticker.ask)
+
+    if min_price != 0.0:
+        return 0.004 / min_price
+
+    return 0.0
+
+
+def compute_min_cap_from_ticker(ticker):
+    min_price = 0.0
+
+    if ticker is not None:
+        min_price = max(min_price, ticker.ask)
+
+    if min_price != 0.0:
+        return 0.004 / min_price
+
+    return 0.0

@@ -1,10 +1,10 @@
 import argparse
 
 from data_access.message_queue import get_message_queue, DEAL_INFO_MSG
-from data_access.priority_queue import get_priority_queue, ORDERS_EXPIRE_MSG
+from data_access.priority_queue import get_priority_queue
 
-from core.arbitrage_core import search_for_arbitrage, adjust_currency_balance
-from core.expired_deal import add_orders_to_watch_list
+from core.arbitrage_core import search_for_arbitrage, adjust_currency_balance, compute_new_min_cap_from_tickers
+from core.expired_order import add_orders_to_watch_list
 from core.backtest import common_cap_init, dummy_balance_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
@@ -15,7 +15,7 @@ from dao.deal_utils import init_deals_with_logging_speedy
 from data.ArbitrageConfig import ArbitrageConfig
 
 from data_access.classes.ConnectionPool import ConnectionPool
-from data_access.memory_cache import local_cache
+from data_access.memory_cache import get_cache
 
 from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG, set_logging_level
 
@@ -55,19 +55,6 @@ def log_dont_supported_currency(cfg, exchange_id):
                                                                   exch=get_exchange_name_by_id(exchange_id))
     print_to_console(msg, LOG_ALL_ERRORS)
     log_to_file(msg, cfg.log_file_name)
-
-
-def compute_new_min_cap_from_tickers(tickers):
-    min_price = 0.0
-
-    for ticker in tickers:
-        if ticker is not None:
-            min_price = max(min_price, ticker.ask)
-
-    if min_price != 0.0:
-        return 0.004 / min_price
-
-    return 0.0
 
 
 def update_min_cap(cfg, deal_cap, processor):
@@ -126,6 +113,7 @@ if __name__ == "__main__":
 
     priority_queue = get_priority_queue()
     msg_queue = get_message_queue()
+    local_cache = get_cache()
 
     processor = ConnectionPool(pool_size=2)
 

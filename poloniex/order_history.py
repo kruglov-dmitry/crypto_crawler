@@ -33,27 +33,39 @@ def get_order_history_poloniex_post_details(key, pair_name, time_start, time_end
     post_details = PostRequestDetails(final_url, headers, body)
 
     if should_print_debug():
-        msg = "get orders history binance: {res}".format(res=post_details)
+        msg = "get orders history poloniex: {res}".format(res=post_details)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
     return post_details
 
 
+def parse_orders_currency(json_document, pair_name):
+
+    orders = []
+
+    for entry in json_document:
+        trade = Trade.from_poloniex_history(entry, pair_name)
+        if trade is not None:
+            orders.append(trade)
+
+    return orders
+
+
 def get_order_history_poloniex_result_processor(json_document, pair_name):
     """
-    json_document - response from exchange api as json string
-    pair_name - for backwords compabilities
+        json_document - response from exchange api as json string
+        pair_name - for backwords compabilities
     """
     orders = []
     if json_document is None:
         return orders
 
-    for pair_name in json_document:
-        for entry in json_document[pair_name]:
-            yet_more_trade = Trade.from_poloniex_history(entry, pair_name)
-            if yet_more_trade is not None:
-                orders.append(yet_more_trade)
+    if pair_name != "all":
+        orders = parse_orders_currency(json_document, pair_name)
+    else:
+        for pair_name in json_document:
+            orders += parse_orders_currency(json_document[pair_name], pair_name)
 
     return orders
 

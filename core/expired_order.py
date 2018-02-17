@@ -1,13 +1,16 @@
 from collections import defaultdict
 
-from core.arbitrage_core import adjust_price_by_order_book
-from core.expired_deal_logging import log_cant_cancel_deal, log_placing_new_deal, log_cant_placing_new_deal, \
+from core.arbitrage_core import adjust_price_by_order_book, determine_maximum_volume_by_balance_state, \
+    compute_min_cap_from_ticker, round_volume
+from core.expired_order_logging import log_cant_cancel_deal, log_placing_new_deal, log_cant_placing_new_deal, \
     log_cant_retrieve_order_book, log_dont_have_open_orders, log_open_orders_bad_result, \
     log_trace_all_open_orders, log_trace_log_time_key, log_trace_log_all_cached_orders_for_time_key, \
     log_trace_order_not_yet_expired, log_trace_processing_oder, log_trace_cancel_request_result, \
-    log_trace_warched_orders_after_processing, log_open_orders_by_exchange_bad_result, log_open_orders_is_empty
+    log_trace_warched_orders_after_processing, log_open_orders_by_exchange_bad_result, log_open_orders_is_empty, \
+    log_balance_expired, log_too_small_volume
 
 from dao.order_utils import get_open_orders_for_arbitrage_pair, get_open_orders_by_exchange
+from dao.ticker_utils import get_ticker
 from dao.dao import cancel_by_exchange, parse_deal_id
 from dao.deal_utils import init_deal
 from dao.order_book_utils import get_order_book
@@ -22,8 +25,10 @@ from enums.status import STATUS
 from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
 
+from constants import BALANCE_EXPIRED_THRESHOLD
 
-def process_expired_order(order, msg_queue, priority_queue):
+
+def process_expired_order(order, msg_queue, priority_queue, local_cache):
     """
             In order to speedup and simplify expired deal processing following approach implemented.
 
@@ -41,6 +46,7 @@ def process_expired_order(order, msg_queue, priority_queue):
     :param order:  order retrieved from redis cache
     :param msg_queue: saving to postgres and re-process failed orders
     :param priority_queue: watch queue for expired orders
+    :param local_cache: to retrieve balance
     :return:
     """
 
@@ -71,6 +77,8 @@ def process_expired_order(order, msg_queue, priority_queue):
 
             return
 
+        ticker = get_ticker(order.exchange_id, order.pair_id)
+        min_volume = compute_min_cap_from_ticker(ticker)
         order_book = get_order_book(order.exchange_id, order.pair_id)
 
         if order_book is not None:
@@ -78,6 +86,31 @@ def process_expired_order(order, msg_queue, priority_queue):
             orders = order_book.bid if order.trade_type == DEAL_TYPE.SELL else order_book.ask
 
             order.price = adjust_price_by_order_book(orders, order.volume)
+
+            # Do we have enough coins at our balance
+            balance_state = local_cache.get_balance(order.exchange_id)
+
+            if balance_state.expired(BALANCE_EXPIRED_THRESHOLD):
+
+                priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+
+                log_balance_expired(order.exchange_id, BALANCE_EXPIRED_THRESHOLD, balance_state, msg_queue)
+
+                assert False
+
+            max_volume = determine_maximum_volume_by_balance_state(order.pair_id, order.trade_type,
+                                                                   order.exchange_id, order.volume, order.price,
+                                                                   balance_state)
+
+            max_volume = round_volume(order.exchange_id, max_volume, order.pair_id)
+
+            if max_volume < min_volume:
+
+                log_too_small_volume(order, max_volume, min_volume, msg_queue)
+
+                return
+
+            order.volume = max_volume
             order.create_time = get_now_seconds_utc()
 
             msg = "Replace existing order with new one - {tt}".format(tt=order)
@@ -229,7 +262,6 @@ def update_executed_volume(open_orders_at_both_exchanges, every_deal):
             else:
                 every_deal.executed_volume = every_deal.volume - deal.volume
                 every_deal.volume = deal.volume
-
 
             return True
 
