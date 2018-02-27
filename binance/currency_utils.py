@@ -90,7 +90,7 @@ def get_currency_name_for_binance(currency_id):
     }.get(currency_id)
 
 
-def get_currency_pair_from_binance(pair_id):
+def get_currency_pair_from_binance(pair_name):
     return {
         'DASHBTC': CURRENCY_PAIR.BTC_TO_DASH,
         'ETHBTC': CURRENCY_PAIR.BTC_TO_ETH,
@@ -153,7 +153,7 @@ def get_currency_pair_from_binance(pair_id):
         'BCCUSDT': CURRENCY_PAIR.USDT_TO_BCC,
         'ETHUSDT': CURRENCY_PAIR.USDT_TO_ETH,
         'NEOUSDT': CURRENCY_PAIR.USDT_TO_NEO,
-    }.get(pair_id)
+    }.get(pair_name)
 
 
 def get_currency_pair_to_binance(pair_id):

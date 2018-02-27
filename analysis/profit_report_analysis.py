@@ -1,11 +1,14 @@
 from collections import defaultdict, Counter
 
 from enums.deal_type import DEAL_TYPE
-from utils.exchange_utils import get_fee_by_exchange
+from utils.exchange_utils import get_fee_by_exchange, get_exchange_name_by_id
 from utils.currency_utils import get_pair_name_by_id
 from utils.file_utils import log_to_file
 from utils.string_utils import float_to_str
 from utils.time_utils import ts_to_string
+
+# OLAP :(
+from analysis.grouping_utils import group_orders_by_arbitrage_id, group_by_pair_and_exchange_id
 
 
 def compute_profit_by_pair(pair_id, trades_to_order_by_pair):
@@ -104,9 +107,19 @@ def compute_loss_by_pair(orders_and_trades_by_pair):
 
 
 def save_report(start_time, end_time, overall_profit, profit_by_pairs, profit_by_pair_bitcoins,
-                missing_orders, failed_orders, loss_by_pair, loss_by_pair_bitcoin, file_name="what_we_have_at_the_end.log"):
+                missing_orders, failed_orders, loss_by_pair, loss_by_pair_bitcoin,
+                orders, history_trades,
+                file_name="what_we_have_at_the_end.log"):
     msg = "Profit report for time period of {t1} - {t2}".format(t1=ts_to_string(start_time), t2=ts_to_string(end_time))
     log_to_file(msg, file_name)
+    msg = "Epoch format: {t1} - {t2}".format(t1=start_time, t2=end_time)
+    log_to_file(msg, file_name)
+
+    orders_by_arbitrage_id = group_orders_by_arbitrage_id(orders)
+
+    log_to_file("Total number of arbitrage events - {p}".format(p=len(orders_by_arbitrage_id)), file_name)
+    log_to_file("For them we registered - {p} orders".format(p=len(orders)), file_name)
+    log_to_file("Resulted number of trades - {p}".format(p=len(history_trades)), file_name)
 
     log_to_file("Total profit - {p}".format(p=overall_profit), file_name)
 
@@ -119,14 +132,39 @@ def save_report(start_time, end_time, overall_profit, profit_by_pairs, profit_by
                                                                            btc=float_to_str(profit_by_pair_bitcoins[pair_id])),
                     file_name)
 
-    msg = "Number of timeouted(?) or failed orders. [No order_id present]   {n}".format(n=len(missing_orders))
+    total_number_missing = 0
+    for entry in missing_orders:
+        total_number_missing += len(missing_orders[entry])
+
+    msg = "Total number of orders without trades (Expired?): {n}".format(n=len(total_number_missing))
     log_to_file(msg, file_name)
+    for exchange_id in missing_orders:
+        msg = "\t{exch}     Number of orders without trades: {n}".format(exch=get_exchange_name_by_id(exchange_id),
+                                                                         n=len(missing_orders[exchange_id]))
+        log_to_file(msg, file_name)
 
-    for x in missing_orders:
-        log_to_file(x, "missing_orders.log")
+    for exchange_id in missing_orders:
+        msg = "Missing orders for {exch}".format(exch=get_exchange_name_by_id(exchange_id))
+        log_to_file(msg, "missing_orders.log")
+        for x in missing_orders[exchange_id]:
+            log_to_file(x, "missing_orders.log")
 
-    for x in failed_orders:
-        log_to_file(x, "NULL_deal_id.log")
+    total_number_failed = 0
+    for exchange_id in failed_orders:
+        total_number_failed += len(failed_orders[exchange_id])
+
+    msg = "Total number of orders without deal_id (Failed?): {n}".format(n=len(failed_orders))
+    log_to_file(msg, file_name)
+    for exchange_id in failed_orders:
+        msg = "\t{exch}     Number of orders without trades: {n}".format(exch=get_exchange_name_by_id(exchange_id),
+                                                                         n=len(failed_orders[exchange_id]))
+        log_to_file(msg, file_name)
+
+    for exchange_id in failed_orders:
+        msg = "Failed orders for {exch}".format(exch=get_exchange_name_by_id(exchange_id))
+        log_to_file(msg, "missing_orders.log")
+        for x in failed_orders[exchange_id]:
+            log_to_file(x, "failed_orders.log")
 
     log_to_file("\t\tLOSS DETAILS", file_name)
 

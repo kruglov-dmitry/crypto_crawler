@@ -9,13 +9,31 @@ def group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_gr
     orders_with_trades = []
 
     last_trade_idx = Counter()
-    for order in binance_orders_at_exchange:
+
+    orders_to_check = []
+    for order in binance_orders_at_bot:
+        found = False
+        for another_order in binance_orders_at_exchange:
+            if order == another_order:
+                # we still have to check time and volume and price:
+                if another_order.create_time >= order.create_time and \
+                    abs(another_order.create_time - order.create_time) < 10 and \
+                    abs(another_order.volume - order.volume) < 0.00001 and \
+                        abs(another_order.price - order.price) < 0.00001:
+                    found = True
+                    orders_to_check.append(another_order)
+
+        if not found:
+            msg = "Cant found order registered at exchange {o}".format(o=order)
+            log_to_file(msg, "orders_not_registered_at_binance.log")
+
+    for order in orders_to_check:
         if order.executed_volume == 0.0:
             continue
 
         # DBG
-        # if order.pair_id != 41:
-        #    continue
+        # if order.pair_id == 23:
+        #    raise
 
         msg = """STARTED for order - {wtf}
         LAST_ID is {lid}

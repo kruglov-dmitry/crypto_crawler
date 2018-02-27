@@ -444,4 +444,20 @@ def test_sorted_queue():
         order = priority_queue.get_oldest_order("YOPITOK")
 
 
-test_sorted_queue()
+def test_message_queue():
+    from data_access.message_queue import DEAL_INFO_MSG, ARBITRAGE_MSG, DEBUG_INFO_MSG, ORDERS_MSG, FAILED_ORDERS_MSG
+    msg_queue = get_message_queue()
+    msg_queue.add_message(DEAL_INFO_MSG, "DEAL_INFO_MSG: Test yopta")
+    msg_queue.add_message(ARBITRAGE_MSG, "ARBITRAGE_MSG: Test yopta")
+    msg_queue.add_message(DEBUG_INFO_MSG, "DEBUG_INFO_MSG: Test yopta")
+    msg_queue.add_message(ORDERS_MSG, "ORDERS_MSG: Test yopta")
+    msg_queue.add_message(FAILED_ORDERS_MSG, "ORDERS_MSG: Test yopta")
+
+
+def quck_check():
+    load_keys("./secret_keys")
+    from dao.order_utils import get_open_orders_by_exchange
+    r = get_open_orders_by_exchange(EXCHANGE.POLONIEX, CURRENCY_PAIR.BTC_TO_STRAT)
+
+    for rr in r:
+        print rr

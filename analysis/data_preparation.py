@@ -17,7 +17,7 @@ def prepare_data(pg_conn, start_time):
     binance_orders_at_exchange = get_all_orders(pg_conn, table_name="binance_order_history", time_start=start_time)
     binance_orders_at_exchange.sort(key=lambda x: x.create_time, reverse=False)
 
-    history_trades = get_all_orders(pg_conn, table_name="trades_history", time_start=start_time)
+    history_trades = get_all_orders(pg_conn, table_name="arbitrage_trades", time_start=start_time)
 
     binance_trades = [x for x in history_trades if x.exchange_id == EXCHANGE.BINANCE]
     binance_trades.sort(key=lambda x: x.create_time, reverse=False)

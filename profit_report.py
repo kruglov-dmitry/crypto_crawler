@@ -35,7 +35,7 @@ if __name__ == "__main__":
     # end_time = config.getint("common", "end_time")
 
     end_time = get_now_seconds_utc()
-    start_time = end_time - 1 * 24 * 60 * 60
+    start_time = end_time - 10 * 24 * 60 * 60
 
     should_fetch_history_to_db = config.getboolean("common", "fetch_history_from_exchanges")
 
@@ -75,4 +75,6 @@ if __name__ == "__main__":
     loss_by_pair, loss_by_pair_bitcoin = compute_loss(orders_with_trades)
 
     save_report(start_time, end_time, overall_profit, profit_by_pairs, profit_by_pair_bitcoins,
-                missing_orders, failed_orders, loss_by_pair, loss_by_pair_bitcoin)
+                missing_orders, failed_orders, loss_by_pair, loss_by_pair_bitcoin,
+                orders, history_trades
+                )
