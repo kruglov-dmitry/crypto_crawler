@@ -34,7 +34,7 @@ if __name__ == "__main__":
     # start_time = config.getint("common", "start_time")
     # end_time = config.getint("common", "end_time")
 
-    end_time = get_now_seconds_utc()
+    end_time = 1519344000 # get_now_seconds_utc()
     start_time = end_time - 10 * 24 * 60 * 60
 
     should_fetch_history_to_db = config.getboolean("common", "fetch_history_from_exchanges")

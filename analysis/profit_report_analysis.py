@@ -27,7 +27,7 @@ def compute_profit_by_pair(pair_id, trades_to_order_by_pair):
     for arbitrage_id in orders_by_arbitrage_id:
         if len(orders_by_arbitrage_id[arbitrage_id]) == 1:
             number_of_missing_pair += 1
-            msg = "Can't find paired arbitrage order for {o}".format(o=orders_by_arbitrage_id[arbitrage_id][0])
+            msg = "Can't find paired arbitrage order for {arbitrage_id} {o}".format(arbitrage_id=arbitrage_id, o=orders_by_arbitrage_id[arbitrage_id][0])
             log_to_file(msg, file_name)
             continue
         else:
@@ -42,7 +42,7 @@ def compute_profit_by_pair(pair_id, trades_to_order_by_pair):
                         msg = """Analysing trade {o}
                         ADD coin volume = {cv}
                         SUBTRACT bitcoin = {btc}
-                        """.format(o=trade, cv=trade.executed_volume, btc=profit_bitcoin)
+                        """.format(o=trade, cv=trade.executed_volume, btc=bitcoin_volume)
                         log_to_file(msg, file_name)
                 elif order.trade_type == DEAL_TYPE.SELL:
                     for trade in trades:
@@ -136,7 +136,7 @@ def save_report(start_time, end_time, overall_profit, profit_by_pairs, profit_by
     for entry in missing_orders:
         total_number_missing += len(missing_orders[entry])
 
-    msg = "Total number of orders without trades (Expired?): {n}".format(n=len(total_number_missing))
+    msg = "Total number of orders without trades (Expired?): {n}".format(n=total_number_missing)
     log_to_file(msg, file_name)
     for exchange_id in missing_orders:
         msg = "\t{exch}     Number of orders without trades: {n}".format(exch=get_exchange_name_by_id(exchange_id),
@@ -153,7 +153,7 @@ def save_report(start_time, end_time, overall_profit, profit_by_pairs, profit_by
     for exchange_id in failed_orders:
         total_number_failed += len(failed_orders[exchange_id])
 
-    msg = "Total number of orders without deal_id (Failed?): {n}".format(n=len(failed_orders))
+    msg = "Total number of orders without deal_id (Failed?): {n}".format(n=total_number_failed)
     log_to_file(msg, file_name)
     for exchange_id in failed_orders:
         msg = "\t{exch}     Number of orders without trades: {n}".format(exch=get_exchange_name_by_id(exchange_id),

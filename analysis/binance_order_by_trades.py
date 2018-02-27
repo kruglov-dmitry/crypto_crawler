@@ -27,6 +27,8 @@ def group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_gr
             msg = "Cant found order registered at exchange {o}".format(o=order)
             log_to_file(msg, "orders_not_registered_at_binance.log")
 
+    orders_to_check.sort(key=lambda x: x.create_time, reverse=True)
+
     for order in orders_to_check:
         if order.executed_volume == 0.0:
             continue
@@ -93,7 +95,7 @@ def group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_gr
                         log_to_file(twt, get_pair_name_by_id(order.pair_id) + ".txt")
                     print "YOUR PROBLEM IS ", order.pair_id, get_pair_name_by_id(order.pair_id)
 
-                    assert total_volume - order.executed_volume > 0.000001
+                    assert abs(total_volume - order.executed_volume) > 0.000001
 
             # floating point arithmetic in python behind good and bad
             if abs(order.executed_volume - total_volume) <= 0.00000001:
