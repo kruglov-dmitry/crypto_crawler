@@ -1,4 +1,5 @@
 from binance.currency_utils import get_currency_pair_to_binance
+from utils.string_utils import truncate_float
 
 
 # BASE_CURRENCY = BTC
@@ -195,7 +196,7 @@ PRECISION_NUMBER = {
 
 def round_minimum_volume_by_binance_rules(volume, pair_id):
     pair_name = get_currency_pair_to_binance(pair_id)
-    return (int(volume / PRECISIONS[pair_name])) * PRECISIONS[pair_name]
+    return truncate_float(volume, PRECISION_NUMBER[pair_name])
 
 
 def round_volume_by_precisness_binance(pair_name, volume):

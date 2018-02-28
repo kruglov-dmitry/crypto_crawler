@@ -54,6 +54,9 @@ def compute_profit_by_pair(pair_id, trades_to_order_by_pair):
                         ADD bitcoin = {btc}
                         """.format(o=trade, cv=trade.executed_volume, btc=bitcoin_volume)
                         log_to_file(msg, file_name)
+                else:
+                    print "WE HAVE WRONG trade_type", order.trade_type
+                    print "For order: ", order
 
     msg = "For {pair_name} Number of missing paired order is {num}".format(pair_name=get_pair_name_by_id(pair_id), num=number_of_missing_pair)
     log_to_file(msg, file_name)
@@ -162,7 +165,7 @@ def save_report(start_time, end_time, overall_profit, profit_by_pairs, profit_by
 
     for exchange_id in failed_orders:
         msg = "Failed orders for {exch}".format(exch=get_exchange_name_by_id(exchange_id))
-        log_to_file(msg, "missing_orders.log")
+        log_to_file(msg, "failed_orders.log")
         for x in failed_orders[exchange_id]:
             log_to_file(x, "failed_orders.log")
 
