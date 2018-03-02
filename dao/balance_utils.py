@@ -1,9 +1,5 @@
-import copy
-
 from enums.status import STATUS
 from enums.exchange import EXCHANGE
-
-from data.BalanceState import BalanceState
 
 from bittrex.balance_utils import get_balance_bittrex, get_balance_bittrex_post_details, \
     get_balance_bittrex_result_processor
@@ -16,7 +12,7 @@ from binance.balance_utils import get_balance_binance, get_balance_binance_post_
 
 from data_access.memory_cache import get_cache
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS, DEBUG_LOG_FILE_NAME
+from debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.key_utils import get_key_by_exchange
 from utils.file_utils import log_to_file
 from utils.exchange_utils import get_exchange_name_by_id
@@ -43,23 +39,6 @@ def get_balance_by_exchange(exchange_id):
     log_to_file(b, "balance.log")
 
     return res
-
-
-def get_updated_balance(prev_balance):
-    balance = {}
-
-    for exchange_id in EXCHANGE.values():
-        if exchange_id == EXCHANGE.KRAKEN or exchange_id == EXCHANGE.BINANCE:
-            continue
-        balance[exchange_id] = copy.deepcopy(prev_balance.balance_per_exchange[exchange_id])
-
-        status_code, new_balance_value = get_balance_by_exchange(exchange_id)
-
-        if status_code == STATUS.SUCCESS:
-            balance[exchange_id] = new_balance_value
-            log_to_file(new_balance_value, DEBUG_LOG_FILE_NAME)
-
-    return BalanceState(balance)
 
 
 def get_updated_balance_arbitrage(cfg, balance_state, local_cache):
@@ -118,13 +97,13 @@ def update_balance_by_exchange(exchange_id, cache=get_cache()):
 def get_balance(exchange_id, cache=get_cache()):
     exchange_name = get_exchange_name_by_id(exchange_id)
     balance = cache.get_balance(exchange_id)
-    if balance is None :
+    while balance is None:
         balance = update_balance_by_exchange(exchange_id)
         if balance is None:
             msg = "ERROR: BALANCE IS STILL NONE!!! for {n}".format(n=exchange_name)
             print_to_console(msg, LOG_ALL_ERRORS)
 
-        return balance
+    return balance
 
 
 def init_balances(exchanges_ids, cache=get_cache()):

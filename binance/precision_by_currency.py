@@ -1,9 +1,10 @@
 from binance.currency_utils import get_currency_pair_to_binance
+from utils.currency_utils import split_currency_pairs
 from utils.string_utils import truncate_float
+from enums.currency import CURRENCY
 
 
-# BASE_CURRENCY = BTC
-PRECISIONS = {
+PRECISIONS_BTC = {
     "ETHBTC":  0.001,
     "LTCBTC":  0.01,
     "BNBBTC":  1,
@@ -99,7 +100,7 @@ PRECISIONS = {
 
 
 # BASE_CURRENCY = BTC
-PRECISION_NUMBER = {
+PRECISION_BTC_NUMBER = {
     "ETHBTC":  3,
     "LTCBTC":  3,
     "BNBBTC":  0,
@@ -194,13 +195,145 @@ PRECISION_NUMBER = {
 }
 
 
+PRECISION_ETH_NUMBER = {
+    "BNBETH": 0,
+    "QTUMETH": 2,
+    "SNTETH": 0,
+    "BNTETH": 2,
+    "EOSETH": 2,
+    "OAXETH": 0,
+    "DNTETH": 0,
+    "MCOETH": 2,
+    "ICNETH": 0,
+    "WTCETH": 2,
+    "OMGETH": 2,
+    "ZRXETH": 0,
+    "STRATETH": 2,
+    "SNGLSETH": 0,
+    "BXQETH": 0,
+    "KNCETH": 0,
+    "FUNETH": 0,
+    "SNMETH": 0,
+    "NEOETH": 2,
+    "LINKETH": 1,
+    "XVGETH": 1,
+    "CTRETH": 1,
+    "SALTETH": 2,
+    "IOTAETH": 0,
+    "MDAETH": 0,
+    "MTLETH": 0,
+    "SUBETH": 1,
+    "ETCETH": 2,
+    "MTHETH": 0,
+    "ENGETH": 0,
+    "ASTETH": 0,
+    "DASHETH": 3,
+    "BTGETH": 2,
+    "EVXETH": 0,
+    "REQETH": 0,
+    "LRCETH": 0,
+    "VIBETH": 0,
+    "HSRETH": 2,
+    "TRXETH": 0,
+    "POWRETH": 0,
+    "ARKETH": 2,
+    "YOYOETH": 0,
+    "XRPETH": 0,
+    "MODETH": 0,
+    "ENJETH": 0,
+    "STORJETH": 0,
+    "VENETH": 0,
+    "KMDETH": 0,
+    "RCNETH": 0,
+    "NULSETH": 0,
+    "RDNETH": 0,
+    "XMRETH": 0,
+    "DLTETH": 0,
+    "AMBETH": 0,
+    "BCCETH": 0,
+    "BATETH": 0,
+    "ZECETH": 3,
+    "BCPTETH": 0,
+    "ARNETH": 0,
+    "GVTETH": 2,
+    "CDTETH": 0,
+    "GXSETH": 2,
+    "POEETH": 0,
+    "QSPETH": 0,
+    "BTSETH": 0,
+    "XZCETH": 0,
+    "LSKETH": 0,
+    "TNTETH": 0,
+    "FUELETH": 0,
+    "MANAETH": 0,
+    "BCDETH": 3,
+    "DGDETH": 3,
+    "ADXETH": 0,
+    "ADAETH": 0,
+    "PPTETH": 0,
+    "CMTETH": 0,
+    "XLMETH": 0,
+    "CNDETH": 0,
+    "LENDETH": 0,
+    "WABIETH": 0,
+    "LTCETH": 3,
+    "TNBETH": 0,
+    "WAVESETH": 2,
+    "ICXETH": 2,
+    "GTOETH": 0,
+    "OSTETH": 0,
+    "ELFETH": 0,
+    "AIONETH": 2,
+    "NEBLETH": 2,
+    "BRDETH": 0,
+    "EDOETH": 2,
+    "WINGSETH": 0,
+    "NAVETH": 2,
+    "LUNETH": 2,
+    "TRIGETH": 2,
+    "APPCETH": 0,
+    "VIBEETH": 0,
+    "RLCETH": 2,
+    "INSETH": 2,
+    "PIVXETH": 2,
+    "IOSTETH": 0,
+    "CHATETH": 0,
+    "STEEMETH": 2,
+    "NANOETH": 2,
+    "VIAETH": 2,
+    "BLZETH": 0,
+    "AEETH": 2,
+    "RPXETH": 0,
+    "NCASHETH": 0,
+    "POAETH": 0
+}
+
+
+
+PRECISION_USDT_NUMBER = {
+    "BTCUSDT": 6,
+    "ETHUSDT": 5,
+    "BNBUSDT": 2,
+    "BCCUSDT": 5,
+    "NEOUSDT": 3,
+    "LTCUSDT": 5
+}
+
+PRECISION_NUMBER = {
+    CURRENCY.BITCOIN: PRECISION_BTC_NUMBER,
+    CURRENCY.ETH: PRECISION_ETH_NUMBER,
+    CURRENCY.USDT: PRECISION_USDT_NUMBER
+}
+
+
 def round_minimum_volume_by_binance_rules(volume, pair_id):
     pair_name = get_currency_pair_to_binance(pair_id)
-    return truncate_float(volume, PRECISION_NUMBER[pair_name])
+    base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
+    return truncate_float(volume, PRECISION_NUMBER[base_currency_id][pair_name])
 
 
 def round_volume_by_precisness_binance(pair_name, volume):
-    num = PRECISION_NUMBER[pair_name]
+    num = PRECISION_BTC_NUMBER[pair_name]
     format_string = ".{n}f".format(n=num)
 
     return format(volume, format_string)
