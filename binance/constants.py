@@ -22,7 +22,7 @@ BINANCE_CURRENCY_PAIRS = ["DASHBTC", "ETHBTC", "LTCBTC", "XRPBTC", "BCCBTC", "ET
                           "DASHETH", "XRPETH", "BCCETH", "ETCETH", "OMGETH", "ZECETH", "XMRETH", "ARKETH",
                           "NEOETH", "QTUMETH", "EOSETH", "IOTAETH", "BTGETH", "WTCETH", "KNCETH", "BATETH", "ZRXETH",
                           "RDNETH", "ADAETH", "RCNETH", "ICXETH", "WABIETH", "XLMETH", "TRXETH", "AIONETH", "QSPETH",
-                          "ARKETH", "STRATETH",
+                          "ARKETH", "STRATETH", "LTCETH",
                           "BTCUSDT", "ETHUSDT", "BCCUSDT",
                           "NEOUSDT"
                           ]
