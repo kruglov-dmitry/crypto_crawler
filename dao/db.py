@@ -172,7 +172,7 @@ def get_arbitrage_id(pg_conn):
     return None
 
 
-def save_order_into_pg(order, pg_conn, table_name="orders"):
+def save_order_into_pg(order, pg_conn, table_name="arbitrage_orders"):
     cur = pg_conn.get_cursor()
 
     PG_INSERT_QUERY = "insert into {table_name}(arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, " \
@@ -203,7 +203,7 @@ def save_order_into_pg(order, pg_conn, table_name="orders"):
     pg_conn.commit()
 
 
-def get_all_orders(pg_conn, table_name="orders", time_start=START_OF_TIME):
+def get_all_orders(pg_conn, table_name="arbitrage_orders", time_start=START_OF_TIME):
     orders = []
 
     if time_start == START_OF_TIME:
@@ -224,7 +224,7 @@ def get_all_orders(pg_conn, table_name="orders", time_start=START_OF_TIME):
     return orders
 
 
-def is_order_present_in_order_history(pg_conn, trade, table_name="orders"):
+def is_order_present_in_order_history(pg_conn, trade, table_name="arbitrage_orders"):
     """
                 We can execute history retrieval several times.
                 Some exchanges do not have precise mechanism to exclude particular time range.
@@ -338,7 +338,7 @@ def update_order_details(pg_conn, order):
     :return:
     """
 
-    select_query = """update orders set deal_id = '{order_id}' where exchange_id = {e_id} and pair_id = {p_id} and 
+    select_query = """update arbitrage_orders set deal_id = '{order_id}' where exchange_id = {e_id} and pair_id = {p_id} and 
     trade_type = {d_type} and create_time = {c_time} 
     """.format(order_id=order.deal_id, e_id=order.exchange_id, p_id=order.pair_id, d_type=order.trade_type,
                c_time=order.create_time)
