@@ -5,7 +5,7 @@ sys.setrecursionlimit(10000)
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 
 from utils.time_utils import get_now_seconds_utc
-from utils.currency_utils import split_currency_pairs, get_currency_name_by_id
+from utils.currency_utils import split_currency_pairs
 from utils.file_utils import log_to_file
 
 from core.base_analysis import get_change
@@ -20,7 +20,7 @@ from data.TradePair import TradePair
 from data_access.memory_cache import get_next_arbitrage_id
 
 from binance.precision_by_currency import round_minimum_volume_by_binance_rules
-from constants import FIRST, LAST, NO_MAX_CAP_LIMIT
+from constants import FIRST, LAST, NO_MAX_CAP_LIMIT, MIN_VOLUME_COEFFICIENT
 
 from core.arbitrage_core_logging import log_arbitrage_heart_beat, log_arbitrage_determined_volume_not_enough, \
     log_currency_disbalance_present, log_currency_disbalance_heart_beat, log_arbitrage_determined_price_not_enough
@@ -295,16 +295,17 @@ def adjust_currency_balance(first_order_book, second_order_book, threshold, bala
 
     return deal_status
 
-
-def compute_new_min_cap_from_tickers(tickers):
+def compute_new_min_cap_from_tickers(pair_id, tickers):
     min_price = 0.0
 
     for ticker in tickers:
         if ticker is not None:
             min_price = max(min_price, ticker.ask)
 
+    base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
+
     if min_price != 0.0:
-        return 0.004 / min_price
+        return MIN_VOLUME_COEFFICIENT[base_currency_id] / min_price
 
     return 0.0
 

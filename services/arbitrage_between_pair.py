@@ -62,7 +62,7 @@ def update_min_cap(cfg, deal_cap, processor):
     cur_timest_sec = get_now_seconds_utc()
     tickers = get_ticker_for_arbitrage(cfg.pair_id, cur_timest_sec,
                                        [cfg.buy_exchange_id, cfg.sell_exchange_id], processor)
-    new_cap = compute_new_min_cap_from_tickers(tickers)
+    new_cap = compute_new_min_cap_from_tickers(cfg.pair_id, tickers)
 
     if new_cap > 0:
         msg = "Updating old cap {op}".format(op=str(deal_cap))
