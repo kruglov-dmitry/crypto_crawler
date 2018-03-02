@@ -1,5 +1,7 @@
 from utils.file_utils import log_to_file
-from debug_utils import print_to_console, LOG_ALL_ERRORS, EXPIRED_ORDER_PROCESSING_FILE_NAME
+from utils.string_utils import float_to_str
+from utils.exchange_utils import get_exchange_name_by_id
+from debug_utils import print_to_console, LOG_ALL_ERRORS, EXPIRED_ORDER_PROCESSING_FILE_NAME, ERROR_LOG_FILE_NAME
 from data_access.message_queue import DEAL_INFO_MSG
 
 
@@ -77,6 +79,32 @@ def log_open_orders_is_empty(order):
     Consider it as FILLED and forgeting it.
     """.format(o=order)
     log_to_file(msg, EXPIRED_ORDER_PROCESSING_FILE_NAME)
+
+
+def log_balance_expired(exchange_id, threshold, balance_state, msg_queue):
+    msg = """<b> !!! CRITICAL !!! </b>
+    Balance is OUTDATED for {exch1} for more than {tt} seconds
+    Expired or failed orders service will be stopped just in case.
+    """.format(exch1=get_exchange_name_by_id(exchange_id), tt=threshold)
+    print_to_console(msg, LOG_ALL_ERRORS)
+    msg_queue.add_message(DEAL_INFO_MSG, msg)
+
+    log_to_file(msg, ERROR_LOG_FILE_NAME)
+    log_to_file(balance_state, ERROR_LOG_FILE_NAME)
+
+
+def log_too_small_volume(order, max_volume, min_volume, msg_queue):
+    msg = """<b> !!! NOT ENOUGH BALANCE !!! </b>
+        Balance is not enough to place order
+        {o}
+        Determined volume is: {v}
+        Minimum volume from recent tickers: {mv}
+        so we going to ABANDON and FORGET about this order.
+        """.format(o=order, v=float_to_str(max_volume), mv=float_to_str(min_volume))
+    print_to_console(msg, LOG_ALL_ERRORS)
+    msg_queue.add_message(DEAL_INFO_MSG, msg)
+
+    log_to_file(msg, ERROR_LOG_FILE_NAME)
 
 #
 #   Methods for verbose debug

@@ -1,11 +1,11 @@
 import argparse
 
 from data_access.message_queue import get_message_queue, DEAL_INFO_MSG
-from data_access.priority_queue import get_priority_queue, ORDERS_EXPIRE_MSG
+from data_access.priority_queue import get_priority_queue
 
-from core.arbitrage_core import search_for_arbitrage, adjust_currency_balance
-from core.expired_deal import add_orders_to_watch_list
-from core.backtest import common_cap_init, dummy_balance_init
+from core.arbitrage_core import search_for_arbitrage, adjust_currency_balance, compute_new_min_cap_from_tickers
+from core.expired_order import add_orders_to_watch_list
+from core.backtest import dummy_balance_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
@@ -15,13 +15,14 @@ from dao.deal_utils import init_deals_with_logging_speedy
 from data.ArbitrageConfig import ArbitrageConfig
 
 from data_access.classes.ConnectionPool import ConnectionPool
-from data_access.memory_cache import local_cache
+from data_access.memory_cache import get_cache
+from data.MarketCap import MarketCap
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG, set_logging_level
+from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG, set_logging_level, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME
 
 from enums.deal_type import DEAL_TYPE
 
-from utils.currency_utils import split_currency_pairs, get_currency_pair_name_by_exchange_id
+from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
@@ -57,41 +58,29 @@ def log_dont_supported_currency(cfg, exchange_id):
     log_to_file(msg, cfg.log_file_name)
 
 
-def compute_new_min_cap_from_tickers(tickers):
-    min_price = 0.0
-
-    for ticker in tickers:
-        if ticker is not None:
-            min_price = max(min_price, ticker.ask)
-
-    if min_price != 0.0:
-        return 0.004 / min_price
-
-    return 0.0
-
-
 def update_min_cap(cfg, deal_cap, processor):
     cur_timest_sec = get_now_seconds_utc()
     tickers = get_ticker_for_arbitrage(cfg.pair_id, cur_timest_sec,
                                        [cfg.buy_exchange_id, cfg.sell_exchange_id], processor)
-    new_cap = compute_new_min_cap_from_tickers(tickers)
+    new_cap = compute_new_min_cap_from_tickers(cfg.pair_id, tickers)
 
     if new_cap > 0:
-        base_currency_id, dst_currency_id = split_currency_pairs(cfg.pair_id)
+        msg = "Updating old cap {op}".format(op=str(deal_cap))
+        log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
 
-        msg = """old cap {op}:
-                new_cap: {rp}
-                """.format(op=str(deal_cap.get_min_cap(dst_currency_id)), rp=str(new_cap))
-        log_to_file(msg, "cap_price_adjustment.log")
+        deal_cap.update_min_volume_cap(new_cap, cur_timest_sec)
 
-        deal_cap.update_min_cap(dst_currency_id, new_cap, cur_timest_sec)
+        msg = "New cap {op}".format(op=str(deal_cap))
+        log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
+
     else:
         msg = """CAN'T update minimum_volume_cap for {pair_id} at following
         exchanges: {exch1} {exch2}""".format(pair_id=cfg.pair_id, exch1=get_exchange_name_by_id(cfg.buy_exchange_id),
                                              exch2=get_exchange_name_by_id(cfg.sell_exchange_id))
         print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, cfg.log_file_name)
-        log_to_file(msg, "cap_price_adjustment.log")
+
+        log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
 
 
 if __name__ == "__main__":
@@ -126,6 +115,7 @@ if __name__ == "__main__":
 
     priority_queue = get_priority_queue()
     msg_queue = get_message_queue()
+    local_cache = get_cache()
 
     processor = ConnectionPool(pool_size=2)
 
@@ -136,9 +126,9 @@ if __name__ == "__main__":
             log_dont_supported_currency(cfg, exchange_id)
             exit()
 
-    deal_cap = common_cap_init()
+    deal_cap = MarketCap(cfg.pair_id, get_now_seconds_utc())
     update_min_cap(cfg, deal_cap, processor)
-    deal_cap.update_max_cap(cfg.pair_id, NO_MAX_CAP_LIMIT)
+    deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
 
     balance_state = dummy_balance_init(timest=0, default_volume=0, default_available_volume=0)
 
@@ -185,4 +175,4 @@ if __name__ == "__main__":
 
         sleep_for(2)
 
-        deal_cap.update_max_cap(cfg.pair_id, NO_MAX_CAP_LIMIT)
+        deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)

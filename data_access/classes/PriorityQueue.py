@@ -24,7 +24,7 @@ class PriorityQueue(object):
        
         assert order is not None
     
-        return self.r.zadd(topic_id, get_now_seconds_utc_ms(), pickle.dumps(order))
+        return self.r.zadd(topic_id, -get_now_seconds_utc_ms(), pickle.dumps(order))
 
     def first(self, topic_id):
         return self.r.zrevrange(topic_id, 0, 0)[0]

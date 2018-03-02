@@ -1,6 +1,6 @@
 from kraken.constants import KRAKEN_GET_HISTORY
 
-from data.OrderHistory import OrderHistory
+from data.TradeHistory import TradeHistory
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG, LOG_ALL_OTHER_STUFF
 
@@ -33,7 +33,7 @@ def get_history_kraken(pair_name, prev_time, now_time):
     if error_code == STATUS.SUCCESS and r is not None and "result" in r:
         if pair_name in r["result"]:
             for rr in r["result"][pair_name]:
-                all_history_records.append(OrderHistory.from_kraken(rr, pair_name, now_time))
+                all_history_records.append(TradeHistory.from_kraken(rr, pair_name, now_time))
 
     return all_history_records
 
@@ -44,6 +44,6 @@ def get_history_kraken_result_processor(json_document, pair_name, timest):
     if json_document is not None and "result" in json_document:
         if pair_name in json_document["result"]:
             for rr in json_document["result"][pair_name]:
-                all_history_records.append(OrderHistory.from_kraken(rr, pair_name, timest))
+                all_history_records.append(TradeHistory.from_kraken(rr, pair_name, timest))
 
     return all_history_records

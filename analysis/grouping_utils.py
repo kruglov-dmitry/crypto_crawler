@@ -26,6 +26,15 @@ def group_by_pair_and_arbitrage_id(order_list):
     return res
 
 
+def group_orders_by_arbitrage_id(order_list):
+    res = defaultdict(list)
+
+    for x in order_list:
+        res[x.arbitrage_id].append(x)
+
+    return res
+
+
 def find_corresponding_trades(deal_from_bot, trade_history):
     res = []
     tot_volume = 0.0
@@ -53,16 +62,46 @@ def find_corresponding_trades(deal_from_bot, trade_history):
 
 
 def group_by_pair_and_exchange_id(history_orders):
-    poloniex_orders_by_pair = defaultdict(list)
-    bittrex_orders_by_pair = defaultdict(list)
-    binance_orders_by_pair = defaultdict(list)
+    orders_by_exchange_and_pair = defaultdict(defaultdict(list))
 
     for entry in history_orders:
-        if entry.exchange_id == EXCHANGE.POLONIEX:
-            poloniex_orders_by_pair[entry.pair_id].append(entry)
-        elif entry.exchange_id == EXCHANGE.BITTREX:
-            bittrex_orders_by_pair[entry.pair_id].append(entry)
-        elif entry.exchange_id == EXCHANGE.BINANCE:
-            binance_orders_by_pair[entry.pair_id].append(entry)
+        orders_by_exchange_and_pair[entry.exchange_id][entry.pair_id].append(entry)
 
-    return binance_orders_by_pair, bittrex_orders_by_pair, poloniex_orders_by_pair
+    return orders_by_exchange_and_pair
+
+
+def group_trades_by_orders(orders, history_trades, binance_orders_at_exchange):
+
+    # 1 stage - filling order->trades list for Poloniex, Bittrex
+
+    missing_orders = defaultdict(list)
+    failed_orders = defaultdict(list)
+    orders_with_corresponding_trades = []
+
+    for order in orders:
+        if order.deal_id is None:
+            failed_orders[order.exchange_id].append(order)
+        else:
+            if order.exchange_id in [EXCHANGE.POLONIEX, EXCHANGE.BITTREX]:
+                res = next((x for x in history_trades if x.deal_id == order.deal_id), None)
+                if res is None:
+                    missing_orders[order.exchange_id].append(order)
+                else:
+                    current_trades_list = []
+                    for x in history_trades:
+                        if x.deal_id == order.deal_id:
+                            current_trades_list.append(x)
+                    orders_with_corresponding_trades.append( (order, current_trades_list) )
+            else:
+                res = next((x for x in binance_orders_at_exchange if x.deal_id == order.deal_id), None)
+                if res is None:
+                    missing_orders[order.exchange_id].append(order)
+
+    return missing_orders, failed_orders, orders_with_corresponding_trades
+
+
+def group_by_pair_id(binance_trades):
+    res = defaultdict(list)
+    for entry in binance_trades:
+        res[entry.pair_id].append(entry)
+    return res

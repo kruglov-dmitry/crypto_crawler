@@ -144,3 +144,22 @@ How to find last modified files recursively:
 ``` bash
 find $1 -type f -print0 | xargs -0 stat --format '%Y :%y %n' | sort -nr | cut -d: -f2- | head
 ```
+
+
+### Anaconda profit report How-TO Windows
+1. Install https://www.anaconda.com/download/ for 2.7 Python
+2. Run  Start->Programs->Anaconda Prompt
+3. Install necessary dependencies using pip:
+``` bash
+    pip install redis tqdm
+```
+4. Run Start->Programs->Jupiter Notebook
+5. Open Notebook from ipython_notebooks/iPython_local_Input.ipynb
+6. Adjust following parameters:
+* CRYPTO_MODULE
+* should_fetch_data
+* time_end
+* time_start
+* api_key_full_path
+7. Sequentially execute all sells
+8. Profit report should be under your %HOME%/logs folder

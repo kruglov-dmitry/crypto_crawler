@@ -22,14 +22,14 @@ def get_notification_id_by_topic_name(topic_name):
     }[topic_name]
 
 
-def connect_to_message_queue():
+def connect_to_message_queue(host=CACHE_HOST, port=CACHE_PORT):
     global message_queue
-    message_queue = MessageQueue(host=CACHE_HOST, port=CACHE_PORT)
+    message_queue = MessageQueue(host, port)
     return message_queue
 
 
-def get_message_queue():
+def get_message_queue(host=CACHE_HOST, port=CACHE_PORT):
     global message_queue
     if message_queue is None:
-        return connect_to_message_queue()
+        return connect_to_message_queue(host, port)
     return message_queue

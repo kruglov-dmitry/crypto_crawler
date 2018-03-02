@@ -13,3 +13,12 @@ def float_to_str(f):
         else:
             float_string = '{}0.{}{}'.format(sign, zero_padding, digits)
     return float_string
+
+
+def truncate_float(float_num, n):
+    str_repr = str(float_num)
+    idx = str_repr.find('.')
+    if idx > 0:
+        return float(str_repr[0: 1 + idx + n])
+    else:
+        return float_num

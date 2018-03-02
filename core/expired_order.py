@@ -1,13 +1,16 @@
 from collections import defaultdict
 
-from core.arbitrage_core import adjust_price_by_order_book
-from core.expired_deal_logging import log_cant_cancel_deal, log_placing_new_deal, log_cant_placing_new_deal, \
+from core.arbitrage_core import adjust_price_by_order_book, determine_maximum_volume_by_balance, \
+    compute_min_cap_from_ticker, round_volume
+from core.expired_order_logging import log_cant_cancel_deal, log_placing_new_deal, log_cant_placing_new_deal, \
     log_cant_retrieve_order_book, log_dont_have_open_orders, log_open_orders_bad_result, \
     log_trace_all_open_orders, log_trace_log_time_key, log_trace_log_all_cached_orders_for_time_key, \
     log_trace_order_not_yet_expired, log_trace_processing_oder, log_trace_cancel_request_result, \
-    log_trace_warched_orders_after_processing, log_open_orders_by_exchange_bad_result, log_open_orders_is_empty
+    log_trace_warched_orders_after_processing, log_open_orders_by_exchange_bad_result, log_open_orders_is_empty, \
+    log_balance_expired, log_too_small_volume
 
 from dao.order_utils import get_open_orders_for_arbitrage_pair, get_open_orders_by_exchange
+from dao.ticker_utils import get_ticker
 from dao.dao import cancel_by_exchange, parse_deal_id
 from dao.deal_utils import init_deal
 from dao.order_book_utils import get_order_book
@@ -20,9 +23,12 @@ from data_access.priority_queue import ORDERS_EXPIRE_MSG
 
 from enums.status import STATUS
 from enums.deal_type import DEAL_TYPE
+from enums.exchange import EXCHANGE
+
+from constants import BALANCE_EXPIRED_THRESHOLD
 
 
-def process_expired_order(order, msg_queue, priority_queue):
+def process_expired_order(order, msg_queue, priority_queue, local_cache):
     """
             In order to speedup and simplify expired deal processing following approach implemented.
 
@@ -40,6 +46,7 @@ def process_expired_order(order, msg_queue, priority_queue):
     :param order:  order retrieved from redis cache
     :param msg_queue: saving to postgres and re-process failed orders
     :param priority_queue: watch queue for expired orders
+    :param local_cache: to retrieve balance
     :return:
     """
 
@@ -58,7 +65,7 @@ def process_expired_order(order, msg_queue, priority_queue):
 
     log_trace_all_open_orders(open_orders)
 
-    if deal_is_not_closed(open_orders, order):
+    if update_executed_volume(open_orders, order):
         err_code, responce = cancel_by_exchange(order)
 
         log_trace_cancel_request_result(order, err_code, responce)
@@ -70,6 +77,8 @@ def process_expired_order(order, msg_queue, priority_queue):
 
             return
 
+        ticker = get_ticker(order.exchange_id, order.pair_id)
+        min_volume = compute_min_cap_from_ticker(ticker)
         order_book = get_order_book(order.exchange_id, order.pair_id)
 
         if order_book is not None:
@@ -77,6 +86,31 @@ def process_expired_order(order, msg_queue, priority_queue):
             orders = order_book.bid if order.trade_type == DEAL_TYPE.SELL else order_book.ask
 
             order.price = adjust_price_by_order_book(orders, order.volume)
+
+            # Do we have enough coins at our balance
+            balance = local_cache.get_balance(order.exchange_id)
+
+            if balance.expired(BALANCE_EXPIRED_THRESHOLD):
+
+                priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+
+                log_balance_expired(order.exchange_id, BALANCE_EXPIRED_THRESHOLD, balance, msg_queue)
+
+                assert False
+
+            max_volume = determine_maximum_volume_by_balance(order.pair_id, order.trade_type,
+                                                             order.volume, order.price,
+                                                             balance)
+
+            max_volume = round_volume(order.exchange_id, max_volume, order.pair_id)
+
+            if max_volume < min_volume:
+
+                log_too_small_volume(order, max_volume, min_volume, msg_queue)
+
+                return
+
+            order.volume = max_volume
             order.create_time = get_now_seconds_utc()
 
             msg = "Replace existing order with new one - {tt}".format(tt=order)
@@ -151,7 +185,7 @@ def process_expired_deals(list_of_orders, cfg, msg_queue, worker_pool):
 
             log_trace_processing_oder(every_order)
 
-            if deal_is_not_closed(open_orders_at_both_exchanges, every_order):
+            if update_executed_volume(open_orders_at_both_exchanges, every_order):
                 err_code, responce = cancel_by_exchange(every_order)
 
                 log_trace_cancel_request_result(every_order, err_code, responce)
@@ -216,13 +250,19 @@ def process_expired_deals(list_of_orders, cfg, msg_queue, worker_pool):
     log_trace_warched_orders_after_processing(list_of_orders)
 
 
-def deal_is_not_closed(open_orders_at_both_exchanges, every_deal):
+def update_executed_volume(open_orders_at_both_exchanges, every_deal):
     # FIXME NOTE: I do hate functions with side effects this is very vicious practice
     # Open question: how to do it properly?
 
     for deal in open_orders_at_both_exchanges:
         if deal == every_deal:
-            every_deal.volume = every_deal.volume - deal.executed_volume
+            if every_deal.exchange_id != EXCHANGE.POLONIEX:
+                every_deal.volume = every_deal.volume - deal.executed_volume
+                every_deal.executed_volume = deal.executed_volume
+            else:
+                every_deal.executed_volume = every_deal.volume - deal.volume
+                every_deal.volume = deal.volume
+
             return True
 
     return False

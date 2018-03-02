@@ -2,7 +2,7 @@ from dao.db import init_pg_connection, load_to_postgres
 from dao.history_utils import get_history_speedup
 from dao.ohlc_utils import get_ohlc_speedup
 from data.Candle import CANDLE_TYPE_NAME
-from data.OrderHistory import TRADE_HISTORY_TYPE_NAME
+from data.TradeHistory import TRADE_HISTORY_TYPE_NAME
 from data_access.classes.ConnectionPool import ConnectionPool
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS
 from utils.file_utils import log_to_file

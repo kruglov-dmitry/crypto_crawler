@@ -7,9 +7,13 @@ from data.Candle import Candle
 from data_access.postgres_connection import PostgresConnection
 from utils.time_utils import get_date_time_from_epoch
 from utils.file_utils import log_to_file
+from utils.currency_utils import split_currency_pairs
 
 from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME, FAILED_ORDER_PROCESSING_FILE_NAME
 from constants import START_OF_TIME
+
+from enums.exchange import EXCHANGE
+from enums.currency import CURRENCY
 
 
 def init_pg_connection(_db_host="192.168.1.106", _db_port=5432, _db_name="postgres"):
@@ -168,7 +172,7 @@ def get_arbitrage_id(pg_conn):
     return None
 
 
-def save_order_into_pg(order, pg_conn, table_name="orders"):
+def save_order_into_pg(order, pg_conn, table_name="arbitrage_orders"):
     cur = pg_conn.get_cursor()
 
     PG_INSERT_QUERY = "insert into {table_name}(arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, " \
@@ -199,7 +203,7 @@ def save_order_into_pg(order, pg_conn, table_name="orders"):
     pg_conn.commit()
 
 
-def get_all_orders(pg_conn, table_name="orders", time_start=START_OF_TIME):
+def get_all_orders(pg_conn, table_name="arbitrage_orders", time_start=START_OF_TIME):
     orders = []
 
     if time_start == START_OF_TIME:
@@ -220,7 +224,7 @@ def get_all_orders(pg_conn, table_name="orders", time_start=START_OF_TIME):
     return orders
 
 
-def is_order_present_in_order_history(pg_conn, trade, table_name="orders"):
+def is_order_present_in_order_history(pg_conn, trade, table_name="arbitrage_orders"):
     """
                 We can execute history retrieval several times.
                 Some exchanges do not have precise mechanism to exclude particular time range.
@@ -253,7 +257,7 @@ def is_order_present_in_order_history(pg_conn, trade, table_name="orders"):
     return False
 
 
-def is_trade_present_in_trade_history(pg_conn, trade, table_name="trades_history"):
+def is_trade_present_in_trade_history(pg_conn, trade, table_name="arbitrage_trades"):
     """
             For every order we can have multiple trades executed.
             In ideal case they all will be connected to the same order_id
@@ -269,10 +273,20 @@ def is_trade_present_in_trade_history(pg_conn, trade, table_name="trades_history
     :return:
     """
 
+    base_currency_id, dst_currency_id = split_currency_pairs(trade.pair_id)
+
+    price_diff = 0.0
+    if base_currency_id == CURRENCY.BITCOIN:
+        price_diff = 0.0001
+    elif base_currency_id == CURRENCY.ETH:
+        price_diff = 0.01
+    elif base_currency_id == CURRENCY.USDT:
+        price_diff = 0.01
+
     select_query = """select * from {table_name} where exchange_id = {exchange_id} and trade_type = {trade_type} and 
     pair_id = {pair_id} and price between {min_price} and {max_price} and volume between {min_volume} and {max_volume} 
     and create_time = {create_time}""".format(table_name=table_name, exchange_id=trade.exchange_id, trade_type=trade.trade_type,
-                                            pair_id=trade.pair_id, min_price=trade.price-1.0, max_price=trade.price+1.0,
+                                            pair_id=trade.pair_id, min_price=trade.price - price_diff, max_price=trade.price+price_diff,
                                             min_volume=trade.volume-1.0, max_volume=trade.volume+1.0, create_time=trade.create_time)
 
     cursor = pg_conn.get_cursor()
@@ -324,7 +338,7 @@ def update_order_details(pg_conn, order):
     :return:
     """
 
-    select_query = """update orders set deal_id = '{order_id}' where exchange_id = {e_id} and pair_id = {p_id} and 
+    select_query = """update arbitrage_orders set deal_id = '{order_id}' where exchange_id = {e_id} and pair_id = {p_id} and 
     trade_type = {d_type} and create_time = {c_time} 
     """.format(order_id=order.deal_id, e_id=order.exchange_id, p_id=order.pair_id, d_type=order.trade_type,
                c_time=order.create_time)
@@ -336,3 +350,21 @@ def update_order_details(pg_conn, order):
     if 0 == cursor.rowcount:
         msg = "ZERO number of row affected! For order = {o}".format(o=order)
         log_to_file(msg, FAILED_ORDER_PROCESSING_FILE_NAME)
+
+
+def get_last_binance_trade(pg_conn, start_date, table_name="arbitrage_trades"):
+
+    select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, 
+    order_book_time, create_time, execute_time from {table_name} where exchange_id = {exchange_id} and 
+    create_time < {create_time} ORDER BY create_time DESC limit 1""".format(table_name=table_name,
+                                                                            exchange_id=EXCHANGE.BINANCE,
+                                                                            create_time=start_date)
+
+    cursor = pg_conn.get_cursor()
+
+    cursor.execute(select_query)
+
+    for row in cursor:
+        return Trade.from_row(row)
+
+    return None

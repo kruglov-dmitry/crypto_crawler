@@ -5,13 +5,17 @@ from bittrex.constants import BITTREX_CURRENCY_PAIRS
 from bittrex.ticker_utils import get_ticker_bittrex, get_ticker_bittrex_url, get_ticker_bittrex_result_processor
 from data_access.classes.WorkUnit import WorkUnit
 from debug_utils import print_to_console, LOG_ALL_ERRORS
+
 from enums.currency_pair import CURRENCY_PAIR
 from enums.exchange import EXCHANGE
+
 from kraken.constants import KRAKEN_CURRENCY_PAIRS
 from kraken.ticker_utils import get_ticker_kraken, get_ticker_kraken_url, get_ticker_kraken_result_processor
+
 from poloniex.constants import POLONIEX_CURRENCY_PAIRS
 from poloniex.ticker_utils import get_tickers_poloniex, get_ticker_poloniex_url, get_ticker_poloniex, \
     get_ticker_poloniex_result_processor
+
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from utils.time_utils import get_now_seconds_utc
 
@@ -58,7 +62,7 @@ def get_ticker_speedup(timest, processor):
     return async_results
 
 
-def get_ticker():
+def get_tickers():
     all_tickers = {}
 
     timest = get_now_seconds_utc()
@@ -128,3 +132,18 @@ def get_ticker_url_by_exchange_id(exchange_id):
         EXCHANGE.POLONIEX: get_ticker_poloniex_url,
         EXCHANGE.BINANCE: get_tickers_binance_url
     }[exchange_id]
+
+
+def get_ticker(exchange_id, pair_id):
+    method = get_ticker_method_by_exchange_id(exchange_id)
+
+    pair_name = get_currency_pair_name_by_exchange_id(pair_id, exchange_id)
+
+    if pair_name is None:
+        msg = "get_ticker for arbitrage - wrong pair_id - {pair_id} for exchange_id = {idd}!".format(pair_id=pair_id,
+                                                                                                     idd=exchange_id)
+        print_to_console(msg, LOG_ALL_ERRORS)
+
+        assert pair_name is None
+
+    return method(pair_name, get_now_seconds_utc())

@@ -9,6 +9,8 @@ from utils.file_utils import log_to_file
 from enums.status import STATUS
 from enums.notifications import NOTIFICATION
 
+MAX_MESSAGE_LENGTH = 4000
+
 
 bot = telegram.Bot(token='438844686:AAE8lS3VyMsNgtytR4I1uWy4DLUaot2e5hU')
 
@@ -37,6 +39,10 @@ def send_single_message_no_parsing(some_message, notification_type):
 
 
 def send_single_message(some_message, notification_type):
+
+    if len(some_message) > MAX_MESSAGE_LENGTH:
+        some_message = some_message[:MAX_MESSAGE_LENGTH] + "... etc"
+
     global bot
     chat_id = get_chat_id_by_type(notification_type)
     res = STATUS.FAILURE

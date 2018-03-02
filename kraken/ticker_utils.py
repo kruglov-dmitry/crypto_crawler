@@ -21,16 +21,16 @@ def get_ticker_kraken_url(currency, timest):
     return final_url
 
 
-def get_ticker_kraken(currency, timest):
+def get_ticker_kraken(pair_name, timest):
 
-    final_url = get_ticker_kraken(currency, timest)
+    final_url = get_ticker_kraken(pair_name, timest)
 
-    err_msg = "get_ticker_kraken called for {pair} at {timest}".format(pair=currency, timest=timest)
+    err_msg = "get_ticker_kraken called for {pair} at {timest}".format(pair=pair_name, timest=timest)
     error_code, r = send_request(final_url, err_msg)
 
     if error_code == STATUS.SUCCESS and r is not None and "result" in r:
-        if currency in r["result"]:
-            return Ticker.from_kraken(currency, timest, r["result"][currency])
+        if pair_name in r["result"]:
+            return Ticker.from_kraken(pair_name, timest, r["result"][pair_name])
 
     return None
 

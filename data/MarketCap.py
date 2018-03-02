@@ -1,54 +1,29 @@
 from BaseData import BaseData
-from utils.currency_utils import get_currency_name_by_id
-from utils.currency_utils import split_currency_pairs
+from constants import NO_MAX_CAP_LIMIT, NO_MIN_CAP_LIMIT
 
 
 class MarketCap(BaseData):
-    def __init__(self, min_volume_cap, max_volume_cap, min_price_cap, max_price_cap, timest):
-        self.max_volume_cap = max_volume_cap.copy()
-        self.min_volume_cap = min_volume_cap.copy()
-        self.min_price_cap = min_price_cap.copy()
-        self.max_price_cap = max_price_cap.copy()
+    def __init__(self, pair_id, timest, min_volume_cap=NO_MIN_CAP_LIMIT, max_volume_cap=NO_MAX_CAP_LIMIT,
+                 min_price_cap=NO_MIN_CAP_LIMIT, max_price_cap=NO_MAX_CAP_LIMIT):
+        self.max_volume_cap = max_volume_cap
+        self.min_volume_cap = min_volume_cap
+        self.min_price_cap = min_price_cap
+        self.max_price_cap = max_price_cap
+        self.pair_id = pair_id
         self.last_updated = timest
 
-    def __str__(self):
-        str_repr = "MarketCap common for all exchanges. Minimum capacity: \n"
+    def get_max_volume_cap(self):
+        return self.max_volume_cap
 
-        for currency_id in self.min_volume_cap:
-            str_repr += " " + get_currency_name_by_id(currency_id) + " - " + str(self.min_volume_cap[currency_id])
-
-        str_repr += " Max capacity:\n"
-        for currency_id in self.max_volume_cap:
-            str_repr += " " + get_currency_name_by_id(currency_id) + " - " + str(self.max_volume_cap[currency_id])
-
-        return str_repr
-
-    def get_max_volume_cap_by_dst(self, pair_id):
-        base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
-        return self.max_volume_cap[dst_currency_id]
-
-    def get_min_volume_cap_by_dst(self, pair_id):
-        base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
-        return self.min_volume_cap[dst_currency_id]
-
-    def get_max_volume_by_currency_id(self, currency_id):
-        return self.max_volume_cap[currency_id]
-
-    def get_min_volume_by_currency_id(self, currency_id):
-        return self.min_volume_cap[currency_id]
+    def get_min_volume_cap(self):
+        return self.min_volume_cap
 
     def update_time(self, timest):
         self.last_updated = timest
 
-    def update_min_cap(self, currency_id, new_cap, cur_timest_sec):
+    def update_min_volume_cap(self, new_cap, cur_timest_sec):
         self.last_updated = cur_timest_sec
-        self.min_volume_cap[currency_id] = new_cap
+        self.min_volume_cap = new_cap
 
-    def update_max_cap(self, pair_id, max_limit):
-        base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
-        self.max_volume_cap[dst_currency_id] = max_limit
-
-    def get_min_cap(self, currency_id):
-        if currency_id in self.min_volume_cap:
-            return self.min_volume_cap[currency_id]
-        return None
+    def update_max_volume_cap(self, max_limit):
+        self.max_volume_cap = max_limit

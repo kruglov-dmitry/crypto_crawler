@@ -88,43 +88,55 @@ def parse_deal_id_binance_from_json(json_document):
     return None
 
 
+def order_params(data):
+    from operator import itemgetter
+
+    """Convert params to list with signature as last element
+        :param data:
+        :return:
+    """
+    has_signature = False
+    params = []
+    for key, value in data.items():
+        if key == 'signature':
+            has_signature = True
+        else:
+            params.append((key, value))
+
+    # sort parameters by key
+    params.sort(key=itemgetter(0))
+    if has_signature:
+        params.append(('signature', data['signature']))
+
+    return params
+
+
 def get_trades_history_binance(key, pair_name, limit, last_order_id=None):
     final_url = BINANCE_GET_ALL_TRADES
 
+    body = []
+
     if last_order_id is not None:
-        body = {
-            "symbol": pair_name,
-            "limit": limit,
-            "orderId": last_order_id,
-            "timestamp": get_now_seconds_utc_ms(),
-            "recvWindow": 5000
-        }
-    else:
-        body = {
-            "symbol": pair_name,
-            "limit": limit,
-            "timestamp": get_now_seconds_utc_ms(),
-            "recvWindow": 5000
-        }
+        body.append(("fromId", last_order_id))
 
-    signature = signed_body_256(body, key.secret)
-
-    body["signature"] = signature
+    body.append(("symbol", pair_name))
+    body.append(("limit", limit))
+    body.append(("timestamp", get_now_seconds_utc_ms()))
+    body.append(("recvWindow", 5000))
+    body.append(("signature", signed_body_256(body, key.secret)))
 
     final_url += _urlencode(body)
 
     headers = {"X-MBX-APIKEY": key.api_key}
 
-    # Yeah, body after that should be empty
-    body = {}
-
     post_details = PostRequestDetails(final_url, headers, body)
+    print post_details
 
     err_msg = "get_all_trades_binance for {pair_name}".format(pair_name=pair_name)
 
     error_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
                                                    timeout=BINANCE_DEAL_TIMEOUT)
 
-    print "get_all_trades_binance", res
+    # print "get_all_trades_binance", res
 
     return error_code, res

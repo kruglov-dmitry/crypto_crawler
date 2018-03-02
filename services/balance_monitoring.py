@@ -1,87 +1,23 @@
 import argparse
 
 from dao.balance_utils import update_balance_by_exchange, init_balances
-from data_access.message_queue import get_message_queue, DEAL_INFO_MSG
+from data_access.message_queue import get_message_queue
 from data_access.memory_cache import connect_to_cache
-from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, LOG_ALL_ERRORS, LOG_ALL_DEBUG
 from enums.exchange import EXCHANGE
-from utils.exchange_utils import get_exchange_id_by_name, get_exchange_name_by_id
-from utils.file_utils import log_to_file
+from utils.exchange_utils import get_exchange_id_by_name
+from services.balance_monitoring_logging import log_wrong_exchange_id, log_initial_settings, \
+    log_balance_update_heartbeat, log_cant_update_balance, log_last_balances, log_not_enough_base_currency
+
 from utils.key_utils import load_keys
-from utils.time_utils import sleep_for, get_now_seconds_utc
+from utils.time_utils import sleep_for
+
+from enums.currency import CURRENCY
+from constants import BASE_CURRENCY, BASE_CURRENCIES_BALANCE_THRESHOLD
 
 
-# FIXME NOTE read it from settings
-BITCOIN_ALARM_THRESHOLD = 0.1
+
 TIMEOUT_HEALTH_CHECK = 180
-MAX_EXPIRE_TIMEOUT = 179
 POLL_TIMEOUT = 3
-
-
-def log_wrong_exchange_id(exchange_id):
-    msg = "UNKNOWN exchange id provided - {idx}".format(idx=exchange_id)
-    print_to_console(msg, LOG_ALL_ERRORS)
-    log_to_file(msg, "balance.log")
-
-
-def log_initial_settings(exchanges_ids):
-    msg = "Starting balance monitoring for following exchanges: \n"
-    for exchange_id in exchanges_ids:
-        msg += str(exchange_id) + " - " + get_exchange_name_by_id(exchange_id) + "\n"
-    print_to_console(msg, LOG_ALL_ERRORS)
-    log_to_file(msg, "balance.log")
-
-
-def log_not_enough_bitcoins(exchange_id, balance_for_exchange, msg_queue):
-    msg = """<b> !!! INFO !!! </b>
-    BTC balance on exchange {exch} BELOW threshold {thrs} - only {am} LEFT!""".format(
-        thrs=BITCOIN_ALARM_THRESHOLD, exch=get_exchange_name_by_id(exchange_id), am=balance_for_exchange.get_bitcoin_balance())
-    msg_queue.add_message(DEAL_INFO_MSG, msg)
-    print_to_console(msg, LOG_ALL_ERRORS)
-    print_to_console(balance_for_exchange, LOG_ALL_MARKET_RELATED_CRAP)
-    log_to_file(str(balance_for_exchange), "balance.log")
-
-
-def log_warn_balance_not_updating(last_balance, msg_queue):
-    msg = """           <b> !!! WARNING !!! </b>
-    BALANCE were not updated for a {tm} seconds!
-    last balance {bl}""".format(tm=MAX_EXPIRE_TIMEOUT, bl=last_balance)
-
-    print_to_console(msg, LOG_ALL_ERRORS)
-    msg_queue.add_message(DEAL_INFO_MSG, msg)
-    log_to_file(msg, "balance.log")
-
-
-def log_balance_updated(idx, balance):
-    msg = """Updated balance sucessfully for exch={exch}:
-    {balance}""".format(exch=get_exchange_name_by_id(idx), balance=balance)
-    print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
-    log_to_file(msg, "balance.log")
-
-
-def log_last_balances(exchanges_ids):
-    timest = get_now_seconds_utc()
-    ttl = "At ts={ts} what we have at cache".format(ts=timest)
-    print_to_console(ttl, LOG_ALL_ERRORS)
-    log_to_file(ttl, "balance.log")
-    for idx in exchanges_ids:
-        some_balance = cache.get_balance(idx)
-        if some_balance is None or (timest - some_balance.last_update) > MAX_EXPIRE_TIMEOUT:
-            log_warn_balance_not_updating(some_balance, msg_queue)
-        else:
-            log_balance_updated(idx, some_balance)
-
-
-def log_cant_update_balance(idx):
-    msg = "Balance is NONE for exchange {exch}. Will retry in 1 second...".format(exch=get_exchange_name_by_id(idx))
-    print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
-    log_to_file(msg, "balance.log")
-
-
-def log_balance_update_heartbeat(idx):
-    tr = "Updating for exch = {exch}".format(exch=get_exchange_name_by_id(idx))
-    print_to_console(tr, LOG_ALL_DEBUG)
-    log_to_file(tr, "balance.log")
 
 
 if __name__ == "__main__":
@@ -121,18 +57,20 @@ if __name__ == "__main__":
 
         cnt += POLL_TIMEOUT
 
-        for idx in exchanges_ids:
-            log_balance_update_heartbeat(idx)
+        for exchange_id in exchanges_ids:
+            log_balance_update_heartbeat(exchange_id)
 
-            balance_for_exchange = update_balance_by_exchange(idx, cache)
+            balance_for_exchange = update_balance_by_exchange(exchange_id, cache)
             while balance_for_exchange is None:
-                log_cant_update_balance(idx)
+                log_cant_update_balance(exchange_id)
                 sleep_for(1)
-                balance_for_exchange = update_balance_by_exchange(idx, cache)
+                balance_for_exchange = update_balance_by_exchange(exchange_id, cache)
 
-            if not balance_for_exchange.do_we_have_enough_bitcoin(BITCOIN_ALARM_THRESHOLD):
-                log_not_enough_bitcoins(idx, balance_for_exchange, msg_queue)
+            for base_currency_id in [CURRENCY.BITCOIN, CURRENCY.ETH]: #  BASE_CURRENCY:
+                threshold = BASE_CURRENCIES_BALANCE_THRESHOLD[base_currency_id]
+                if not balance_for_exchange.do_we_have_enough(base_currency_id, threshold):
+                    log_not_enough_base_currency(exchange_id, base_currency_id, threshold, balance_for_exchange, msg_queue)
 
         if cnt >= TIMEOUT_HEALTH_CHECK:
             cnt = 0
-            log_last_balances(exchanges_ids)
+            log_last_balances(exchanges_ids, cache, msg_queue)

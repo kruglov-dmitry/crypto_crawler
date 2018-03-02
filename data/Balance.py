@@ -1,11 +1,10 @@
 from BaseData import BaseData
 from constants import ARBITRAGE_CURRENCY, ZERO_BALANCE
 from enums.exchange import EXCHANGE
-from enums.currency import CURRENCY
 
 from utils.currency_utils import get_currency_name_by_id
 from utils.exchange_utils import get_exchange_name_by_id
-from utils.time_utils import ts_to_string
+from utils.time_utils import ts_to_string, get_now_seconds_utc
 from utils.file_utils import log_to_file
 from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 
@@ -47,15 +46,24 @@ class Balance(BaseData):
 
         return str_repr
 
-    def do_we_have_enough_bitcoin(self, threahold):
-        if CURRENCY.BITCOIN in self.available_balance:
-            return self.available_balance[CURRENCY.BITCOIN] > threahold
+    def do_we_have_enough(self, currency_id, threahold):
+        if currency_id in self.available_balance:
+            return self.available_balance[currency_id] > threahold
 
-        print "do_we_have_enough_bitcoin: no bitcoin within Balance 0_o"
+        print_to_console("do_we_have_enough: no currency {c_id} within Balance 0_o".format(
+            c_id=get_currency_name_by_id(currency_id)), LOG_ALL_ERRORS)
         return False
 
-    def get_bitcoin_balance(self):
-        return self.available_balance.get(CURRENCY.BITCOIN)
+    def get_balance(self, currency_id):
+        if currency_id in self.available_balance:
+            return self.available_balance.get(currency_id)
+
+        # FIXME fail fast!11
+        raise
+
+    def expired(self, threshold):
+        diff1 = get_now_seconds_utc() - self.last_update
+        return diff1 > threshold
 
     @classmethod
     def from_poloniex(cls, last_update, json_document):

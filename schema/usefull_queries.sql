@@ -88,3 +88,8 @@ select * from orders WHERE id IN (SELECT id FROM (SELECT id, exchange_id, ROW_NU
 
 -- delete dublicates
 delete from tickers WHERE id IN (SELECT id FROM (SELECT id, ROW_NUMBER() OVER (partition BY exchange_id, pair_id, lowest_ask, highest_bid, timest ORDER BY id) AS rnum FROM tickers) t WHERE t.rnum > 1);
+
+
+-- copy raw from one table to another
+insert into arbitrage_trades(arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, order_book_time, create_time, execute_time, execute_time_date)
+select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, order_book_time, create_time, execute_time, execute_time_date from trades;
