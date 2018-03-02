@@ -5,7 +5,7 @@ import csv
 
 from data.Candle import Candle, CANDLE_TYPE_NAME
 from data.OrderBook import OrderBook, ORDER_BOOK_TYPE_NAME
-from data.OrderHistory import OrderHistory, TRADE_HISTORY_TYPE_NAME
+from data.TradeHistory import TradeHistory, TRADE_HISTORY_TYPE_NAME
 from data.Ticker import Ticker, TICKER_TYPE_NAME
 from utils.time_utils import get_now_seconds_utc
 
@@ -30,7 +30,7 @@ def constructor_selector(class_name, string_repr):
     elif class_name == ORDER_BOOK_TYPE_NAME:
         return OrderBook.from_string(string_repr)
     elif class_name == TRADE_HISTORY_TYPE_NAME:
-        return OrderHistory.from_string(string_repr)
+        return TradeHistory.from_string(string_repr)
 
 
 def save_list_to_file(some_data, file_name):

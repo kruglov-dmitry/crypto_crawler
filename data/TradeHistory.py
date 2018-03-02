@@ -18,12 +18,12 @@ from utils.time_utils import get_date_time_from_epoch
 regex_string = "\[amount - (.*) deal_type - (.*) exchange - (.*) exchange_id - (.*) pair - (.*) pair_id - (.*) price - (.*) timest - (.*) total - (.*)\]"
 regex = re.compile(regex_string)
 
-ORDER_HISTORY_INSERT_QUERY = "insert into order_history (pair_id, exchange_id, deal_type, price, amount, total, " \
+ORDER_HISTORY_INSERT_QUERY = "insert into trade_history (pair_id, exchange_id, deal_type, price, amount, total, " \
                              "timest, date_time) values(%s, %s, %s, %s, %s, %s, %s, %s);"
 TRADE_HISTORY_TYPE_NAME = "trade_history"
 
 
-class OrderHistory(BaseData):
+class TradeHistory(BaseData):
     insert_query = ORDER_HISTORY_INSERT_QUERY
     type = TRADE_HISTORY_TYPE_NAME
 
@@ -78,7 +78,7 @@ class OrderHistory(BaseData):
 
         currency_pair = get_currency_pair_from_poloniex(pair)
 
-        return OrderHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.POLONIEX)
+        return TradeHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.POLONIEX)
 
     @classmethod
     def from_kraken(cls, json_document, pair, timest):
@@ -100,7 +100,7 @@ class OrderHistory(BaseData):
 
         currency_pair = get_currency_pair_from_kraken(pair)
 
-        return OrderHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.KRAKEN)
+        return TradeHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.KRAKEN)
 
 
     @classmethod
@@ -146,7 +146,7 @@ class OrderHistory(BaseData):
 
         currency_pair = get_currency_pair_from_bittrex(pair)
 
-        return OrderHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.BITTREX)
+        return TradeHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.BITTREX)
 
     @classmethod
     def from_binance(cls, json_document, pair, timest):
@@ -174,7 +174,7 @@ class OrderHistory(BaseData):
         amount = float(json_document["q"])
         total = price * amount
 
-        return OrderHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.BINANCE)
+        return TradeHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.BINANCE)
 
     @classmethod
     def from_string(cls, some_string):
@@ -190,7 +190,7 @@ class OrderHistory(BaseData):
         deal_timest = results[0][7]
         total = price * amount
 
-        return OrderHistory(currency_pair_id, deal_timest, deal_type, price, amount, total, exchange_id)
+        return TradeHistory(currency_pair_id, deal_timest, deal_type, price, amount, total, exchange_id)
 
     @classmethod
     def from_row(cls, db_row):
@@ -204,4 +204,4 @@ class OrderHistory(BaseData):
         total = db_row[6]
         deal_timest = db_row[7]
 
-        return OrderHistory(currency_pair_id, deal_timest, deal_type, price, amount, total, exchange_id)
+        return TradeHistory(currency_pair_id, deal_timest, deal_type, price, amount, total, exchange_id)

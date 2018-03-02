@@ -1,6 +1,6 @@
 from poloniex.constants import POLONIEX_GET_HISTORY
 
-from data.OrderHistory import OrderHistory
+from data.TradeHistory import TradeHistory
 
 from debug_utils import should_print_debug
 
@@ -30,7 +30,7 @@ def get_history_poloniex(pair_name, prev_time, now_time):
 
     if error_code == STATUS.SUCCESS and r is not None:
         for rr in r:
-            all_history_records.append(OrderHistory.from_poloniex(rr, pair_name, now_time))
+            all_history_records.append(TradeHistory.from_poloniex(rr, pair_name, now_time))
 
     return all_history_records
 
@@ -40,6 +40,6 @@ def get_history_poloniex_result_processor(json_document, pair_name, timest):
 
     if json_document is not None:
         for rr in json_document:
-            all_history_records.append(OrderHistory.from_poloniex(rr, pair_name, timest))
+            all_history_records.append(TradeHistory.from_poloniex(rr, pair_name, timest))
 
     return all_history_records
