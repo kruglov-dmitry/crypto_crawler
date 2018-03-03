@@ -94,7 +94,7 @@ def log_balance_expired(exchange_id, threshold, balance_state, msg_queue):
 
 
 def log_too_small_volume(order, max_volume, min_volume, msg_queue):
-    msg = """<b> !!! NOT ENOUGH BALANCE !!! </b>
+    msg = """<b> !!! NOT ENOUGH VOLUME !!! </b>
         Balance is not enough to place order
         {o}
         Determined volume is: {v}
