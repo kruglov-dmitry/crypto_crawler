@@ -67,6 +67,8 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
 
         min_volume = determine_minimum_volume(sell_order_book, buy_order_book, balance_state)
 
+        min_volume = adjust_minimum_volume_by_trading_cap(deal_cap, min_volume)
+
         min_volume = round_minimum_volume_by_exchange_rules(sell_order_book.exchange_id, buy_order_book.exchange_id,
                                                             min_volume, sell_order_book.pair_id)
 
@@ -295,6 +297,7 @@ def adjust_currency_balance(first_order_book, second_order_book, threshold, bala
 
     return deal_status
 
+
 def compute_new_min_cap_from_tickers(pair_id, tickers):
     min_price = 0.0
 
@@ -310,13 +313,15 @@ def compute_new_min_cap_from_tickers(pair_id, tickers):
     return 0.0
 
 
-def compute_min_cap_from_ticker(ticker):
+def compute_min_cap_from_ticker(pair_id, ticker):
     min_price = 0.0
 
     if ticker is not None:
         min_price = max(min_price, ticker.ask)
 
+    base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
+
     if min_price != 0.0:
-        return 0.004 / min_price
+        return MIN_VOLUME_COEFFICIENT[base_currency_id] / min_price
 
     return 0.0

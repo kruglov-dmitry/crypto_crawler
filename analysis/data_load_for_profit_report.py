@@ -28,10 +28,10 @@ from tqdm import tqdm
 
 
 def fetch_trades_history_to_db(pg_conn, start_time, end_time):
-    load_recent_binance_orders_to_db(pg_conn, start_time)
+    # load_recent_binance_orders_to_db(pg_conn, start_time)
     load_recent_binance_trades_to_db(pg_conn, start_time, end_time)
-    load_recent_poloniex_trades_to_db(pg_conn, start_time)
-    load_recent_bittrex_trades_to_db(pg_conn, start_time)
+    # load_recent_poloniex_trades_to_db(pg_conn, start_time)
+    # load_recent_bittrex_trades_to_db(pg_conn, start_time)
 
 
 def wrap_with_progress_bar(descr, input_array, functor, *args, **kwargs):
@@ -84,6 +84,8 @@ def receive_binance_trade_batch(key, pair_name, limit, last_order_id):
 
     error_code, json_document = get_trades_history_binance(key, pair_name, limit, last_order_id)
 
+    print json_document
+
     while error_code != STATUS.SUCCESS:
         print "receive_trade_batch: got error responce - Reprocessing"
         sleep_for(2)
@@ -104,7 +106,7 @@ def get_recent_binance_trades(pg_conn, start_time, end_time):
 
     key = get_key_by_exchange(EXCHANGE.BINANCE)
 
-    last_order_id = last_trade.deal_id if last_trade is not None else 0
+    last_order_id = 0 # last_trade.deal_id if last_trade is not None else 0
 
     print "last_order_id: ", last_order_id
 
@@ -112,6 +114,7 @@ def get_recent_binance_trades(pg_conn, start_time, end_time):
 
     binance_trades_by_pair = {}
     for pair_name in BINANCE_CURRENCY_PAIRS:
+
         trades_by_pair = []
 
         pair_id = get_currency_pair_from_binance(pair_name)
