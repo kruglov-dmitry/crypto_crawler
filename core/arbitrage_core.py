@@ -67,6 +67,8 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
 
         min_volume = determine_minimum_volume(sell_order_book, buy_order_book, balance_state)
 
+        min_volume = adjust_minimum_volume_by_trading_cap(deal_cap, min_volume)
+
         min_volume = round_minimum_volume_by_exchange_rules(sell_order_book.exchange_id, buy_order_book.exchange_id,
                                                             min_volume, sell_order_book.pair_id)
 
