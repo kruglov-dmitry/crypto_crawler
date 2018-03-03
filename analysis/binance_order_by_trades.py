@@ -4,6 +4,9 @@ from utils.file_utils import log_to_file
 from utils.currency_utils import get_pair_name_by_id
 from utils.string_utils import float_to_str
 
+from binance.currency_utils import get_currency_pair_to_binance
+from binance.precision_by_currency import round_volume_by_precisness_binance
+
 
 def group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_group_by_pair, binance_orders_at_bot):
     orders_with_trades = []
@@ -13,13 +16,27 @@ def group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_gr
     orders_to_check = []
     for order in binance_orders_at_bot:
         found = False
+
+        candidates = []
         for another_order in binance_orders_at_exchange:
             if order == another_order:
+                candidates.append(another_order)
                 # we still have to check time and volume and price:
                 if another_order.create_time >= order.create_time and \
                     abs(another_order.create_time - order.create_time) < 10 and \
                     abs(another_order.volume - order.volume) < 0.00001 and \
                         abs(another_order.price - order.price) < 0.00001:
+                    found = True
+                    orders_to_check.append(another_order)
+
+        if not found:
+            for b in candidates:
+                pair_name = get_currency_pair_to_binance(b.pair_id)
+                if another_order.create_time >= order.create_time and \
+                    abs(another_order.create_time - order.create_time) < 10 and \
+                        abs(another_order.price - order.price) < 0.00001  and \
+                        abs(float(round_volume_by_precisness_binance(pair_name, another_order.volume)) - order.volume) < 0.00001:
+
                     found = True
                     orders_to_check.append(another_order)
 

@@ -10,14 +10,15 @@ def find_order_bot_history(order_binance, order_bot_history):
     return None
 
 
-def prepare_data(pg_conn, start_time):
-    orders = get_all_orders(pg_conn, table_name="orders", time_start=start_time)
+def prepare_data(pg_conn, start_time, end_time):
+    orders = get_all_orders(pg_conn, table_name="arbitrage_orders", time_start=start_time, time_end=end_time)
     binance_orders_at_bot = [x for x in orders if x.exchange_id == EXCHANGE.BINANCE]
 
-    binance_orders_at_exchange = get_all_orders(pg_conn, table_name="binance_order_history", time_start=start_time)
+    binance_orders_at_exchange = get_all_orders(pg_conn, table_name="binance_order_history", time_start=start_time,
+                                                time_end=end_time)
     binance_orders_at_exchange.sort(key=lambda x: x.create_time, reverse=False)
 
-    history_trades = get_all_orders(pg_conn, table_name="arbitrage_trades", time_start=start_time)
+    history_trades = get_all_orders(pg_conn, table_name="arbitrage_trades", time_start=start_time, time_end=end_time)
 
     binance_trades = [x for x in history_trades if x.exchange_id == EXCHANGE.BINANCE]
     binance_trades.sort(key=lambda x: x.create_time, reverse=False)

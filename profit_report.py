@@ -5,7 +5,8 @@ import ConfigParser
 from dao.db import init_pg_connection
 
 from utils.key_utils import load_keys
-from utils.time_utils import get_now_seconds_utc
+from utils.time_utils import get_now_seconds_utc, parse_time
+from utils.file_utils import set_log_folder
 
 from analysis.data_load_for_profit_report import fetch_trades_history_to_db
 from analysis.binance_order_by_trades import group_binance_trades_per_order
@@ -30,23 +31,28 @@ if __name__ == "__main__":
     db_port = config.get("postgres", "db_port")
     db_name = config.get("postgres", "db_name")
 
-    # key_path = config.getint("common", "path_to_api_keys")
-    # start_time = config.getint("common", "start_time")
-    # end_time = config.getint("common", "end_time")
-
-    end_time = get_now_seconds_utc()
-    start_time = end_time - 10 * 24 * 60 * 60
-
     should_fetch_history_to_db = config.getboolean("common", "fetch_history_from_exchanges")
+
+    key_path = config.get("common", "path_to_api_keys")
+    log_folder = config.get("common", "logs_folder")
+
+    start_time = parse_time(config.get("common", "start_time"), '%Y-%m-%d %H:%M:%S')
+    end_time = parse_time(config.get("common", "end_time"), '%Y-%m-%d %H:%M:%S')
+
+    if start_time == end_time or end_time <= start_time:
+        print "Wrong time interval provided! {ts0} - {ts1}".format(ts0=start_time, ts1=end_time)
+        assert False
 
     pg_conn = init_pg_connection(_db_host=db_host, _db_port=db_port, _db_name=db_name)
 
-    load_keys("./secret_keys")
+    load_keys(key_path)
+    set_log_folder(log_folder)
 
     if should_fetch_history_to_db:
         fetch_trades_history_to_db(pg_conn, start_time, end_time)
 
-    orders, history_trades, binance_trades, binance_orders_at_bot, binance_orders_at_exchange = prepare_data(pg_conn, start_time)
+    orders, history_trades, binance_trades, binance_orders_at_bot, binance_orders_at_exchange = \
+        prepare_data(pg_conn, start_time, end_time)
 
     missing_orders, failed_orders, orders_with_trades = group_trades_by_orders(orders,
                                                                                history_trades,

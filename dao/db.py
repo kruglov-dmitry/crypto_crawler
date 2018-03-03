@@ -203,16 +203,17 @@ def save_order_into_pg(order, pg_conn, table_name="arbitrage_orders"):
     pg_conn.commit()
 
 
-def get_all_orders(pg_conn, table_name="arbitrage_orders", time_start=START_OF_TIME):
+def get_all_orders(pg_conn, table_name="arbitrage_orders", time_start=START_OF_TIME, time_end=START_OF_TIME):
     orders = []
 
-    if time_start == START_OF_TIME:
+    if time_start == START_OF_TIME and time_end == START_OF_TIME:
         select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, 
         order_book_time, create_time, execute_time from {table_name}""".format(table_name=table_name)
     else:
         select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, 
-        deal_id, order_book_time, create_time, execute_time from {table_name} where create_time >= {create_time}
-        """.format(table_name=table_name, create_time=time_start)
+        deal_id, order_book_time, create_time, execute_time from {table_name} where create_time >= {start_time}
+        and create_time <= {end_time}
+        """.format(table_name=table_name, start_time=time_start, end_time=time_end)
 
     cursor = pg_conn.get_cursor()
 

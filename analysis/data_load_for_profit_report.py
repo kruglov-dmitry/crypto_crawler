@@ -28,10 +28,10 @@ from tqdm import tqdm
 
 
 def fetch_trades_history_to_db(pg_conn, start_time, end_time):
-    # load_recent_binance_orders_to_db(pg_conn, start_time)
+    load_recent_binance_orders_to_db(pg_conn, start_time)
     load_recent_binance_trades_to_db(pg_conn, start_time, end_time)
-    # load_recent_poloniex_trades_to_db(pg_conn, start_time)
-    # load_recent_bittrex_trades_to_db(pg_conn, start_time)
+    load_recent_poloniex_trades_to_db(pg_conn, start_time)
+    load_recent_bittrex_trades_to_db(pg_conn, start_time)
 
 
 def wrap_with_progress_bar(descr, input_array, functor, *args, **kwargs):
