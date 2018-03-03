@@ -34,7 +34,7 @@ def log_currency_disbalance_heart_beat(src_exchange_id, dst_exchange_id, currenc
     msg = "No disbalance at Exchanges {exch1} {exch2} for {pair_id} with {thrs}".format(
         exch1=get_exchange_name_by_id(src_exchange_id),
         exch2=get_exchange_name_by_id(dst_exchange_id),
-        pair_id=get_pair_name_by_id(currency_id),
+        pair_id=get_currency_name_by_id(currency_id),
         thrs=treshold_reverse
     )
     print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)

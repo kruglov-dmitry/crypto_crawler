@@ -66,7 +66,7 @@ if __name__ == "__main__":
                 sleep_for(1)
                 balance_for_exchange = update_balance_by_exchange(exchange_id, cache)
 
-            for base_currency_id in [CURRENCY.BITCOIN, CURRENCY.ETH]: #  BASE_CURRENCY:
+            for base_currency_id in BASE_CURRENCY:
                 threshold = BASE_CURRENCIES_BALANCE_THRESHOLD[base_currency_id]
                 if not balance_for_exchange.do_we_have_enough(base_currency_id, threshold):
                     log_not_enough_base_currency(exchange_id, base_currency_id, threshold, balance_for_exchange, msg_queue)

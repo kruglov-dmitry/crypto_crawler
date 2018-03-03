@@ -171,8 +171,8 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
                                                    second_order_book.exchange_id,
                                                    min_volume,
                                                    second_order_book.ask[LAST].price):
-        min_volume = second_order_book.ask[LAST].price * balance_state.get_available_volume_by_currency(
-            base_currency_id, second_order_book.exchange_id)
+        min_volume = balance_state.get_available_volume_by_currency(
+            base_currency_id, second_order_book.exchange_id) / float(second_order_book.ask[LAST].price)
 
     return min_volume
 

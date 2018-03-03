@@ -46,9 +46,9 @@ class Balance(BaseData):
 
         return str_repr
 
-    def do_we_have_enough(self, currency_id, threahold):
+    def do_we_have_enough(self, currency_id, threshold):
         if currency_id in self.available_balance:
-            return self.available_balance[currency_id] > threahold
+            return self.available_balance[currency_id] > threshold
 
         print_to_console("do_we_have_enough: no currency {c_id} within Balance 0_o".format(
             c_id=get_currency_name_by_id(currency_id)), LOG_ALL_ERRORS)

@@ -72,7 +72,7 @@ def process_failed_order(order, msg_queue, priority_queue, local_cache, pg_conn)
     # According to common rules for expired & arbitrage order processing
 
     ticker = get_ticker(order.exchange_id, order.pair_id)
-    min_volume = compute_min_cap_from_ticker(ticker)
+    min_volume = compute_min_cap_from_ticker(order.pair_id, ticker)
     order_book = get_order_book(order.exchange_id, order.pair_id)
 
     if order_book is not None:

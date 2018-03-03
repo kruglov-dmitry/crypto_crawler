@@ -46,11 +46,11 @@ class BalanceState(BaseData):
     def do_we_have_enough_by_pair(self, pair_id, exchange_id, volume, price):
 
         # i.e. we are going to BUY volume of dst_currency by price
-        # using src_currency so we have to adjust volume
+        # using base_currency so we have to adjust volume
 
-        src_currency_id, dst_currency_id = split_currency_pairs(pair_id)
+        base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
 
-        return self.do_we_have_enough(src_currency_id, exchange_id, volume * price)
+        return self.do_we_have_enough(base_currency_id, exchange_id, volume * price)
 
     def do_we_have_enough(self, currency_id, exchange_id, volume):
         return self.balance_per_exchange[exchange_id].available_balance[currency_id] >= volume
