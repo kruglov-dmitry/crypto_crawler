@@ -35,7 +35,17 @@ def log_responce_cant_be_parsed(work_unit, file_name):
 
 
 def log_responce(work_unit):
-    msg = "For url {url} response {resp}".format(url=work_unit.url, resp=work_unit.future_result.value.json())
+    json_responce = ""
+    try:
+        json_responce = work_unit.future_result.value.json()
+    except:
+        pass
+
+    if len(json_responce) > 0:
+        msg = "For url {url} response {resp}".format(url=work_unit.url, resp=json_responce)
+    else:
+        msg = "For url {url} response {status_code}".format(url=work_unit.url, status_code=work_unit.future_result.value)
+
     log_to_file(msg, POST_RESPONCE_FILE_NAME)
 
 

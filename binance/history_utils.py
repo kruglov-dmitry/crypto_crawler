@@ -1,6 +1,6 @@
 from binance.constants import BINANCE_GET_HISTORY
 
-from data.OrderHistory import OrderHistory
+from data.TradeHistory import TradeHistory
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_OTHER_STUFF
 
@@ -42,7 +42,7 @@ def get_history_binance(pair_name, prev_time, now_time):
 		  }
         """
         for record in r:
-            all_history_records.append(OrderHistory.from_binance(record, pair_name, now_time))
+            all_history_records.append(TradeHistory.from_binance(record, pair_name, now_time))
 
     return all_history_records
 
@@ -64,6 +64,6 @@ def get_history_binance_result_processor(json_document, pair_name, timest):
           }
         """
         for record in json_document:
-            all_history_records.append(OrderHistory.from_binance(record, pair_name, timest))
+            all_history_records.append(TradeHistory.from_binance(record, pair_name, timest))
 
     return all_history_records

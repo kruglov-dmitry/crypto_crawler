@@ -1,6 +1,6 @@
 from bittrex.constants import BITTREX_GET_HISTORY
 
-from data.OrderHistory import OrderHistory
+from data.TradeHistory import TradeHistory
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_OTHER_STUFF
 
@@ -29,7 +29,7 @@ def get_history_bittrex(pair_name, prev_time, now_time):
 
     if error_code == STATUS.SUCCESS and r is not None and "result" in r:
         for rr in r["result"]:
-            all_history_records.append(OrderHistory.from_bittrex(rr, pair_name, now_time))
+            all_history_records.append(TradeHistory.from_bittrex(rr, pair_name, now_time))
 
     return all_history_records
 
@@ -39,6 +39,6 @@ def get_history_bittrex_result_processor(json_document, pair_name, timest):
 
     if json_document is not None and "result" in json_document and json_document["result"] is not None:
         for rr in json_document["result"]:
-            all_history_records.append(OrderHistory.from_bittrex(rr, pair_name, timest))
+            all_history_records.append(TradeHistory.from_bittrex(rr, pair_name, timest))
 
     return all_history_records

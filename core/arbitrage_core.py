@@ -5,7 +5,7 @@ sys.setrecursionlimit(10000)
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 
 from utils.time_utils import get_now_seconds_utc
-from utils.currency_utils import split_currency_pairs, get_currency_name_by_id
+from utils.currency_utils import split_currency_pairs
 from utils.file_utils import log_to_file
 
 from core.base_analysis import get_change
@@ -20,7 +20,7 @@ from data.TradePair import TradePair
 from data_access.memory_cache import get_next_arbitrage_id
 
 from binance.precision_by_currency import round_minimum_volume_by_binance_rules
-from constants import FIRST, LAST, NO_MAX_CAP_LIMIT
+from constants import FIRST, LAST, NO_MAX_CAP_LIMIT, MIN_VOLUME_COEFFICIENT
 
 from core.arbitrage_core_logging import log_arbitrage_heart_beat, log_arbitrage_determined_volume_not_enough, \
     log_currency_disbalance_present, log_currency_disbalance_heart_beat, log_arbitrage_determined_price_not_enough
@@ -67,12 +67,10 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
 
         min_volume = determine_minimum_volume(sell_order_book, buy_order_book, balance_state)
 
-        min_volume = adjust_minimum_volume_by_trading_cap(sell_order_book, buy_order_book, deal_cap, min_volume)
-
         min_volume = round_minimum_volume_by_exchange_rules(sell_order_book.exchange_id, buy_order_book.exchange_id,
                                                             min_volume, sell_order_book.pair_id)
 
-        min_volume = adjust_maximum_volume_by_trading_cap(sell_order_book, buy_order_book, deal_cap, min_volume)
+        min_volume = adjust_maximum_volume_by_trading_cap(deal_cap, min_volume)
 
         if min_volume <= 0:
             log_arbitrage_determined_volume_not_enough(sell_order_book, buy_order_book, msg_queue)
@@ -110,6 +108,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
 
         # REMOVE ME I AM DEBUG
 
+        """
         log_to_file("SELL ORDER BOOK", "order_book.log")
         log_to_file(trade_at_first_exchange, "order_book.log")
         log_to_file("BIDS", "order_book.log")
@@ -121,7 +120,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
         log_to_file("ASKS", "order_book.log")
         for every_ask in buy_order_book.ask:
             log_to_file(every_ask, "order_book.log")
-
+        """
         # REMOVE ME I AM DEBUG
 
         deal_status = placement_status, trade_pair
@@ -176,41 +175,41 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
     return min_volume
 
 
-def determine_maximum_volume_by_balance(pair_id, deal_type, min_volume, price, balance):
+def determine_maximum_volume_by_balance(pair_id, deal_type, volume, price, balance):
     base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
 
     if deal_type == DEAL_TYPE.SELL:
         # What is maximum volume we can SELL at exchange
-        if not balance.do_we_have_enough(dst_currency_id, min_volume):
-            min_volume = balance.available_balance[dst_currency_id]
+        if not balance.do_we_have_enough(dst_currency_id, volume):
+            volume = balance.available_balance[dst_currency_id]
     elif deal_type == DEAL_TYPE.BUY:
         # what is maximum volume we can buy at exchange
-        if not balance.do_we_have_enough(base_currency_id, min_volume * price):
-            min_volume = price * balance.available_balance[base_currency_id]
+        if not balance.do_we_have_enough(base_currency_id, volume * price):
+            volume = price * balance.available_balance[base_currency_id]
     else:
 
         assert deal_type not in [DEAL_TYPE.BUY, DEAL_TYPE.SELL]
 
-    return min_volume
+    return volume
 
 
-def adjust_minimum_volume_by_trading_cap(first_order_book, second_order_book, deal_cap, min_volume):
-    if min_volume < deal_cap.get_min_volume_cap_by_dst(first_order_book.pair_id):
+def adjust_minimum_volume_by_trading_cap(deal_cap, min_volume):
+    if min_volume < deal_cap.get_min_volume_cap():
         min_volume = -1  # Yeap, no need to even bother
 
     return min_volume
 
 
-def adjust_maximum_volume_by_trading_cap(sell_order_book, buy_order_book, deal_cap, min_volume):
+def adjust_maximum_volume_by_trading_cap(deal_cap, volume):
 
-    if deal_cap.get_max_volume_cap_by_dst(sell_order_book.pair_id) == NO_MAX_CAP_LIMIT:
+    if deal_cap.get_max_volume_cap() == NO_MAX_CAP_LIMIT:
         # so we treat it as no max cap
-        return min_volume
+        return volume
 
-    if min_volume > deal_cap.get_max_volume_cap_by_dst(sell_order_book.pair_id):
-        return deal_cap.get_max_volume_cap_by_dst(sell_order_book.pair_id)
+    if volume > deal_cap.get_max_volume_cap():
+        return deal_cap.get_max_volume_cap()
 
-    return min_volume
+    return volume
 
 
 def round_minimum_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, min_volume, pair_id):
@@ -283,7 +282,7 @@ def adjust_currency_balance(first_order_book, second_order_book, threshold, bala
                             balance_state.get_available_volume_by_currency(dst_currency_id, src_exchange_id))
 
         # FIXME NOTE: side effect here
-        deal_cap.update_max_cap(pair_id, max_volume)
+        deal_cap.update_max_volume_cap(max_volume)
 
         log_currency_disbalance_present(src_exchange_id, dst_exchange_id, pair_id, dst_currency_id,
                                         balance_threshold, max_volume, threshold)
@@ -296,16 +295,17 @@ def adjust_currency_balance(first_order_book, second_order_book, threshold, bala
 
     return deal_status
 
-
-def compute_new_min_cap_from_tickers(tickers):
+def compute_new_min_cap_from_tickers(pair_id, tickers):
     min_price = 0.0
 
     for ticker in tickers:
         if ticker is not None:
             min_price = max(min_price, ticker.ask)
 
+    base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
+
     if min_price != 0.0:
-        return 0.004 / min_price
+        return MIN_VOLUME_COEFFICIENT[base_currency_id] / min_price
 
     return 0.0
 

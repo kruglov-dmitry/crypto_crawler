@@ -1,7 +1,6 @@
 from BaseData import BaseData
 from constants import ARBITRAGE_CURRENCY, ZERO_BALANCE
 from enums.exchange import EXCHANGE
-from enums.currency import CURRENCY
 
 from utils.currency_utils import get_currency_name_by_id
 from utils.exchange_utils import get_exchange_name_by_id
@@ -47,13 +46,6 @@ class Balance(BaseData):
 
         return str_repr
 
-    def do_we_have_enough_bitcoin(self, threahold):
-        if CURRENCY.BITCOIN in self.available_balance:
-            return self.available_balance[CURRENCY.BITCOIN] > threahold
-
-        print_to_console("do_we_have_enough_bitcoin: no bitcoin within Balance 0_o", LOG_ALL_ERRORS)
-        return False
-
     def do_we_have_enough(self, currency_id, threahold):
         if currency_id in self.available_balance:
             return self.available_balance[currency_id] > threahold
@@ -62,8 +54,12 @@ class Balance(BaseData):
             c_id=get_currency_name_by_id(currency_id)), LOG_ALL_ERRORS)
         return False
 
-    def get_bitcoin_balance(self):
-        return self.available_balance.get(CURRENCY.BITCOIN)
+    def get_balance(self, currency_id):
+        if currency_id in self.available_balance:
+            return self.available_balance.get(currency_id)
+
+        # FIXME fail fast!11
+        raise
 
     def expired(self, threshold):
         diff1 = get_now_seconds_utc() - self.last_update
