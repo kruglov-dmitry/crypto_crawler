@@ -154,6 +154,7 @@ def get_currency_pair_from_binance(pair_name):
         'BCCUSDT': CURRENCY_PAIR.USDT_TO_BCC,
         'ETHUSDT': CURRENCY_PAIR.USDT_TO_ETH,
         'NEOUSDT': CURRENCY_PAIR.USDT_TO_NEO,
+        'LTCUSDT': CURRENCY_PAIR.USDT_TO_LTC,
     }.get(pair_name)
 
 
@@ -221,4 +222,5 @@ def get_currency_pair_to_binance(pair_id):
         CURRENCY_PAIR.USDT_TO_BCC: 'BCCUSDT',
         CURRENCY_PAIR.USDT_TO_ETH: 'ETHUSDT',
         CURRENCY_PAIR.USDT_TO_NEO: 'NEOUSDT',
+        CURRENCY_PAIR.USDT_TO_LTC: 'LTCUSDT',
     }.get(pair_id)

@@ -23,8 +23,7 @@ BINANCE_CURRENCY_PAIRS = ["DASHBTC", "ETHBTC", "LTCBTC", "XRPBTC", "BCCBTC", "ET
                           "NEOETH", "QTUMETH", "EOSETH", "IOTAETH", "BTGETH", "WTCETH", "KNCETH", "BATETH", "ZRXETH",
                           "RDNETH", "ADAETH", "RCNETH", "ICXETH", "WABIETH", "XLMETH", "TRXETH", "AIONETH", "QSPETH",
                           "ARKETH", "STRATETH", "LTCETH",
-                          "BTCUSDT", "ETHUSDT", "BCCUSDT",
-                          "NEOUSDT"
+                          "BTCUSDT", "ETHUSDT", "BCCUSDT", "NEOUSDT", "LTCUSDT"
                           ]
 
 BINANCE_NUM_OF_DEAL_RETRY = 1
