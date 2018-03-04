@@ -325,7 +325,7 @@ PRECISION_NUMBER = {
 }
 
 
-def round_minimum_volume_by_binance_rules(volume, pair_id):
+def round_volume_by_binance_rules(volume, pair_id):
     pair_name = get_currency_pair_to_binance(pair_id)
     base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
     return truncate_float(volume, PRECISION_NUMBER[base_currency_id][pair_name])

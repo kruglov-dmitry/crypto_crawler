@@ -19,7 +19,7 @@ from data.TradePair import TradePair
 
 from data_access.memory_cache import get_next_arbitrage_id
 
-from binance.precision_by_currency import round_minimum_volume_by_binance_rules
+from binance.precision_by_currency import round_volume_by_binance_rules
 from constants import FIRST, LAST, NO_MAX_CAP_LIMIT, MIN_VOLUME_COEFFICIENT, MAX_VOLUME_COEFFICIENT
 
 from core.arbitrage_core_logging import log_arbitrage_heart_beat, log_arbitrage_determined_volume_not_enough, \
@@ -69,10 +69,10 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
 
         min_volume = adjust_minimum_volume_by_trading_cap(deal_cap, min_volume)
 
-        min_volume = round_minimum_volume_by_exchange_rules(sell_order_book.exchange_id, buy_order_book.exchange_id,
-                                                            min_volume, sell_order_book.pair_id)
-
         min_volume = adjust_maximum_volume_by_trading_cap(deal_cap, min_volume)
+
+        min_volume = round_volume_by_exchange_rules(sell_order_book.exchange_id, buy_order_book.exchange_id,
+                                                    min_volume, sell_order_book.pair_id)
 
         if min_volume <= 0:
             log_arbitrage_determined_volume_not_enough(sell_order_book, buy_order_book, msg_queue)
@@ -214,15 +214,15 @@ def adjust_maximum_volume_by_trading_cap(deal_cap, volume):
     return volume
 
 
-def round_minimum_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, min_volume, pair_id):
+def round_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, min_volume, pair_id):
     if sell_exchange_id == EXCHANGE.BINANCE or buy_exchange_id == EXCHANGE.BINANCE:
-        return round_minimum_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
+        return round_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
     return min_volume
 
 
 def round_volume(exchange_id, min_volume, pair_id):
     if exchange_id == EXCHANGE.BINANCE:
-        return round_minimum_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
+        return round_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
 
     return min_volume
 
