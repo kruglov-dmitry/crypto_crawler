@@ -20,7 +20,7 @@ from data.TradePair import TradePair
 from data_access.memory_cache import get_next_arbitrage_id
 
 from binance.precision_by_currency import round_minimum_volume_by_binance_rules
-from constants import FIRST, LAST, NO_MAX_CAP_LIMIT, MIN_VOLUME_COEFFICIENT
+from constants import FIRST, LAST, NO_MAX_CAP_LIMIT, MIN_VOLUME_COEFFICIENT, MAX_VOLUME_COEFFICIENT
 
 from core.arbitrage_core_logging import log_arbitrage_heart_beat, log_arbitrage_determined_volume_not_enough, \
     log_currency_disbalance_present, log_currency_disbalance_heart_beat, log_arbitrage_determined_price_not_enough
@@ -171,8 +171,8 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
                                                    second_order_book.exchange_id,
                                                    min_volume,
                                                    second_order_book.ask[LAST].price):
-        min_volume = balance_state.get_available_volume_by_currency(
-            base_currency_id, second_order_book.exchange_id) / float(second_order_book.ask[LAST].price)
+        min_volume = ( MAX_VOLUME_COEFFICIENT * balance_state.get_available_volume_by_currency(
+            base_currency_id, second_order_book.exchange_id)) / float(second_order_book.ask[LAST].price)
 
     return min_volume
 
@@ -187,7 +187,7 @@ def determine_maximum_volume_by_balance(pair_id, deal_type, volume, price, balan
     elif deal_type == DEAL_TYPE.BUY:
         # what is maximum volume we can buy at exchange
         if not balance.do_we_have_enough(base_currency_id, volume * price):
-            volume = price / float(balance.available_balance[base_currency_id])
+            volume = (MAX_VOLUME_COEFFICIENT * price) / float(balance.available_balance[base_currency_id])
     else:
 
         assert deal_type not in [DEAL_TYPE.BUY, DEAL_TYPE.SELL]
