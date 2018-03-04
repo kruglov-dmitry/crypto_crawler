@@ -187,7 +187,7 @@ def determine_maximum_volume_by_balance(pair_id, deal_type, volume, price, balan
     elif deal_type == DEAL_TYPE.BUY:
         # what is maximum volume we can buy at exchange
         if not balance.do_we_have_enough(base_currency_id, volume * price):
-            volume = price * balance.available_balance[base_currency_id]
+            volume = price / float(balance.available_balance[base_currency_id])
     else:
 
         assert deal_type not in [DEAL_TYPE.BUY, DEAL_TYPE.SELL]
