@@ -1,8 +1,10 @@
 from collections import defaultdict, Counter
 
+from analysis.classes.LossDetails import LossDetails
+
 from enums.deal_type import DEAL_TYPE
 from utils.exchange_utils import get_fee_by_exchange, get_exchange_name_by_id
-from utils.currency_utils import get_pair_name_by_id
+from utils.currency_utils import get_pair_name_by_id, get_currency_name_by_id, split_currency_pairs
 from utils.file_utils import log_to_file
 from utils.string_utils import float_to_str
 from utils.time_utils import ts_to_string
@@ -16,7 +18,7 @@ def compute_profit_by_pair(pair_id, trades_to_order_by_pair):
     file_name = get_pair_name_by_id(pair_id) + "_trace.txt"
 
     profit_coin = 0.0
-    profit_bitcoin = 0.0
+    profit_base_currency = 0.0
 
     orders_by_arbitrage_id = defaultdict(list)
     # 1 stage group by arbitrage id
@@ -27,7 +29,8 @@ def compute_profit_by_pair(pair_id, trades_to_order_by_pair):
     for arbitrage_id in orders_by_arbitrage_id:
         if len(orders_by_arbitrage_id[arbitrage_id]) == 1:
             number_of_missing_pair += 1
-            msg = "Can't find paired arbitrage order for {arbitrage_id} {o}".format(arbitrage_id=arbitrage_id, o=orders_by_arbitrage_id[arbitrage_id][0])
+            msg = "Can't find paired arbitrage order for {arbitrage_id} {o}".format(
+                arbitrage_id=arbitrage_id, o=orders_by_arbitrage_id[arbitrage_id][0])
             log_to_file(msg, file_name)
             continue
         else:
@@ -37,22 +40,22 @@ def compute_profit_by_pair(pair_id, trades_to_order_by_pair):
                 if order.trade_type == DEAL_TYPE.BUY:
                     for trade in trades:
                         profit_coin += trade.executed_volume
-                        bitcoin_volume = trade.executed_volume * trade.price * 0.01 * (100 + get_fee_by_exchange(trade.exchange_id))
-                        profit_bitcoin -= bitcoin_volume
+                        base_currency_volume = trade.executed_volume * trade.price * 0.01 * (100 + get_fee_by_exchange(trade.exchange_id))
+                        profit_base_currency -= base_currency_volume
                         msg = """Analysing trade {o}
                         ADD coin volume = {cv}
-                        SUBTRACT bitcoin = {btc}
-                        """.format(o=trade, cv=trade.executed_volume, btc=bitcoin_volume)
+                        SUBTRACT base currency = {base}
+                        """.format(o=trade, cv=trade.executed_volume, base=base_currency_volume)
                         log_to_file(msg, file_name)
                 elif order.trade_type == DEAL_TYPE.SELL:
                     for trade in trades:
                         profit_coin -= trade.executed_volume
-                        bitcoin_volume = trade.executed_volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id))
-                        profit_bitcoin += bitcoin_volume
+                        base_currency_volume = trade.executed_volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id))
+                        profit_base_currency += base_currency_volume
                         msg = """Analysing trade {o}
                         SUBTRACT coin volume = {cv}
-                        ADD bitcoin = {btc}
-                        """.format(o=trade, cv=trade.executed_volume, btc=bitcoin_volume)
+                        ADD base currency = {base}
+                        """.format(o=trade, cv=trade.executed_volume, base=base_currency_volume)
                         log_to_file(msg, file_name)
                 else:
                     print "WE HAVE WRONG trade_type", order.trade_type
@@ -61,7 +64,7 @@ def compute_profit_by_pair(pair_id, trades_to_order_by_pair):
     msg = "For {pair_name} Number of missing paired order is {num}".format(pair_name=get_pair_name_by_id(pair_id), num=number_of_missing_pair)
     log_to_file(msg, file_name)
 
-    return profit_coin, profit_bitcoin
+    return profit_coin, profit_base_currency
 
 
 def compute_loss(trades_to_order_by_pair):
@@ -83,34 +86,38 @@ def compute_loss(trades_to_order_by_pair):
         cnt += 1
         orders_by_pair[order.pair_id].append( (order, trades_list) )
 
-    loss_by_coin = Counter()
-    loss_by_coin_bitcoin = Counter()
+    loss_details = defaultdict(list)
+    loss_details_total = Counter()
 
     for pair_id in orders_by_pair:
-        loss_by_coin[pair_id], loss_by_coin_bitcoin[pair_id] = compute_loss_by_pair(orders_by_pair[pair_id])
+        loss_by_coin, loss_by_base_coin = compute_loss_by_pair(orders_by_pair[pair_id])
+        base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
+        loss_details[base_currency_id].append(LossDetails(base_currency_id, dst_currency_id, pair_id, loss_by_coin, loss_by_base_coin))
 
-    return loss_by_coin, loss_by_coin_bitcoin
+        loss_details_total[base_currency_id] += loss_by_base_coin
+
+    return loss_details, loss_details_total
 
 
 def compute_loss_by_pair(orders_and_trades_by_pair):
     volume_pair = 0.0
-    volume_bitcoin = 0.0
+    volume_base_currency = 0.0
 
     for order, trade_list in orders_and_trades_by_pair:
         if order.trade_type == DEAL_TYPE.BUY:
             for trade in trade_list:
                 volume_pair += trade.executed_volume
-                volume_bitcoin -= trade.executed_volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id))
+                volume_base_currency -= trade.executed_volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id))
         elif order.trade_type == DEAL_TYPE.SELL:
             for trade in trade_list:
                 volume_pair -= trade.executed_volume
-                volume_bitcoin += trade.executed_volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id))
+                volume_base_currency += trade.executed_volume * trade.price * 0.01 * (100 - get_fee_by_exchange(trade.exchange_id))
 
-    return volume_pair, volume_bitcoin
+    return volume_pair, volume_base_currency
 
 
-def save_report(start_time, end_time, overall_profit, profit_by_pairs, profit_by_pair_bitcoins,
-                missing_orders, failed_orders, loss_by_pair, loss_by_pair_bitcoin,
+def save_report(start_time, end_time, profit_by_base, profit_details,
+                missing_orders, failed_orders, loss_details, loss_by_base,
                 orders, history_trades,
                 file_name="what_we_have_at_the_end.log"):
     msg = "Profit report for time period of {t1} - {t2}".format(t1=ts_to_string(start_time), t2=ts_to_string(end_time))
@@ -124,16 +131,14 @@ def save_report(start_time, end_time, overall_profit, profit_by_pairs, profit_by
     log_to_file("For them we registered - {p} orders".format(p=len(orders)), file_name)
     log_to_file("Resulted number of trades - {p}".format(p=len(history_trades)), file_name)
 
-    log_to_file("Total profit - {p}".format(p=overall_profit), file_name)
+    for base_currency_id in profit_details:
 
-    log_to_file("\t\tProfit by pairs", file_name)
-
-    for pair_id in profit_by_pairs:
-        pair_name = get_pair_name_by_id(pair_id)
-        log_to_file("PairName: {pn}     Volume: {p}     BTC: {btc}".format(pn=pair_name,
-                                                                           p=float_to_str(profit_by_pairs[pair_id]),
-                                                                           btc=float_to_str(profit_by_pair_bitcoins[pair_id])),
+        log_to_file("\t\tTotal profit by {cn} - {nn}".format(cn=get_currency_name_by_id(base_currency_id),
+                                                             nn=float_to_str(profit_by_base[base_currency_id])),
                     file_name)
+
+        for details_by_pair_id in profit_details[base_currency_id]:
+            log_to_file(details_by_pair_id, file_name)
 
     total_number_missing = 0
     for entry in missing_orders:
@@ -171,9 +176,10 @@ def save_report(start_time, end_time, overall_profit, profit_by_pairs, profit_by
 
     log_to_file("\t\tLOSS DETAILS", file_name)
 
-    for pair_id in loss_by_pair_bitcoin:
-        pair_name = get_pair_name_by_id(pair_id)
-        log_to_file("PairName: {pn}     Volume: {p}     BTC: {btc}".format(pn=pair_name,
-                                                                           p=float_to_str(loss_by_pair[pair_id]),
-                                                                           btc=float_to_str(loss_by_pair_bitcoin[pair_id])),
+    for base_currency_id in loss_details:
+        log_to_file("\t\tLoss details by {cn} - {nn}".format(cn=get_currency_name_by_id(base_currency_id),
+                                                             nn=float_to_str(loss_by_base[base_currency_id])),
                     file_name)
+
+        for details_by_pair_id in loss_details[base_currency_id]:
+            log_to_file(details_by_pair_id, file_name)

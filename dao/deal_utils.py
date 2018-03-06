@@ -11,7 +11,7 @@ from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
 
-from utils.currency_utils import get_currency_pair_name_by_exchange_id
+from utils.currency_utils import get_currency_pair_name_by_exchange_id, split_currency_pairs, get_currency_name_by_id
 from utils.file_utils import log_to_file
 from utils.key_utils import get_key_by_exchange
 from utils.string_utils import float_to_str
@@ -105,18 +105,23 @@ def return_with_no_change(json_document, corresponding_trade):
 
 
 def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor, msg_queue):
+
+    # FIXME move after deal placement ?
+
     global overall_profit_so_far
     overall_profit_so_far += trade_pairs.current_profit
 
+    base_currency_id, dst_currency_id = split_currency_pairs(trade_pairs.deal_1.pair_id)
+
     msg = """We try to send following deals to exchange.
-        <b>Expected profit:</b> <i>{cur}</i>.
+        <b>Expected profit in {base_coin}:</b> <i>{cur}</i>.
         <b>Overall:</b> <i>{tot}</i>
         <b>Difference in percents:</b> <i>{diff}</i>
 
                 Deal details:
         {deal}
-        """.format(cur=float_to_str(trade_pairs.current_profit), tot=float_to_str(overall_profit_so_far),
-                   diff=difference, deal=str(trade_pairs))
+        """.format(base_coin=get_currency_name_by_id(base_currency_id), cur=float_to_str(trade_pairs.current_profit),
+                   tot=float_to_str(overall_profit_so_far), diff=difference, deal=str(trade_pairs))
 
     msg_queue.add_message(DEAL_INFO_MSG, msg)
     log_to_file(msg, file_name)

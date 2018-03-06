@@ -13,7 +13,7 @@ from bittrex.currency_utils import get_currency_pair_to_bittrex
 
 from utils.key_utils import get_key_by_exchange
 from utils.time_utils import sleep_for
-from utils.currency_utils import CURRENCY_PAIR
+from utils.currency_utils import CURRENCY_PAIR, get_pair_name_by_id
 
 from data.Trade import Trade
 from dao.db import save_order_into_pg, is_order_present_in_order_history, get_last_binance_trade, \
@@ -27,9 +27,9 @@ from enums.status import STATUS
 from tqdm import tqdm
 
 
-def fetch_trades_history_to_db(pg_conn, start_time, end_time):
+def fetch_trades_history_to_db(pg_conn, start_time, end_time, fetch_from_start):
     load_recent_binance_orders_to_db(pg_conn, start_time)
-    load_recent_binance_trades_to_db(pg_conn, start_time, end_time)
+    load_recent_binance_trades_to_db(pg_conn, start_time, end_time, fetch_from_start)
     load_recent_poloniex_trades_to_db(pg_conn, start_time)
     load_recent_bittrex_trades_to_db(pg_conn, start_time)
 
@@ -97,19 +97,18 @@ def receive_binance_trade_batch(key, pair_name, limit, last_order_id):
     return trades_by_pair
 
 
-def get_recent_binance_trades(pg_conn, start_time, end_time):
-
-    # 1 get the most recent trade_id from db for that date
-    last_trade = get_last_binance_trade(pg_conn, start_time, table_name="arbitrage_trades")
-
-    # 2 sequentially query binance
-
+def get_recent_binance_trades(pg_conn, start_time, end_time, force_from_start):
     key = get_key_by_exchange(EXCHANGE.BINANCE)
 
-    last_order_id = 0 # last_trade.deal_id if last_trade is not None else 0
+    last_order_id = 0
+    if not force_from_start:
+        # 1 get the most recent trade_id from db for that date
+        last_trade = get_last_binance_trade(pg_conn, start_time, table_name="arbitrage_trades")
+        last_order_id = last_trade.deal_id if last_trade is not None else 0
 
     print "last_order_id: ", last_order_id
 
+    # 2 sequentially query binance
     limit = 200
 
     binance_trades_by_pair = {}
@@ -127,7 +126,9 @@ def get_recent_binance_trades(pg_conn, start_time, end_time):
 
             # Biggest = Latest - will be first
             recent_trades.sort(key=lambda x: long(x.deal_id), reverse=True)
-            trades_by_pair += recent_trades
+            for entry in recent_trades:
+                if start_time <= entry.create_time <= end_time:
+                    trades_by_pair.append(entry)
 
             if len(recent_trades) < limit:
                 break
@@ -150,13 +151,14 @@ def get_recent_binance_trades(pg_conn, start_time, end_time):
             else:
                 break
 
+        print "Pair_id", get_pair_name_by_id(pair_id), len(trades_by_pair)
         binance_trades_by_pair[pair_id] = trades_by_pair
 
     return binance_trades_by_pair
 
 
-def load_recent_binance_trades_to_db(pg_conn, start_time, end_time, unique_only=True):
-    binance_trades_by_pair = get_recent_binance_trades(pg_conn, start_time, end_time)
+def load_recent_binance_trades_to_db(pg_conn, start_time, end_time, force_from_start=False, unique_only=True):
+    binance_trades_by_pair = get_recent_binance_trades(pg_conn, start_time, end_time, force_from_start)
 
     for pair_id in binance_trades_by_pair:
         headline = "Loading recent binance trades - {p}".format(p=get_currency_pair_to_binance(pair_id))

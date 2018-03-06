@@ -7,6 +7,7 @@ from dao.db import init_pg_connection
 from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, parse_time
 from utils.file_utils import set_log_folder
+from utils.currency_utils import split_currency_pairs
 
 from analysis.data_load_for_profit_report import fetch_trades_history_to_db
 from analysis.binance_order_by_trades import group_binance_trades_per_order
@@ -14,6 +15,7 @@ from analysis.binance_order_by_trades import group_binance_trades_per_order
 from analysis.grouping_utils import group_trades_by_orders, group_by_pair_id
 from analysis.data_preparation import prepare_data
 from analysis.profit_report_analysis import compute_loss, compute_profit_by_pair, save_report
+from analysis.classes.ProfitDetails import ProfitDetails
 
 
 if __name__ == "__main__":
@@ -32,6 +34,7 @@ if __name__ == "__main__":
     db_name = config.get("postgres", "db_name")
 
     should_fetch_history_to_db = config.getboolean("common", "fetch_history_from_exchanges")
+    fetch_from_start = config.getboolean("common", "fetch_from_start")
 
     key_path = config.get("common", "path_to_api_keys")
     log_folder = config.get("common", "logs_folder")
@@ -49,7 +52,7 @@ if __name__ == "__main__":
     set_log_folder(log_folder)
 
     if should_fetch_history_to_db:
-        fetch_trades_history_to_db(pg_conn, start_time, end_time)
+        fetch_trades_history_to_db(pg_conn, start_time, end_time, fetch_from_start)
 
     orders, history_trades, binance_trades, binance_orders_at_bot, binance_orders_at_exchange = \
         prepare_data(pg_conn, start_time, end_time)
@@ -68,19 +71,24 @@ if __name__ == "__main__":
     # 3 stage - bucketing all that crap by pair_id
     trades_to_order = defaultdict(list)
     for order, trade_list in orders_with_trades:
-        trades_to_order[order.pair_id].append( (order, trade_list))
+        trades_to_order[order.pair_id].append((order, trade_list))
 
-    profit_by_pairs = Counter()
-    profit_by_pair_bitcoins = Counter()
+    total_profit_by_base = Counter()
+    profit_details = defaultdict(list)
 
     for pair_id in trades_to_order:
-        profit_by_pairs[pair_id], profit_by_pair_bitcoins[pair_id] = compute_profit_by_pair(pair_id, trades_to_order[pair_id])
+        profit_pair, profit_base = compute_profit_by_pair(pair_id, trades_to_order[pair_id])
+        base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
 
-    overall_profit = sum(profit_by_pair_bitcoins.itervalues())
+        total_profit_by_base[base_currency_id] += profit_base
 
-    loss_by_pair, loss_by_pair_bitcoin = compute_loss(orders_with_trades)
+        profit_details[base_currency_id].append(
+            ProfitDetails(base_currency_id, dst_currency_id, pair_id, profit_pair, profit_base)
+        )
 
-    save_report(start_time, end_time, overall_profit, profit_by_pairs, profit_by_pair_bitcoins,
-                missing_orders, failed_orders, loss_by_pair, loss_by_pair_bitcoin,
+    loss_details, total_loss_by_base = compute_loss(orders_with_trades)
+
+    save_report(start_time, end_time, total_profit_by_base, profit_details,
+                missing_orders, failed_orders, loss_details, total_loss_by_base,
                 orders, history_trades
                 )
