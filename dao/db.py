@@ -8,6 +8,7 @@ from data_access.postgres_connection import PostgresConnection
 from utils.time_utils import get_date_time_from_epoch
 from utils.file_utils import log_to_file
 from utils.currency_utils import split_currency_pairs
+from utils.string_utils import truncate_float
 
 from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME, FAILED_ORDER_PROCESSING_FILE_NAME
 from constants import START_OF_TIME
@@ -77,8 +78,8 @@ def load_to_postgres(array, pattern_name, pg_conn):
 def save_alarm_into_pg(src_ticker, dst_ticker, pg_conn):
     cur = pg_conn.get_cursor()
 
-    PG_INSERT_QUERY = "insert into alarms(src_exchange_id, dst_exchange_id, src_pair_id, dst_pair_id, src_ask_price, dst_bid_price, timest, date_time) " \
-                      "values(%s, %s, %s, %s, %s, %s, %s, %s);"
+    PG_INSERT_QUERY = "insert into alarms(src_exchange_id, dst_exchange_id, src_pair_id, dst_pair_id, src_ask_price, " \
+                      "dst_bid_price, timest, date_time) values(%s, %s, %s, %s, %s, %s, %s, %s);"
     args_list = (
         src_ticker.exchange_id,
         dst_ticker.exchange_id,
@@ -175,8 +176,8 @@ def get_arbitrage_id(pg_conn):
 def save_order_into_pg(order, pg_conn, table_name="arbitrage_orders"):
     cur = pg_conn.get_cursor()
 
-    PG_INSERT_QUERY = "insert into {table_name}(arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, " \
-                      "order_book_time, create_time, execute_time, execute_time_date) " \
+    PG_INSERT_QUERY = "insert into {table_name}(arbitrage_id, exchange_id, trade_type, pair_id, price, volume, " \
+                      "executed_volume, deal_id, order_book_time, create_time, execute_time, execute_time_date) " \
                       "values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(table_name=table_name)
     args_list = (
         order.arbitrage_id,
@@ -207,10 +208,10 @@ def get_all_orders(pg_conn, table_name="arbitrage_orders", time_start=START_OF_T
     orders = []
 
     if time_start == START_OF_TIME and time_end == START_OF_TIME:
-        select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, 
+        select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id,
         order_book_time, create_time, execute_time from {table_name}""".format(table_name=table_name)
     else:
-        select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, 
+        select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume,
         deal_id, order_book_time, create_time, execute_time from {table_name} where create_time >= {start_time}
         and create_time <= {end_time}
         """.format(table_name=table_name, start_time=time_start, end_time=time_end)
@@ -241,7 +242,7 @@ def is_order_present_in_order_history(pg_conn, trade, table_name="arbitrage_orde
     :return:
     """
 
-    select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, 
+    select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id,
         order_book_time, create_time, execute_time from {table_name} where deal_id = '{trade_id}'""".format(
         table_name=table_name, trade_id=trade.deal_id)
 
@@ -276,19 +277,11 @@ def is_trade_present_in_trade_history(pg_conn, trade, table_name="arbitrage_trad
 
     base_currency_id, dst_currency_id = split_currency_pairs(trade.pair_id)
 
-    price_diff = 0.0
-    if base_currency_id == CURRENCY.BITCOIN:
-        price_diff = 0.0001
-    elif base_currency_id == CURRENCY.ETH:
-        price_diff = 0.01
-    elif base_currency_id == CURRENCY.USDT:
-        price_diff = 0.01
-
-    select_query = """select * from {table_name} where exchange_id = {exchange_id} and trade_type = {trade_type} and 
-    pair_id = {pair_id} and price between {min_price} and {max_price} and volume between {min_volume} and {max_volume} 
-    and create_time = {create_time}""".format(table_name=table_name, exchange_id=trade.exchange_id, trade_type=trade.trade_type,
-                                            pair_id=trade.pair_id, min_price=trade.price - price_diff, max_price=trade.price+price_diff,
-                                            min_volume=trade.volume-1.0, max_volume=trade.volume+1.0, create_time=trade.create_time)
+    select_query = """select * from {table_name} where exchange_id = {exchange_id} and trade_type = {trade_type} and
+    pair_id = {pair_id} and price = {price} and volume = {volume} and create_time = {create_time}""".format(
+        table_name=table_name, exchange_id=trade.exchange_id, trade_type=trade.trade_type,
+        pair_id=trade.pair_id, price=truncate_float(trade.price, 8), volume=truncate_float(trade.volume, 8),
+        create_time=trade.create_time)
 
     cursor = pg_conn.get_cursor()
 
@@ -339,8 +332,8 @@ def update_order_details(pg_conn, order):
     :return:
     """
 
-    select_query = """update arbitrage_orders set deal_id = '{order_id}' where exchange_id = {e_id} and pair_id = {p_id} and 
-    trade_type = {d_type} and create_time = {c_time} 
+    select_query = """update arbitrage_orders set deal_id = '{order_id}' where exchange_id = {e_id} and pair_id = {p_id} and
+    trade_type = {d_type} and create_time = {c_time}
     """.format(order_id=order.deal_id, e_id=order.exchange_id, p_id=order.pair_id, d_type=order.trade_type,
                c_time=order.create_time)
 
@@ -353,13 +346,15 @@ def update_order_details(pg_conn, order):
         log_to_file(msg, FAILED_ORDER_PROCESSING_FILE_NAME)
 
 
-def get_last_binance_trade(pg_conn, start_date, table_name="arbitrage_trades"):
+def get_last_binance_trade(pg_conn, start_date, end_time, pair_id, table_name="arbitrage_trades"):
 
-    select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id, 
-    order_book_time, create_time, execute_time from {table_name} where exchange_id = {exchange_id} and 
-    create_time < {create_time} ORDER BY create_time DESC limit 1""".format(table_name=table_name,
-                                                                            exchange_id=EXCHANGE.BINANCE,
-                                                                            create_time=start_date)
+    select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, deal_id,
+    order_book_time, create_time, execute_time from {table_name} where exchange_id = {exchange_id} and pair_id = {pair_id}
+    create_time >= {start_time} and create_time <= {end_time} ORDER BY create_time DESC limit 1""".format(table_name=table_name,
+                                                                           exchange_id=EXCHANGE.BINANCE,
+                                                                           pair_id=pair_id,
+                                                                           start_time=start_date,
+                                                                           end_time=end_time)
 
     cursor = pg_conn.get_cursor()
 

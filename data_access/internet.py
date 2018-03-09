@@ -18,13 +18,16 @@ from debug_utils import print_to_console, LOG_ALL_ERRORS, DEBUG_LOG_FILE_NAME, E
 
 
 def send_request(final_url, error_msg):
-    res = STATUS.FAILURE, None
+
     try:
         responce = requests.get(final_url, timeout=HTTP_TIMEOUT_SECONDS).json()
+
         res = STATUS.SUCCESS, responce
+
         log_to_file(responce, DEBUG_LOG_FILE_NAME)
     except Exception, e:
         res = STATUS.FAILURE, error_msg + str(e)
+
         msg = "send_request ERROR: {excp} MSG: {e_msg}".format(e_msg=error_msg, excp=str(e))
         print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, ERROR_LOG_FILE_NAME)
@@ -33,14 +36,17 @@ def send_request(final_url, error_msg):
 
 
 def send_get_request_with_header(final_url, header, error_msg, timeout=HTTP_TIMEOUT_SECONDS):
-    res = STATUS.FAILURE, None
     try:
         responce = requests.get(final_url, headers=header, timeout=timeout)
         responce = responce.json()
+
         res = STATUS.SUCCESS, responce
+
         log_to_file(responce, DEBUG_LOG_FILE_NAME)
     except Exception, e:
+
         res = STATUS.FAILURE, error_msg + str(e)
+
         msg = "send_get_request_with_header ERROR: {excp} MSG: {e_msg}".format(e_msg=error_msg, excp=str(e))
         print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, ERROR_LOG_FILE_NAME)

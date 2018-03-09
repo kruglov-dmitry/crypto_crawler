@@ -181,16 +181,16 @@ class Trade(Deal):
     @classmethod
     def from_binance_history(cls, json_document, pair_name):
         """
-
-            "id": 28457,
-		    "price": "4.00000100",
-		    "qty": "12.00000000",
-		    "commission": "10.10000000",
-		    "commissionAsset": "BNB",
-		    "time": 1499865549590,
-		    "isBuyer": true,
-		    "isMaker": false,
-		    "isBestMatch": true
+            u'orderId': 7632926,
+            u'isBuyer': False,
+            u'price': u'0.00933400',
+            u'isMaker': False,
+            u'qty': u'14.95000000',
+            u'commission': u'0.00013954',
+            u'time': 1520011967196,
+            u'commissionAsset': u'ETH',
+            u'id': 346792,
+            u'isBestMatch': True
 
         :param json_document:
         :return:
@@ -209,7 +209,7 @@ class Trade(Deal):
         trade_type = DEAL_TYPE.BUY
         if not json_document["isBuyer"]:
             trade_type = DEAL_TYPE.SELL
-        trade_id = json_document["id"]
+        trade_id = json_document["orderId"]     # Effective 01.03.2018
         executed_volume = volume
 
         return Trade(trade_type, EXCHANGE.BINANCE, pair_id, price, volume, timest, timest, execute_time=timest,

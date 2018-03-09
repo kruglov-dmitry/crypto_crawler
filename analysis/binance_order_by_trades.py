@@ -69,21 +69,20 @@ def group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_gr
             log_to_file(msg, get_pair_name_by_id(order.pair_id) + ".txt")
             for twt in binance_trades_group_by_pair[order.pair_id]:
                 log_to_file(twt, get_pair_name_by_id(order.pair_id) + ".txt")
-            
+
             assert 0 == len(list_to_check)
 
         total_volume = float(0.0)
         cur_trade_list = []
 
         for trade in list_to_check:
-            
             if trade.create_time < order.create_time:
                 # In case SOMEONE put manual orders we have to take it into account
                 last_trade_idx[order.pair_id] += 1
                 msg = "SKIPPING TRADE BECAUSE OF TIME - {ttt}".format(ttt=trade)
                 log_to_file(msg, get_pair_name_by_id(order.pair_id) + ".txt")
 
-                continue 
+                continue
 
             if abs(order.executed_volume - total_volume) > 0:
 
@@ -136,7 +135,7 @@ def group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_gr
         wut = next((x for x in binance_orders_at_bot if x.deal_id == order.deal_id), None)
 
         if len(trade_list) == 0 and wut is not None:
-            msg = """NOT FOUND TRADES FOR: {o} 
+            msg = """NOT FOUND TRADES FOR: {o}
                 within bot it was registered as: {oo}""".format(o=order, oo=wut)
 
             log_to_file(msg, "missing_binance_orders.txt")

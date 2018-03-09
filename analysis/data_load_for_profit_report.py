@@ -19,7 +19,7 @@ from data.Trade import Trade
 from dao.db import save_order_into_pg, is_order_present_in_order_history, get_last_binance_trade, \
     is_trade_present_in_trade_history
 
-from collections import defaultdict
+from collections import defaultdict, Counter
 from constants import START_OF_TIME
 
 from enums.status import STATUS
@@ -84,12 +84,10 @@ def receive_binance_trade_batch(key, pair_name, limit, last_order_id):
 
     error_code, json_document = get_trades_history_binance(key, pair_name, limit, last_order_id)
 
-    print json_document
-
-    while error_code != STATUS.SUCCESS:
+    while error_code == STATUS.FAILURE:
         print "receive_trade_batch: got error responce - Reprocessing"
         sleep_for(2)
-        error_code, trades = get_trades_history_binance(key, pair_name, limit, last_order_id)
+        error_code, json_document = get_trades_history_binance(key, pair_name, limit, last_order_id)
 
     for entry in json_document:
         trades_by_pair.append(Trade.from_binance_history(entry, pair_name))
@@ -100,14 +98,6 @@ def receive_binance_trade_batch(key, pair_name, limit, last_order_id):
 def get_recent_binance_trades(pg_conn, start_time, end_time, force_from_start):
     key = get_key_by_exchange(EXCHANGE.BINANCE)
 
-    last_order_id = 0
-    if not force_from_start:
-        # 1 get the most recent trade_id from db for that date
-        last_trade = get_last_binance_trade(pg_conn, start_time, table_name="arbitrage_trades")
-        last_order_id = last_trade.deal_id if last_trade is not None else 0
-
-    print "last_order_id: ", last_order_id
-
     # 2 sequentially query binance
     limit = 200
 
@@ -117,6 +107,15 @@ def get_recent_binance_trades(pg_conn, start_time, end_time, force_from_start):
         trades_by_pair = []
 
         pair_id = get_currency_pair_from_binance(pair_name)
+
+        last_order_id = 0
+        if not force_from_start:
+            # 1 get the most recent trade_id from db for that date
+            last_trade = get_last_binance_trade(pg_conn, start_time, end_time, pair_id, table_name="arbitrage_trades")
+            if last_trade is not None:
+                last_order_id = last_trade.deal_id
+
+        print "last_order_id: for pair_id", last_order_id, pair_id
 
         while True:
             recent_trades = receive_binance_trade_batch(key, pair_name, limit, last_order_id)
@@ -151,7 +150,6 @@ def get_recent_binance_trades(pg_conn, start_time, end_time, force_from_start):
             else:
                 break
 
-        print "Pair_id", get_pair_name_by_id(pair_id), len(trades_by_pair)
         binance_trades_by_pair[pair_id] = trades_by_pair
 
     return binance_trades_by_pair
