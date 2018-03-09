@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.4
--- Dumped by pg_dump version 9.6.4
+-- Dumped from database version 9.6.6
+-- Dumped by pg_dump version 10.1
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -15,21 +15,14 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: postgres; Type: COMMENT; Schema: -; Owner: postgres
---
-
-COMMENT ON DATABASE postgres IS 'default administrative connection database';
-
-
---
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner:
 --
 
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner:
 --
 
 COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
@@ -87,6 +80,133 @@ ALTER TABLE alarms_id_seq OWNER TO postgres;
 
 ALTER SEQUENCE alarms_id_seq OWNED BY alarms.id;
 
+
+--
+-- Name: arbitrage_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE arbitrage_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE arbitrage_id_seq OWNER TO postgres;
+
+--
+-- Name: order_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE order_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE order_id_seq OWNER TO postgres;
+
+--
+-- Name: arbitrage_orders; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE arbitrage_orders (
+    id integer DEFAULT nextval('order_id_seq'::regclass) NOT NULL,
+    arbitrage_id integer NOT NULL,
+    exchange_id integer NOT NULL,
+    trade_type integer NOT NULL,
+    pair_id integer NOT NULL,
+    price double precision NOT NULL,
+    volume double precision NOT NULL,
+    executed_volume double precision,
+    order_id character varying,
+    trade_id character varying,
+    order_book_time bigint,
+    create_time bigint NOT NULL,
+    execute_time bigint,
+    execute_time_date timestamp without time zone
+);
+
+
+ALTER TABLE arbitrage_orders OWNER TO postgres;
+
+--
+-- Name: trade_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE trade_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE trade_id_seq OWNER TO postgres;
+
+--
+-- Name: arbitrage_trades; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE arbitrage_trades (
+    id integer DEFAULT nextval('trade_id_seq'::regclass) NOT NULL,
+    arbitrage_id integer NOT NULL,
+    exchange_id integer NOT NULL,
+    trade_type integer NOT NULL,
+    pair_id integer NOT NULL,
+    price double precision NOT NULL,
+    volume double precision NOT NULL,
+    executed_volume double precision,
+    order_id character varying,
+    trade_id character varying,
+    order_book_time bigint,
+    create_time bigint NOT NULL,
+    execute_time bigint,
+    execute_time_date timestamp without time zone
+);
+
+
+ALTER TABLE arbitrage_trades OWNER TO postgres;
+
+--
+-- Name: binance_order_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE binance_order_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE binance_order_id_seq OWNER TO postgres;
+
+--
+-- Name: binance_order_history; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE binance_order_history (
+    id integer DEFAULT nextval('binance_order_id_seq'::regclass) NOT NULL,
+    arbitrage_id integer NOT NULL,
+    exchange_id integer NOT NULL,
+    trade_type integer NOT NULL,
+    pair_id integer NOT NULL,
+    price double precision NOT NULL,
+    volume double precision NOT NULL,
+    executed_volume double precision,
+    deal_id character varying,
+    order_book_time bigint,
+    create_time bigint NOT NULL,
+    execute_time bigint,
+    execute_time_date timestamp without time zone
+);
+
+
+ALTER TABLE binance_order_history OWNER TO postgres;
 
 --
 -- Name: candle; Type: TABLE; Schema: public; Owner: postgres
@@ -301,10 +421,10 @@ ALTER SEQUENCE order_book_id_seq OWNED BY order_book.id;
 
 
 --
--- Name: order_history.py.py; Type: TABLE; Schema: public; Owner: postgres
+-- Name: trade_history; Type: TABLE; Schema: public; Owner: postgres
 --
 
-CREATE TABLE order_history (
+CREATE TABLE trade_history (
     id integer NOT NULL,
     pair_id integer NOT NULL,
     exchange_id integer NOT NULL,
@@ -317,7 +437,7 @@ CREATE TABLE order_history (
 );
 
 
-ALTER TABLE order_history OWNER TO postgres;
+ALTER TABLE trade_history OWNER TO postgres;
 
 --
 -- Name: order_history_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
@@ -337,7 +457,7 @@ ALTER TABLE order_history_id_seq OWNER TO postgres;
 -- Name: order_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE order_history_id_seq OWNED BY order_history.id;
+ALTER SEQUENCE order_history_id_seq OWNED BY trade_history.id;
 
 
 --
@@ -412,6 +532,20 @@ ALTER SEQUENCE tickers_id_seq OWNED BY tickers.id;
 
 
 --
+-- Name: trade_arbitrage_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE trade_arbitrage_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE trade_arbitrage_id_seq OWNER TO postgres;
+
+--
 -- Name: alarms id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -461,13 +595,6 @@ ALTER TABLE ONLY order_book_bid ALTER COLUMN id SET DEFAULT nextval('order_book_
 
 
 --
--- Name: order_history.py.py id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY order_history ALTER COLUMN id SET DEFAULT nextval('order_history_id_seq'::regclass);
-
-
---
 -- Name: pair id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -479,6 +606,13 @@ ALTER TABLE ONLY pair ALTER COLUMN id SET DEFAULT nextval('pair_id_seq'::regclas
 --
 
 ALTER TABLE ONLY tickers ALTER COLUMN id SET DEFAULT nextval('tickers_id_seq'::regclass);
+
+
+--
+-- Name: trade_history id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY trade_history ALTER COLUMN id SET DEFAULT nextval('order_history_id_seq'::regclass);
 
 
 --
@@ -538,10 +672,10 @@ ALTER TABLE ONLY order_book
 
 
 --
--- Name: order_history.py.py order_history_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: trade_history order_history_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY order_history
+ALTER TABLE ONLY trade_history
     ADD CONSTRAINT order_history_pkey PRIMARY KEY (id);
 
 
@@ -566,6 +700,13 @@ ALTER TABLE ONLY tickers
 --
 
 CREATE UNIQUE INDEX alarms_id_uindex ON alarms USING btree (id);
+
+
+--
+-- Name: binance_order_id_uindex; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX binance_order_id_uindex ON binance_order_history USING btree (id);
 
 
 --
@@ -607,7 +748,14 @@ CREATE UNIQUE INDEX order_book_id_uindex ON order_book USING btree (id);
 -- Name: order_history_id_uindex; Type: INDEX; Schema: public; Owner: postgres
 --
 
-CREATE UNIQUE INDEX order_history_id_uindex ON order_history USING btree (id);
+CREATE UNIQUE INDEX order_history_id_uindex ON trade_history USING btree (id);
+
+
+--
+-- Name: order_id_uindex; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX order_id_uindex ON arbitrage_orders USING btree (id);
 
 
 --
@@ -615,6 +763,13 @@ CREATE UNIQUE INDEX order_history_id_uindex ON order_history USING btree (id);
 --
 
 CREATE UNIQUE INDEX tickers_id_uindex ON tickers USING btree (id);
+
+
+--
+-- Name: trade_id_seq_uindex; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE UNIQUE INDEX trade_id_seq_uindex ON arbitrage_trades USING btree (id);
 
 
 --
@@ -706,26 +861,26 @@ ALTER TABLE ONLY order_book
 
 
 --
--- Name: order_history.py.py order_history_deal_type_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: trade_history order_history_deal_type_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY order_history
+ALTER TABLE ONLY trade_history
     ADD CONSTRAINT order_history_deal_type_id_fk FOREIGN KEY (deal_type) REFERENCES deal_type(id);
 
 
 --
--- Name: order_history.py.py order_history_exchange_id__fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: trade_history order_history_exchange_id__fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY order_history
+ALTER TABLE ONLY trade_history
     ADD CONSTRAINT order_history_exchange_id__fk FOREIGN KEY (exchange_id) REFERENCES exchange(id);
 
 
 --
--- Name: order_history.py.py order_history_pair_id___fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: trade_history order_history_pair_id___fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY order_history
+ALTER TABLE ONLY trade_history
     ADD CONSTRAINT order_history_pair_id___fk FOREIGN KEY (pair_id) REFERENCES pair(id);
 
 
@@ -738,6 +893,15 @@ ALTER TABLE ONLY tickers
 
 
 --
--- PostgreSQL database dump complete
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
 --
 
+REVOKE ALL ON SCHEMA public FROM rdsadmin;
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- PostgreSQL database dump complete
+--
