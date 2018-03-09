@@ -132,7 +132,7 @@ def group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_gr
     cnt = 0
     for order, trade_list in orders_with_trades:
         log_to_file("For order - {o} CORRESPONDING trades are".format(o=order), "fucking_binance.txt")
-        wut = next((x for x in binance_orders_at_bot if x.deal_id == order.deal_id), None)
+        wut = next((x for x in binance_orders_at_bot if x.order_id == order.order_id), None)
 
         if len(trade_list) == 0 and wut is not None:
             msg = """NOT FOUND TRADES FOR: {o}

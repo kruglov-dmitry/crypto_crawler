@@ -4,7 +4,7 @@ from enums.exchange import EXCHANGE
 
 def find_order_bot_history(order_binance, order_bot_history):
     for order in order_bot_history:
-        if order.deal_id == order_binance.deal_id:
+        if order.order_id == order_binance.order_id:
             return order
 
     return None

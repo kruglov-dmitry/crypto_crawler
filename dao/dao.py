@@ -108,14 +108,14 @@ def cancel_by_exchange(trade):
     key = get_key_by_exchange(trade.exchange_id)
 
     if trade.exchange_id == EXCHANGE.BITTREX:
-        res = cancel_order_bittrex(key, trade.deal_id)
+        res = cancel_order_bittrex(key, trade.order_id)
     elif trade.exchange_id == EXCHANGE.KRAKEN:
-        res = cancel_order_kraken(key, trade.deal_id)
+        res = cancel_order_kraken(key, trade.order_id)
     elif trade.exchange_id == EXCHANGE.POLONIEX:
-        res = cancel_order_poloniex(key, trade.deal_id)
+        res = cancel_order_poloniex(key, trade.order_id)
     elif trade.exchange_id == EXCHANGE.BINANCE:
         pair_name = get_currency_pair_to_binance(trade.pair_id)
-        res = cancel_order_binance(key, pair_name, trade.deal_id)
+        res = cancel_order_binance(key, pair_name, trade.order_id)
     else:
         msg = "cancel_by_exchange - Unknown exchange! Details: {res}".format(res=str(trade))
         print_to_console(msg, LOG_ALL_ERRORS)

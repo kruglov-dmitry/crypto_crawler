@@ -46,7 +46,7 @@ def process_failed_order(order, msg_queue, priority_queue, local_cache, pg_conn)
         sleep_for(1)
         err_code = search_in_open_orders(order)
 
-    if order.deal_id is not None:
+    if order.order_id is not None:
 
         log_trace_found_failed_order_in_open(order)
 
@@ -59,7 +59,7 @@ def process_failed_order(order, msg_queue, priority_queue, local_cache, pg_conn)
         sleep_for(1)
         err_code = search_in_order_history(order)
 
-    if order.deal_id is not None:
+    if order.order_id is not None:
         log_trace_found_failed_order_in_history(order)
 
         update_order_details(pg_conn, order)
@@ -110,7 +110,7 @@ def process_failed_order(order, msg_queue, priority_queue, local_cache, pg_conn)
 
             order.execute_time = get_now_seconds_utc()
             order.order_book_time = long(order_book.timest)
-            order.deal_id = parse_order_id(order.exchange_id, json_document)
+            order.order_id = parse_order_id(order.exchange_id, json_document)
 
             msg_queue.add_order(ORDERS_MSG, order)
 
@@ -137,7 +137,7 @@ def try_to_set_order_id(open_orders, order):
                         abs(order.create_time - every_order.create_time) < 15:
             # FIXME
             print "FOUND!!!"
-            order.deal_id = every_order.deal_id
+            order.order_id = every_order.order_id
             order.create_time = every_order.create_time
 
 

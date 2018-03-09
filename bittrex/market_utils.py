@@ -13,12 +13,12 @@ from data_access.memory_cache import generate_nonce
 from data_access.internet import send_post_request_with_header
 
 
-def cancel_order_bittrex(key, deal_id):
+def cancel_order_bittrex(key, order_id):
     # https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID
     final_url = BITTREX_CANCEL_ORDER + key.api_key + "&nonce=" + str(generate_nonce())
 
     body = {
-        "uuid": deal_id,
+        "uuid": order_id,
     }
 
     final_url += _urlencode(body)
@@ -32,7 +32,7 @@ def cancel_order_bittrex(key, deal_id):
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
-    err_msg = "cancel bittrex order with id {id}".format(id=deal_id)
+    err_msg = "cancel bittrex order with id {id}".format(id=order_id)
 
     res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY,
                                         timeout=BITTREX_DEAL_TIMEOUT)

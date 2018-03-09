@@ -10,10 +10,10 @@ from utils.file_utils import log_to_file
 from utils.key_utils import signed_body
 
 
-def cancel_order_poloniex(key, deal_id):
+def cancel_order_poloniex(key, order_id):
     body = {
         "command": "cancelOrder",
-        "orderNumber" : deal_id,
+        "orderNumber" : order_id,
         "nonce": generate_nonce()
     }
 
@@ -28,7 +28,7 @@ def cancel_order_poloniex(key, deal_id):
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
-    err_msg = "cancel poloniex called for {deal_id}".format(deal_id=deal_id)
+    err_msg = "cancel poloniex called for {order_id}".format(order_id=order_id)
 
     res = send_post_request_with_header(final_url, headers, body, err_msg,
                                         max_tries=POLONIEX_NUM_OF_DEAL_RETRY, timeout=POLONIEX_DEAL_TIMEOUT)

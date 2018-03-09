@@ -40,7 +40,7 @@ def find_corresponding_trades(deal_from_bot, trade_history):
     tot_volume = 0.0
     if deal_from_bot.exchange_id in [EXCHANGE.BITTREX, EXCHANGE.POLONIEX]:
         if deal_from_bot.pair_id in trade_history:
-            res = [x for x in trade_history[deal_from_bot.pair_id] if x.deal_id == deal_from_bot.deal_id]
+            res = [x for x in trade_history[deal_from_bot.pair_id] if x.order_id == deal_from_bot.order_id]
         else:
             log_to_file("NOT FOUND deal in history for {a_id}".format(a_id=deal_from_bot),
                         "what_we_have_at_the_end.log")
@@ -79,21 +79,21 @@ def group_trades_by_orders(orders, history_trades, binance_orders_at_exchange):
     orders_with_corresponding_trades = []
 
     for order in orders:
-        if order.deal_id is None:
+        if order.order_id is None:
             failed_orders[order.exchange_id].append(order)
         else:
             if order.exchange_id in [EXCHANGE.POLONIEX, EXCHANGE.BITTREX]:
-                res = next((x for x in history_trades if x.deal_id == order.deal_id), None)
+                res = next((x for x in history_trades if x.order_id == order.order_id), None)
                 if res is None:
                     missing_orders[order.exchange_id].append(order)
                 else:
                     current_trades_list = []
                     for x in history_trades:
-                        if x.deal_id == order.deal_id:
+                        if x.order_id == order.order_id:
                             current_trades_list.append(x)
                     orders_with_corresponding_trades.append( (order, current_trades_list) )
             else:
-                res = next((x for x in binance_orders_at_exchange if x.deal_id == order.deal_id), None)
+                res = next((x for x in binance_orders_at_exchange if x.order_id == order.order_id), None)
                 if res is None:
                     missing_orders[order.exchange_id].append(order)
 

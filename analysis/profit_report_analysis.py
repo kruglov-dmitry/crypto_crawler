@@ -161,7 +161,7 @@ def save_report(start_time, end_time, profit_by_base, profit_details,
     for exchange_id in failed_orders:
         total_number_failed += len(failed_orders[exchange_id])
 
-    msg = "Total number of orders without deal_id (Failed?): {n}".format(n=total_number_failed)
+    msg = "Total number of orders without order_id (Failed?): {n}".format(n=total_number_failed)
     log_to_file(msg, file_name)
     for exchange_id in failed_orders:
         msg = "\t{exch}     Number of orders without trades: {n}".format(exch=get_exchange_name_by_id(exchange_id),

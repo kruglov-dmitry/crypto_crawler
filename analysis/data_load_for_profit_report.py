@@ -113,7 +113,7 @@ def get_recent_binance_trades(pg_conn, start_time, end_time, force_from_start):
             # 1 get the most recent trade_id from db for that date
             last_trade = get_last_binance_trade(pg_conn, start_time, end_time, pair_id, table_name="arbitrage_trades")
             if last_trade is not None:
-                last_order_id = last_trade.deal_id
+                last_order_id = last_trade.trade_id
 
         print "last_order_id: for pair_id", last_order_id, pair_id
 
@@ -124,7 +124,7 @@ def get_recent_binance_trades(pg_conn, start_time, end_time, force_from_start):
                 break
 
             # Biggest = Latest - will be first
-            recent_trades.sort(key=lambda x: long(x.deal_id), reverse=True)
+            recent_trades.sort(key=lambda x: long(x.trade_id), reverse=True)
             for entry in recent_trades:
                 if start_time <= entry.create_time <= end_time:
                     trades_by_pair.append(entry)
@@ -135,12 +135,12 @@ def get_recent_binance_trades(pg_conn, start_time, end_time, force_from_start):
             if end_time >= recent_trades[0].create_time:
 
                 prev_order_id = last_order_id
-                last_order_id = recent_trades[0].deal_id
+                last_order_id = recent_trades[0].trade_id
 
                 if prev_order_id != 0 and prev_order_id == last_order_id:
-                    recent_trades.sort(key=lambda x: long(x.deal_id), reverse=False)
-                    print "Max", recent_trades[-1:][0].deal_id
-                    print "Min", recent_trades[:-1][0].deal_id
+                    recent_trades.sort(key=lambda x: long(x.trade_id), reverse=False)
+                    print "Max", recent_trades[-1:][0].trade_id
+                    print "Min", recent_trades[:-1][0].trade_id
                     print "Last order"
                     print recent_trades[:-1][0]
 

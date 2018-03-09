@@ -177,8 +177,8 @@ def save_order_into_pg(order, pg_conn, table_name="arbitrage_orders"):
     cur = pg_conn.get_cursor()
 
     PG_INSERT_QUERY = "insert into {table_name}(arbitrage_id, exchange_id, trade_type, pair_id, price, volume, " \
-                      "executed_volume, order_id, order_book_time, create_time, execute_time, execute_time_date) " \
-                      "values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(table_name=table_name)
+                      "executed_volume, order_id, trade_id, order_book_time, create_time, execute_time, execute_time_date) " \
+                      "values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);".format(table_name=table_name)
     args_list = (
         order.arbitrage_id,
         order.exchange_id,
@@ -188,6 +188,7 @@ def save_order_into_pg(order, pg_conn, table_name="arbitrage_orders"):
         order.volume,
         order.executed_volume,
         order.order_id,
+        order.trade_id,
         order.order_book_time,
         order.create_time,
         order.execute_time,
@@ -243,7 +244,7 @@ def is_order_present_in_order_history(pg_conn, trade, table_name="arbitrage_orde
     """
 
     select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, order_id,
-        order_book_time, create_time, execute_time from {table_name} where order_id = '{order_id}'""".format(
+        trade_id, order_book_time, create_time, execute_time from {table_name} where order_id = '{order_id}'""".format(
         table_name=table_name, order_id=trade.order_id)
 
     cursor = pg_conn.get_cursor()

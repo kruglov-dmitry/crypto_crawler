@@ -119,7 +119,7 @@ def process_expired_order(order, msg_queue, priority_queue, local_cache):
 
                 order.execute_time = get_now_seconds_utc()
                 order.order_book_time = long(order_book.timest)
-                order.deal_id = parse_order_id(order.exchange_id, json_document)
+                order.order_id = parse_order_id(order.exchange_id, json_document)
 
                 msg_queue.add_order(ORDERS_MSG, order)
 
@@ -211,7 +211,7 @@ def process_expired_deals(list_of_orders, cfg, msg_queue, worker_pool):
 
                         every_order.execute_time = get_now_seconds_utc()
                         every_order.order_book_time = long(order_book.timest)
-                        every_order.deal_id = parse_order_id(every_order.exchange_id, json_document)
+                        every_order.order_id = parse_order_id(every_order.exchange_id, json_document)
 
                         replaced_orders[ts].append(every_order)
 

@@ -9,12 +9,12 @@ from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
 
 
-def cancel_order_kraken(key, deal_id):
+def cancel_order_kraken(key, order_id):
     # https://api.kraken.com/0/private/CancelOrder
     final_url = KRAKEN_BASE_API_URL + KRAKEN_CANCEL_ORDER
 
     body = {
-        "txid": deal_id,
+        "txid": order_id,
         "nonce": generate_nonce()
     }
 
@@ -26,7 +26,7 @@ def cancel_order_kraken(key, deal_id):
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
-    err_msg = "cancel kraken called for {deal_id}".format(deal_id=deal_id)
+    err_msg = "cancel kraken called for {order_id}".format(order_id=order_id)
 
     res = send_post_request_with_header(final_url, headers, body, err_msg,
                                         max_tries=KRAKEN_NUM_OF_DEAL_RETRY, timeout=KRAKEN_DEAL_TIMEOUT)

@@ -29,7 +29,7 @@ if __name__ == "__main__":
             Option 3: ??? TODO
             
             First we try to find order in open or executed.
-            In case we find it - update deal_id in db.
+            In case we find it - update order_id in db.
             If it still open add it to watch list for expired orders processing.
             
             If not we can replace it by market with idea that there is high probability that other arbitrage deal were 

@@ -96,10 +96,10 @@ def return_with_no_change(json_document, corresponding_trade):
     corresponding_trade.execute_time = get_now_seconds_utc()
 
     try:
-        corresponding_trade.deal_id = dao.parse_order_id(corresponding_trade.exchange_id, json_document)
+        corresponding_trade.order_id = dao.parse_order_id(corresponding_trade.exchange_id, json_document)
     except:
-        log_to_file("Cant parse deal_id! for following document", "parce_deal_id.log")
-        log_to_file(json_document, "parce_deal_id.log")
+        log_to_file("Cant parse order_id! for following document", "parce_order_id.log")
+        log_to_file(json_document, "parce_order_id.log")
 
     return json_document, corresponding_trade
 

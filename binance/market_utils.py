@@ -15,7 +15,7 @@ from data_access.internet import send_get_request_with_header
 from binance.constants import BINANCE_CANCEL_ORDER, BINANCE_GET_ALL_ORDERS, BINANCE_DEAL_TIMEOUT, BINANCE_GET_ALL_TRADES
 
 
-def cancel_order_binance(key, pair_name, deal_id):
+def cancel_order_binance(key, pair_name, order_id):
 
     final_url = BINANCE_CANCEL_ORDER
 
@@ -23,7 +23,7 @@ def cancel_order_binance(key, pair_name, deal_id):
         "recvWindow": 5000,
         "timestamp": get_now_seconds_utc_ms(),
         "symbol": pair_name,
-        "orderId": deal_id
+        "orderId": order_id
     }
 
     signature = signed_body_256(body, key.secret)
@@ -41,7 +41,7 @@ def cancel_order_binance(key, pair_name, deal_id):
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
-    err_msg = "cancel binance order with id {id}".format(id=deal_id)
+    err_msg = "cancel binance order with id {id}".format(id=order_id)
 
     res = send_delete_request_with_header(final_url, headers, {}, err_msg, max_tries=3)
 
