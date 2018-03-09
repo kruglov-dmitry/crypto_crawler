@@ -1,6 +1,6 @@
 from data.BaseData import BaseData
 from utils.other_utils import get_next_id
-from enums.deal_type import get_deal_type_by_id
+from enums.deal_type import get_order_type_by_id
 from utils.exchange_utils import get_fee_by_exchange
 from utils.string_utils import float_to_str
 
@@ -24,7 +24,7 @@ class TradePair(BaseData):
         {deal1}
         {deal2}
         Current profit - {bakshish}
-        """.format(num=self.id, timest1=self.timest1, timest2=self.timest2, type=get_deal_type_by_id(self.deal_type),
+        """.format(num=self.id, timest1=self.timest1, timest2=self.timest2, type=get_order_type_by_id(self.deal_type),
                    deal1=str(self.deal_1),
                    deal2=str(self.deal_2),
                    bakshish=float_to_str(self.current_profit))

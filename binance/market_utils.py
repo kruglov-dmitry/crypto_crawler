@@ -52,7 +52,7 @@ def cancel_order_binance(key, pair_name, deal_id):
     return res
 
 
-def parse_deal_id_binance(http_responce):
+def parse_order_id_binance(http_responce):
     if get_logging_level() >= LOG_ALL_TRACE:
         log_to_file("binnace\n" + str(http_responce), "parse_id.log")
         try:
@@ -62,12 +62,12 @@ def parse_deal_id_binance(http_responce):
 
     if http_responce.status_code == 200:
         json_document = http_responce.json()
-        return parse_deal_id_binance_from_json(json_document)
+        return parse_order_id_binance_from_json(json_document)
 
     return None
 
 
-def parse_deal_id_binance_from_json(json_document):
+def parse_order_id_binance_from_json(json_document):
     """
     {u'orderId': 6599290,
     u'clientOrderId': u'oGDxv6VeLXRdvUA8PiK8KR',

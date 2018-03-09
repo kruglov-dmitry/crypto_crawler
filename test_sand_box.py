@@ -41,7 +41,7 @@ from utils.key_utils import load_keys, get_key_by_exchange
 from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from data_access.message_queue import get_message_queue, ORDERS_MSG, FAILED_ORDERS_MSG
-from dao.dao import parse_deal_id
+from dao.dao import parse_order_id
 from data_access.priority_queue import ORDERS_EXPIRE_MSG, get_priority_queue
 
 from enums.notifications import NOTIFICATION
@@ -360,7 +360,7 @@ def test_order_presence():
     # 6479142
     ts = get_now_seconds_utc()
     some_trade = Trade(DEAL_TYPE.BUY, EXCHANGE.BINANCE, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001184, volume=2.08,
-                       order_book_time=ts, create_time=ts, execute_time=ts, deal_id='whatever')
+                       order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
 
     res = is_order_present_in_order_history(pg_conn, some_trade, table_name="tmp_binance_orders")
 
@@ -372,7 +372,7 @@ def test_trade_present():
     # 6479142
     ts = 1516142509
     trade = Trade(DEAL_TYPE.BUY, EXCHANGE.BINANCE, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001184, volume=2.08,
-                       order_book_time=ts, create_time=ts, execute_time=ts, deal_id='whatever')
+                  order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
 
     res = is_trade_present_in_trade_history(pg_conn, trade, table_name="tmp_history_trades")
 
@@ -384,12 +384,12 @@ def test_expired_deal_placement():
     priority_queue = get_priority_queue()
     ts = get_now_seconds_utc()
     order = Trade(DEAL_TYPE.SELL, EXCHANGE.BINANCE, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001, volume=5.0,
-                       order_book_time=ts, create_time=ts, execute_time=ts, deal_id='whatever')
+                  order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
     
     msg = "Replace existing order with new one - {tt}".format(tt=order)
     err_code, json_document = init_deal(order, msg)
     print json_document
-    order.deal_id = parse_deal_id(order.exchange_id, json_document)
+    order.order_id = parse_order_id(order.exchange_id, json_document)
     priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
 
 
@@ -403,7 +403,7 @@ def test_failed_deal_placement():
     # order = Trade(DEAL_TYPE.SELL, EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001, volume=5.0,
     #                    order_book_time=ts, create_time=ts, execute_time=ts, deal_id=None)
     ts = 1517938516
-    order = Trade(DEAL_TYPE.SELL, EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_STRAT, price=0.000844, volume=5.0, order_book_time=ts, create_time=ts, execute_time=ts, deal_id=None)
+    order = Trade(DEAL_TYPE.SELL, EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_STRAT, price=0.000844, volume=5.0, order_book_time=ts, create_time=ts, execute_time=ts, order_id=None)
 
     #   from dao.order_utils import get_open_orders_by_exchange
     #   r = get_open_orders_by_exchange(EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_STRAT)

@@ -6,7 +6,7 @@ class DEAL_TYPE:
     DEBUG = 100500
 
 
-def get_deal_type_by_id(deal_id):
+def get_order_type_by_id(deal_id):
     return {
         DEAL_TYPE.BUY: "Buy",
         DEAL_TYPE.SELL: "Sell",

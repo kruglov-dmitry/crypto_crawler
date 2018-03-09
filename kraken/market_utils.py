@@ -38,7 +38,7 @@ def cancel_order_kraken(key, deal_id):
     return res
 
 
-def parse_deal_id_kraken(http_responce):
+def parse_order_id_kraken(http_responce):
     if get_logging_level() >= LOG_ALL_TRACE:
         log_to_file("kraken\n" + str(http_responce), "parse_id.log")
         try:
@@ -48,12 +48,12 @@ def parse_deal_id_kraken(http_responce):
 
     if http_responce.status_code == 200:
         json_document = http_responce.json()
-        return parse_deal_id_kraken_from_json(json_document)
+        return parse_order_id_kraken_from_json(json_document)
 
     return None
 
 
-def parse_deal_id_kraken_from_json(json_document):
+def parse_order_id_kraken_from_json(json_document):
     """
     {u'result': {u'descr':
             {u'order': u'sell 10.00000000 XMRXBT @ limit 0.045000'},

@@ -40,7 +40,7 @@ def cancel_order_poloniex(key, deal_id):
     return res
 
 
-def parse_deal_id_poloniex(http_responce):
+def parse_order_id_poloniex(http_responce):
     if get_logging_level() >= LOG_ALL_TRACE:
         log_to_file("poloniex\n" + str(http_responce), "parse_id.log")
         try:
@@ -50,12 +50,12 @@ def parse_deal_id_poloniex(http_responce):
 
     if http_responce.status_code == 200:
         json_document = http_responce.json()
-        return parse_deal_id_poloniex_from_json(json_document)
+        return parse_order_id_poloniex_from_json(json_document)
 
     return None
 
 
-def parse_deal_id_poloniex_from_json(json_document):
+def parse_order_id_poloniex_from_json(json_document):
     """
      {u'orderNumber': u'15573359248', u'resultingTrades': []}
     """
