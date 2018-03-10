@@ -40,7 +40,7 @@ screen -ls | grep -v deploy | awk '{print $1}' | xargs -I{} screen -S {} -X quit
 based on  https://stackoverflow.com/questions/1509677/kill-detached-screen-session
 
 ``` bash
-alias cleanscreen="screen -ls | tail -n +2 | head -n -2 | awk '{print $1}'| xargs -I{} screen -S {} -X quit"
+alias cleanscreen="screen -ls | tail -n +2 | head -n -1|cut -d'.' -f 1 |xargs kill -9 ; screen -wipe"
 ```
 
 ## Rename existing screen session
