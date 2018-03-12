@@ -195,6 +195,9 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.BTC_TO_ITC,
                 CURRENCY_PAIR.BTC_TO_ARK,
                 CURRENCY_PAIR.BTC_TO_STRAT,
+                CURRENCY_PAIR.BTC_TO_LSK,
+                CURRENCY_PAIR.BTC_TO_ENG,
+                CURRENCY_PAIR.BTC_TO_XVG,
                 CURRENCY_PAIR.ETH_TO_DASH,
                 CURRENCY_PAIR.ETH_TO_LTC,
                 CURRENCY_PAIR.ETH_TO_XRP,
@@ -232,6 +235,9 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.ETH_TO_ITC,
                 CURRENCY_PAIR.ETH_TO_ARK,
                 CURRENCY_PAIR.ETH_TO_STRAT,
+                CURRENCY_PAIR.ETH_TO_LSK,
+                CURRENCY_PAIR.ETH_TO_ENG,
+                CURRENCY_PAIR.ETH_TO_XVG,
                 CURRENCY_PAIR.USD_TO_DASH,
                 CURRENCY_PAIR.USD_TO_BTC,
                 CURRENCY_PAIR.USD_TO_LTC,
@@ -256,7 +262,6 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.USDT_TO_ZEC,
                 CURRENCY_PAIR.USDT_TO_REP,
                 CURRENCY_PAIR.USDT_TO_XMR,
-
                 CURRENCY_PAIR.USDT_TO_NEO,
                 CURRENCY_PAIR.USDT_TO_QTUM,
                 CURRENCY_PAIR.USDT_TO_EOS,
@@ -280,5 +285,6 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.USDT_TO_TRX,
                 CURRENCY_PAIR.USDT_TO_AION,
                 CURRENCY_PAIR.USDT_TO_ITC,
+                CURRENCY_PAIR.USDT_TO_XVG,
                 CURRENCY_PAIR.USD_TO_USDT
                 ]
