@@ -42,6 +42,9 @@ def get_currency_id_from_binance(currency_name):
         'AION': CURRENCY.AION,
         'ARK': CURRENCY.ARK,
         'STRAT': CURRENCY.STRAT,
+        'LSK': CURRENCY.LSK,
+        'ENG': CURRENCY.ENG,
+        'XVG': CURRENCY.XVG,
         'USDT': CURRENCY.USDT
     }.get(currency_name)
 
@@ -86,6 +89,9 @@ def get_currency_name_for_binance(currency_id):
         CURRENCY.AION: 'AION',
         CURRENCY.ARK: 'ARK',
         CURRENCY.STRAT: 'STRAT',
+        CURRENCY.LSK: 'LSK',
+        CURRENCY.ENG: 'ENG',
+        CURRENCY.XVG: 'XVG',
         CURRENCY.USDT: 'USDT'
     }.get(currency_id)
 
@@ -122,6 +128,9 @@ def get_currency_pair_from_binance(pair_name):
         'AIONBTC': CURRENCY_PAIR.BTC_TO_AION,
         'ARKBTC': CURRENCY_PAIR.BTC_TO_ARK,
         'STRATBTC': CURRENCY_PAIR.BTC_TO_STRAT,
+        'XVGBTC': CURRENCY_PAIR.BTC_TO_XVG,
+        'LSKBTC': CURRENCY_PAIR.BTC_TO_LSK,
+        'ENGBTC': CURRENCY_PAIR.BTC_TO_ENG,
         'DASHETH': CURRENCY_PAIR.ETH_TO_DASH,
         'XRPETH': CURRENCY_PAIR.ETH_TO_XRP,
         'BCCETH': CURRENCY_PAIR.ETH_TO_BCC,
@@ -150,6 +159,9 @@ def get_currency_pair_from_binance(pair_name):
         'ARKETH': CURRENCY_PAIR.ETH_TO_ARK,
         'STRATETH': CURRENCY_PAIR.ETH_TO_STRAT,
         'LTCETH': CURRENCY_PAIR.ETH_TO_LTC,
+        'XVGETH': CURRENCY_PAIR.ETH_TO_XVG,
+        'LSKETH': CURRENCY_PAIR.ETH_TO_LSK,
+        'ENGETH': CURRENCY_PAIR.ETH_TO_ENG,
         'BTCUSDT': CURRENCY_PAIR.USDT_TO_BTC,
         'BCCUSDT': CURRENCY_PAIR.USDT_TO_BCC,
         'ETHUSDT': CURRENCY_PAIR.USDT_TO_ETH,
@@ -190,6 +202,9 @@ def get_currency_pair_to_binance(pair_id):
         CURRENCY_PAIR.BTC_TO_AION: 'AIONBTC',
         CURRENCY_PAIR.BTC_TO_ARK: 'ARKBTC',
         CURRENCY_PAIR.BTC_TO_STRAT: 'STRATBTC',
+        CURRENCY_PAIR.BTC_TO_XVG: 'XVGBTC',
+        CURRENCY_PAIR.BTC_TO_LSK: 'LSKBTC',
+        CURRENCY_PAIR.BTC_TO_ENG: 'ENGBTC',
         CURRENCY_PAIR.ETH_TO_DASH: 'DASHETH',
         CURRENCY_PAIR.ETH_TO_XRP: 'XRPETH',
         CURRENCY_PAIR.ETH_TO_BCC: 'BCCETH',
@@ -218,6 +233,9 @@ def get_currency_pair_to_binance(pair_id):
         CURRENCY_PAIR.ETH_TO_ARK: 'ARKETH',
         CURRENCY_PAIR.ETH_TO_STRAT: 'STRATETH',
         CURRENCY_PAIR.ETH_TO_LTC: 'LTCETH',
+        CURRENCY_PAIR.ETH_TO_XVG: 'XVGETH',
+        CURRENCY_PAIR.ETH_TO_LSK: 'LSKETH',
+        CURRENCY_PAIR.ETH_TO_ENG: 'ENGETH',
         CURRENCY_PAIR.USDT_TO_BTC: 'BTCUSDT',
         CURRENCY_PAIR.USDT_TO_BCC: 'BCCUSDT',
         CURRENCY_PAIR.USDT_TO_ETH: 'ETHUSDT',

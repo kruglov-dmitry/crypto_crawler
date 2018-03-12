@@ -43,6 +43,10 @@ class CURRENCY:
     ARK = 40
     STRAT = 41
 
+    LSK = 42
+    ENG = 43
+    XVG = 44
+
     USD = 1000
     USDT = 1001
 
@@ -91,6 +95,9 @@ class CURRENCY:
                 CURRENCY.ITC,
                 CURRENCY.ARK,
                 CURRENCY.STRAT,
+                CURRENCY.LSK,
+                CURRENCY.ENG,
+                CURRENCY.XVG,
                 CURRENCY.USD,
                 CURRENCY.USDT
                 ]

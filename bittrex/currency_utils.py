@@ -41,6 +41,9 @@ def get_currency_name_for_bittrex(currency_id):
         CURRENCY.AION: 'AION',
         CURRENCY.ARK: 'ARK',
         CURRENCY.STRAT: 'STRAT',
+        CURRENCY.LSK: 'LSK',
+        CURRENCY.ENG: 'ENG',
+        CURRENCY.XVG: 'XVG',
         CURRENCY.USDT: 'USDT'
     }.get(currency_id)
 
@@ -84,6 +87,9 @@ def get_currency_id_from_bittrex(currency_name):
         'AION': CURRENCY.AION,
         'ARK': CURRENCY.ARK,
         'STRAT': CURRENCY.STRAT,
+        'LSK': CURRENCY.LSK,
+        'ENG': CURRENCY.ENG,
+        'XVG': CURRENCY.XVG,
         'USDT': CURRENCY.USDT
     }.get(currency_name)
 
@@ -117,6 +123,9 @@ def get_currency_pair_to_bittrex(pair_id):
         CURRENCY_PAIR.BTC_TO_ARK: 'BTC-ARK',
         CURRENCY_PAIR.BTC_TO_STRAT: 'BTC-STRAT',
         CURRENCY_PAIR.BTC_TO_ZRX: 'BTC-ZRX',
+        CURRENCY_PAIR.BTC_TO_XVG: 'BTC-XVG',
+        CURRENCY_PAIR.BTC_TO_LSK: 'BTC-LSK',
+        CURRENCY_PAIR.BTC_TO_ENG: 'BTC-ENG',
         CURRENCY_PAIR.ETH_TO_DASH: 'ETH-DASH',
         CURRENCY_PAIR.ETH_TO_LTC: 'ETH-LTC',
         CURRENCY_PAIR.ETH_TO_XRP: 'ETH-XRP',
@@ -138,6 +147,7 @@ def get_currency_pair_to_bittrex(pair_id):
         CURRENCY_PAIR.ETH_TO_XLM: 'ETH-XLM',
         CURRENCY_PAIR.ETH_TO_STRAT: 'ETH-STRAT',
         CURRENCY_PAIR.ETH_TO_ZRX: 'ETH-ZRX',
+        CURRENCY_PAIR.ETH_TO_ENG: 'ETH-ENG',
         CURRENCY_PAIR.USDT_TO_DASH: 'USDT-DASH',
         CURRENCY_PAIR.USDT_TO_BTC: 'USDT-BTC',
         CURRENCY_PAIR.USDT_TO_LTC: 'USDT-LTC',
@@ -149,7 +159,8 @@ def get_currency_pair_to_bittrex(pair_id):
         CURRENCY_PAIR.USDT_TO_XMR: 'USDT-XMR',
         CURRENCY_PAIR.USDT_TO_NEO: 'USDT-NEO',
         CURRENCY_PAIR.USDT_TO_BTG: 'USDT-BTG',
-        CURRENCY_PAIR.USDT_TO_ADA: 'USDT-ADA'
+        CURRENCY_PAIR.USDT_TO_ADA: 'USDT-ADA',
+        CURRENCY_PAIR.USDT_TO_XVG: 'USDT-XVG'
     }.get(pair_id)
 
 
@@ -181,6 +192,9 @@ def get_currency_pair_from_bittrex(pair_name):
         'BTC-XLM': CURRENCY_PAIR.BTC_TO_XLM,
         'BTC-ARK': CURRENCY_PAIR.BTC_TO_ARK,
         'BTC-STRAT': CURRENCY_PAIR.BTC_TO_STRAT,
+        'BTC-XVG': CURRENCY_PAIR.BTC_TO_XVG,
+        'BTC-LSK': CURRENCY_PAIR.BTC_TO_LSK,
+        'BTC-ENG': CURRENCY_PAIR.BTC_TO_ENG,
         'BTC-ZRX': CURRENCY_PAIR.BTC_TO_ZRX,
         'ETH-DASH': CURRENCY_PAIR.ETH_TO_DASH,
         'ETH-LTC': CURRENCY_PAIR.ETH_TO_LTC,
@@ -203,6 +217,7 @@ def get_currency_pair_from_bittrex(pair_name):
         'ETH-XLM': CURRENCY_PAIR.ETH_TO_XLM,
         'ETH-STRAT': CURRENCY_PAIR.ETH_TO_STRAT,
         'ETH-ZRX': CURRENCY_PAIR.ETH_TO_ZRX,
+        'ETH-ENG': CURRENCY_PAIR.ETH_TO_ENG,
         'USDT-DASH': CURRENCY_PAIR.USDT_TO_DASH,
         'USDT-BTC': CURRENCY_PAIR.USDT_TO_BTC,
         'USDT-LTC': CURRENCY_PAIR.USDT_TO_LTC,
@@ -214,5 +229,6 @@ def get_currency_pair_from_bittrex(pair_name):
         'USDT-XMR': CURRENCY_PAIR.USDT_TO_XMR,
         'USDT-NEO': CURRENCY_PAIR.USDT_TO_NEO,
         'USDT-BTG': CURRENCY_PAIR.USDT_TO_BTG,
-        'USDT-ADA': CURRENCY_PAIR.USDT_TO_ADA
+        'USDT-ADA': CURRENCY_PAIR.USDT_TO_ADA,
+        'USDT-XVG': CURRENCY_PAIR.USDT_TO_XVG
     }.get(pair_name)

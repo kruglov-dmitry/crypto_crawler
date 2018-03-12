@@ -43,6 +43,10 @@ class CURRENCY_PAIR:
     BTC_TO_ARK = 40
     BTC_TO_STRAT = 41
 
+    BTC_TO_LSK = 42         # LISK Polo/trex/binance
+    BTC_TO_ENG = 43         # ENIGMA  trex/binance
+    BTC_TO_XVG = 44         # VERGE   trex/binance
+
     ETH_TO_DASH = 1001
     ETH_TO_BTC = 1002       # NOT EXIST ON kraken, poloniex, bittrex
     ETH_TO_LTC = 1003
@@ -82,8 +86,12 @@ class CURRENCY_PAIR:
     ETH_TO_AION = 1036      # Not exist on bittrex, kraken, poloniex
     ETH_TO_ITC = 1037       # Not exist on binance, bittrex, poloniex
 
-    ETH_TO_ARK = 1038         # Not exist at bittrex, poloniex
-    ETH_TO_STRAT = 1039       # Not exist at poloniex
+    ETH_TO_ARK = 1038       # Not exist at bittrex, poloniex
+    ETH_TO_STRAT = 1039     # Not exist at poloniex
+
+    ETH_TO_LSK = 1040       # LISK binance\poloniex
+    ETH_TO_ENG = 1041       # ENIGMA  trex/binance
+    ETH_TO_XVG = 1042       # VERGE   trex/binance
 
     USD_TO_DASH = 2001
     USD_TO_ETH = 2002
@@ -140,6 +148,7 @@ class CURRENCY_PAIR:
     USDT_TO_TRX = 3035
     USDT_TO_AION = 3036
     USDT_TO_ITC = 3037
+    USDT_TO_XVG = 3038      # VERGE   trex
 
     USD_TO_USDT = 4000      # kraken only
 
