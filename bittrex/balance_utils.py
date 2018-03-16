@@ -1,6 +1,7 @@
 from urllib import urlencode as _urlencode
 
 from bittrex.constants import BITTREX_CHECK_BALANCE, BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT
+from bittrex.error_handling import is_error
 
 from data.Balance import Balance
 
@@ -8,7 +9,8 @@ from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, ERROR_LOG_FILE_NAME, \
+    get_logging_level, LOG_ALL_DEBUG, DEBUG_LOG_FILE_NAME
 from utils.file_utils import log_to_file
 
 from enums.status import STATUS
@@ -20,8 +22,7 @@ from utils.time_utils import get_now_seconds_utc
 def get_balance_bittrex_post_details(key):
     final_url = BITTREX_CHECK_BALANCE + key.api_key + "&nonce=" + str(generate_nonce())
 
-    body = {
-    }
+    body = {}
 
     final_url += _urlencode(body)
 
@@ -36,10 +37,14 @@ def get_balance_bittrex_post_details(key):
 
 
 def get_balance_bittrex_result_processor(json_document, timest):
-    if json_document is not None and "result" in json_document and json_document["result"] is not None:
-        return Balance.from_bittrex(timest, json_document["result"])
+    if is_error(json_document) or len(json_document["result"]) < 1:
 
-    return None
+        msg = "get_balance_bittrex_result_processor - error response - {er}".format(er=json_document)
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
+
+        return None
+
+    return Balance.from_bittrex(timest, json_document["result"])
 
 
 def get_balance_bittrex(key):
@@ -73,15 +78,13 @@ def get_balance_bittrex(key):
 
     timest = get_now_seconds_utc()
 
-    error_code, res = send_post_request_with_header(post_details,
-                                                    err_msg,
-                                                    max_tries=BITTREX_NUM_OF_DEAL_RETRY,
-                                                    timeout=BITTREX_DEAL_TIMEOUT)
+    status_code, res = send_post_request_with_header(post_details, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY,
+                                                     timeout=BITTREX_DEAL_TIMEOUT)
 
-    if error_code == STATUS.SUCCESS and "result" in res and res["result"] is not None and len(res["result"]) > 0:
-        log_to_file(res, "balance.log")
-        res = Balance.from_bittrex(timest, res["result"])
-    else:
-        res = None
+    if get_logging_level() >= LOG_ALL_DEBUG:
+        log_to_file(res, DEBUG_LOG_FILE_NAME)
 
-    return error_code, res
+    if status_code == STATUS.SUCCESS:
+        status_code, res = Balance.from_bittrex(timest, res["result"])
+
+    return status_code, res

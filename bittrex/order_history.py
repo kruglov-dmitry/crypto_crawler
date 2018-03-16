@@ -1,12 +1,16 @@
 from urllib import urlencode as _urlencode
+
 from bittrex.constants import BITTREX_GET_TRADE_HISTORY, BITTREX_NUM_OF_DEAL_RETRY
+from bittrex.error_handling import is_error
+
 from data_access.classes.PostRequestDetails import PostRequestDetails
 
 from data.Trade import Trade
 from enums.status import STATUS
 
 from utils.key_utils import signed_string
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, \
+    ERROR_LOG_FILE_NAME
 from utils.file_utils import log_to_file
 
 from data_access.memory_cache import generate_nonce
@@ -27,7 +31,7 @@ def get_order_history_bittrex_post_details(key, pair_name):
 
     post_details = PostRequestDetails(final_url, headers, body)
 
-    if should_print_debug():
+    if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
         msg = "get_order_history_bittrex_post_details: {res}".format(res=post_details)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
@@ -40,16 +44,21 @@ def get_order_history_bittrex_result_processor(json_document, pair_name):
     json_document - response from exchange api as json string
     pair_name - for backwords compabilities
     """
+
     orders = []
-    if json_document is None or "result" not in json_document:
-        return orders
+    if is_error(json_document):
+
+        msg = "get_order_history_bittrex_result_processor - error response - {er}".format(er=json_document)
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
+
+        return STATUS.FAILURE, orders
 
     for entry in json_document["result"]:
         order = Trade.from_bittrex_history(entry)
         if order is not None:
             orders.append(order)
 
-    return orders
+    return STATUS.SUCCESS, orders
 
 
 def get_order_history_bittrex(key, pair_name):
@@ -58,10 +67,10 @@ def get_order_history_bittrex(key, pair_name):
 
     err_msg = "get bittrex order history for time interval for pp={pp}".format(pp=post_details)
 
-    error_code, json_responce = send_post_request_with_header(post_details, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY)
+    status_code, json_responce = send_post_request_with_header(post_details, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY)
 
     historical_orders = []
-    if error_code == STATUS.SUCCESS:
-        historical_orders = get_order_history_bittrex_result_processor(json_responce, pair_name)
+    if status_code == STATUS.SUCCESS:
+        status_code, historical_orders = get_order_history_bittrex_result_processor(json_responce, pair_name)
 
-    return error_code, historical_orders
+    return status_code, historical_orders

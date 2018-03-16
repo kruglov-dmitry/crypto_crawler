@@ -1,8 +1,10 @@
 from bittrex.constants import BITTREX_GET_ORDER_BOOK
+from bittrex.error_handling import is_error
 
 from data.OrderBook import OrderBook
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
+from utils.file_utils import log_to_file
 
 from data_access.internet import send_request
 
@@ -26,15 +28,19 @@ def get_order_book_bittrex(pair_name, timest):
     err_msg = "get_order_book_bittrex called for {pair} at {timest}".format(pair=pair_name, timest=timest)
     error_code, r = send_request(final_url, err_msg)
 
-    if error_code == STATUS.SUCCESS and r is not None and "result" in r:
-        return OrderBook.from_bittrex(r["result"], pair_name, timest)
+    if error_code == STATUS.SUCCESS:
+        return get_order_book_bittrex_result_processor(r, pair_name, timest)
 
     return None
 
 
 def get_order_book_bittrex_result_processor(json_document, pair_name, timest):
 
-    if json_document is not None and "result" in json_document:
-        return OrderBook.from_bittrex(json_document["result"], pair_name, timest)
+    if is_error(json_document):
 
-    return None
+        msg = "get_order_book_bittrex_result_processor - error response - {er}".format(er=json_document)
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
+
+        return None
+
+    return OrderBook.from_bittrex(json_document["result"], pair_name, timest)

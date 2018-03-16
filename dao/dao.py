@@ -7,7 +7,7 @@
 from bittrex.buy_utils import add_buy_order_bittrex, add_buy_order_bittrex_url
 from bittrex.sell_utils import add_sell_order_bittrex, add_sell_order_bittrex_url
 from bittrex.order_utils import get_open_orders_bittrix
-from bittrex.market_utils import cancel_order_bittrex, parse_order_id_bittrex_from_json
+from bittrex.market_utils import cancel_order_bittrex, parse_order_id_bittrex
 
 from kraken.buy_utils import add_buy_order_kraken, add_buy_order_kraken_url
 from kraken.sell_utils import add_sell_order_kraken, add_sell_order_kraken_url
@@ -144,7 +144,7 @@ def get_method_for_create_url_trade_by_exchange_id(trade):
 def parse_order_id(exchange_id, json_document):
 
     method = {EXCHANGE.POLONIEX: parse_order_id_poloniex_from_json,
-              EXCHANGE.BITTREX: parse_order_id_bittrex_from_json,
+              EXCHANGE.BITTREX: parse_order_id_bittrex,
               EXCHANGE.BINANCE: parse_order_id_binance,
               EXCHANGE.KRAKEN: parse_order_id_kraken,
             }[exchange_id]
