@@ -5,7 +5,7 @@ from binance.constants import BINANCE_BUY_ORDER, BINANCE_NUM_OF_DEAL_RETRY, BINA
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
+from debug_utils import get_logging_level, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
 
 from utils.file_utils import log_to_file
 from utils.key_utils import signed_body_256
@@ -49,7 +49,7 @@ def add_buy_order_binance_url(key, pair_name, price, amount):
 
     res = PostRequestDetails(final_url, headers, body)
 
-    if should_print_debug():
+    if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
         msg = "add_buy_order_binance: {res}".format(res=res)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
@@ -82,7 +82,7 @@ def add_buy_order_binance(key, pair_name, price, amount):
     }
     """
 
-    if should_print_debug():
+    if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(res, "market_utils.log")
 

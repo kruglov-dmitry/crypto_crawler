@@ -52,3 +52,5 @@ BINANCE_GET_ALL_OPEN_ORDERS = "https://api.binance.com/api/v3/openOrders?"
 BINANCE_GET_ALL_ORDERS = "https://api.binance.com/api/v3/allOrders?"
 
 BINANCE_GET_ALL_TRADES = "https://api.binance.com/api/v3/myTrades?"
+
+EMPTY_LIST = []

@@ -1,13 +1,15 @@
 from urllib import urlencode as _urlencode
 
 from binance.constants import BINANCE_DEAL_TIMEOUT, BINANCE_GET_ALL_OPEN_ORDERS
+from binance.error_handling import is_error
 
 from data.Trade import Trade
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_get_request_with_header
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
+from debug_utils import LOG_ALL_DEBUG, DEBUG_LOG_FILE_NAME, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, \
+    get_logging_level, ERROR_LOG_FILE_NAME
 
 from enums.status import STATUS
 
@@ -38,8 +40,8 @@ def get_open_orders_binance_post_details(key, pair_name):
 
     post_details = PostRequestDetails(final_url, headers, body)
 
-    if should_print_debug():
-        msg = "get_open_orders_binance: {res}".format(res=post_details)
+    if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
+        msg = "get_open_orders_binance_post_details: {res}".format(res=post_details)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
@@ -52,15 +54,19 @@ def get_open_orders_binance(key, pair_name):
 
     err_msg = "get_orders_binance"
 
-    error_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
+    status_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
                                                    timeout=BINANCE_DEAL_TIMEOUT)
 
-    print "get_open_orders_binance", res
-    orders = []
-    if error_code == STATUS.SUCCESS and res is not None:
-        orders = get_open_orders_binance_result_processor(res, pair_name)
+    if get_logging_level() >= LOG_ALL_DEBUG:
+        msg = "get_open_orders_binance: {r}".format(r=res)
+        print_to_console(msg, LOG_ALL_DEBUG)
+        log_to_file(msg, DEBUG_LOG_FILE_NAME)
 
-    return error_code, orders
+    orders = []
+    if status_code == STATUS.SUCCESS:
+        status_code, orders = get_open_orders_binance_result_processor(res, pair_name)
+
+    return status_code, orders
 
 
 def get_open_orders_binance_result_processor(json_document, pair_name):
@@ -69,12 +75,16 @@ def get_open_orders_binance_result_processor(json_document, pair_name):
     pair_name - for backwords compabilities
     """
     orders = []
-    if json_document is None:
-        return orders
+    if is_error(json_document):
+
+        msg = "get_open_orders_binance_result_processor - error response - {er}".format(er=json_document)
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
+
+        return STATUS.FAILURE, orders
 
     for entry in json_document:
         order = Trade.from_binance(entry)
         if order is not None:
             orders.append(order)
 
-    return orders
+    return STATUS.SUCCESS, orders

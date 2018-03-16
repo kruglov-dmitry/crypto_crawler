@@ -1,8 +1,10 @@
 from binance.constants import BINANCE_GET_OHLC
+from binance.error_handling import is_error
 
 from data.Candle import Candle
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
+from utils.file_utils import log_to_file
 
 from data_access.internet import send_request
 
@@ -20,7 +22,7 @@ def get_ohlc_binance_url(currency, date_start, date_end, period):
     return final_url
 
 
-def get_ohlc_binance_result_processor(json_responce, currency, date_start, date_end):
+def get_ohlc_binance_result_processor(json_response, currency, date_start, date_end):
     """
              [
     		    1499040000000,      // Open time
@@ -39,9 +41,15 @@ def get_ohlc_binance_result_processor(json_responce, currency, date_start, date_
     """
     result_set = []
 
-    if json_responce is not None:
-        for record in json_responce:
-            result_set.append(Candle.from_binance(record, currency))
+    if is_error(json_response):
+
+        msg = "get_ohlc_binance_result_processor - error response - {er}".format(er=json_response)
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
+
+        return result_set
+
+    for record in json_response:
+        result_set.append(Candle.from_binance(record, currency))
 
     return result_set
 

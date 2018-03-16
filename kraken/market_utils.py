@@ -40,7 +40,7 @@ def cancel_order_kraken(key, order_id):
     return res
 
 
-def parse_order_id_kraken_from_json(json_document):
+def parse_order_id_kraken(json_document):
     """
     {u'result': {u'descr':
             {u'order': u'sell 10.00000000 XMRXBT @ limit 0.045000'},
@@ -50,7 +50,7 @@ def parse_order_id_kraken_from_json(json_document):
 
     if is_error(json_document):
 
-        msg = "parse_order_id_kraken_from_json - error response - {er}".format(er=json_document)
+        msg = "parse_order_id_kraken - error response - {er}".format(er=json_document)
         log_to_file(msg, ERROR_LOG_FILE_NAME)
 
         return None

@@ -1,8 +1,10 @@
 from binance.constants import BINANCE_GET_ORDER_BOOK
+from binance.error_handling import is_error
 
 from data.OrderBook import OrderBook
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
+from utils.file_utils import log_to_file
 
 from data_access.internet import send_request
 
@@ -33,7 +35,12 @@ def get_order_book_binance(pair_name, timest):
 
 
 def get_order_book_binance_result_processor(json_document, pair_name, timest):
-    if json_document is not None:
-        return OrderBook.from_binance(json_document, pair_name, timest)
 
-    return None
+    if is_error(json_document):
+
+        msg = "get_order_book_binance_result_processor - error response - {er}".format(er=json_document)
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
+
+        return None
+
+    return OrderBook.from_binance(json_document, pair_name, timest)

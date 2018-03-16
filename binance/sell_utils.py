@@ -5,7 +5,7 @@ from binance.constants import BINANCE_SELL_ORDER, BINANCE_NUM_OF_DEAL_RETRY, BIN
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level
 
 from utils.file_utils import log_to_file
 from utils.key_utils import signed_body_256
@@ -47,7 +47,7 @@ def add_sell_order_binance_url(key, pair_name, price, amount):
 
     res = PostRequestDetails(final_url, headers, body)
 
-    if should_print_debug():
+    if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
         msg = "add_sell_order_binance: url - {url} headers - {headers} body - {body}".format(url=res.final_url,
                                                                                              headers=res.headers,
                                                                                              body=res.body)
@@ -64,14 +64,25 @@ def add_sell_order_binance(key, pair_name, price, amount):
     err_msg = "add_sell_order binance called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
     # NOTE: Yeah, body must be empty!
-    res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg, max_tries=BINANCE_NUM_OF_DEAL_RETRY, timeout=BINANCE_DEAL_TIMEOUT)
+    res = send_post_request_with_header(post_details, err_msg, max_tries=BINANCE_NUM_OF_DEAL_RETRY, timeout=BINANCE_DEAL_TIMEOUT)
 
     """
-    {"orderId": 1373492, "clientOrderId": "e04JGgCpafdrR6O1lOLwgD", "origQty": "1.00000000", "symbol": "RDNBTC", "side": "SELL", "timeInForce": "GTC", "status": "NEW", "transactTime": 1512581721384, "type": "LIMIT", "price": "1.00022220", "executedQty": "0.00000000"}`:w
-
+    {
+        "orderId": 1373492, 
+        "clientOrderId": "e04JGgCpafdrR6O1lOLwgD",
+        "origQty": "1.00000000",
+        "symbol": "RDNBTC",
+        "side": "SELL",
+        "timeInForce": "GTC",
+        "status": "NEW",
+        "transactTime": 1512581721384,
+        "type": "LIMIT",
+        "price": "1.00022220",
+        "executedQty": "0.00000000"
+    }
     """
 
-    if should_print_debug():
+    if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(res, "market_utils.log")
 

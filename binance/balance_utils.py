@@ -1,13 +1,15 @@
 from urllib import urlencode as _urlencode
 
 from binance.constants import BINANCE_CHECK_BALANCE, BINANCE_DEAL_TIMEOUT
+from binance.error_handling import is_error
 
 from data.Balance import Balance
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_get_request_with_header
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP
+from debug_utils import print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, ERROR_LOG_FILE_NAME, \
+    should_print_debug, get_logging_level, LOG_ALL_DEBUG
 
 from enums.status import STATUS
 
@@ -41,16 +43,16 @@ def get_balance_binance_post_details(key):
 
 
 def get_balance_binance_result_processor(json_document, timest):
-    if json_document is not None and "balances" in json_document:
-        return Balance.from_binance(timest, json_document)
+    if not is_error(json_document) and "balances" in json_document:
+        return STATUS.SUCCESS, Balance.from_binance(timest, json_document)
 
-    return None
+    msg = "get_balance_binance_result_processor - error response - {er}".format(er=json_document)
+    log_to_file(msg, ERROR_LOG_FILE_NAME)
+
+    return STATUS.FAILURE, None
 
 
 def get_balance_binance(key):
-    """
-
-    """
 
     post_details = get_balance_binance_post_details(key)
 
@@ -58,15 +60,13 @@ def get_balance_binance(key):
 
     timest = get_now_seconds_utc()
 
-    error_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
+    status_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
                                                    timeout=BINANCE_DEAL_TIMEOUT)
 
-    log_to_file("RAW RESPONCE BINANCE", "balance.log")
-    log_to_file(res, "balance.log")
+    if get_logging_level() >= LOG_ALL_DEBUG:
+        log_to_file(res, "balance.log")
 
-    if error_code == STATUS.SUCCESS and res is not None and "balances" in res:
-        res = Balance.from_binance(timest, res)
-    else:
-        error_code = STATUS.FAILURE   
+    if status_code == STATUS.SUCCESS:
+        status_code, res = get_balance_binance_result_processor(res, timest)
 
-    return error_code, res
+    return status_code, res
