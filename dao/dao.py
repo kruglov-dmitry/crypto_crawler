@@ -17,7 +17,7 @@ from kraken.market_utils import cancel_order_kraken, parse_order_id_kraken
 from poloniex.buy_utils import add_buy_order_poloniex, add_buy_order_poloniex_url
 from poloniex.sell_utils import add_sell_order_poloniex, add_sell_order_poloniex_url
 from poloniex.order_utils import get_open_orders_poloniex
-from poloniex.market_utils import cancel_order_poloniex, parse_order_id_poloniex_from_json
+from poloniex.market_utils import cancel_order_poloniex, parse_order_id_poloniex
 
 from binance.buy_utils import add_buy_order_binance, add_buy_order_binance_url
 from binance.sell_utils import add_sell_order_binance, add_sell_order_binance_url
@@ -143,7 +143,7 @@ def get_method_for_create_url_trade_by_exchange_id(trade):
 
 def parse_order_id(exchange_id, json_document):
 
-    method = {EXCHANGE.POLONIEX: parse_order_id_poloniex_from_json,
+    method = {EXCHANGE.POLONIEX: parse_order_id_poloniex,
               EXCHANGE.BITTREX: parse_order_id_bittrex,
               EXCHANGE.BINANCE: parse_order_id_binance,
               EXCHANGE.KRAKEN: parse_order_id_kraken,

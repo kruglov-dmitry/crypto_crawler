@@ -1,4 +1,5 @@
 from poloniex.constants import POLONIEX_CHECK_BALANCE, POLONIEX_NUM_OF_DEAL_RETRY, POLONIEX_DEAL_TIMEOUT
+from poloniex.error_handling import is_error
 
 from data.Balance import Balance
 
@@ -6,7 +7,8 @@ from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, ERROR_LOG_FILE_NAME
+from utils.file_utils import log_to_file
 
 from enums.status import STATUS
 
@@ -33,10 +35,14 @@ def get_balance_poloniex_post_details(key):
 
 
 def get_balance_poloniex_result_processor(json_document, timest):
-    if json_document is not None:
-        return Balance.from_poloniex(timest, json_document)
+    if is_error(json_document):
 
-    return None
+        msg = "get_balance_poloniex_result_processor - error response - {er}".format(er=json_document)
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
+
+        return None
+
+    return Balance.from_poloniex(timest, json_document)
 
 
 def get_balance_poloniex(key):
@@ -55,8 +61,7 @@ def get_balance_poloniex(key):
     err_msg = "check poloniex balance called"
 
     timest = get_now_seconds_utc()
-    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
-                                                    err_msg,
+    error_code, res = send_post_request_with_header(post_details, err_msg,
                                                     max_tries=POLONIEX_NUM_OF_DEAL_RETRY,
                                                     timeout=POLONIEX_DEAL_TIMEOUT)
 

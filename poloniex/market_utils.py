@@ -1,9 +1,11 @@
 from poloniex.constants import POLONIEX_CANCEL_ORDER, POLONIEX_NUM_OF_DEAL_RETRY, POLONIEX_DEAL_TIMEOUT
+from poloniex.error_handling import is_error
 
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
+from data_access.classes.PostRequestDetails import PostRequestDetails
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, \
+from debug_utils import ERROR_LOG_FILE_NAME, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, \
     LOG_ALL_TRACE
 
 from utils.file_utils import log_to_file
@@ -22,44 +24,35 @@ def cancel_order_poloniex(key, order_id):
     # https://poloniex.com/tradingApi
     final_url = POLONIEX_CANCEL_ORDER
 
-    if should_print_debug():
-        msg = "add_sell_order_poloniex: url - {url} headers - {headers} body - {body}".format(url=final_url,
-                                                                                            headers=headers, body=body)
+    post_request = PostRequestDetails(final_url, headers, body)
+
+    if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
+        msg = "add_sell_order_poloniex: {res}".format(res=post_request)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
     err_msg = "cancel poloniex called for {order_id}".format(order_id=order_id)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg,
+    res = send_post_request_with_header(post_request, err_msg,
                                         max_tries=POLONIEX_NUM_OF_DEAL_RETRY, timeout=POLONIEX_DEAL_TIMEOUT)
 
-    if should_print_debug():
+    if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(res, "market_utils.log")
 
     return res
 
 
-def parse_order_id_poloniex(http_responce):
-    if get_logging_level() >= LOG_ALL_TRACE:
-        log_to_file("poloniex\n" + str(http_responce), "parse_id.log")
-        try:
-            log_to_file("poloniex\n" + str(http_responce.json()), "parse_id.log")
-        except:
-            pass
-
-    if http_responce.status_code == 200:
-        json_document = http_responce.json()
-        return parse_order_id_poloniex_from_json(json_document)
-
-    return None
-
-
-def parse_order_id_poloniex_from_json(json_document):
+def parse_order_id_poloniex(json_document):
     """
      {u'orderNumber': u'15573359248', u'resultingTrades': []}
     """
-    if json_document is not None and "orderNumber" in json_document:
-        return json_document["orderNumber"]
 
-    return None
+    if is_error(json_document) or "orderNumber" not in json_document:
+
+        msg = "parse_order_id_poloniex - error response - {er}".format(er=json_document)
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
+
+        return None
+
+    return json_document["orderNumber"]

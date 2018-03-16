@@ -1,4 +1,5 @@
 from poloniex.constants import POLONIEX_GET_OPEN_ORDERS
+from poloniex.error_handling import is_error
 
 from data.Trade import Trade
 
@@ -6,7 +7,7 @@ from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
+from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
 
 from enums.status import STATUS
 
@@ -27,7 +28,7 @@ def get_open_orders_poloniex_post_details(key, pair_name):
 
     res = PostRequestDetails(final_url, headers, body)
 
-    if should_print_debug():
+    if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
         msg = "get_open_order_poloniex: {res}".format(res=res)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
@@ -40,25 +41,32 @@ def get_open_orders_poloniex(key, pair_name):
 
     err_msg = "get poloniex open orders"
 
-    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
-                                                    err_msg, max_tries=3)
+    status_code, res = send_post_request_with_header(post_details, err_msg, max_tries=3)
 
-    print "get_open_orders_poloniex", res
+    if get_logging_level() >= LOG_ALL_DEBUG:
+        msg = "get_open_orders_poloniex: {res}".format(res=res)
+        print_to_console(msg, LOG_ALL_DEBUG)
+        log_to_file(msg, "market_utils.log")
+
     orders = []
-    if error_code == STATUS.SUCCESS and res is not None:
-        orders = get_open_orders_poloniex_result_processor(res, pair_name)
+    if status_code == STATUS.SUCCESS:
+        status_code, orders = get_open_orders_poloniex_result_processor(res, pair_name)
 
-    return error_code, orders
+    return status_code, orders
 
 
 def get_open_orders_poloniex_result_processor(json_document, pair_name):
     orders = []
-    if json_document is None:
-        return orders
+    if is_error(json_document):
+
+        msg = "get_open_orders_poloniex_result_processor - error response - {er}".format(er=json_document)
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
+
+        return STATUS.FAILURE, orders
 
     for entry in json_document:
         order = Trade.from_poloniex(entry, pair_name)
         if order is not None:
             orders.append(order)
 
-    return orders
+    return STATUS.SUCCESS, orders
