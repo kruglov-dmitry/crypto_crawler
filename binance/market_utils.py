@@ -137,6 +137,6 @@ def get_trades_history_binance(key, pair_name, limit, last_order_id=None):
     error_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
                                                    timeout=BINANCE_DEAL_TIMEOUT)
 
-    print "get_all_trades_binance: ", error_code
+    print "get_all_trades_binance: ", error_code, res
 
     return error_code, res

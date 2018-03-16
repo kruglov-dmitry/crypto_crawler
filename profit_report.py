@@ -5,14 +5,13 @@ import ConfigParser
 from dao.db import init_pg_connection
 
 from utils.key_utils import load_keys
-from utils.time_utils import get_now_seconds_utc, parse_time
+from utils.time_utils import parse_time
 from utils.file_utils import set_log_folder
 from utils.currency_utils import split_currency_pairs
 
 from analysis.data_load_for_profit_report import fetch_trades_history_to_db
-from analysis.binance_order_by_trades import group_binance_trades_per_order
 
-from analysis.grouping_utils import group_trades_by_orders, group_by_pair_id
+from analysis.grouping_utils import group_trades_by_orders
 from analysis.data_preparation import prepare_data
 from analysis.profit_report_analysis import compute_loss, compute_profit_by_pair, save_report
 from analysis.classes.ProfitDetails import ProfitDetails
@@ -57,18 +56,9 @@ if __name__ == "__main__":
     orders, history_trades, binance_trades, binance_orders_at_bot, binance_orders_at_exchange = \
         prepare_data(pg_conn, start_time, end_time)
 
-    missing_orders, failed_orders, orders_with_trades = group_trades_by_orders(orders,
-                                                                               history_trades,
-                                                                               binance_orders_at_exchange)
+    missing_orders, failed_orders, orders_with_trades = group_trades_by_orders(orders, history_trades)
 
-    # 2 stage - filling order->trades list for Binances
-    binance_trades_group_by_pair = group_by_pair_id(binance_trades)
-
-    binance_orders_with_trades = group_binance_trades_per_order(binance_orders_at_exchange, binance_trades_group_by_pair, binance_orders_at_bot)
-
-    orders_with_trades += binance_orders_with_trades
-
-    # 3 stage - bucketing all that crap by pair_id
+    # 2 stage - bucketing all that crap by pair_id
     trades_to_order = defaultdict(list)
     for order, trade_list in orders_with_trades:
         trades_to_order[order.pair_id].append((order, trade_list))
