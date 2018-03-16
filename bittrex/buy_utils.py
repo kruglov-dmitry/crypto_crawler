@@ -27,25 +27,24 @@ def add_buy_order_bittrex_url(key, pair_name, price, amount):
 
     headers = {"apisign": signed_string(final_url, key.secret)}
 
-    res = PostRequestDetails(final_url, headers, body)
+    post_details = PostRequestDetails(final_url, headers, body)
 
     if should_print_debug():
-        msg = "add_buy_order_bittrex: url - {url} headers - {headers} body - {body}".format(url=res.final_url,
-                                                                                            headers=res.headers,
-                                                                                            body=res.body)
+        msg = "add_buy_order_bittrex: url - {url} headers - {headers} body - {body}".format(url=post_details.final_url,
+                                                                                            headers=post_details.headers,
+                                                                                            body=post_details.body)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
-    return res
+    return post_details
 
 
 def add_buy_order_bittrex(key, pair_name, price, amount):
-
-    res = add_buy_order_bittrex_url(key, pair_name, price, amount)
+    post_details = add_buy_order_bittrex_url(key, pair_name, price, amount)
 
     err_msg = "add_buy_order bittrex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(res.final_url, res.headers, res.body, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY, timeout=BITTREX_DEAL_TIMEOUT)
+    res = send_post_request_with_header(post_details, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY, timeout=BITTREX_DEAL_TIMEOUT)
 
     if should_print_debug():
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)

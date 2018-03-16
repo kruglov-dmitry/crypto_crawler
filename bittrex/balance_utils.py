@@ -73,13 +73,12 @@ def get_balance_bittrex(key):
 
     timest = get_now_seconds_utc()
 
-    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
+    error_code, res = send_post_request_with_header(post_details,
                                                     err_msg,
                                                     max_tries=BITTREX_NUM_OF_DEAL_RETRY,
                                                     timeout=BITTREX_DEAL_TIMEOUT)
 
     if error_code == STATUS.SUCCESS and "result" in res and res["result"] is not None and len(res["result"]) > 0:
-        log_to_file("RAW RESPONCE BITTREX", "balance.log")
         log_to_file(res, "balance.log")
         res = Balance.from_bittrex(timest, res["result"])
     else:

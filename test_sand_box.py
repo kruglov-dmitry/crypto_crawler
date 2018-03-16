@@ -53,6 +53,9 @@ from dao.order_utils import get_open_orders_for_arbitrage_pair
 from dao.db import save_order_into_pg, init_pg_connection, is_order_present_in_order_history, \
     is_trade_present_in_trade_history
 
+import csv
+from collections import defaultdict
+
 from debug_utils import LOG_ALL_DEBUG
 
 POLL_PERIOD_SECONDS = 900
@@ -461,3 +464,32 @@ def quck_check():
 
     for rr in r:
         print rr
+
+
+def load_trades_from_csv_to_db():
+    file_name = "all_orders.csv"
+    start_time = -1
+    end_time = -2
+
+    pg_conn = init_pg_connection(_db_host="orders.cervsj06c8zw.us-west-1.rds.amazonaws.com",
+                                 _db_port=5432, _db_name="crypto")
+
+    from analysis.data_load_for_profit_report import wrap_with_progress_bar, save_to_pg_adapter
+    from bittrex.currency_utils import get_currency_pair_to_bittrex
+
+    bittrex_order_by_pair = defaultdict(list)
+
+    with open(file_name, 'r') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            new_trade = Trade.from_bittrex_scv(row)
+            if start_time <= new_trade.create_time <= end_time:
+                bittrex_order_by_pair[new_trade.pair_id].append(new_trade)
+
+    unique_only = True
+
+    for pair_id in bittrex_order_by_pair:
+        headline = "Loading bittrex trades - {p}".format(p=get_currency_pair_to_bittrex(pair_id))
+        wrap_with_progress_bar(headline, bittrex_order_by_pair[pair_id], save_to_pg_adapter, pg_conn,
+                               unique_only, is_trade_present_in_trade_history,
+                               init_arbitrage_id=-20, table_name="arbitrage_trades")

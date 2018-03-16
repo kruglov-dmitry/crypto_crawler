@@ -405,3 +405,45 @@ class Trade(Deal):
                     order_id, trade_id, executed_volume, arbitrage_id)
 
         return res
+
+    @classmethod
+    def from_bittrex_scv(cls, row):
+        """
+            Export from bittrex history:
+
+
+            OrderUuid, 8269d382-b7f6-4ac2-9e7f-33ce45887b72,
+            Exchange, BTC-XRP,
+            Type, LIMIT_BUY,
+            Quantity, 478.7867564,
+            Limit, 0.00002155,
+            CommissionPaid, 0.00002579,
+            Price, 0.01031785,
+            Opened, 12/4/2017 4:02:43 AM,
+            Closed 12/4/2017 4:05:11 AM
+
+        """
+
+        order_id = row[0]
+        pair_id = get_currency_pair_from_bittrex(row[1])
+        trade_type = DEAL_TYPE.BUY
+        if "SELL" in row[2]:
+            trade_type = DEAL_TYPE.SELL
+
+        volume = float(row[3])
+        price = float(row[5])
+
+        arbitrage_id = -50
+        exchange_id = EXCHANGE.BITTREX
+
+        executed_volume = db_row[6]
+
+        trade_id = db_row[8]
+        order_book_time = db_row[9]
+        create_time = db_row[10]
+        execute_time = db_row[11]
+
+        res = Trade(trade_type, exchange_id, pair_id, price, volume, order_book_time, create_time, execute_time,
+                    order_id, trade_id, executed_volume, arbitrage_id)
+
+        return res

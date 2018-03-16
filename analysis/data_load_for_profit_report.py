@@ -35,6 +35,14 @@ def fetch_trades_history_to_db(pg_conn, start_time, end_time, fetch_from_start):
     load_recent_bittrex_trades_to_db(pg_conn, start_time, end_time)
 
 
+def get_trade_retrieval_method_by_exchange(exchange_id):
+    return {
+        EXCHANGE.BITTREX: load_recent_bittrex_trades_to_db,
+        EXCHANGE.POLONIEX: load_recent_poloniex_trades_to_db,
+        EXCHANGE.BINANCE: load_recent_binance_trades_to_db
+    }[exchange_id]
+
+
 def wrap_with_progress_bar(descr, input_array, functor, *args, **kwargs):
     for entry in tqdm(input_array, desc=descr):
         functor(entry, *args, **kwargs)

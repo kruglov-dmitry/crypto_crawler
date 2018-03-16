@@ -58,8 +58,7 @@ def get_order_history_bittrex(key, pair_name):
 
     err_msg = "get bittrex order history for time interval for pp={pp}".format(pp=post_details)
 
-    error_code, json_responce = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
-                                                    err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY)
+    error_code, json_responce = send_post_request_with_header(post_details, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY)
 
     historical_orders = []
     if error_code == STATUS.SUCCESS:

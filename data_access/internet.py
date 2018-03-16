@@ -54,30 +54,35 @@ def send_get_request_with_header(final_url, header, error_msg, timeout=HTTP_TIME
     return res
 
 
-def send_post_request_with_header(final_url, header, body, error_msg, max_tries, timeout=HTTP_TIMEOUT_SECONDS):
+def send_post_request_with_header(post_details, error_msg, max_tries, timeout=HTTP_TIMEOUT_SECONDS):
     res = STATUS.FAILURE, None
 
     try_number = 0
     while try_number < max_tries:
         try_number += 1
         try:
-            response = requests.post(final_url, data=body, headers=header, timeout=timeout).json()
-            str_repr = json.dumps(response)
+            response = requests.post(post_details.final_url,
+                                     data=post_details.body,
+                                     headers=post_details.header,
+                                     timeout=timeout).json()
+
+            """str_repr = json.dumps(response)
             # try to deal with problem - i.e. just wait an retry
             if "EOrder" in str_repr or "Unavailable" in str_repr or "Busy" in str_repr or "ETrade" in str_repr or "EGeneral:Invalid" in str_repr \
                     or "timeout" in str_repr or "Nonce must" in str_repr:
-                sleep_for(1)
+                msg = "send_post_request_with_header: SOME ERROR: RESULT: {res} for url={url}".format(
+                    res=response, url=post_details.final_url)
+                print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
+                log_to_file(msg, ERROR_LOG_FILE_NAME)
+
+                res = STATUS.FAILURE, response
+
             else:
                 msg = "send_post_request_with_header: YEAH, RESULT: {res} for url={url}".format(res=str_repr, url=final_url)
                 log_to_file(msg, DEBUG_LOG_FILE_NAME)
                 # NOTE: Consider it as success then, if not - extend possible checks above
-                return STATUS.SUCCESS, response
-
-            msg = "send_post_request_with_header: SOME ERROR: RESULT: {res} for url={url}".format(res=response, url=final_url)
-            print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
-            log_to_file(msg, ERROR_LOG_FILE_NAME)
-
-            res = STATUS.FAILURE, response
+            """
+            return STATUS.SUCCESS, response
 
         except Exception, e:
             res = STATUS.FAILURE, error_msg + str(e)
@@ -85,7 +90,6 @@ def send_post_request_with_header(final_url, header, body, error_msg, max_tries,
                                                                                          url=final_url)
             print_to_console(msg, LOG_ALL_ERRORS)
             log_to_file(msg, ERROR_LOG_FILE_NAME)
-            sleep_for(1)
 
     return res
 

@@ -42,7 +42,7 @@ def get_open_orders_bittrix(key, pair_name):
 
     err_msg = "get_orders_bittrix"
 
-    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
+    error_code, res = send_post_request_with_header(post_details,
                                                     err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY,
                                                     timeout=BITTREX_DEAL_TIMEOUT)
 

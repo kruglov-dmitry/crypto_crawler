@@ -41,9 +41,11 @@ def add_sell_order_bittrex(key, pair_name, price, amount):
 
     post_details = add_sell_order_bittrex_url(key, pair_name, price, amount)
 
-    err_msg = "add_sell_order bittrex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
+    err_msg = "add_sell_order bittrex called for {pair} for amount = {amount} with price {price}".format(
+        pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY, timeout=BITTREX_DEAL_TIMEOUT)
+    res = send_post_request_with_header(post_details, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY,
+                                        timeout=BITTREX_DEAL_TIMEOUT)
 
     if should_print_debug():
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)

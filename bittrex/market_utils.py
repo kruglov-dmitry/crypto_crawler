@@ -25,16 +25,16 @@ def cancel_order_bittrex(key, order_id):
 
     headers = {"apisign": signed_string(final_url, key.secret)}
 
-    res = PostRequestDetails(final_url, headers, body)
+    post_details = PostRequestDetails(final_url, headers, body)
 
     if should_print_debug():
-        msg = "cancel_order_bittrex: {res}".format(res=res)
+        msg = "cancel_order_bittrex: {res}".format(res=post_details)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
     err_msg = "cancel bittrex order with id {id}".format(id=order_id)
 
-    res = send_post_request_with_header(final_url, headers, body, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY,
+    res = send_post_request_with_header(post_details, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY,
                                         timeout=BITTREX_DEAL_TIMEOUT)
 
     if should_print_debug():
@@ -67,7 +67,7 @@ def parse_order_id_bittrex_from_json(json_document):
         u'success': True
     }
     """
-    if "result" in json_document and "uuid" in json_document["result"]:
+    if json_document is not None and "result" in json_document and "uuid" in json_document["result"]:
         return json_document["result"]["uuid"]
 
     return None

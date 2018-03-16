@@ -63,7 +63,7 @@ def add_buy_order_binance(key, pair_name, price, amount):
 
     err_msg = "add_buy_order_binance  called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg,
+    res = send_post_request_with_header(post_details, err_msg,
                                         max_tries=BINANCE_NUM_OF_DEAL_RETRY, timeout=BINANCE_DEAL_TIMEOUT)
 
     """
