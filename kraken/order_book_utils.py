@@ -9,14 +9,14 @@ from data_access.internet import send_request
 
 from enums.status import STATUS
 
-from debug_utils import print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME, get_logging_level
+from debug_utils import print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME, should_print_debug
 
 
 def get_order_book_kraken_url(pair_name, timest):
     # https://api.kraken.com/0/public/Depth?pair=XETHXXBT
     final_url = KRAKEN_GET_ORDER_BOOK + pair_name
 
-    if get_logging_level() >= LOG_ALL_DEBUG:
+    if should_print_debug():
         print_to_console(final_url, LOG_ALL_DEBUG)
 
     return final_url

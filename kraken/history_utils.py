@@ -3,7 +3,7 @@ from kraken.error_handling import is_error
 
 from data.TradeHistory import TradeHistory
 
-from debug_utils import get_logging_level, print_to_console, ERROR_LOG_FILE_NAME, LOG_ALL_OTHER_STUFF
+from debug_utils import should_print_debug, print_to_console, ERROR_LOG_FILE_NAME, LOG_ALL_OTHER_STUFF
 from utils.file_utils import log_to_file
 
 from data_access.internet import send_request
@@ -15,7 +15,7 @@ def get_history_kraken_url(pair_name, prev_time, now_time):
     # https://api.kraken.com/0/public/Trades?pair=XETHXXBT&since=1501693512
     final_url = KRAKEN_GET_HISTORY + pair_name + "&since=" + str(prev_time)
 
-    if get_logging_level() >= LOG_ALL_OTHER_STUFF:
+    if should_print_debug():
         print_to_console(final_url, LOG_ALL_OTHER_STUFF)
 
     return final_url
