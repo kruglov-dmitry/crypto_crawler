@@ -1,21 +1,21 @@
 from kraken.constants import KRAKEN_GET_TICKER
+from kraken.error_handling import is_error
 
 from data.Ticker import Ticker
-
-from debug_utils import should_print_debug
 
 from data_access.internet import send_request
 
 from enums.status import STATUS
 
-from debug_utils import print_to_console, LOG_ALL_DEBUG
+from debug_utils import get_logging_level, print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
+from utils.file_utils import log_to_file
 
 
-def get_ticker_kraken_url(currency, timest):
+def get_ticker_kraken_url(pair_name, timest):
     # https://api.kraken.com/0/public/Ticker?pair=DASHXBT
-    final_url = KRAKEN_GET_TICKER + currency
+    final_url = KRAKEN_GET_TICKER + pair_name
 
-    if should_print_debug():
+    if get_logging_level() >= LOG_ALL_DEBUG:
         print_to_console(final_url, LOG_ALL_DEBUG)
 
     return final_url
@@ -23,21 +23,27 @@ def get_ticker_kraken_url(currency, timest):
 
 def get_ticker_kraken(pair_name, timest):
 
-    final_url = get_ticker_kraken(pair_name, timest)
+    final_url = get_ticker_kraken_url(pair_name, timest)
 
     err_msg = "get_ticker_kraken called for {pair} at {timest}".format(pair=pair_name, timest=timest)
-    error_code, r = send_request(final_url, err_msg)
+    error_code, json_document = send_request(final_url, err_msg)
 
-    if error_code == STATUS.SUCCESS and r is not None and "result" in r:
-        if pair_name in r["result"]:
-            return Ticker.from_kraken(pair_name, timest, r["result"][pair_name])
+    if error_code == STATUS.SUCCESS:
+        get_ticker_kraken_result_processor(json_document, pair_name, timest)
 
     return None
 
 
 def get_ticker_kraken_result_processor(json_document, pair_name, timest):
-    if json_document is not None and "result" in json_document:
-        if pair_name in json_document["result"]:
-            return Ticker.from_kraken(pair_name, timest, json_document["result"][pair_name])
+
+    if is_error(json_document):
+
+        msg = "get_order_book_kraken_result_processor - error response - {er}".format(er=json_document)
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
+
+        return None
+
+    if pair_name in json_document["result"]:
+        return Ticker.from_kraken(pair_name, timest, json_document["result"][pair_name])
 
     return None

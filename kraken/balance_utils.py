@@ -1,4 +1,5 @@
-from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_CHECK_BALANCE
+from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_CHECK_BALANCE, KRAKEN_NUM_OF_DEAL_RETRY
+from kraken.error_handling import is_error
 
 from data.Balance import Balance
 
@@ -6,12 +7,13 @@ from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, ERROR_LOG_FILE_NAME
 
 from enums.status import STATUS
 
 from utils.key_utils import sign_kraken
 from utils.time_utils import get_now_seconds_utc
+from utils.file_utils import log_to_file
 
 
 def get_balance_kraken_post_details(key):
@@ -32,10 +34,15 @@ def get_balance_kraken_post_details(key):
 
 
 def get_balance_kraken_result_processor(json_document, timest):
-    if json_document is not None and "result" in json_document:
-        return Balance.from_kraken(timest, json_document["result"])
 
-    return None
+    if is_error(json_document):
+
+        msg = "get_balance_kraken_result_processor - error response - {er}".format(er=json_document)
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
+
+        return STATUS.FAILURE, None
+
+    return STATUS.SUCCESS, Balance.from_kraken(timest, json_document["result"])
 
 
 def get_balance_kraken(key):
@@ -58,9 +65,10 @@ def get_balance_kraken(key):
 
     timest = get_now_seconds_utc()
 
-    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body, err_msg, max_tries=1)
+    status_code, json_document = send_post_request_with_header(post_details, err_msg, max_tries=KRAKEN_NUM_OF_DEAL_RETRY)
 
-    if error_code == STATUS.SUCCESS and "result" in res:
-        res = Balance.from_kraken(timest, res["result"])
+    balance = None
+    if status_code == STATUS.SUCCESS:
+        status_code, balance = get_balance_kraken_result_processor(json_document, timest)
 
-    return error_code, res
+    return status_code, balance

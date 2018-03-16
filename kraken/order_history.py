@@ -1,16 +1,20 @@
 from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_GET_CLOSE_ORDERS
+from kraken.error_handling import is_error
+
 from data.Trade import Trade
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
+from debug_utils import get_logging_level, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, ERROR_LOG_FILE_NAME
 
 from enums.status import STATUS
 
 from utils.file_utils import log_to_file
 from utils.key_utils import sign_kraken
+
+from constants import EMPTY_LIST
 
 
 def get_closed_orders_kraken_post_details(key, pair_name=None):
@@ -24,7 +28,7 @@ def get_closed_orders_kraken_post_details(key, pair_name=None):
 
     res = PostRequestDetails(final_url, headers, body)
 
-    if should_print_debug():
+    if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
         msg = "get_closed_orders_kraken: {res}".format(res=res)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
@@ -37,8 +41,14 @@ def get_order_history_kraken_result_processor(json_document, pair_name):
     json_document - response from exchange api as json string
     pair_name - for backwords compabilities
     """
-    orders = []
-    if json_document is None or "result" not in json_document or "closed" not in json_document["result"]:
+
+    orders = EMPTY_LIST
+
+    if is_error(json_document) or "closed" not in json_document["result"]:
+
+        msg = "get_order_history_kraken_result_processor - error response - {er}".format(er=json_document)
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
+
         return orders
 
     for order_id in json_document["result"]["closed"]:
@@ -55,10 +65,9 @@ def get_order_history_kraken(key, pair_name=None):
 
     err_msg = "check kraken closed orders called"
 
-    error_code, json_document = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
-                                                    err_msg, max_tries=5)
+    error_code, json_document = send_post_request_with_header(post_details, err_msg, max_tries=5)
 
-    closed_orders = []
+    closed_orders = EMPTY_LIST
     if error_code == STATUS.SUCCESS:
         closed_orders = get_order_history_kraken_result_processor(json_document, pair_name)
 

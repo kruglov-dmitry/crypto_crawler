@@ -1,5 +1,5 @@
-from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_GET_OPEN_ORDERS
-from kraken.currency_utils import get_currency_pair_from_kraken
+from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_GET_OPEN_ORDERS, EMPTY_LIST
+from kraken.error_handling import is_error
 from kraken.order_history import get_order_history_kraken
 
 from data.OrderState import OrderState
@@ -9,7 +9,7 @@ from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, LOG_ALL_TRACE
+from debug_utils import get_logging_level, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, ERROR_LOG_FILE_NAME
 
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
@@ -30,7 +30,7 @@ def get_open_orders_kraken_post_details(key, pair_name=None):
 
     res = PostRequestDetails(final_url, headers, body)
 
-    if should_print_debug():
+    if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
         msg = "ger_open_orders_kraken: {res}".format(res=res)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
@@ -76,25 +76,23 @@ def get_open_orders_kraken(key, pair_name=None):
 
     err_msg = "check kraken open orders called"
 
-    error_code, res = send_post_request_with_header(post_details.final_url, post_details.headers, post_details.body,
-                                                    err_msg, max_tries=5)
+    status_code, res = send_post_request_with_header(post_details, err_msg, max_tries=5)
 
-    print "get_open_orders_kraken:", res
-    open_orders = []
-    if error_code == STATUS.SUCCESS and "result" in res:
+    open_orders = EMPTY_LIST
+    if status_code == STATUS.SUCCESS:
         open_orders = get_open_orders_kraken_result_processor(res, pair_name)
 
-    if pair_name is not None:
-        pair_id = get_currency_pair_from_kraken(pair_name)
-        open_orders = [x for x in open_orders if x.pair_id == pair_id]
-
-    return error_code, open_orders
+    return status_code, open_orders
 
 
 def get_open_orders_kraken_result_processor(json_document, pair_name):
-    open_orders = []
+    open_orders = EMPTY_LIST
 
-    if json_document is None or "result" not in json_document or "open" not in json_document["result"]:
+    if is_error(open_orders) or "open" not in json_document["result"]:
+
+        msg = "get_open_orders_kraken_result_processor - error response - {er}".format(er=json_document)
+        log_to_file(msg, ERROR_LOG_FILE_NAME)
+
         return open_orders
 
     for order_id in json_document["result"]["open"]:

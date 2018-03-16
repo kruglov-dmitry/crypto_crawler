@@ -1,15 +1,11 @@
 import requests
-import json
-import hmac
-import hashlib
 
-from constants import HTTP_TIMEOUT_SECONDS
+from constants import HTTP_TIMEOUT_SECONDS, HTTP_SUCCESS
 from enums.status import STATUS
 
-from utils.time_utils import sleep_for
 from utils.file_utils import log_to_file
 from debug_utils import print_to_console, LOG_ALL_ERRORS, DEBUG_LOG_FILE_NAME, ERROR_LOG_FILE_NAME, \
-    LOG_ALL_MARKET_NETWORK_RELATED_CRAP
+    get_logging_level, LOG_ALL_DEBUG
 
 """
             NOTE:
@@ -20,11 +16,17 @@ from debug_utils import print_to_console, LOG_ALL_ERRORS, DEBUG_LOG_FILE_NAME, E
 def send_request(final_url, error_msg):
 
     try:
-        responce = requests.get(final_url, timeout=HTTP_TIMEOUT_SECONDS).json()
+        response = requests.get(final_url, timeout=HTTP_TIMEOUT_SECONDS)
+        json_response = response.json()
 
-        res = STATUS.SUCCESS, responce
+        if get_logging_level() >= LOG_ALL_DEBUG:
+            log_to_file(json_response, DEBUG_LOG_FILE_NAME)
 
-        log_to_file(responce, DEBUG_LOG_FILE_NAME)
+        if response.status_code == HTTP_SUCCESS:
+            res = STATUS.SUCCESS, json_response
+        else:
+            res = STATUS.FAILURE, response
+
     except Exception, e:
         res = STATUS.FAILURE, error_msg + str(e)
 
@@ -37,12 +39,17 @@ def send_request(final_url, error_msg):
 
 def send_get_request_with_header(final_url, header, error_msg, timeout=HTTP_TIMEOUT_SECONDS):
     try:
-        responce = requests.get(final_url, headers=header, timeout=timeout)
-        responce = responce.json()
+        response = requests.get(final_url, headers=header, timeout=timeout)
+        json_response = response.json()
 
-        res = STATUS.SUCCESS, responce
+        if get_logging_level() >= LOG_ALL_DEBUG:
+            log_to_file(json_response, DEBUG_LOG_FILE_NAME)
 
-        log_to_file(responce, DEBUG_LOG_FILE_NAME)
+        if response.status_code == HTTP_SUCCESS:
+            res = STATUS.SUCCESS, json_response
+        else:
+            res = STATUS.FAILURE, response
+
     except Exception, e:
 
         res = STATUS.FAILURE, error_msg + str(e)
@@ -64,84 +71,53 @@ def send_post_request_with_header(post_details, error_msg, max_tries, timeout=HT
             response = requests.post(post_details.final_url,
                                      data=post_details.body,
                                      headers=post_details.header,
-                                     timeout=timeout).json()
+                                     timeout=timeout)
+            json_response = response.json()
 
-            """str_repr = json.dumps(response)
-            # try to deal with problem - i.e. just wait an retry
-            if "EOrder" in str_repr or "Unavailable" in str_repr or "Busy" in str_repr or "ETrade" in str_repr or "EGeneral:Invalid" in str_repr \
-                    or "timeout" in str_repr or "Nonce must" in str_repr:
-                msg = "send_post_request_with_header: SOME ERROR: RESULT: {res} for url={url}".format(
-                    res=response, url=post_details.final_url)
-                print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
-                log_to_file(msg, ERROR_LOG_FILE_NAME)
-
-                res = STATUS.FAILURE, response
-
-            else:
-                msg = "send_post_request_with_header: YEAH, RESULT: {res} for url={url}".format(res=str_repr, url=final_url)
+            if get_logging_level() >= LOG_ALL_DEBUG:
+                msg = "send_post_request_with_header: RESULT: {res} for url={url}".format(
+                    res=json_response, url=post_details.final_url)
                 log_to_file(msg, DEBUG_LOG_FILE_NAME)
-                # NOTE: Consider it as success then, if not - extend possible checks above
-            """
-            return STATUS.SUCCESS, response
+
+            if response.status_code == HTTP_SUCCESS:
+                return STATUS.SUCCESS, json_response
+            else:
+                return STATUS.FAILURE, response
 
         except Exception, e:
             res = STATUS.FAILURE, error_msg + str(e)
-            msg = "send_post_request_with_header: Exception: {excp} Msg: {msg} for url={url}".format(excp=error_msg, msg=str(e),
-                                                                                         url=final_url)
+            msg = "send_post_request_with_header: Exception: {excp} Msg: {msg} for url={url}".format(
+                excp=error_msg, msg=str(e), url=post_details.final_url)
             print_to_console(msg, LOG_ALL_ERRORS)
             log_to_file(msg, ERROR_LOG_FILE_NAME)
 
     return res
 
 
-def send_delete_request_with_header(final_url, header, body, error_msg, max_tries):
+def send_delete_request_with_header(post_details, error_msg, max_tries):
     res = STATUS.FAILURE, None
 
     try_number = 0
     while try_number < max_tries:
         try_number += 1
         try:
-            response = requests.delete(final_url, data=body, headers=header, timeout=HTTP_TIMEOUT_SECONDS).json()
-            str_repr = json.dumps(response)
-            # try to deal with problem - i.e. just wait an retry
-            if "EOrder" in str_repr or "Unavailable" in str_repr or "Busy" in str_repr or "ETrade" in str_repr or "EGeneral:Invalid" in str_repr \
-                    or "timeout" in str_repr:
-                sleep_for(1)
-            else:
-                msg = "YEAH, RESULT: {res}".format(res=str_repr)
+            response = requests.delete(post_details.final_url, data=post_details.body, headers=post_details.header, timeout=HTTP_TIMEOUT_SECONDS)
+            json_response = response.json()
+
+            if get_logging_level() >= LOG_ALL_DEBUG:
+                msg = "send_delete_request_with_header: RESULT: {res} for url={url}".format(
+                    res=json_response, url=post_details.final_url)
                 log_to_file(msg, DEBUG_LOG_FILE_NAME)
-                # NOTE: Consider it as success then, if not - extend possible checks above
-                return STATUS.SUCCESS, response
 
-            msg = "SOME ERROR: RESULT: {res}".format(res=response)
-            print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
-            log_to_file(msg, DEBUG_LOG_FILE_NAME)
-
-            res = STATUS.FAILURE, response
+            if response.status_code == HTTP_SUCCESS:
+                return STATUS.SUCCESS, json_response
+            else:
+                return STATUS.FAILURE, response
 
         except Exception, e:
             res = STATUS.FAILURE, error_msg + str(e)
-            msg = "send_post_request_with_header: Exception: {excp} Msg: {msg}".format(excp=error_msg, msg=str(e))
+            msg = "send_delete_request_with_header: Exception: {excp} Msg: {msg}".format(excp=error_msg, msg=str(e))
             print_to_console(msg, LOG_ALL_ERRORS)
             log_to_file(msg, DEBUG_LOG_FILE_NAME)
-            sleep_for(1)
-
-    return res
-
-
-def send_post_request_signed(final_url, header, body, secret, nonce, error_msg):
-    request = requests.Request('POST', final_url, params=body, headers=header)
-    signature = hmac.new(secret, request.body, digestmod=hashlib.sha512)
-    request.headers['Sign'] = signature.hexdigest()
-    request.headers['nonce'] = nonce
-
-    res = None
-    with requests.Session() as session:
-        res = session.send(request)
-
-    # try:
-    #     res = requests.post(final_url, data=json.dumps(body), headers=header, timeout=HTTP_TIMEOUT_SECONDS).json()
-    # except Exception, e:
-    #     print error_msg, str(e)
 
     return res
