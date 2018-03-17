@@ -1,17 +1,35 @@
 from dao.db import init_pg_connection, load_to_postgres
 from dao.order_book_utils import get_order_book_speedup
+
 from data.OrderBook import ORDER_BOOK_TYPE_NAME
 from data_access.classes.ConnectionPool import ConnectionPool
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS
+
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, set_logging_level, set_log_folder
 from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc, sleep_for
+
+from deploy.classes.CommonSettings import CommonSettings
+
+import argparse
+
 
 # time to poll - 15 minutes
 POLL_PERIOD_SECONDS = 5
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="""
+      Order book retrieval service - every {tm} retrieve current state of order book from all available exchanges.
+          """.format(tm=POLL_PERIOD_SECONDS))
 
-    pg_conn = init_pg_connection(_db_host="orders.cervsj06c8zw.us-west-1.rds.amazonaws.com", _db_port=5432, _db_name="crypto")
+    parser.add_argument('--cfg', action='store', required=True)
+
+    arguments = parser.parse_args()
+
+    settings = CommonSettings.from_cfg(arguments.cfg)
+
+    pg_conn = init_pg_connection(_db_host=settings.db_name, _db_port=settings.db_port, _db_name=settings.db_name)
+    set_log_folder(settings.log_folder)
+    set_logging_level(settings.logging_level_id)
 
     processor = ConnectionPool()
 

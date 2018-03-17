@@ -1,8 +1,13 @@
+import argparse
+
+from deploy.classes.CommonSettings import CommonSettings
+
 from data_access.message_queue import get_message_queue
 from data_access.priority_queue import ORDERS_EXPIRE_MSG, get_priority_queue
 from data_access.memory_cache import get_cache
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS, EXPIRED_ORDER_PROCESSING_FILE_NAME
+from debug_utils import print_to_console, LOG_ALL_ERRORS, EXPIRED_ORDER_PROCESSING_FILE_NAME, \
+    set_log_folder, set_logging_level
 from utils.time_utils import sleep_for, get_now_seconds_utc
 from utils.key_utils import load_keys
 from utils.file_utils import log_to_file
@@ -14,12 +19,23 @@ HEARTBEAT_TIMEOUT = 60
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="""
+    Expired order processing service, constantly listen for new messages in expired orders queue.
+    Order considered expired in case it doesn't closed for more then {EXPIRATION_TIMEOUT} seconds.
+    """.format(EXPIRATION_TIMEOUT=EXPIRATION_TIMEOUT))
 
-    # FIXME NOTE: read from config redis host \ port pass it to get_*_queue methods
-    load_keys("./secret_keys")
-    msg_queue = get_message_queue()
-    priority_queue = get_priority_queue()
-    local_cache = get_cache()
+    parser.add_argument('--cfg', action='store', required=True)
+
+    arguments = parser.parse_args()
+
+    settings = CommonSettings.from_cfg(arguments.cfg)
+
+    load_keys(settings.key_path)
+    msg_queue = get_message_queue(host=settings.cache_host, port=settings.cache_port)
+    priority_queue = get_priority_queue(host=settings.cache_host, port=settings.cache_port)
+    local_cache = get_cache(host=settings.cache_host, port=settings.cache_port)
+    set_log_folder(settings.log_folder)
+    set_logging_level(settings.logging_level_id)
 
     cnt = 0
 

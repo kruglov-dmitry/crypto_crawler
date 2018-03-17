@@ -9,14 +9,7 @@ from data_access.message_queue import DEAL_INFO_MSG
 BALANCE_EXPIRE_TIMEOUT = 179
 
 
-def log_wrong_exchange_id(exchange_id):
-    msg = "UNKNOWN exchange id provided - {idx}".format(idx=exchange_id)
-    print_to_console(msg, LOG_ALL_ERRORS)
-    log_to_file(msg, "balance.log")
-
-
-def log_initial_settings(exchanges_ids):
-    msg = "Starting balance monitoring for following exchanges: \n"
+def log_initial_settings(msg, exchanges_ids):
     for exchange_id in exchanges_ids:
         msg += str(exchange_id) + " - " + get_exchange_name_by_id(exchange_id) + "\n"
     print_to_console(msg, LOG_ALL_ERRORS)

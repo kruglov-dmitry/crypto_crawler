@@ -58,3 +58,9 @@ START_OF_TIME = -1
 FLOAT_POINT_PRECISION = 0.00000001
 
 HEARTBEAT_TIMEOUT = 60
+
+API_KEY_PATH = "./secret_keys"
+
+DB_HOST = "orders.cervsj06c8zw.us-west-1.rds.amazonaws.com"
+DB_PORT = 5432
+DB_NAME = "crypto"

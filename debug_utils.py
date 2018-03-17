@@ -23,6 +23,12 @@ def set_logging_level(effective_debug_level):
     DEBUG_LEVEL = effective_debug_level
 
 
+def set_logging_level_by_name(debug_level_name):
+    if debug_level_name is not None:
+        effective_debug_level = get_logging_level_id_by_name(debug_level_name)
+        set_logging_level(effective_debug_level)
+
+
 def get_logging_level():
     global DEBUG_LEVEL
     return DEBUG_LEVEL
@@ -56,3 +62,17 @@ def get_logging_level_id_by_name(logging_level_name):
         "LOG_ALL_DEBUG": LOG_ALL_DEBUG,
         "LOG_ALL_OTHER_STUFF": LOG_ALL_OTHER_STUFF
     }[logging_level_name.upper()]
+
+
+LOGS_FOLDER = "./logs/"
+
+
+def get_log_folder():
+    global LOGS_FOLDER
+    return LOGS_FOLDER
+
+
+def set_log_folder(log_folder):
+    if log_folder is not None:
+        global LOGS_FOLDER
+        LOGS_FOLDER = log_folder

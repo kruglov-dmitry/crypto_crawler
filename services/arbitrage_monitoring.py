@@ -12,14 +12,16 @@ from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG
 from utils.currency_utils import get_pair_name_by_id
 from utils.string_utils import float_to_str
 from utils.time_utils import sleep_for, get_now_seconds_utc, ts_to_string
+import argparse
+from deploy.classes.CommonSettings import CommonSettings
+
 
 # time to poll
 POLL_PERIOD_SECONDS = 120
 TRIGGER_THRESHOLD = 1.5 # 2 percents only
 
 
-def analyse_tickers(msg_queue):
-    pg_conn = init_pg_connection(_db_host="orders.cervsj06c8zw.us-west-1.rds.amazonaws.com", _db_port=5432, _db_name="crypto")
+def analyse_tickers(pg_conn, msg_queue):
 
     processor = ConnectionPool()
 
@@ -51,7 +53,23 @@ def analyse_tickers(msg_queue):
 
 
 if __name__ == "__main__":
-    # FIXME NOTE: read settings from cfg
+    parser = argparse.ArgumentParser(description="""
+    Arbitrage monitoring service, every {POLL_TIMEOUT}: 
+        - retrieve tickers
+        - compare high \ low per pair
+        - if difference bigger than {THRES} %
+        - trigger notification message
+    """.format(POLL_TIMEOUT=POLL_PERIOD_SECONDS, THRES=TRIGGER_THRESHOLD))
 
-    msg_queue = get_message_queue()
-    analyse_tickers(msg_queue)
+    parser.add_argument('--cfg', action='store', required=True)
+
+    arguments = parser.parse_args()
+
+    settings = CommonSettings.from_cfg(arguments.cfg)
+
+    pg_conn = init_pg_connection(_db_host=settings.db_host,
+                                 _db_port=settings.db_port,
+                                 _db_name=settings.db_name)
+
+    msg_queue = get_message_queue(host=settings.cache_host, port=settings.cache_port)
+    analyse_tickers(pg_conn, msg_queue)

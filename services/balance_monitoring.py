@@ -1,20 +1,19 @@
 import argparse
 
+from deploy.classes.CommonSettings import CommonSettings
+
 from dao.balance_utils import update_balance_by_exchange, init_balances
 from data_access.message_queue import get_message_queue
 from data_access.memory_cache import connect_to_cache
-from enums.exchange import EXCHANGE
-from utils.exchange_utils import get_exchange_id_by_name
-from services.balance_monitoring_logging import log_wrong_exchange_id, log_initial_settings, \
-    log_balance_update_heartbeat, log_cant_update_balance, log_last_balances, log_not_enough_base_currency
+from logging.balance_monitoring_logging import log_initial_settings, log_balance_update_heartbeat, \
+    log_cant_update_balance, log_last_balances, log_not_enough_base_currency
+from debug_utils import set_log_folder, set_logging_level
 
 from utils.key_utils import load_keys
 from utils.time_utils import sleep_for
+from utils.exchange_utils import parse_exchange_ids
 
-from enums.currency import CURRENCY
 from constants import BASE_CURRENCY, BASE_CURRENCIES_BALANCE_THRESHOLD
-
-
 
 TIMEOUT_HEALTH_CHECK = 180
 POLL_TIMEOUT = 3
@@ -26,27 +25,23 @@ if __name__ == "__main__":
                                                  "--exchanges_ids comma-separated list of exchange names ".format(POLL_TIMEOUT=POLL_TIMEOUT))
 
     parser.add_argument('--exchanges', action='store', required=True)
+    parser.add_argument('--cfg', action='store', required=True)
 
-    results = parser.parse_args()
+    arguments = parser.parse_args()
 
-    ids_list = [x.strip() for x in results.exchanges.split(',') if x.strip()]
+    exchanges_ids = parse_exchange_ids(arguments.exchanges)
 
-    exchanges_ids = []
-    for exchange_name in ids_list:
-        new_exchange_id = get_exchange_id_by_name(exchange_name)
-        if new_exchange_id in EXCHANGE.values():
-            exchanges_ids.append(new_exchange_id)
-        else:
-            log_wrong_exchange_id(new_exchange_id)
+    settings = CommonSettings.from_cfg(arguments.cfg)
 
-            assert new_exchange_id in EXCHANGE.values()
+    log_initial_settings("Starting balance monitoring for following exchanges: \n", exchanges_ids)
 
-    log_initial_settings(exchanges_ids)
+    cache = connect_to_cache(host=settings.cache_host, port=settings.cache_port)
+    msg_queue = get_message_queue(host=settings.cache_host, port=settings.cache_port)
 
-    cache = connect_to_cache()
-    msg_queue = get_message_queue()
+    load_keys(settings.key_path)
+    set_log_folder(settings.log_folder)
+    set_logging_level(settings.logging_level_id)
 
-    load_keys("./secret_keys")
     init_balances(exchanges_ids, cache)
 
     cnt = 0

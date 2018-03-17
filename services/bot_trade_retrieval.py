@@ -1,76 +1,71 @@
 import argparse
 
-from data_access.message_queue import get_message_queue
-from enums.exchange import EXCHANGE
-from utils.exchange_utils import get_exchange_id_by_name, get_exchange_name_by_id
-from services.balance_monitoring_logging import log_wrong_exchange_id
+from logging.balance_monitoring_logging import log_initial_settings
 
 from utils.key_utils import load_keys
 from utils.time_utils import sleep_for, get_now_seconds_utc
-from utils.file_utils import log_to_file
+from utils.exchange_utils import parse_exchange_ids
+from deploy.classes.CommonSettings import CommonSettings
 
 from analysis.data_load_for_profit_report import get_trade_retrieval_method_by_exchange
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS
+from debug_utils import set_logging_level, set_log_folder
+from utils.time_utils import parse_time
 
 from dao.db import init_pg_connection
 
 POLL_TIMEOUT = 900
 
 
-def log_initial_settings(exchanges_ids):
-    msg = "Starting trade history retrieval for bots using following exchanges: \n"
-    for exchange_id in exchanges_ids:
-        msg += str(exchange_id) + " - " + get_exchange_name_by_id(exchange_id) + "\n"
-    print_to_console(msg, LOG_ALL_ERRORS)
-    log_to_file(msg, "balance.log")
-
-
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description="Trade retrieval service, every {POLL_TIMEOUT} for configured via "
-                                                 "--exchanges_ids comma-separated list of exchange names ".format(POLL_TIMEOUT=POLL_TIMEOUT))
+    parser = argparse.ArgumentParser(description="""
+    Trade retrieval service, every {POLL_TIMEOUT} for configured via:
+        --exchanges_ids comma-separated list of exchange names. 
+        --start_time - start of time interval
+        --end_time - end of time interval """.format(POLL_TIMEOUT=POLL_TIMEOUT))
 
     parser.add_argument('--exchanges', action='store', required=True)
+    parser.add_argument('--cfg', action='store', required=True)
 
-    results = parser.parse_args()
+    parser.add_argument('--start_time', action="store", type=int)
+    parser.add_argument('--end_time', action="store", type=int)
 
-    ids_list = [x.strip() for x in results.exchanges.split(',') if x.strip()]
+    arguments = parser.parse_args()
 
-    exchanges_ids = []
-    for exchange_name in ids_list:
-        new_exchange_id = get_exchange_id_by_name(exchange_name)
-        if new_exchange_id in EXCHANGE.values():
-            exchanges_ids.append(new_exchange_id)
-        else:
-            log_wrong_exchange_id(new_exchange_id)
+    exchanges_ids = parse_exchange_ids(arguments.exchanges)
+    log_initial_settings("Starting trade history retrieval for bots using following exchanges: \n", exchanges_ids)
 
-            assert new_exchange_id in EXCHANGE.values()
+    settings = CommonSettings.from_cfg(arguments.cfg)
 
-    log_initial_settings(exchanges_ids)
-
-    # FIXME NOTE - read settings from cfg!
-
-    load_keys("./secret_keys")
-
-    msg_queue = get_message_queue()
-    pg_conn = init_pg_connection(_db_host="orders.cervsj06c8zw.us-west-1.rds.amazonaws.com",
-                                 _db_port=5432, _db_name="crypto")
-
-    cnt = 0
-
-    while True:
-        # We load initial balance using init_balance
-        sleep_for(POLL_TIMEOUT)
-
-        cnt += POLL_TIMEOUT
-
+    if arguments.start_time is None or arguments.end_time is None:
         end_time = get_now_seconds_utc()
         start_time = end_time - POLL_TIMEOUT
+    else:
+        end_time = parse_time(arguments.end_time, '%Y-%m-%d %H:%M:%S')
+        start_time = parse_time(arguments.start_time, '%Y-%m-%d %H:%M:%S')
 
+    if start_time == end_time or end_time <= start_time:
+        print "Wrong time interval provided! {ts0} - {ts1}".format(ts0=start_time, ts1=end_time)
+        assert False
+
+    load_keys(settings.key_path)
+
+    pg_conn = init_pg_connection(_db_host=settings.db_host,
+                                 _db_port=settings.db_port,
+                                 _db_name=settings.db_name)
+
+    set_log_folder(settings.log_folder)
+    set_logging_level(settings.logging_level_id)
+
+    while True:
         for exchange_id in exchanges_ids:
             method = get_trade_retrieval_method_by_exchange(exchange_id)
             method(pg_conn, start_time, end_time)
 
         print "Trade retrieval hearbeat"
 
+        sleep_for(POLL_TIMEOUT)
+
+        end_time = get_now_seconds_utc()
+        start_time = end_time - POLL_TIMEOUT

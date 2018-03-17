@@ -1,6 +1,7 @@
 import argparse
+import ConfigParser
 
-from data_access.message_queue import get_message_queue, DEAL_INFO_MSG
+from data_access.message_queue import get_message_queue
 from data_access.priority_queue import get_priority_queue
 
 from core.arbitrage_core import search_for_arbitrage, adjust_currency_balance, compute_new_min_cap_from_tickers
@@ -18,7 +19,8 @@ from data_access.classes.ConnectionPool import ConnectionPool
 from data_access.memory_cache import get_cache
 from data.MarketCap import MarketCap
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG, set_logging_level, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME
+from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG, set_logging_level, \
+    CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME, set_log_folder
 
 from enums.deal_type import DEAL_TYPE
 
@@ -28,34 +30,12 @@ from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for
 
+from logging.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors, \
+    log_failed_to_retrieve_order_book
+
 from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD, MIN_CAP_UPDATE_TIMEOUT
 
-
-def log_balance_expired_errors(cfg, msg_queue):
-    msg = """<b> !!! CRITICAL !!! </b>
-    Balance is OUTDATED for {exch1} or {exch2} for more than {tt} seconds
-    Arbitrage process will be stopped just in case.
-    Check log file: {lf}""".format(exch1=get_exchange_name_by_id(cfg.buy_exchange_id),
-                                   exch2=get_exchange_name_by_id(cfg.sell_exchange_id),
-                                   tt=BALANCE_EXPIRED_THRESHOLD, lf=cfg.log_file_name)
-    print_to_console(msg, LOG_ALL_ERRORS)
-    msg_queue.add_message(DEAL_INFO_MSG, msg)
-    log_to_file(msg, cfg.log_file_name)
-    log_to_file(balance_state, cfg.log_file_name)
-
-
-def log_failed_to_retrieve_order_book(cfg):
-    msg = "CAN'T retrieve order book for {nn} or {nnn}".format(nn=get_exchange_name_by_id(cfg.sell_exchange_id),
-                                                               nnn=get_exchange_name_by_id(cfg.buy_exchange_id))
-    print_to_console(msg, LOG_ALL_ERRORS)
-    log_to_file(msg, cfg.log_file_name)
-
-
-def log_dont_supported_currency(cfg, exchange_id):
-    msg = "Not supported currency {idx}-{name} for {exch}".format(idx=cfg.pair_id, name=pair_name,
-                                                                  exch=get_exchange_name_by_id(exchange_id))
-    print_to_console(msg, LOG_ALL_ERRORS)
-    log_to_file(msg, cfg.log_file_name)
+from deploy.classes.CommonSettings import CommonSettings
 
 
 def update_min_cap(cfg, deal_cap, processor):
@@ -96,7 +76,7 @@ if __name__ == "__main__":
     parser.add_argument('--pair_id', action="store", type=int, required=True)
     parser.add_argument('--deal_expire_timeout', action="store", type=int, required=True)
 
-    parser.add_argument('--logging_level', action="store", type=int)
+    parser.add_argument('--cfg', action="store", required=True)
 
     results = parser.parse_args()
 
@@ -104,18 +84,17 @@ if __name__ == "__main__":
                           results.pair_id, results.threshold,
                           results.reverse_threshold, results.balance_threshold,
                           results.deal_expire_timeout,
-                          results.logging_level)
+                          results.cfg)
 
-    if cfg.logging_level_id is not None:
-        set_logging_level(cfg.logging_level_id)
+    cfg = CommonSettings.from_cfg(results.cfg)
 
-    load_keys("./secret_keys")
+    set_logging_level(cfg.logging_level_id)
+    set_log_folder(cfg.log_folder)
+    load_keys(cfg.key_path)
 
-    # FIXME NOTE: read from config redis host \ port pass it to get_*_queue methods
-
-    priority_queue = get_priority_queue()
-    msg_queue = get_message_queue()
-    local_cache = get_cache()
+    priority_queue = get_priority_queue(host=cfg.cache_host, port=cfg.cache_port)
+    msg_queue = get_message_queue(host=cfg.cache_host, port=cfg.cache_port)
+    local_cache = get_cache(host=cfg.cache_host, port=cfg.cache_port)
 
     processor = ConnectionPool(pool_size=2)
 
@@ -123,7 +102,7 @@ if __name__ == "__main__":
     for exchange_id in [results.sell_exchange_id, results.buy_exchange_id]:
         pair_name = get_currency_pair_name_by_exchange_id(cfg.pair_id, exchange_id)
         if pair_name is None:
-            log_dont_supported_currency(cfg, exchange_id)
+            log_dont_supported_currency(cfg, exchange_id, cfg.pair_id)
             exit()
 
     deal_cap = MarketCap(cfg.pair_id, get_now_seconds_utc())
@@ -148,7 +127,7 @@ if __name__ == "__main__":
             balance_state = get_updated_balance_arbitrage(cfg, balance_state, local_cache)
 
             if balance_state.expired(cur_timest_sec, cfg.buy_exchange_id, cfg.sell_exchange_id, BALANCE_EXPIRED_THRESHOLD):
-                log_balance_expired_errors(cfg, msg_queue)
+                log_balance_expired_errors(cfg, msg_queue, balance_state)
 
                 assert False
 

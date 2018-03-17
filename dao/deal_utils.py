@@ -4,11 +4,10 @@ import dao
 from data_access.classes.WorkUnit import WorkUnit
 from data_access.message_queue import DEAL_INFO_MSG, DEBUG_INFO_MSG, ORDERS_MSG, FAILED_ORDERS_MSG
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, ERROR_LOG_FILE_NAME
+from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 from constants import DEAL_MAX_TIMEOUT
 
 from enums.deal_type import DEAL_TYPE
-from enums.exchange import EXCHANGE
 from enums.status import STATUS
 
 from utils.currency_utils import get_currency_pair_name_by_exchange_id, split_currency_pairs, get_currency_name_by_id
@@ -36,59 +35,6 @@ def init_deal(trade_to_perform, debug_msg):
         log_to_file(msg, ERROR_LOG_FILE_NAME)
 
     return res
-
-
-def init_deals_with_logging(trade_pairs, difference, file_name, msg_queue):
-    global overall_profit_so_far
-
-    first_deal = trade_pairs.deal_1
-    second_deal = trade_pairs.deal_2
-
-    if second_deal.exchange_id == EXCHANGE.KRAKEN:
-        # It is hilarious but if deal at kraken will not succeeded no need to bother with second exchange
-        first_deal = trade_pairs.deal_2
-        second_deal = trade_pairs.deal_1
-
-    # market routine
-    debug_msg = "Deals details: " + str(first_deal)
-    result_1 = init_deal(first_deal, debug_msg)
-
-    first_deal.execute_time = get_now_seconds_utc()
-
-    if result_1[0] != STATUS.SUCCESS:
-        msg = "Failing of adding FIRST deal! {deal}".format(deal=str(first_deal))
-        print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, ERROR_LOG_FILE_NAME)
-        return STATUS.FAILURE
-
-    debug_msg = "Deals details: " + str(second_deal)
-    result_2 = init_deal(second_deal, debug_msg)
-
-    second_deal.execute_time = get_now_seconds_utc()
-
-    if result_1[0] == STATUS.FAILURE or result_2[0] == STATUS.FAILURE:
-        msg = "Failing of adding deals! {deal_pair}".format(deal_pair=str(trade_pairs))
-        print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, ERROR_LOG_FILE_NAME)
-        return STATUS.FAILURE
-
-    overall_profit_so_far += trade_pairs.current_profit
-
-    msg = "Some deals sent to exchanges. Expected profit: {cur}. Overall: {tot} Difference in percents: " \
-          "{diff} Deal details: {deal}".format(cur=float_to_str(trade_pairs.current_profit),
-                                               tot=float_to_str(overall_profit_so_far),
-                                               diff=difference, deal=str(trade_pairs))
-
-    print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
-    log_to_file(trade_pairs, file_name)
-
-    msg_queue.add_message(DEAL_INFO_MSG, msg)
-
-    return STATUS.SUCCESS
-
-
-def init_deals_with_logging_speedy_fake(trade_pairs, difference, file_name, processor):
-    pass
 
 
 def return_with_no_change(json_document, corresponding_trade):

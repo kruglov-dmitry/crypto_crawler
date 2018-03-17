@@ -1,5 +1,5 @@
 from enums.deploy_units import DEPLOY_UNIT
-from deploy.DeployUnit import DeployUnit
+from deploy.classes.DeployUnit import DeployUnit
 
 # pypy is option as well. NOTE: it can be 2x-3x faster
 PYTHON_INTERPETATOR = "python"

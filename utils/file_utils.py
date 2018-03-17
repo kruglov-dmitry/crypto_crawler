@@ -9,17 +9,7 @@ from data.TradeHistory import TradeHistory, TRADE_HISTORY_TYPE_NAME
 from data.Ticker import Ticker, TICKER_TYPE_NAME
 from utils.time_utils import get_now_seconds_utc
 
-LOGS_FOLDER = "./logs/"
-
-
-def get_log_folder():
-    global LOGS_FOLDER
-    return LOGS_FOLDER
-
-
-def set_log_folder(log_folder):
-    global LOGS_FOLDER
-    LOGS_FOLDER = log_folder
+from debug_utils import get_log_folder
 
 
 def constructor_selector(class_name, string_repr):

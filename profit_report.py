@@ -6,7 +6,7 @@ from dao.db import init_pg_connection
 
 from utils.key_utils import load_keys
 from utils.time_utils import parse_time
-from utils.file_utils import set_log_folder
+from debug_utils import set_log_folder
 from utils.currency_utils import split_currency_pairs
 
 from analysis.data_load_for_profit_report import fetch_trades_history_to_db
@@ -32,14 +32,11 @@ if __name__ == "__main__":
     db_port = config.get("postgres", "db_port")
     db_name = config.get("postgres", "db_name")
 
-    should_fetch_history_to_db = config.getboolean("common", "fetch_history_from_exchanges")
-    fetch_from_start = config.getboolean("common", "fetch_from_start")
+    should_fetch_history_to_db = config.getboolean("profit_report", "fetch_history_from_exchanges")
+    fetch_from_start = config.getboolean("profit_report", "fetch_from_start")
 
-    key_path = config.get("common", "path_to_api_keys")
-    log_folder = config.get("common", "logs_folder")
-
-    start_time = parse_time(config.get("common", "start_time"), '%Y-%m-%d %H:%M:%S')
-    end_time = parse_time(config.get("common", "end_time"), '%Y-%m-%d %H:%M:%S')
+    start_time = parse_time(config.get("profit_report", "start_time"), '%Y-%m-%d %H:%M:%S')
+    end_time = parse_time(config.get("profit_report", "end_time"), '%Y-%m-%d %H:%M:%S')
 
     if start_time == end_time or end_time <= start_time:
         print "Wrong time interval provided! {ts0} - {ts1}".format(ts0=start_time, ts1=end_time)
@@ -47,6 +44,8 @@ if __name__ == "__main__":
 
     pg_conn = init_pg_connection(_db_host=db_host, _db_port=db_port, _db_name=db_name)
 
+    key_path = config.get("keys", "path_to_api_keys")
+    log_folder = config.get("logging", "logs_folder")
     load_keys(key_path)
     set_log_folder(log_folder)
 

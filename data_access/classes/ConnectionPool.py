@@ -3,7 +3,7 @@ gevent.monkey.patch_all()
 import requests
 from gevent.pool import Pool
 
-from constants import POOL_SIZE
+from constants import POOL_SIZE, HTTP_SUCCESS
 
 from utils.file_utils import log_to_file
 from debug_utils import get_logging_level, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME, POST_RESPONCE_FILE_NAME
@@ -65,7 +65,7 @@ class ConnectionPool:
 
         res = []
         for work_unit in work_units:
-            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == 200:
+            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
                 if get_logging_level() >= LOG_ALL_DEBUG:
                     log_responce(work_unit)
                 res += work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
@@ -85,7 +85,7 @@ class ConnectionPool:
 
         res = []
         for work_unit in work_units:
-            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == 200:
+            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
                 if get_logging_level() >= LOG_ALL_DEBUG:
                     log_responce(work_unit)
                 some_ticker = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
@@ -114,7 +114,7 @@ class ConnectionPool:
 
         res = []
         for work_unit in work_units:
-            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == 200:
+            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
                 if get_logging_level() >= LOG_ALL_DEBUG:
                     log_responce(work_unit)
                 some_result = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
@@ -170,7 +170,7 @@ class ConnectionPool:
 
         res = []
         for work_unit in work_units:
-            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == 200:
+            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
                 if get_logging_level() >= LOG_ALL_DEBUG:
                     log_responce(work_unit)
                 some_result = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)

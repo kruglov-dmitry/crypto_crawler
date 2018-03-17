@@ -1,13 +1,31 @@
 from data_access.message_queue import QUEUE_TOPICS, get_message_queue, get_notification_id_by_topic_name
 from data_access.telegram_notifications import send_single_message
-from debug_utils import print_to_console, LOG_ALL_ERRORS
+
+from debug_utils import print_to_console, LOG_ALL_ERRORS, set_log_folder, set_logging_level
 from enums.status import STATUS
+
 from utils.file_utils import log_to_file
 from utils.time_utils import sleep_for
 
+import argparse
+from deploy.classes.CommonSettings import CommonSettings
+
+
 if __name__ == "__main__":
 
-    msg_queue = get_message_queue()
+    parser = argparse.ArgumentParser(description="""
+      Telegram notifier service - every second check message queue for new messages and sent them via bot interface.""")
+
+    parser.add_argument('--cfg', action='store', required=True)
+
+    arguments = parser.parse_args()
+
+    settings = CommonSettings.from_cfg(arguments.cfg)
+
+    set_log_folder(settings.log_folder)
+    set_logging_level(settings.logging_level_id)
+    msg_queue = get_message_queue(host=settings.cache_host, port=settings.cache_port)
+
     do_we_have_data = False
 
     while True:

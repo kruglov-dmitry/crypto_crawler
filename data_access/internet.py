@@ -1,3 +1,6 @@
+import gevent.monkey
+gevent.monkey.patch_all()
+
 import requests
 
 from constants import HTTP_TIMEOUT_SECONDS, HTTP_SUCCESS

@@ -21,11 +21,11 @@ from utils.time_utils import sleep_for, get_now_seconds_utc
 from dao.order_utils import get_open_orders_by_exchange
 from dao.order_history_utils import get_order_history_by_exchange
 
-from core.expired_order_logging import log_open_orders_by_exchange_bad_result, log_trace_all_open_orders, \
+from logging.expired_order_logging import log_open_orders_by_exchange_bad_result, log_trace_all_open_orders, \
     log_cant_retrieve_order_book, log_placing_new_deal, log_cant_placing_new_deal, log_balance_expired, \
     log_too_small_volume
 
-from core.failed_order_logging import log_trace_found_failed_order_in_open, log_trace_found_failed_order_in_history, \
+from logging.failed_order_logging import log_trace_found_failed_order_in_open, log_trace_found_failed_order_in_history, \
     log_trace_all_closed_orders
 
 

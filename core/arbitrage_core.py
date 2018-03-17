@@ -22,7 +22,7 @@ from data_access.memory_cache import get_next_arbitrage_id
 from binance.precision_by_currency import round_volume_by_binance_rules
 from constants import FIRST, LAST, NO_MAX_CAP_LIMIT, MIN_VOLUME_COEFFICIENT, MAX_VOLUME_COEFFICIENT
 
-from core.arbitrage_core_logging import log_arbitrage_heart_beat, log_arbitrage_determined_volume_not_enough, \
+from logging.arbitrage_core_logging import log_arbitrage_heart_beat, log_arbitrage_determined_volume_not_enough, \
     log_currency_disbalance_present, log_currency_disbalance_heart_beat, log_arbitrage_determined_price_not_enough
 
 from dao.balance_utils import update_balance_by_exchange
@@ -107,23 +107,6 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
         # NOTE: if we can't update balance for more than TIMEOUT seconds arbitrage process will exit
         for exchange_id in [trade_pair.deal_1.exchange_id, trade_pair.deal_2.exchange_id]:
             update_balance_by_exchange(exchange_id)
-
-        # REMOVE ME I AM DEBUG
-
-        """
-        log_to_file("SELL ORDER BOOK", "order_book.log")
-        log_to_file(trade_at_first_exchange, "order_book.log")
-        log_to_file("BIDS", "order_book.log")
-        for every_bid in sell_order_book.bid:
-            log_to_file(every_bid, "order_book.log")
-
-        log_to_file("BUY ORDER BOOK", "order_book.log")
-        log_to_file(trade_at_second_exchange, "order_book.log")
-        log_to_file("ASKS", "order_book.log")
-        for every_ask in buy_order_book.ask:
-            log_to_file(every_ask, "order_book.log")
-        """
-        # REMOVE ME I AM DEBUG
 
         deal_status = placement_status, trade_pair
 

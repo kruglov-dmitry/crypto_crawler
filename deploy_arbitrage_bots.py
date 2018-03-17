@@ -4,15 +4,13 @@ import ConfigParser
 
 from deploy.screen_utils import create_screen, generate_screen_name
 from deploy.constants import FULL_COMMAND
-from deploy.ExchangeArbitrageSettings import ExchangeArbitrageSettings
+from deploy.classes.ExchangeArbitrageSettings import ExchangeArbitrageSettings
 from deploy.service_utils import deploy_telegram_notifier, deploy_trade_storing, deploy_process_in_screen, \
     deploy_expired_order_processing, deploy_failed_order_processing
-from deploy.DeployUnit import DeployUnit
+from deploy.classes.DeployUnit import DeployUnit
 
 from utils.exchange_utils import get_exchange_id_by_name, get_exchange_name_by_id
 from utils.currency_utils import get_pair_id_by_name
-from utils.time_utils import sleep_for
-from debug_utils import get_logging_level_id_by_name
 
 from data.ArbitrageConfig import ArbitrageConfig
 
@@ -39,7 +37,7 @@ if __name__ == "__main__":
     arbitrage_threshold = config.get("common", "arbitrage_threshold")
     balance_threshold = config.get("common", "balance_threshold")
     balance_adjust_threshold = config.get("common", "balance_adjust_threshold")
-    logging_level_name = config.get("common", "log_level")
+
     deal_expiration_timeout = config.get("common", "deal_expiration_timeout")
 
     exchanges = [x.strip() for x in config.get("common","exchanges").split(",") if len(x.strip()) > 0]
@@ -81,8 +79,7 @@ if __name__ == "__main__":
                     pair_id = get_pair_id_by_name(every_pair_name)
                     commands_per_screen.append(ArbitrageConfig(sell_exchange_id, buy_exchange_id, pair_id,
                                                                arbitrage_threshold, balance_adjust_threshold, balance_threshold,
-                                                               deal_expiration_timeout,
-                                                               get_logging_level_id_by_name(logging_level_name)))
+                                                               deal_expiration_timeout, cfg_file_name))
                     arbitrage_unit[screen_name] = commands_per_screen
 
     # Create named screen
