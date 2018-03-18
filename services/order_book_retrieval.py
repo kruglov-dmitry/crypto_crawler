@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     settings = CommonSettings.from_cfg(arguments.cfg)
 
-    pg_conn = init_pg_connection(_db_host=settings.db_name, _db_port=settings.db_port, _db_name=settings.db_name)
+    pg_conn = init_pg_connection(_db_host=settings.db_host, _db_port=settings.db_port, _db_name=settings.db_name)
     set_log_folder(settings.log_folder)
     set_logging_level(settings.logging_level_id)
 
