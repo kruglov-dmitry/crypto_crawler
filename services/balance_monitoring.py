@@ -5,7 +5,7 @@ from deploy.classes.CommonSettings import CommonSettings
 from dao.balance_utils import update_balance_by_exchange, init_balances
 from data_access.message_queue import get_message_queue
 from data_access.memory_cache import connect_to_cache
-from logging.balance_monitoring_logging import log_initial_settings, log_balance_update_heartbeat, \
+from logging_tools.balance_monitoring_logging import log_initial_settings, log_balance_update_heartbeat, \
     log_cant_update_balance, log_last_balances, log_not_enough_base_currency
 from debug_utils import set_log_folder, set_logging_level
 

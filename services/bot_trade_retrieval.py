@@ -1,6 +1,6 @@
 import argparse
 
-from logging.balance_monitoring_logging import log_initial_settings
+from logging_tools.balance_monitoring_logging import log_initial_settings
 
 from utils.key_utils import load_keys
 from utils.time_utils import sleep_for, get_now_seconds_utc

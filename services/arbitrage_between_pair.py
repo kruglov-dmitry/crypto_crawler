@@ -30,7 +30,7 @@ from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for
 
-from logging.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors, \
+from logging_tools.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors, \
     log_failed_to_retrieve_order_book
 
 from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD, MIN_CAP_UPDATE_TIMEOUT

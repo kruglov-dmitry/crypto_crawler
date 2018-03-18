@@ -22,7 +22,7 @@ from data_access.memory_cache import get_next_arbitrage_id
 from binance.precision_by_currency import round_volume_by_binance_rules
 from constants import FIRST, LAST, NO_MAX_CAP_LIMIT, MIN_VOLUME_COEFFICIENT, MAX_VOLUME_COEFFICIENT
 
-from logging.arbitrage_core_logging import log_arbitrage_heart_beat, log_arbitrage_determined_volume_not_enough, \
+from logging_tools.arbitrage_core_logging import log_arbitrage_heart_beat, log_arbitrage_determined_volume_not_enough, \
     log_currency_disbalance_present, log_currency_disbalance_heart_beat, log_arbitrage_determined_price_not_enough
 
 from dao.balance_utils import update_balance_by_exchange

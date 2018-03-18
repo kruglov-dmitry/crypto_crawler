@@ -45,7 +45,7 @@ if __name__ == "__main__":
     pg_conn = init_pg_connection(_db_host=db_host, _db_port=db_port, _db_name=db_name)
 
     key_path = config.get("keys", "path_to_api_keys")
-    log_folder = config.get("logging", "logs_folder")
+    log_folder = config.get("logging_tools", "logs_folder")
     load_keys(key_path)
     set_log_folder(log_folder)
 

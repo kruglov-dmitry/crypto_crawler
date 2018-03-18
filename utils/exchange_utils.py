@@ -1,5 +1,6 @@
 from enums.exchange import EXCHANGE, EXCHANGE_FEE
-from logging.exchange_util_logging import log_wrong_exchange_id
+from logging_tools.exchange_util_logging import log_wrong_exchange_id
+
 
 def get_exchange_name_by_id(exchange_id):
     return {
