@@ -43,11 +43,11 @@ class CommonSettings(BaseData):
         config = ConfigParser.RawConfigParser()
         config.read(file_name)
 
-        log_level_name = config.get("logging_tools", "log_level")
+        log_level_name = config.get("logging", "log_level")
         log_level_id = get_logging_level_id_by_name(log_level_name)
 
         return CommonSettings(log_level_id,
-                              config.get("logging_tools", "logs_folder"),
+                              config.get("logging", "logs_folder"),
                               config.get("keys", "path_to_api_keys"),
                               config.get("redis", "redis_host"),
                               config.get("redis", "redis_port"),

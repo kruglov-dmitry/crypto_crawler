@@ -42,9 +42,9 @@ def get_balance_bittrex_result_processor(json_document, timest):
         msg = "get_balance_bittrex_result_processor - error response - {er}".format(er=json_document)
         log_to_file(msg, ERROR_LOG_FILE_NAME)
 
-        return None
+        return STATUS.FAILURE, None
 
-    return Balance.from_bittrex(timest, json_document["result"])
+    return STATUS.SUCCESS, Balance.from_bittrex(timest, json_document["result"])
 
 
 def get_balance_bittrex(key):
@@ -85,6 +85,6 @@ def get_balance_bittrex(key):
         log_to_file(res, DEBUG_LOG_FILE_NAME)
 
     if status_code == STATUS.SUCCESS:
-        status_code, res = Balance.from_bittrex(timest, res["result"])
+        status_code, res = get_balance_bittrex_result_processor(res, timest)
 
     return status_code, res

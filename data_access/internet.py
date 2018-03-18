@@ -73,7 +73,7 @@ def send_post_request_with_header(post_details, error_msg, max_tries, timeout=HT
         try:
             response = requests.post(post_details.final_url,
                                      data=post_details.body,
-                                     headers=post_details.header,
+                                     headers=post_details.headers,
                                      timeout=timeout)
             json_response = response.json()
 
@@ -104,7 +104,7 @@ def send_delete_request_with_header(post_details, error_msg, max_tries):
     while try_number < max_tries:
         try_number += 1
         try:
-            response = requests.delete(post_details.final_url, data=post_details.body, headers=post_details.header, timeout=HTTP_TIMEOUT_SECONDS)
+            response = requests.delete(post_details.final_url, data=post_details.body, headers=post_details.headers, timeout=HTTP_TIMEOUT_SECONDS)
             json_response = response.json()
 
             if get_logging_level() >= LOG_ALL_DEBUG:
