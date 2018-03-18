@@ -53,7 +53,7 @@ def get_open_orders_bittrix(key, pair_name):
 
     orders = []
     if status_code == STATUS.SUCCESS:
-        orders = get_open_orders_bittrex_result_processor(res, pair_name)
+        status_code, orders = get_open_orders_bittrex_result_processor(res, pair_name)
 
     return status_code, orders
 

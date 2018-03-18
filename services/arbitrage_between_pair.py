@@ -86,15 +86,15 @@ if __name__ == "__main__":
                           results.deal_expire_timeout,
                           results.cfg)
 
-    cfg = CommonSettings.from_cfg(results.cfg)
+    app_settings = CommonSettings.from_cfg(results.cfg)
 
-    set_logging_level(cfg.logging_level_id)
-    set_log_folder(cfg.log_folder)
-    load_keys(cfg.key_path)
+    set_logging_level(app_settings.logging_level_id)
+    set_log_folder(app_settings.log_folder)
+    load_keys(app_settings.key_path)
 
-    priority_queue = get_priority_queue(host=cfg.cache_host, port=cfg.cache_port)
-    msg_queue = get_message_queue(host=cfg.cache_host, port=cfg.cache_port)
-    local_cache = get_cache(host=cfg.cache_host, port=cfg.cache_port)
+    priority_queue = get_priority_queue(host=app_settings.cache_host, port=app_settings.cache_port)
+    msg_queue = get_message_queue(host=app_settings.cache_host, port=app_settings.cache_port)
+    local_cache = get_cache(host=app_settings.cache_host, port=app_settings.cache_port)
 
     processor = ConnectionPool(pool_size=2)
 

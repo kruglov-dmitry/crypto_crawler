@@ -65,6 +65,8 @@ def process_expired_order(order, msg_queue, priority_queue, local_cache):
 
     log_trace_all_open_orders(open_orders)
 
+    print order
+    print open_orders
     if update_executed_volume(open_orders, order):
         err_code, responce = cancel_by_exchange(order)
 
