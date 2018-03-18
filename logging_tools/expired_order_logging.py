@@ -41,9 +41,21 @@ def log_cant_placing_new_deal(every_deal, msg_queue, log_file_name=EXPIRED_ORDER
     log_to_file(msg, EXPIRED_ORDER_PROCESSING_FILE_NAME)
 
 
-def log_cant_retrieve_order_book(every_deal, msg_queue, log_file_name=EXPIRED_ORDER_PROCESSING_FILE_NAME):
+def log_cant_retrieve_order_book(order, msg_queue, log_file_name=EXPIRED_ORDER_PROCESSING_FILE_NAME):
     msg = """ Can't retrieve order book for deal with expired or failed orders!
-        Order details: {deal}""".format(deal=str(every_deal))
+        Order details: {deal}""".format(deal=str(order))
+    msg_queue.add_message(DEAL_INFO_MSG, msg)
+    print_to_console(msg, LOG_ALL_ERRORS)
+    if log_file_name != EXPIRED_ORDER_PROCESSING_FILE_NAME:
+        log_to_file(msg, log_file_name)
+
+    log_to_file(msg, EXPIRED_ORDER_PROCESSING_FILE_NAME)
+
+
+def log_cant_retrieve_ticker(order, msg_queue, log_file_name=EXPIRED_ORDER_PROCESSING_FILE_NAME):
+    msg = """ Can't retrieve ticker for expired or failed orders!
+                Will try to re-process it later.
+            Order details: {deal}""".format(deal=str(order))
     msg_queue.add_message(DEAL_INFO_MSG, msg)
     print_to_console(msg, LOG_ALL_ERRORS)
     if log_file_name != EXPIRED_ORDER_PROCESSING_FILE_NAME:

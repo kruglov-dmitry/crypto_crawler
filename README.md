@@ -41,6 +41,10 @@ based on  https://stackoverflow.com/questions/1509677/kill-detached-screen-sessi
 
 ``` bash
 alias cleanscreen="screen -ls | tail -n +2 | head -n -1|cut -d'.' -f 1 |xargs kill -9 ; screen -wipe"
+
+alias bot_count='ps -ef | grep python | wc -l'
+alias bot_kill='pkill python'
+alias bot_stop_screen="screen -ls | tail -n +2 | head -n -1|cut -d'.' -f 1 |xargs kill -9 ; screen -wipe"
 ```
 
 ## Rename existing screen session

@@ -23,7 +23,7 @@ from dao.order_history_utils import get_order_history_by_exchange
 
 from logging_tools.expired_order_logging import log_open_orders_by_exchange_bad_result, log_trace_all_open_orders, \
     log_cant_retrieve_order_book, log_placing_new_deal, log_cant_placing_new_deal, log_balance_expired, \
-    log_too_small_volume
+    log_too_small_volume, log_cant_retrieve_ticker
 
 from logging_tools.failed_order_logging import log_trace_found_failed_order_in_open, log_trace_found_failed_order_in_history, \
     log_trace_all_closed_orders
@@ -72,6 +72,13 @@ def process_failed_order(order, msg_queue, priority_queue, local_cache, pg_conn)
     # According to common rules for expired & arbitrage order processing
 
     ticker = get_ticker(order.exchange_id, order.pair_id)
+
+    if ticker is None:
+        msg_queue.add_order(FAILED_ORDERS_MSG, order)
+
+        log_cant_retrieve_ticker(order, msg_queue, log_file_name=FAILED_ORDER_PROCESSING_FILE_NAME)
+        return
+
     min_volume = compute_min_cap_from_ticker(order.pair_id, ticker)
     order_book = get_order_book(order.exchange_id, order.pair_id)
 
