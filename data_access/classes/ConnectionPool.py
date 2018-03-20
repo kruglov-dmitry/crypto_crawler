@@ -45,7 +45,7 @@ def log_responce(work_unit):
         msg = "For url {url} response {resp}".format(url=work_unit.url, resp=json_responce)
     else:
         msg = "For url {url} response {status_code}".format(url=work_unit.url, status_code=work_unit.future_result.value)
-
+    
     log_to_file(msg, POST_RESPONCE_FILE_NAME)
 
 
@@ -65,9 +65,9 @@ class ConnectionPool:
 
         res = []
         for work_unit in work_units:
+            if get_logging_level() >= LOG_ALL_DEBUG:
+                log_responce(work_unit)
             if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
-                if get_logging_level() >= LOG_ALL_DEBUG:
-                    log_responce(work_unit)
                 res += work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
             else:
                 log_to_file(work_unit.url, ERROR_LOG_FILE_NAME)
@@ -85,9 +85,9 @@ class ConnectionPool:
 
         res = []
         for work_unit in work_units:
+            if get_logging_level() >= LOG_ALL_DEBUG:
+                log_responce(work_unit)
             if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
-                if get_logging_level() >= LOG_ALL_DEBUG:
-                    log_responce(work_unit)
                 some_ticker = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
                 if some_ticker is not None:
                     res.append(some_ticker)
@@ -114,9 +114,9 @@ class ConnectionPool:
 
         res = []
         for work_unit in work_units:
+            if get_logging_level() >= LOG_ALL_DEBUG:
+                log_responce(work_unit)
             if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
-                if get_logging_level() >= LOG_ALL_DEBUG:
-                    log_responce(work_unit)
                 some_result = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
                 # FIXME NOTE performance
                 if type(some_result) is list:
@@ -170,9 +170,9 @@ class ConnectionPool:
 
         res = []
         for work_unit in work_units:
+            if get_logging_level() >= LOG_ALL_DEBUG:
+                log_responce(work_unit)
             if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
-                if get_logging_level() >= LOG_ALL_DEBUG:
-                    log_responce(work_unit)
                 some_result = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
                 # FIXME NOTE performance
                 if type(some_result) is list:

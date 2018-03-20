@@ -1,4 +1,5 @@
 from poloniex.constants import POLONIEX_GET_ORDER_BOOK
+from poloniex.error_handling import is_error
 
 from data.OrderBook import OrderBook
 
@@ -34,7 +35,7 @@ def get_order_book_poloniex(pair_name, timest):
 
 
 def get_order_book_poloniex_result_processor(json_document, pair_name, timest):
-    if json_document is not None:
+    if is_error(json_document):
 
         msg = "get_order_book_poloniex_result_processor - error response - {er}".format(er=json_document)
         log_to_file(msg, ERROR_LOG_FILE_NAME)
