@@ -38,7 +38,7 @@ def get_history_bittrex(pair_name, prev_time, now_time):
 def get_history_bittrex_result_processor(json_document, pair_name, timest):
     all_history_records = []
 
-    if is_error(json_document):
+    if is_error(json_document) or json_document["result"] is None:
 
         msg = "get_history_bittrex_result_processor - error response - {er}".format(er=json_document)
         log_to_file(msg, ERROR_LOG_FILE_NAME)

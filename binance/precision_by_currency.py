@@ -191,7 +191,8 @@ PRECISION_BTC_NUMBER = {
     "OSTBTC":   0,
     "ELFBTC":   0,
     "AIONBTC":  0,
-    "NEBLBTC":  0
+    "NEBLBTC":  0,
+    "XEMBTC": 0
 }
 
 
@@ -305,7 +306,8 @@ PRECISION_ETH_NUMBER = {
     "AEETH": 2,
     "RPXETH": 0,
     "NCASHETH": 0,
-    "POAETH": 0
+    "POAETH": 0,
+    "XEMETH": 0
 }
 
 

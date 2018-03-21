@@ -45,7 +45,7 @@ def get_order_history_bittrex_result_processor(json_document, pair_name):
     """
 
     orders = []
-    if is_error(json_document):
+    if is_error(json_document) or json_document["result"] is None:
 
         msg = "get_order_history_bittrex_result_processor - error response - {er}".format(er=json_document)
         log_to_file(msg, ERROR_LOG_FILE_NAME)

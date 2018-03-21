@@ -31,7 +31,7 @@ def get_ohlc_bittrex_result_processor(json_document, pair_name, date_start, date
 
     result_set = []
 
-    if is_error(json_document):
+    if is_error(json_document) or json_document["result"] is None:
 
         msg = "get_ohlc_bittrex_result_processor - error response - {er}".format(er=json_document)
         log_to_file(msg, ERROR_LOG_FILE_NAME)
