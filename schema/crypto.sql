@@ -2,6 +2,7 @@ INSERT INTO exchange (id, name) VALUES (1, 'poloniex');
 INSERT INTO exchange (id, name) VALUES (2, 'kraken');
 INSERT INTO exchange (id, name) VALUES (3, 'bittrex');
 INSERT INTO exchange (id, name) VALUES (4, 'binance');
+INSERT INTO exchange (id, name) VALUES (5, 'huobi');
 INSERT INTO deal_type (id, name) VALUES (1, 'sell');
 INSERT INTO deal_type (id, name) VALUES (2, 'buy');
 
@@ -151,5 +152,6 @@ INSERT INTO pair (id, pair) VALUES (3036, 'USDT_TO_AION');
 INSERT INTO pair (id, pair) VALUES (3037, 'USDT_TO_ITC');
 
 INSERT INTO pair (id, pair) VALUES (3038, 'USDT_TO_XVG');
+INSERT INTO pair (id, pair) VALUES (3039, 'USDT_TO_OMG');
 
 INSERT INTO pair (id, pair) VALUES (4000, 'USD_TO_USDT');

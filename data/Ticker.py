@@ -5,6 +5,7 @@ from bittrex.currency_utils import get_currency_pair_from_bittrex
 from kraken.currency_utils import get_currency_pair_from_kraken
 from poloniex.currency_utils import get_currency_pair_from_poloniex
 from binance.currency_utils import get_currency_pair_from_binance
+from huobi.currency_utils import get_currency_pair_from_huobi
 
 from BaseData import BaseData
 from enums.exchange import EXCHANGE
@@ -106,6 +107,37 @@ class Ticker(BaseData):
         highest_bid = json_document["bidPrice"]
 
         currency_pair_id = get_currency_pair_from_binance(pair_name)
+
+        return Ticker(currency_pair_id, lowest_ask, highest_bid, timest, EXCHANGE.BINANCE)
+
+    @classmethod
+    def from_huobi(cls, pair_name, timest, json_document):
+        """
+        {
+            "status":"ok",
+            "ch":"market.ethusdt.detail.merged",
+            "ts":1499225276950,
+            "tick":{
+              "id":1499225271,
+              "ts":1499225271000,
+              "close":1885.0000,
+              "open":1960.0000,
+              "high":1985.0000,
+              "low":1856.0000,
+              "amount":81486.2926,
+              "count":42122,
+              "vol":157052744.85708200,
+              "ask":[1885.0000,21.8804],
+              "bid":[1884.0000,1.6702]
+            }
+        }
+
+        :return:
+        """
+        lowest_ask = json_document["ask"][0]
+        highest_bid = json_document["bid"][0]
+
+        currency_pair_id = get_currency_pair_from_huobi(pair_name)
 
         return Ticker(currency_pair_id, lowest_ask, highest_bid, timest, EXCHANGE.BINANCE)
 

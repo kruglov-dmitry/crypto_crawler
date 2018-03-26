@@ -112,6 +112,8 @@ https://api.kraken.com/0/public/AssetPairs
 
 https://poloniex.com/public?command=returnTicker
 
+http://api.huobi.pro/v1/common/symbols
+
 
 ### Setup balance monitoring from the scratch
 ``` bash

@@ -149,6 +149,7 @@ class CURRENCY_PAIR:
     USDT_TO_AION = 3036
     USDT_TO_ITC = 3037
     USDT_TO_XVG = 3038      # VERGE   trex
+    USDT_TO_OMG = 3039      # huobi
 
     USD_TO_USDT = 4000      # kraken only
 
@@ -286,5 +287,6 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.USDT_TO_AION,
                 CURRENCY_PAIR.USDT_TO_ITC,
                 CURRENCY_PAIR.USDT_TO_XVG,
+                CURRENCY_PAIR.USDT_TO_OMG,
                 CURRENCY_PAIR.USD_TO_USDT
                 ]
