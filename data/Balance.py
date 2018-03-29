@@ -1,3 +1,4 @@
+# coding=utf-8
 from BaseData import BaseData
 from constants import ARBITRAGE_CURRENCY, ZERO_BALANCE
 from enums.exchange import EXCHANGE
@@ -58,8 +59,9 @@ class Balance(BaseData):
         if currency_id in self.available_balance:
             return self.available_balance.get(currency_id)
 
-        # FIXME fail fast!11
-        raise
+        print_to_console("get_balance: no currency {c_id} within Balance 0_o".format(
+            c_id=get_currency_name_by_id(currency_id)), LOG_ALL_ERRORS)
+        assert False
 
     def expired(self, threshold):
         diff1 = get_now_seconds_utc() - self.last_update
@@ -184,3 +186,78 @@ class Balance(BaseData):
                     total_balance[currency_id] = locked_volume + volume
 
         return Balance(EXCHANGE.BINANCE, last_update, available_balance, total_balance)
+
+
+    @classmethod
+    def from_huobi(cls, last_update, json_document):
+        """
+        {
+          "status": "ok",
+          "data": {
+            "id": 100009,
+            "type": "spot",
+            "state": "working",
+            "list": [
+              {
+                "currency": "usdt",
+                "type": "trade",
+                "balance": "500009195917.4362872650"
+              },
+              {
+                "currency": "usdt",
+                "type": "frozen",
+                "balance": "328048.1199920000"
+              },
+             {
+                "currency": "etc",
+                "type": "trade",
+                "balance": "499999894616.1302471000"
+              },
+              {
+                "currency": "etc",
+                "type": "frozen",
+                "balance": "9786.6783000000"
+              }
+             {
+                "currency": "eth",
+                "type": "trade",
+                "balance": "499999894616.1302471000"
+              },
+              {
+                "currency": "eth”,
+                "type": "frozen",
+                "balance": "9786.6783000000"
+              }
+            ],
+            "user-id": 1000
+          }
+        }
+        :return:
+        """
+        total_balance = {}
+        available_balance = {}
+
+        for currency_id in ARBITRAGE_CURRENCY:
+
+            available_balance[currency_id] = ZERO_BALANCE
+
+            currency_name = get_currency_name_for_binance(currency_id)
+
+            for entry in json_document["list"]:
+                if currency_name == entry["currency"]:
+                    volume = float(entry["balance"])
+                    if "frozen" in entry["type"]:
+                        if currency_id in total_balance:
+                            total_balance[currency_id] += volume
+                        else:
+                            total_balance[currency_id] = volume
+                    else:
+                        available_balance[currency_id] = volume
+
+                        if currency_id in total_balance:
+                            total_balance[currency_id] += volume
+                        else:
+                            total_balance[currency_id] = volume
+
+
+        return Balance(EXCHANGE.HUOBI, last_update, available_balance, total_balance)

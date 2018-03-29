@@ -3,11 +3,13 @@ HUOBI_API_URL = "http://api.huobi.pro"
 
 HUOBI_GET_TICKER = HUOBI_API_URL + "/market/detail/merged?symbol="
 
-HUOBI_GET_OHLC = ""
+# 1min, 5min, 15min, 30min, 60min, 1day, 1mon, 1week, 1year
+# market/history/kline?period=1day&size=200&symbol=btcusdt
+HUOBI_GET_OHLC = "/market/history/kline?symbol="
 
-HUOBI_GET_ORDER_BOOK = ""
+HUOBI_GET_ORDER_BOOK = "/market/depth?symbol="
 
-HUOBI_GET_HISTORY = ""
+HUOBI_GET_HISTORY = "/market/history/trade?symbol="
 
 HUOBI_CURRENCY_PAIRS = ['dashbtc', 'ethbtc', 'ltcbtc', 'xrpbtc', 'bchbtc', 'etcbtc', 'xembtc', 'omgbtc', 'zecbtc',
                         'neobtc', 'qtumbtc', 'btgbtc', 'batbtc', 'rcnbtc', 'zrxbtc', 'lskbtc', 'engbtc', 'trxbtc',
@@ -16,17 +18,21 @@ HUOBI_CURRENCY_PAIRS = ['dashbtc', 'ethbtc', 'ltcbtc', 'xrpbtc', 'bchbtc', 'etcb
                         'ethusdt', 'zecusdt', 'neousdt'
                         ]
 
-HUOBI_BUY_ORDER = ""
+HUOBI_BUY_ORDER = "/v1/order/orders/place"
 
-HUOBI_SELL_ORDER = ""
+HUOBI_SELL_ORDER = "/v1/order/orders/place"
 
-HUOBI_CANCEL_ORDER = ""
+HUOBI_CANCEL_ORDER = "/v1/order/orders/"
 
-HUOBI_CHECK_BALANCE = ""
+HUOBI_CHECK_BALANCE = "/v1/account/accounts/{account-id}/balance"
 
-HUOBI_GET_OPEN_ORDERS = ""
+HUOBI_GET_OPEN_ORDERS = "/v1/order/orders"
 
-HUOBI_GET_TRADE_HISTORY = ""
+HUOBI_GET_TRADE_HISTORY = "/market/trade?symbol=ethusdt"
 
 HUOBI_NUM_OF_DEAL_RETRY = 1
 HUOBI_DEAL_TIMEOUT = 5
+
+HUOBI_GET_ALL_TRADES = ""
+
+EMPTY_LIST = []

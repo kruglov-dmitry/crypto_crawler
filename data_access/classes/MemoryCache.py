@@ -29,3 +29,9 @@ class MemoryCache:
     def get_balance(self, exchange_id):
         exchange_name = get_exchange_name_by_id(exchange_id)
         return pickle.loads(self.r.get(exchange_name))
+
+    def get_value(self, key_name):
+        return self.r.get(key_name)
+
+    def set_value(self, key_name):
+        return self.r.get(key_name)

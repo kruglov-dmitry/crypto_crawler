@@ -7,6 +7,7 @@ from bittrex.currency_utils import get_currency_pair_from_bittrex
 from kraken.currency_utils import get_currency_pair_from_kraken
 from poloniex.currency_utils import get_currency_pair_from_poloniex
 from binance.currency_utils import get_currency_pair_from_binance
+from huobi.currency_utils import get_currency_pair_from_huobi
 
 from BaseData import BaseData
 from enums.exchange import EXCHANGE
@@ -122,6 +123,33 @@ class Candle(BaseData):
         currency_pair = get_currency_pair_from_binance(currency)
 
         return Candle(currency_pair, timest, price_high, price_low, price_open, price_close, EXCHANGE.BINANCE)
+
+    @classmethod
+    def from_huobi(cls, json_document, currency):
+        """
+                "id": 1499184000,
+                "amount": 37593.0266,
+                "count": 0,
+                "open": 1935.2000,
+                "close": 1879.0000,
+                "low": 1856.0000,
+                "high": 1940.0000,
+                "vol": 71031537.97866500
+
+        :param json_document:
+        :param currency:
+        :return:
+        """
+        timest = long(json_document["artifical_ts"])
+
+        price_high = json_document["high"]
+        price_low = json_document["low"]
+        price_open = json_document["open"]
+        price_close = json_document["close"]
+
+        currency_pair = get_currency_pair_from_huobi(currency)
+
+        return Candle(currency_pair, timest, price_high, price_low, price_open, price_close, EXCHANGE.HUOBI)
 
     @classmethod
     def from_string(cls, some_string):
