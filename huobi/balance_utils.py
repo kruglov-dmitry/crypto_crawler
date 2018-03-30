@@ -1,8 +1,8 @@
 from urllib import urlencode as _urlencode
 
-from huobi.constants import HUOBI_CHECK_BALANCE, HUOBI_DEAL_TIMEOUT
+from huobi.constants import HUOBI_CHECK_BALANCE, HUOBI_DEAL_TIMEOUT, HUOBI_API_URL, HUOBI_API_ONLY, HUOBI_GET_ACCOUNT_INFO
 from huobi.error_handling import is_error
-from huobi.market_utils import get_huobi_account
+from huobi.account_utils import get_huobi_account
 
 from data.Balance import Balance
 
@@ -14,25 +14,26 @@ from debug_utils import print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, E
 
 from enums.status import STATUS
 
-from utils.key_utils import signed_body_256
-from utils.time_utils import get_now_seconds_utc, ts_to_string
+from utils.key_utils import sign_string_256_base64
+from utils.time_utils import get_now_seconds_utc, ts_to_string_utc
 from utils.file_utils import log_to_file
 
 
 def get_balance_huobi_post_details(key):
-    final_url = HUOBI_CHECK_BALANCE + get_huobi_account(key) + "/balance"
-    # 2017-05-11T16:22:06
-    # yyyy-MM-dd'T'HH:mm:ss.SSS'Z
-    body = {
-        'AccessKeyId': key.api_key,
-        'SignatureMethod': 'HmacSHA256',
-        'SignatureVersion': 2,
-        'Timestamp': ts_to_string(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S')
-    }
+    final_url = HUOBI_API_URL + HUOBI_CHECK_BALANCE + get_huobi_account(key) + "/balance"
 
-    signature = signed_body_256(body, key.secret)
+    body = [('AccessKeyId', key.api_key),
+            ('SignatureMethod', 'HmacSHA256'),
+            ('SignatureVersion', 2),
+            ('Timestamp', ts_to_string_utc(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S'))]
 
-    body["Signature"] = signature
+    message = _urlencode(body).encode('utf8')
+
+    msg = "GET\n{base_url}\n{path}\n{msg1}".format(base_url=HUOBI_API_ONLY, path=HUOBI_CHECK_BALANCE, msg1=message)
+
+    signature = sign_string_256_base64(key.secret, msg)
+
+    body.append(("Signature", signature))
 
     final_url += _urlencode(body)
 

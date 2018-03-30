@@ -9,6 +9,7 @@ from poloniex.balance_utils import get_balance_poloniex, get_balance_poloniex_po
     get_balance_poloniex_result_processor
 from binance.balance_utils import get_balance_binance, get_balance_binance_post_details, \
     get_balance_binance_result_processor
+from huobi.balance_utils import get_balance_huobi, get_balance_huobi_post_details, get_balance_huobi_result_processor
 
 from data_access.memory_cache import get_cache
 
@@ -31,6 +32,8 @@ def get_balance_by_exchange(exchange_id):
         res = get_balance_poloniex(key)
     elif exchange_id == EXCHANGE.BINANCE:
         res = get_balance_binance(key)
+    elif exchange_id == EXCHANGE.HUOBI:
+        res = get_balance_huobi(key)
     else:
         msg = "get_balance_by_exchange - Unknown exchange! {idx}".format(idx=exchange_id)
         print_to_console(msg, LOG_ALL_ERRORS)
@@ -64,7 +67,8 @@ def get_balance_post_details_generator(exchange_id):
         EXCHANGE.BITTREX: get_balance_bittrex_post_details,
         EXCHANGE.KRAKEN: get_balance_kraken_post_details,
         EXCHANGE.POLONIEX: get_balance_poloniex_post_details,
-        EXCHANGE.BINANCE: get_balance_binance_post_details
+        EXCHANGE.BINANCE: get_balance_binance_post_details,
+        EXCHANGE.HUOBI: get_balance_huobi_post_details
     }[exchange_id]
 
 
@@ -73,7 +77,8 @@ def get_balance_constructor_by_exchange_id(exchange_id):
         EXCHANGE.BITTREX: get_balance_bittrex_result_processor,
         EXCHANGE.KRAKEN: get_balance_kraken_result_processor,
         EXCHANGE.POLONIEX: get_balance_poloniex_result_processor,
-        EXCHANGE.BINANCE: get_balance_binance_result_processor
+        EXCHANGE.BINANCE: get_balance_binance_result_processor,
+        EXCHANGE.HUOBI: get_balance_huobi_result_processor
     }[exchange_id]
 
 

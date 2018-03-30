@@ -16,6 +16,9 @@ from poloniex.constants import POLONIEX_CURRENCY_PAIRS
 from poloniex.ticker_utils import get_tickers_poloniex, get_ticker_poloniex_url, get_ticker_poloniex, \
     get_ticker_poloniex_result_processor
 
+from huobi.constants import HUOBI_CURRENCY_PAIRS
+from huobi.ticker_utils import get_ticker_huobi, get_ticker_huobi_url, get_ticker_huobi_result_processor
+
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from utils.time_utils import get_now_seconds_utc
 
@@ -34,6 +37,7 @@ def get_ticker_constructor_by_exchange_id(exchange_id):
         EXCHANGE.KRAKEN: get_ticker_kraken_result_processor,
         EXCHANGE.POLONIEX: get_ticker_poloniex_result_processor,
         EXCHANGE.BINANCE: get_ticker_binance_result_processor,
+        EXCHANGE.HUOBI: get_ticker_huobi_result_processor
     }[exchange_id]
 
 
@@ -41,7 +45,7 @@ def get_ticker_speedup(timest, processor):
 
     ohlc_async_requests = []
 
-    for exchange_id in [EXCHANGE.BITTREX, EXCHANGE.KRAKEN]:
+    for exchange_id in [EXCHANGE.BITTREX, EXCHANGE.KRAKEN, EXCHANGE.HUOBI]:
         for pair_id in CURRENCY_PAIR.values():
 
             pair_name = get_currency_pair_name_by_exchange_id(pair_id, exchange_id)
@@ -68,18 +72,25 @@ def get_tickers():
     timest = get_now_seconds_utc()
 
     bittrex_tickers = {}
-    for currency in BITTREX_CURRENCY_PAIRS:
-        ticker = get_ticker_bittrex(currency, timest)
+    for pair_name in BITTREX_CURRENCY_PAIRS:
+        ticker = get_ticker_bittrex(pair_name, timest)
         if ticker is not None:
             bittrex_tickers[ticker.pair_id] = ticker
     all_tickers[EXCHANGE.BITTREX] = bittrex_tickers
 
     kraken_tickers = {}
-    for currency in KRAKEN_CURRENCY_PAIRS:
-        ticker = get_ticker_kraken(currency, timest)
+    for pair_name in KRAKEN_CURRENCY_PAIRS:
+        ticker = get_ticker_kraken(pair_name, timest)
         if ticker is not None:
             kraken_tickers[ticker.pair_id] = ticker
     all_tickers[EXCHANGE.KRAKEN] = kraken_tickers
+
+    huobi_tickers = {}
+    for pair_name in HUOBI_CURRENCY_PAIRS:
+        ticker = get_ticker_huobi(pair_name, timest)
+        if ticker is not None:
+            huobi_tickers[ticker.pair_id] = ticker
+    all_tickers[EXCHANGE.HUOBI] = huobi_tickers
 
     # NOTE: poloniex return all tickers by single call
     poloniex_tickers = get_tickers_poloniex(POLONIEX_CURRENCY_PAIRS, timest)
@@ -121,7 +132,8 @@ def get_ticker_method_by_exchange_id(exchange_id):
         EXCHANGE.KRAKEN: get_ticker_kraken,
         EXCHANGE.BITTREX: get_ticker_bittrex,
         EXCHANGE.POLONIEX: get_ticker_poloniex,
-        EXCHANGE.BINANCE: get_ticker_binance
+        EXCHANGE.BINANCE: get_ticker_binance,
+        EXCHANGE.HUOBI: get_ticker_huobi
     }[exchange_id]
 
 
@@ -130,7 +142,8 @@ def get_ticker_url_by_exchange_id(exchange_id):
         EXCHANGE.BITTREX: get_ticker_bittrex_url,
         EXCHANGE.KRAKEN: get_ticker_kraken_url,
         EXCHANGE.POLONIEX: get_ticker_poloniex_url,
-        EXCHANGE.BINANCE: get_tickers_binance_url
+        EXCHANGE.BINANCE: get_tickers_binance_url,
+        EXCHANGE.HUOBI: get_ticker_huobi_url
     }[exchange_id]
 
 

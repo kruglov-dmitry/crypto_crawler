@@ -515,7 +515,7 @@ def test_private_huobi_methods():
     balance = get_balance_huobi(key)
     print balance
 
-    """for pair_id in CURRENCY_PAIR.values():
+    for pair_id in CURRENCY_PAIR.values():
         pair_name = get_currency_pair_to_huobi(pair_id)
         if pair_name is None:
             print pair_id
@@ -524,6 +524,10 @@ def test_private_huobi_methods():
         print open_orders
         order_history = get_order_history_huobi(key, pair_name)
         print order_history
-    """
+
 
 test_private_huobi_methods()
+
+def test_trade_methods_huobi():
+    load_keys("./secret_keys")
+    key = get_key_by_exchange(EXCHANGE.HUOBI)

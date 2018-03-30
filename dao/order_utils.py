@@ -2,6 +2,12 @@ from binance.order_utils import get_open_orders_binance, get_open_orders_binance
     get_open_orders_binance_result_processor
 from bittrex.order_utils import get_open_orders_bittrix, get_open_orders_bittrex_result_processor, \
     get_open_orders_bittrix_post_details
+from kraken.order_utils import get_open_orders_kraken, get_open_orders_kraken_post_details, \
+    get_open_orders_kraken_result_processor
+from poloniex.order_utils import get_open_orders_poloniex, get_open_orders_poloniex_post_details, \
+    get_open_orders_poloniex_result_processor
+from huobi.order_utils import get_open_orders_huobi, get_open_orders_huobi_post_details, \
+    get_open_orders_huobi_result_processor
 
 from constants import HTTP_TIMEOUT_SECONDS
 
@@ -13,10 +19,6 @@ from enums.exchange import EXCHANGE
 from enums.status import STATUS
 from enums.http_request import HTTP_REQUEST
 
-from kraken.order_utils import get_open_orders_kraken, get_open_orders_kraken_post_details, \
-    get_open_orders_kraken_result_processor
-from poloniex.order_utils import get_open_orders_poloniex, get_open_orders_poloniex_post_details, \
-    get_open_orders_poloniex_result_processor
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from utils.key_utils import get_key_by_exchange
 
@@ -36,6 +38,8 @@ def get_open_orders_by_exchange(exchange_id, pair_id):
         res = get_open_orders_poloniex(key, pair_name)
     elif exchange_id == EXCHANGE.BINANCE:
         res = get_open_orders_binance(key, pair_name)
+    elif exchange_id == EXCHANGE.HUOBI:
+        res = get_open_orders_huobi(key, pair_name)
     else:
         msg = "get_open_orders_by_exchange - Unknown exchange! {idx}".format(idx=exchange_id)
         print_to_console(msg, LOG_ALL_ERRORS)
@@ -48,7 +52,8 @@ def get_open_orders_post_details_generator(exchange_id):
         EXCHANGE.BITTREX: get_open_orders_bittrix_post_details,
         EXCHANGE.KRAKEN: get_open_orders_kraken_post_details,
         EXCHANGE.POLONIEX: get_open_orders_poloniex_post_details,
-        EXCHANGE.BINANCE: get_open_orders_binance_post_details
+        EXCHANGE.BINANCE: get_open_orders_binance_post_details,
+        EXCHANGE.HUOBI: get_open_orders_huobi_post_details
     }[exchange_id]
 
 
@@ -57,7 +62,8 @@ def get_open_orders_constructor_by_exchange_id(exchange_id):
         EXCHANGE.BITTREX: get_open_orders_bittrex_result_processor,
         EXCHANGE.KRAKEN: get_open_orders_kraken_result_processor,
         EXCHANGE.POLONIEX: get_open_orders_poloniex_result_processor,
-        EXCHANGE.BINANCE: get_open_orders_binance_result_processor
+        EXCHANGE.BINANCE: get_open_orders_binance_result_processor,
+        EXCHANGE.HUOBI: get_open_orders_huobi_result_processor
     }[exchange_id]
 
 
@@ -67,6 +73,7 @@ def get_http_method_open_order_by_exchange_id(exchange_id):
         EXCHANGE.BITTREX: HTTP_REQUEST.POST,
         EXCHANGE.POLONIEX: HTTP_REQUEST.POST,
         EXCHANGE.KRAKEN: HTTP_REQUEST.POST,
+        EXCHANGE.HUOBI: HTTP_REQUEST.GET
     }[exchange_id]
 
 

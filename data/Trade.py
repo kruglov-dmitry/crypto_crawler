@@ -9,7 +9,7 @@ from utils.string_utils import float_to_str
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.currency_utils import get_pair_name_by_id
 from utils.file_utils import log_to_file
-from utils.time_utils import parse_time, ts_to_string
+from utils.time_utils import parse_time, ts_to_string_local
 
 from kraken.currency_utils import get_currency_pair_from_kraken
 from binance.currency_utils import get_currency_pair_from_binance
@@ -53,7 +53,7 @@ class Trade(Deal):
             ob_time=self.order_book_time,
             ct_time=self.create_time,
             ex_time=self.execute_time,
-            dt=ts_to_string(self.execute_time),
+            dt=ts_to_string_local(self.execute_time),
             order_id=self.order_id,
             trade_id=self.trade_id,
             ex_volume=self.executed_volume,
@@ -88,7 +88,7 @@ class Trade(Deal):
     def __iter__(self):
         return iter([self.arbitrage_id, get_exchange_name_by_id(self.exchange_id), get_pair_name_by_id(self.pair_id),
                      get_order_type_by_id(self.trade_type), self.price, self.volume, self.order_book_time,
-                     self.create_time, self.execute_time, ts_to_string(self.execute_time),
+                     self.create_time, self.execute_time, ts_to_string_local(self.execute_time),
                      self.order_id, self.trade_id, self.executed_volume])
 
     @classmethod
