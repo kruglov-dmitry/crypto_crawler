@@ -1,12 +1,14 @@
 from urllib import urlencode as _urlencode
 
+import hashlib
+
 from data_access.internet import send_delete_request_with_header
 
 from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, \
     ERROR_LOG_FILE_NAME, LOG_ALL_DEBUG, DEBUG_LOG_FILE_NAME
 
 from utils.key_utils import signed_body_256
-from utils.time_utils import get_now_seconds_utc, ts_to_string
+from utils.time_utils import get_now_seconds_utc, ts_to_string_not_local, ts_to_string
 from utils.file_utils import log_to_file
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
@@ -72,19 +74,40 @@ def parse_order_id_huobi(json_document):
     return json_document["data"]
 
 
-def wtf(key):
+def get_huobi_account_impl(key):
+    from hashlib import sha256
+    import hmac
+    import base64
+    from datetime import datetime
+
     final_url = HUOBI_GET_ACCOUNT_INFO
 
-    body = {
-        'AccessKeyId': key.api_key,
-        'SignatureMethod': 'HmacSHA256',
-        'SignatureVersion': 2,
-        'Timestamp': ts_to_string(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S')
-    }
+    body = []
+    body.append(('AccessKeyId', key.api_key))
+    body.append(('SignatureMethod', 'HmacSHA256'))
+    body.append(('SignatureVersion', 2))
+    body.append(('Timestamp', ts_to_string_not_local(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S')))
 
-    signature = signed_body_256(body, key.secret)
+    # signature = signed_body_256(body, key.secret)
 
-    body["Signature"] = signature
+    message = _urlencode(body).encode('utf8')
+
+    msg = "GET\napi.huobi.pro\n/v1/account/accounts\n{msg1}".format(msg1=message)
+
+    """
+    hmac_obj = hmac.new(key=key, msg=msg, digestmod=sha256)
+    return base64.b64encode(hmac_obj.digest())
+
+    """
+
+    # m = hashlib.md5()
+    # m.update(msg)
+    # signature = m.hexdigest()
+    hmac_obj = hmac.new(key=key.secret.encode('utf-8'), msg=msg.encode('utf-8'), digestmod=sha256)
+    signature = base64.b64encode(hmac_obj.digest())
+
+    print signature
+    body.append(("Signature", signature))
 
     final_url += _urlencode(body)
 
@@ -102,9 +125,9 @@ def wtf(key):
     print res
 
 
-def get_huobi_account(cache=get_cache()):
+def get_huobi_account(key, cache=get_cache()):
     if cache.get_value(HUOBI_ACOUNT_ID) is None:
-
+        get_huobi_account_impl(key)
         cache.set_value(HUOBI_ACOUNT_ID, )
     return cache.get_value(HUOBI_ACOUNT_ID)
 

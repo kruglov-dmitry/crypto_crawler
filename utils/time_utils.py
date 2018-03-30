@@ -39,6 +39,10 @@ def get_date_time_from_epoch(ts_epoch):
     return datetime.fromtimestamp(1.0 * long(ts_epoch))
 
 
+def ts_to_string_not_local(timest_second_epoch, format_string='%Y-%m-%d %H:%M:%S'):
+    return time.strftime(format_string, time.gmtime(timest_second_epoch))
+
+
 def ts_to_string(timest_second_epoch, format_string='%Y-%m-%d %H:%M:%S'):
     return time.strftime(format_string, time.localtime(timest_second_epoch))
 

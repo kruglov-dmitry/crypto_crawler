@@ -1,4 +1,4 @@
-HUOBI_API_URL = "http://api.huobi.pro"
+HUOBI_API_URL = "https://api.huobi.pro"
 
 
 HUOBI_GET_TICKER = HUOBI_API_URL + "/market/detail/merged?symbol="
@@ -33,8 +33,10 @@ HUOBI_GET_TRADE_HISTORY = HUOBI_API_URL + "/market/trade?symbol="
 HUOBI_NUM_OF_DEAL_RETRY = 1
 HUOBI_DEAL_TIMEOUT = 5
 
-HUOBI_GET_ACCOUNT_INFO = "/v1/account/accounts"
+HUOBI_GET_ACCOUNT_INFO = HUOBI_API_URL + "/v1/account/accounts?"
 
 HUOBI_ACOUNT_ID = "huobi_account_id"
 
 EMPTY_LIST = []
+
+HUOBI_ORDER_HISTORY_LIMIT = 100

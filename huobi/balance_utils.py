@@ -20,7 +20,7 @@ from utils.file_utils import log_to_file
 
 
 def get_balance_huobi_post_details(key):
-    final_url = HUOBI_CHECK_BALANCE + get_huobi_account() + "/balance"
+    final_url = HUOBI_CHECK_BALANCE + get_huobi_account(key) + "/balance"
     # 2017-05-11T16:22:06
     # yyyy-MM-dd'T'HH:mm:ss.SSS'Z
     body = {

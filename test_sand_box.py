@@ -525,3 +525,5 @@ def test_private_huobi_methods():
         order_history = get_order_history_huobi(key, pair_name)
         print order_history
     """
+
+test_private_huobi_methods()
