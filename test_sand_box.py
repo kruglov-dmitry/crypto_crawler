@@ -345,19 +345,6 @@ def test_new_sell_api():
     print json_repr
 
 
-def test_poloniex_trade_history():
-    from poloniex.market_utils import get_order_history_for_time_interval_poloniex
-    load_keys("./secret_keys")
-    key = get_key_by_exchange(EXCHANGE.POLONIEX)
-    pair_id = CURRENCY_PAIR.BTC_TO_OMG
-    pair_name = get_currency_pair_name_by_exchange_id(pair_id, EXCHANGE.POLONIEX)
-    time_end = get_now_seconds_utc()
-    time_start = time_end - 24 * 3600
-
-    limit = 100
-    get_order_history_for_time_interval_poloniex(key, pair_name, time_start, time_end, limit)
-
-
 def test_order_presence():
     pg_conn = init_pg_connection(_db_host="192.168.1.106", _db_port=5432)
     # 6479142
@@ -503,7 +490,6 @@ def test_public_huobi_methods():
 
     from huobi.currency_utils import get_currency_pair_to_huobi
 
-    load_keys("./secret_keys")
     for pair_id in CURRENCY_PAIR.values():
         pair_name = get_currency_pair_to_huobi(pair_id)
         if pair_name is None:
@@ -516,4 +502,26 @@ def test_public_huobi_methods():
         period = "15min"
         candle = get_ohlc_huobi(pair_name, now_time, now_time, period)
 
-test_public_huobi_methods()
+
+def test_private_huobi_methods():
+    from huobi.balance_utils import get_balance_huobi
+    from huobi.order_utils import get_open_orders_huobi
+    from huobi.order_history import get_order_history_huobi
+
+    from huobi.currency_utils import get_currency_pair_to_huobi
+
+    load_keys("./secret_keys")
+    key = get_key_by_exchange(EXCHANGE.HUOBI)
+    balance = get_balance_huobi(key)
+    print balance
+
+    """for pair_id in CURRENCY_PAIR.values():
+        pair_name = get_currency_pair_to_huobi(pair_id)
+        if pair_name is None:
+            print pair_id
+            continue
+        open_orders = get_open_orders_huobi(key, pair_name)
+        print open_orders
+        order_history = get_order_history_huobi(key, pair_name)
+        print order_history
+    """

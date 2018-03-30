@@ -15,22 +15,28 @@ from debug_utils import print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, E
 from enums.status import STATUS
 
 from utils.key_utils import signed_body_256
-from utils.time_utils import get_now_seconds_utc, get_now_seconds_utc_ms
+from utils.time_utils import get_now_seconds_utc, ts_to_string
 from utils.file_utils import log_to_file
 
 
 def get_balance_huobi_post_details(key):
     final_url = HUOBI_CHECK_BALANCE + get_huobi_account() + "/balance"
-
-    body = {}
+    # 2017-05-11T16:22:06
+    # yyyy-MM-dd'T'HH:mm:ss.SSS'Z
+    body = {
+        'AccessKeyId': key.api_key,
+        'SignatureMethod': 'HmacSHA256',
+        'SignatureVersion': 2,
+        'Timestamp': ts_to_string(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S')
+    }
 
     signature = signed_body_256(body, key.secret)
 
-    body["signature"] = signature
+    body["Signature"] = signature
 
     final_url += _urlencode(body)
 
-    headers = {"X-MBX-APIKEY": key.api_key}
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
     res = PostRequestDetails(final_url, headers, body)
 

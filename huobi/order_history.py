@@ -18,22 +18,6 @@ from enums.status import STATUS
 def get_order_history_huobi_post_details(key, pair_name, limit, last_order_id=None):
     final_url = HUOBI_GET_OPEN_ORDERS
 
-    if last_order_id is not None:
-        body = {
-            "symbol": pair_name,
-            "limit": limit,
-            "orderId": last_order_id,
-            "timestamp": get_now_seconds_utc_ms(),
-            "recvWindow": 5000
-        }
-    else:
-        body = {
-            "symbol": pair_name,
-            "limit": limit,
-            "timestamp": get_now_seconds_utc_ms(),
-            "recvWindow": 5000
-        }
-
     signature = signed_body_256(body, key.secret)
 
     body["signature"] = signature

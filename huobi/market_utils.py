@@ -6,13 +6,13 @@ from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_loggi
     ERROR_LOG_FILE_NAME, LOG_ALL_DEBUG, DEBUG_LOG_FILE_NAME
 
 from utils.key_utils import signed_body_256
-from utils.time_utils import get_now_seconds_utc_ms
+from utils.time_utils import get_now_seconds_utc, ts_to_string
 from utils.file_utils import log_to_file
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_get_request_with_header
 
-from huobi.constants import HUOBI_CANCEL_ORDER, HUOBI_DEAL_TIMEOUT, HUOBI_GET_ALL_TRADES, HUOBI_ACOUNT_ID
+from huobi.constants import HUOBI_CANCEL_ORDER, HUOBI_DEAL_TIMEOUT, HUOBI_ACOUNT_ID, HUOBI_GET_ACCOUNT_INFO
 from huobi.error_handling import is_error
 
 from data_access.memory_cache import get_cache
@@ -72,19 +72,50 @@ def parse_order_id_huobi(json_document):
     return json_document["data"]
 
 
+def wtf(key):
+    final_url = HUOBI_GET_ACCOUNT_INFO
+
+    body = {
+        'AccessKeyId': key.api_key,
+        'SignatureMethod': 'HmacSHA256',
+        'SignatureVersion': 2,
+        'Timestamp': ts_to_string(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S')
+    }
+
+    signature = signed_body_256(body, key.secret)
+
+    body["Signature"] = signature
+
+    final_url += _urlencode(body)
+
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+    post_details = PostRequestDetails(final_url, headers, body)
+
+    print post_details
+
+    err_msg = "get_all_trades_huobi for {pair_name}"
+
+    error_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
+                                                   timeout=HUOBI_DEAL_TIMEOUT)
+
+    print res
+
+
 def get_huobi_account(cache=get_cache()):
     if cache.get_value(HUOBI_ACOUNT_ID) is None:
-        WTF
+
         cache.set_value(HUOBI_ACOUNT_ID, )
     return cache.get_value(HUOBI_ACOUNT_ID)
 
 
 def get_trades_history_huobi(key, pair_name, limit, last_order_id=None):
-    final_url = HUOBI_GET_ALL_TRADES
+    # final_url = HUOBI_GET_ALL_TRADES
 
     body = {}
 
-    FIXME
+    print "FIXME"
+    raise
 
     final_url += _urlencode(body)
 
