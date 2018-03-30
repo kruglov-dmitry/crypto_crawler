@@ -11,6 +11,8 @@ from kraken.history_utils import get_history_kraken, get_history_kraken_url, get
 from poloniex.constants import POLONIEX_CURRENCY_PAIRS
 from poloniex.history_utils import get_history_poloniex, get_history_poloniex_url, get_history_poloniex_result_processor
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
+from huobi.constants import HUOBI_CURRENCY_PAIRS
+from huobi.history_utils import get_history_huobi, get_history_huobi_result_processor, get_history_huobi_url
 
 
 def get_history_speedup(date_start, date_end, processor):
@@ -24,7 +26,7 @@ def get_history_speedup(date_start, date_end, processor):
             if pair_name is None:
                 continue
 
-            method_for_url = get_history_url_by_echange_id(exchange_id)
+            method_for_url = get_history_url_by_exchange_id(exchange_id)
             request_url = method_for_url(pair_name, date_start, date_end)
             constructor = get_history_constructor_by_exchange_id(exchange_id)
 
@@ -33,12 +35,13 @@ def get_history_speedup(date_start, date_end, processor):
     return processor.process_async(history_async_requests, HTTP_TIMEOUT_SECONDS)
 
 
-def get_history_url_by_echange_id(exchange_id):
+def get_history_url_by_exchange_id(exchange_id):
     return {
         EXCHANGE.BITTREX: get_history_bittrex_url,
         EXCHANGE.KRAKEN: get_history_kraken_url,
         EXCHANGE.POLONIEX: get_history_poloniex_url,
-        EXCHANGE.BINANCE: get_history_binance_url
+        EXCHANGE.BINANCE: get_history_binance_url,
+        EXCHANGE.HUOBI: get_history_huobi_url
     }[exchange_id]
 
 
@@ -57,6 +60,9 @@ def get_history(prev_time, now_time):
     for currency in BINANCE_CURRENCY_PAIRS:
         all_history += get_history_binance(currency, prev_time, now_time)
 
+    for currency in HUOBI_CURRENCY_PAIRS:
+        all_history += get_history_huobi(currency, prev_time, now_time)
+
     return all_history
 
 
@@ -73,5 +79,6 @@ def get_history_constructor_by_exchange_id(exchange_id):
         EXCHANGE.BITTREX: get_history_bittrex_result_processor,
         EXCHANGE.KRAKEN: get_history_kraken_result_processor,
         EXCHANGE.POLONIEX: get_history_poloniex_result_processor,
-        EXCHANGE.BINANCE: get_history_binance_result_processor
+        EXCHANGE.BINANCE: get_history_binance_result_processor,
+        EXCHANGE.HUOBI: get_history_huobi_result_processor,
     }[exchange_id]

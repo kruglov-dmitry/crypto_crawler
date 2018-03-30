@@ -5,6 +5,7 @@ from bittrex.currency_utils import get_currency_pair_from_bittrex
 from kraken.currency_utils import get_currency_pair_from_kraken
 from poloniex.currency_utils import get_currency_pair_from_poloniex
 from binance.currency_utils import get_currency_pair_from_binance
+from huobi.currency_utils import get_currency_pair_from_huobi
 
 from BaseData import BaseData
 from Deal import Deal
@@ -157,6 +158,41 @@ class OrderBook(BaseData):
         pair_id = get_currency_pair_from_binance(currency)
 
         return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.BINANCE)
+
+    @classmethod
+    def from_huobi(cls, json_document, pair_name, timest):
+        """
+        "tick": {
+            "id": 1489464585407,
+            "ts": 1489464585407,
+            "bids": [
+              [7964, 0.0678], // [price, amount]
+              [7963, 0.9162],
+              [7961, 0.1],
+            ],
+            "asks": [
+              [7979, 0.0736],
+              [7980, 1.0292],
+            ]
+
+        :param pair_name:
+        :param timest:
+        :return:
+        """
+
+        ask_bids = []
+        if "asks" in json_document:
+            for b in json_document["asks"]:
+                ask_bids.append(Deal(price=b[0], volume=b[1]))
+
+        sell_bids = []
+        if "bids" in json_document:
+            for b in json_document["bids"]:
+                sell_bids.append(Deal(price=b[0], volume=b[1]))
+
+        pair_id = get_currency_pair_from_huobi(pair_name)
+
+        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.HUOBI)
 
     @classmethod
     def from_string(cls, some_string):

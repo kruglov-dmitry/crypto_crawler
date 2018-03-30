@@ -7,7 +7,7 @@ from enums.deal_type import get_order_type_by_id
 from debug_utils import get_logging_level, LOG_ALL_DEBUG, print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 from utils.string_utils import float_to_str
 from utils.exchange_utils import get_exchange_name_by_id
-from utils.currency_utils import get_currency_name_by_id, get_pair_name_by_id
+from utils.currency_utils import get_pair_name_by_id
 from utils.file_utils import log_to_file
 from utils.time_utils import parse_time, ts_to_string
 
@@ -15,6 +15,7 @@ from kraken.currency_utils import get_currency_pair_from_kraken
 from binance.currency_utils import get_currency_pair_from_binance
 from bittrex.currency_utils import get_currency_pair_from_bittrex
 from poloniex.currency_utils import get_currency_pair_from_poloniex
+from huobi.currency_utils import get_currency_pair_from_huobi
 
 
 class Trade(Deal):
@@ -375,6 +376,46 @@ class Trade(Deal):
         volume = float(json_document["amount"])
 
         return Trade(trade_type, EXCHANGE.POLONIEX, pair_id, price, volume, timest, timest, execute_time=timest,
+                     order_id=order_id, trade_id=trade_id, executed_volume=volume)
+
+    @classmethod
+    def from_huobi(cls, json_document, pair_name):
+        """
+            "id": 59378,
+            "symbol": "ethusdt",
+            "account-id": 100009,
+            "amount": "10.1000000000",
+            "price": "100.1000000000",
+            "created-at": 1494901162595,
+            "type": "buy-limit",
+            "field-amount": "10.1000000000",
+            "field-cash-amount": "1011.0100000000",
+            "field-fees": "0.0202000000",
+            "finished-at": 1494901400468,
+            "user-id": 1000,
+            "source": "api",
+            "state": "filled",
+            "canceled-at": 0,
+            "exchange": "huobi",
+            "batch": ""
+        :return: 
+        """
+
+        pair_id = get_currency_pair_from_huobi(pair_name)
+        trade_type = DEAL_TYPE.BUY
+        if "sell" in json_document["type"]:
+            trade_type = DEAL_TYPE.SELL
+
+        order_id = json_document["id"]
+        trade_id = json_document["id"]
+
+        create_timest = 0.001 * long(json_document["created-at"])
+        executed_timest = 0.001 * long(json_document["finished-at"])
+
+        price = json_document["price"]
+        volume = float(json_document["amount"])
+
+        return Trade(trade_type, EXCHANGE.HUOBI, pair_id, price, volume, create_timest, create_timest, execute_time=executed_timest,
                      order_id=order_id, trade_id=trade_id, executed_volume=volume)
 
     @classmethod

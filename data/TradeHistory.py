@@ -7,6 +7,7 @@ from bittrex.currency_utils import get_currency_pair_from_bittrex
 from kraken.currency_utils import get_currency_pair_from_kraken
 from poloniex.currency_utils import get_currency_pair_from_poloniex
 from binance.currency_utils import get_currency_pair_from_binance
+from huobi.currency_utils import get_currency_pair_from_huobi
 
 from BaseData import BaseData
 from enums.deal_type import DEAL_TYPE
@@ -172,6 +173,48 @@ class TradeHistory(BaseData):
 
         price = float(json_document["p"])
         amount = float(json_document["q"])
+        total = price * amount
+
+        return TradeHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.BINANCE)
+
+    @classmethod
+    def from_huobi(cls, json_document, pair_name, timest):
+        """
+            {
+                "status": "ok",
+                "ch": "market.ethusdt.trade.detail",
+                "ts": 1502448925216,
+                "data": [
+                    {
+                        "id": 31459998,
+                        "ts": 1502448920106,
+                        "data": [
+                            {
+                                "id": 17592256642623,
+                                "amount": 0.04,
+                                "price": 1997,
+                                "direction": "buy",
+                                "ts": 1502448920106
+                            }
+                        ]
+                    }
+                ]
+            }
+        :param json_document:
+        :param pair_name:
+        :param timest:
+        :return:
+        """
+
+        currency_pair = get_currency_pair_from_huobi(pair_name)
+        deal_timest = 0.001 * long(json_document["ts"])  # Convert to seconds
+
+        deal_type = DEAL_TYPE.BUY
+        if "buy" not in json_document["direction"]:
+            deal_type = DEAL_TYPE.SELL
+
+        price = float(json_document["price"])
+        amount = float(json_document["amount"])
         total = price * amount
 
         return TradeHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.BINANCE)
