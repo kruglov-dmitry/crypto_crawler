@@ -272,6 +272,7 @@ def get_pair_id_by_name(pair_name):
         "USDT_TO_AION": CURRENCY_PAIR.USDT_TO_AION,
         "USDT_TO_ITC": CURRENCY_PAIR.USDT_TO_ITC,
         "USDT_TO_XVG": CURRENCY_PAIR.USDT_TO_XVG,
+        "USDT_TO_OMG": CURRENCY_PAIR.USDT_TO_OMG,
         "USD_TO_USDT": CURRENCY_PAIR.USD_TO_USDT,
     }[pair_name.upper()]
 
@@ -406,6 +407,7 @@ def get_pair_name_by_id(pair_id):
         CURRENCY_PAIR.USDT_TO_AION: "USDT_TO_AION",
         CURRENCY_PAIR.USDT_TO_ITC: "USDT_TO_ITC",
         CURRENCY_PAIR.USDT_TO_XVG: "USDT_TO_XVG",
+        CURRENCY_PAIR.USDT_TO_OMG: "USDT_TO_OMG",
         CURRENCY_PAIR.USD_TO_USDT: "USD_TO_USDT",
     }[pair_id]
 

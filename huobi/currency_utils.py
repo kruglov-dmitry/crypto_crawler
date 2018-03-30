@@ -98,7 +98,8 @@ def get_currency_pair_to_huobi(pair_id):
         CURRENCY_PAIR.USDT_TO_QTUM: 'qtumusdt',
         CURRENCY_PAIR.USDT_TO_ETH: 'ethusdt',
         CURRENCY_PAIR.USDT_TO_ZEC: 'zecusdt',
-        CURRENCY_PAIR.USDT_TO_NEO: 'neousdt'
+        CURRENCY_PAIR.USDT_TO_NEO: 'neousdt',
+        CURRENCY_PAIR.USDT_TO_OMG: 'omgusdt'
     }.get(pair_id)
 
 
@@ -138,5 +139,6 @@ def get_currency_pair_from_huobi(pair_name):
         'qtumusdt': CURRENCY_PAIR.USDT_TO_QTUM,
         'ethusdt': CURRENCY_PAIR.USDT_TO_ETH,
         'zecusdt': CURRENCY_PAIR.USDT_TO_ZEC,
-        'neousdt': CURRENCY_PAIR.USDT_TO_NEO
+        'neousdt': CURRENCY_PAIR.USDT_TO_NEO,
+        'omgusdt':CURRENCY_PAIR.USDT_TO_OMG
     }.get(pair_name)

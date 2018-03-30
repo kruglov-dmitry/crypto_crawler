@@ -46,7 +46,7 @@ from data_access.priority_queue import ORDERS_EXPIRE_MSG, get_priority_queue
 
 from enums.notifications import NOTIFICATION
 from data_access.telegram_notifications import send_single_message
-    
+
 
 from dao.deal_utils import init_deal
 from dao.order_utils import get_open_orders_for_arbitrage_pair
@@ -388,7 +388,7 @@ def test_expired_deal_placement():
     ts = get_now_seconds_utc()
     order = Trade(DEAL_TYPE.SELL, EXCHANGE.BINANCE, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001, volume=5.0,
                   order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
-    
+
     msg = "Replace existing order with new one - {tt}".format(tt=order)
     err_code, json_document = init_deal(order, msg)
     print json_document
@@ -410,17 +410,17 @@ def test_failed_deal_placement():
 
     #   from dao.order_utils import get_open_orders_by_exchange
     #   r = get_open_orders_by_exchange(EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_STRAT)
-    
+
     #   for rr in r:
     #       print r
-    
+
     #   raise
     #
     # msg = "Replace existing order with new one - {tt}".format(tt=order)
     # err_code, json_document = init_deal(order, msg)
     # print json_document
     # order.deal_id = parse_deal_id(order.exchange_id, json_document)
-    
+
     # msg_queue.add_order(ORDERS_MSG, order)
     sleep_for(3)
     msg_queue.add_order(FAILED_ORDERS_MSG, order)
@@ -506,15 +506,14 @@ def test_public_huobi_methods():
     load_keys("./secret_keys")
     for pair_id in CURRENCY_PAIR.values():
         pair_name = get_currency_pair_to_huobi(pair_id)
+        if pair_name is None:
+            print pair_id
+            continue
         now_time = get_now_seconds_utc()
         history = get_history_huobi(pair_name, now_time, now_time)
-        print "History", history
         ticker = get_ticker_huobi(pair_name, now_time)
-        print "Ticker", ticker
         order_book = get_order_book_huobi(pair_name, now_time)
-        print "Order book", order_book
         period = "15min"
         candle = get_ohlc_huobi(pair_name, now_time, now_time, period)
-        print "Candle", candle
 
 test_public_huobi_methods()
