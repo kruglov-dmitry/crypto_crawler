@@ -36,11 +36,15 @@ def get_ticker_bittrex(pair_name, timest):
 
 
 def get_ticker_bittrex_result_processor(json_document, pair_name, timest):
-    if is_error(json_document) or json_document["result"] is None:
+    if is_error(json_document) or json_document["result"] is None or json_document["result"]["Ask"] is None or json_document["result"]["Bid"] is None:
 
         msg = "get_ticker_bittrex_result_processor - error response - {er}".format(er=json_document)
         log_to_file(msg, ERROR_LOG_FILE_NAME)
 
         return None
 
-    return Ticker.from_bittrex(pair_name, timest, json_document["result"])
+    try:
+        return Ticker.from_bittrex(pair_name, timest, json_document["result"])
+    except:
+        print "eto pechalno: ", json_document
+        raise
