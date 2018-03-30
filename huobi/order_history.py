@@ -69,7 +69,7 @@ def get_order_history_huobi_result_processor(json_document, pair_name):
         return STATUS.FAILURE, orders
 
     for entry in json_document:
-        order = Trade.from_huobi(entry)
+        order = Trade.from_huobi(entry, pair_name)
         if order is not None:
             orders.append(order)
 

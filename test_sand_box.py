@@ -493,3 +493,28 @@ def load_trades_from_csv_to_db():
         wrap_with_progress_bar(headline, bittrex_order_by_pair[pair_id], save_to_pg_adapter, pg_conn,
                                unique_only, is_trade_present_in_trade_history,
                                init_arbitrage_id=-20, table_name="arbitrage_trades")
+
+
+def test_public_huobi_methods():
+    from huobi.history_utils import get_history_huobi
+    from huobi.ticker_utils import get_ticker_huobi
+    from huobi.ohlc_utils import get_ohlc_huobi
+    from huobi.order_book_utils import get_order_book_huobi
+
+    from huobi.currency_utils import get_currency_pair_to_huobi
+
+    load_keys("./secret_keys")
+    for pair_id in CURRENCY_PAIR.values():
+        pair_name = get_currency_pair_to_huobi(pair_id)
+        now_time = get_now_seconds_utc()
+        history = get_history_huobi(pair_name, now_time, now_time)
+        print "History", history
+        ticker = get_ticker_huobi(pair_name, now_time)
+        print "Ticker", ticker
+        order_book = get_order_book_huobi(pair_name, now_time)
+        print "Order book", order_book
+        period = "15min"
+        candle = get_ohlc_huobi(pair_name, now_time, now_time, period)
+        print "Candle", candle
+
+test_public_huobi_methods()
