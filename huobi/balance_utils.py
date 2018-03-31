@@ -51,8 +51,8 @@ def get_balance_huobi_post_details(key):
 
 
 def get_balance_huobi_result_processor(json_document, timest):
-    if not is_error(json_document):
-        return STATUS.SUCCESS, Balance.from_huobi(timest, json_document)
+    if not is_error(json_document) and "data" in json_document:
+        return STATUS.SUCCESS, Balance.from_huobi(timest, json_document["data"])
 
     msg = "get_balance_huobi_result_processor - error response - {er}".format(er=json_document)
     log_to_file(msg, ERROR_LOG_FILE_NAME)
@@ -70,8 +70,6 @@ def get_balance_huobi(key):
 
     status_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
                                                    timeout=HUOBI_DEAL_TIMEOUT)
-
-    print res
 
     if get_logging_level() >= LOG_ALL_DEBUG:
         log_to_file(res, "balance.log")

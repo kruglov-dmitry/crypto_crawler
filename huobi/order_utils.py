@@ -36,7 +36,7 @@ def get_open_orders_huobi_post_details(key, pair_name):
             ('from', ''),
             ('size', ''),
             ('start_date', ''),
-            ('states', 'pre-submitted'),
+            ('states', 'pre-submitted,submitted,partial-filled,partial-canceled'),
             ("symbol", pair_name),
             ('types', '')
             ]

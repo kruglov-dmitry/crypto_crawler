@@ -18,14 +18,23 @@ from enums.status import STATUS
 
 def get_order_history_huobi_post_details(key, pair_name, limit, last_order_id=None):
 
-    final_url = HUOBI_API_URL + HUOBI_GET_TRADE_HISTORY
+    final_url = HUOBI_API_URL + HUOBI_GET_TRADE_HISTORY + "?"
+
+    # ('states', 'pre-submitted,submitted,partial-filled,partial-canceled'),
 
     body = [('AccessKeyId', key.api_key),
             ('SignatureMethod', 'HmacSHA256'),
             ('SignatureVersion', 2),
             ('Timestamp', ts_to_string_utc(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S')),
+            ('direct', ''),
+            ('end_date', ''),
+            ('from', ''),
+            ('size', ''),
+            ('start_date', ''),
             ('states', 'filled'),
-            ("symbol", pair_name)]
+            ("symbol", pair_name),
+            ('types', '')
+            ]
 
     message = _urlencode(body).encode('utf8')
 
@@ -57,14 +66,14 @@ def get_order_history_huobi_result_processor(json_document, pair_name):
     pair_name - for backwords compabilities
     """
     orders = []
-    if is_error(json_document):
+    if is_error(json_document) or 'data' not in json_document:
 
         msg = "get_order_history_huobi_result_processor - error response - {er}".format(er=json_document)
         log_to_file(msg, ERROR_LOG_FILE_NAME)
 
         return STATUS.FAILURE, orders
 
-    for entry in json_document:
+    for entry in json_document["data"]:
         order = Trade.from_huobi(entry, pair_name)
         if order is not None:
             orders.append(order)
@@ -80,6 +89,8 @@ def get_order_history_huobi(key, pair_name, limit=HUOBI_ORDER_HISTORY_LIMIT, las
 
     status_code, json_responce = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
                                                               timeout=HUOBI_DEAL_TIMEOUT)
+
+    print json_responce
 
     if get_logging_level() >= LOG_ALL_DEBUG:
         msg = "get_order_history_huobi: {sc} {resp}".format(sc=status_code, resp=json_responce)
