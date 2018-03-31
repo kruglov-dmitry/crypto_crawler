@@ -42,10 +42,18 @@ class CURRENCY:
     ITC = 39
     ARK = 40
     STRAT = 41
-
     LSK = 42
     ENG = 43
     XVG = 44
+
+    ONT = 45
+    HSR = 46
+    ZIL = 47
+    VEN = 48
+    ELF = 49
+    BLZ = 50
+    REQ = 51
+    LINK = 52
 
     USD = 1000
     USDT = 1001
@@ -98,6 +106,14 @@ class CURRENCY:
                 CURRENCY.LSK,
                 CURRENCY.ENG,
                 CURRENCY.XVG,
+                CURRENCY.ONT,
+                CURRENCY.HSR,
+                CURRENCY.ZIL,
+                CURRENCY.VEN,
+                CURRENCY.ELF,
+                CURRENCY.BLZ,
+                CURRENCY.REQ,
+                CURRENCY.LINK,
                 CURRENCY.USD,
                 CURRENCY.USDT
                 ]

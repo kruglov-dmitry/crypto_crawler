@@ -44,14 +44,14 @@ class CURRENCY_PAIR:
     BTC_TO_ENG = 43         # ENIGMA  trex/binance
     BTC_TO_XVG = 44         # VERGE   trex/binance
 
-    BTC_TO_ONT = 45
-    BTC_TO_HSR = 46
-    BTC_TO_ZIL = 47
-    BTC_TO_VEN = 48
-    BTC_TO_ELF = 49
-    BTC_TO_BLZ = 50
-    BTC_OT_REQ = 51
-    BTC_TO_LINK = 52
+    BTC_TO_ONT = 45         # huobi
+    BTC_TO_HSR = 46         # huobi
+    BTC_TO_ZIL = 47         # huobi
+    BTC_TO_VEN = 48         # huobi
+    BTC_TO_ELF = 49         # huobi
+    BTC_TO_BLZ = 50         # huobi
+    BTC_TO_REQ = 51         # huobi
+    BTC_TO_LINK = 52        # huobi
 
     ETH_TO_DASH = 1001
     ETH_TO_BTC = 1002       # NOT EXIST ON kraken, poloniex, bittrex
@@ -91,13 +91,20 @@ class CURRENCY_PAIR:
     ETH_TO_TRX = 1035       # Not exist on bittrex, kraken, poloniex
     ETH_TO_AION = 1036      # Not exist on bittrex, kraken, poloniex
     ETH_TO_ITC = 1037       # Not exist on binance, bittrex, poloniex
-
     ETH_TO_ARK = 1038       # Not exist at bittrex, poloniex
     ETH_TO_STRAT = 1039     # Not exist at poloniex
-
     ETH_TO_LSK = 1040       # LISK binance\poloniex
     ETH_TO_ENG = 1041       # ENIGMA  trex/binance
     ETH_TO_XVG = 1042       # VERGE   trex/binance
+
+    ETH_TO_ONT = 1043       # huobi
+    ETH_TO_HSR = 1044       # huobi
+    ETH_TO_ZIL = 1045       # huobi
+    ETH_TO_VEN = 1046       # huobi
+    ETH_TO_ELF = 1047       # huobi
+    ETH_TO_BLZ = 1048       # huobi
+    ETH_TO_REQ = 1049       # huobi
+    ETH_TO_LINK = 1050      # huobi
 
     USD_TO_DASH = 2001
     USD_TO_ETH = 2002
@@ -157,6 +164,11 @@ class CURRENCY_PAIR:
     USDT_TO_XVG = 3038      # VERGE   trex
     USDT_TO_OMG = 3039      # huobi
 
+    USDT_TO_HSR = 3040      # huobi
+    USDT_TO_ZIL = 3041      # huobi
+    USDT_TO_VEN = 3042      # huobi
+    USDT_TO_ELF = 3043      # huobi
+
     USD_TO_USDT = 4000      # kraken only
 
     @classmethod
@@ -205,6 +217,14 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.BTC_TO_LSK,
                 CURRENCY_PAIR.BTC_TO_ENG,
                 CURRENCY_PAIR.BTC_TO_XVG,
+                CURRENCY_PAIR.BTC_TO_ONT,
+                CURRENCY_PAIR.BTC_TO_HSR,
+                CURRENCY_PAIR.BTC_TO_ZIL,
+                CURRENCY_PAIR.BTC_TO_VEN,
+                CURRENCY_PAIR.BTC_TO_ELF,
+                CURRENCY_PAIR.BTC_TO_BLZ,
+                CURRENCY_PAIR.BTC_TO_REQ,
+                CURRENCY_PAIR.BTC_TO_LINK,
                 CURRENCY_PAIR.ETH_TO_DASH,
                 CURRENCY_PAIR.ETH_TO_LTC,
                 CURRENCY_PAIR.ETH_TO_XRP,
@@ -245,6 +265,14 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.ETH_TO_LSK,
                 CURRENCY_PAIR.ETH_TO_ENG,
                 CURRENCY_PAIR.ETH_TO_XVG,
+                CURRENCY_PAIR.ETH_TO_ONT,
+                CURRENCY_PAIR.ETH_TO_HSR,
+                CURRENCY_PAIR.ETH_TO_ZIL,
+                CURRENCY_PAIR.ETH_TO_VEN,
+                CURRENCY_PAIR.ETH_TO_ELF,
+                CURRENCY_PAIR.ETH_TO_BLZ,
+                CURRENCY_PAIR.ETH_TO_REQ,
+                CURRENCY_PAIR.ETH_TO_LINK,
                 CURRENCY_PAIR.USD_TO_DASH,
                 CURRENCY_PAIR.USD_TO_BTC,
                 CURRENCY_PAIR.USD_TO_LTC,
@@ -294,5 +322,9 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.USDT_TO_ITC,
                 CURRENCY_PAIR.USDT_TO_XVG,
                 CURRENCY_PAIR.USDT_TO_OMG,
+                CURRENCY_PAIR.USDT_TO_HSR,
+                CURRENCY_PAIR.USDT_TO_ZIL,
+                CURRENCY_PAIR.USDT_TO_VEN,
+                CURRENCY_PAIR.USDT_TO_ELF,
                 CURRENCY_PAIR.USD_TO_USDT
                 ]

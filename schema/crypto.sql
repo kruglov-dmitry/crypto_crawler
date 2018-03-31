@@ -46,13 +46,20 @@ INSERT INTO pair (id, pair) VALUES (36, 'BTC_TO_XLM');
 INSERT INTO pair (id, pair) VALUES (37, 'BTC_TO_TRX');
 INSERT INTO pair (id, pair) VALUES (38, 'BTC_TO_AION');
 INSERT INTO pair (id, pair) VALUES (39, 'BTC_TO_ITC');
-
 INSERT INTO pair (id, pair) VALUES (40, 'BTC_TO_ARK');
 INSERT INTO pair (id, pair) VALUES (41, 'BTC_TO_STRAT');
-
 INSERT INTO pair (id, pair) VALUES (42, 'BTC_TO_LSK');
 INSERT INTO pair (id, pair) VALUES (43, 'BTC_TO_ENG');
 INSERT INTO pair (id, pair) VALUES (44, 'BTC_TO_XVG');
+
+INSERT INTO pair (id, pair) VALUES (45, 'BTC_TO_ONT');
+INSERT INTO pair (id, pair) VALUES (46, 'BTC_TO_HSR');
+INSERT INTO pair (id, pair) VALUES (47, 'BTC_TO_ZIL');
+INSERT INTO pair (id, pair) VALUES (48, 'BTC_TO_VEN');
+INSERT INTO pair (id, pair) VALUES (49, 'BTC_TO_ELF');
+INSERT INTO pair (id, pair) VALUES (50, 'BTC_TO_BLZ');
+INSERT INTO pair (id, pair) VALUES (51, 'BTC_OT_REQ');
+INSERT INTO pair (id, pair) VALUES (52, 'BTC_TO_LINK');
 
 INSERT INTO pair (id, pair) VALUES (1001, 'ETH_TO_DASH');
 INSERT INTO pair (id, pair) VALUES (1002, 'ETH_TO_BTC');
@@ -91,13 +98,20 @@ INSERT INTO pair (id, pair) VALUES (1034, 'ETH_TO_XLM');
 INSERT INTO pair (id, pair) VALUES (1035, 'ETH_TO_TRX');
 INSERT INTO pair (id, pair) VALUES (1036, 'ETH_TO_AION');
 INSERT INTO pair (id, pair) VALUES (1037, 'ETH_TO_ITC');
-
 INSERT INTO pair (id, pair) VALUES (1038, 'ETH_TO_ARK');
 INSERT INTO pair (id, pair) VALUES (1039, 'ETH_TO_STRAT');
-
 INSERT INTO pair (id, pair) VALUES (1040, 'ETH_TO_LSK');
 INSERT INTO pair (id, pair) VALUES (1041, 'ETH_TO_ENG');
 INSERT INTO pair (id, pair) VALUES (1042, 'ETH_TO_XVG');
+
+INSERT INTO pair (id, pair) VALUES (1043, 'ETH_TO_ONT');
+INSERT INTO pair (id, pair) VALUES (1044, 'ETH_TO_HSR');
+INSERT INTO pair (id, pair) VALUES (1045, 'ETH_TO_ZIL');
+INSERT INTO pair (id, pair) VALUES (1046, 'ETH_TO_VEN');
+INSERT INTO pair (id, pair) VALUES (1047, 'ETH_TO_ELF');
+INSERT INTO pair (id, pair) VALUES (1048, 'ETH_TO_BLZ');
+INSERT INTO pair (id, pair) VALUES (1049, 'ETH_TO_REQ');
+INSERT INTO pair (id, pair) VALUES (1050, 'ETH_TO_LINK');
 
 INSERT INTO pair (id, pair) VALUES (2001, 'USD_TO_DASH');
 INSERT INTO pair (id, pair) VALUES (2002, 'USD_TO_ETH');
@@ -150,8 +164,12 @@ INSERT INTO pair (id, pair) VALUES (3034, 'USDT_TO_XLM');
 INSERT INTO pair (id, pair) VALUES (3035, 'USDT_TO_TRX');
 INSERT INTO pair (id, pair) VALUES (3036, 'USDT_TO_AION');
 INSERT INTO pair (id, pair) VALUES (3037, 'USDT_TO_ITC');
-
 INSERT INTO pair (id, pair) VALUES (3038, 'USDT_TO_XVG');
 INSERT INTO pair (id, pair) VALUES (3039, 'USDT_TO_OMG');
+
+INSERT INTO pair (id, pair) VALUES (3040, 'USDT_TO_HSR');
+INSERT INTO pair (id, pair) VALUES (3041, 'USDT_TO_ZIL');
+INSERT INTO pair (id, pair) VALUES (3042, 'USDT_TO_VEN');
+INSERT INTO pair (id, pair) VALUES (3043, 'USDT_TO_ELF');
 
 INSERT INTO pair (id, pair) VALUES (4000, 'USD_TO_USDT');
