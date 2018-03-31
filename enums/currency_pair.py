@@ -15,7 +15,6 @@ class CURRENCY_PAIR:
     BTC_TO_XMR = 14
     BTC_TO_DOGE = 15
     BTC_TO_DCR = 16         # NOT EXIST on kraken
-
     BTC_TO_NEO = 17         # NOT EXIST on kraken, poloniex
     BTC_TO_QTUM = 18        # NOT EXIST on kraken, poloniex
     BTC_TO_EOS = 19         # not exist on bittrex, poloniex
@@ -39,13 +38,20 @@ class CURRENCY_PAIR:
     BTC_TO_TRX = 37         # Not exist on bittrex, kraken, poloniex
     BTC_TO_AION = 38        # Not exist on bittrex, kraken, poloniex
     BTC_TO_ITC = 39         # Not exist on binance, bittrex, kraken, poloniex
-
     BTC_TO_ARK = 40
     BTC_TO_STRAT = 41
-
     BTC_TO_LSK = 42         # LISK Polo/trex/binance
     BTC_TO_ENG = 43         # ENIGMA  trex/binance
     BTC_TO_XVG = 44         # VERGE   trex/binance
+
+    BTC_TO_ONT = 45
+    BTC_TO_HSR = 46
+    BTC_TO_ZIL = 47
+    BTC_TO_VEN = 48
+    BTC_TO_ELF = 49
+    BTC_TO_BLZ = 50
+    BTC_OT_REQ = 51
+    BTC_TO_LINK = 52
 
     ETH_TO_DASH = 1001
     ETH_TO_BTC = 1002       # NOT EXIST ON kraken, poloniex, bittrex

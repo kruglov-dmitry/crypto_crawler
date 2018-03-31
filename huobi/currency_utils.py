@@ -28,6 +28,7 @@ def get_currency_name_for_huobi(currency_id):
         CURRENCY.TRX: 'trx',
         CURRENCY.LSK: 'lsk',
         CURRENCY.ENG: 'eng',
+        CURRENCY.QSP: 'qsp',
         CURRENCY.USDT: 'usdt'
     }.get(currency_id)
 
@@ -58,6 +59,7 @@ def get_currency_id_from_huobi(currency_name):
         'trx': CURRENCY.TRX,
         'lsk': CURRENCY.LSK,
         'eng': CURRENCY.ENG,
+        'qsp': CURRENCY.QSP,
         'usdt': CURRENCY.USDT
     }.get(currency_name)
 
@@ -82,12 +84,20 @@ def get_currency_pair_to_huobi(pair_id):
         CURRENCY_PAIR.BTC_TO_LSK: 'lskbtc',
         CURRENCY_PAIR.BTC_TO_ENG: 'engbtc',
         CURRENCY_PAIR.BTC_TO_TRX: 'trxbtc',
+        CURRENCY_PAIR.BTC_TO_EOS: 'eosbtc',
+        CURRENCY_PAIR.BTC_TO_ICX: 'icxbtc',
+        CURRENCY_PAIR.BTC_TO_RDN: 'rdnbtc',
+        CURRENCY_PAIR.BTC_TO_QSP: 'qspbtc',
         CURRENCY_PAIR.ETH_TO_OMG: 'omgeth',
         CURRENCY_PAIR.ETH_TO_QTUM: 'qtumeth',
         CURRENCY_PAIR.ETH_TO_BAT: 'bateth',
         CURRENCY_PAIR.ETH_TO_RCN: 'rcneth',
         CURRENCY_PAIR.ETH_TO_ENG: 'engeth',
         CURRENCY_PAIR.ETH_TO_TRX: 'trxeth',
+        CURRENCY_PAIR.ETH_TO_EOS: 'eoseth',
+        CURRENCY_PAIR.ETH_TO_ICX: 'icxeth',
+        CURRENCY_PAIR.ETH_TO_RDN:'rdneth',
+        CURRENCY_PAIR.ETH_TO_QSP: 'qspeth',
         CURRENCY_PAIR.USDT_TO_DASH: 'dashusdt',
         CURRENCY_PAIR.USDT_TO_BTC: 'btcusdt',
         CURRENCY_PAIR.USDT_TO_LTC: 'ltcusdt',
@@ -99,7 +109,7 @@ def get_currency_pair_to_huobi(pair_id):
         CURRENCY_PAIR.USDT_TO_ETH: 'ethusdt',
         CURRENCY_PAIR.USDT_TO_ZEC: 'zecusdt',
         CURRENCY_PAIR.USDT_TO_NEO: 'neousdt',
-        CURRENCY_PAIR.USDT_TO_OMG: 'omgusdt'
+        CURRENCY_PAIR.USDT_TO_EOS:'eosusdt',
     }.get(pair_id)
 
 
@@ -123,12 +133,20 @@ def get_currency_pair_from_huobi(pair_name):
         'lskbtc': CURRENCY_PAIR.BTC_TO_LSK,
         'engbtc': CURRENCY_PAIR.BTC_TO_ENG,
         'trxbtc': CURRENCY_PAIR.BTC_TO_TRX,
+        'eosbtc': CURRENCY_PAIR.BTC_TO_EOS,
+        'icxbtc': CURRENCY_PAIR.BTC_TO_ICX,
+        'rdnbtc': CURRENCY_PAIR.BTC_TO_RDN,
+        'qspbtc': CURRENCY_PAIR.BTC_TO_QSP,
         'omgeth': CURRENCY_PAIR.ETH_TO_OMG,
         'qtumeth': CURRENCY_PAIR.ETH_TO_QTUM,
         'bateth': CURRENCY_PAIR.ETH_TO_BAT,
         'rcneth': CURRENCY_PAIR.ETH_TO_RCN,
         'engeth': CURRENCY_PAIR.ETH_TO_ENG,
         'trxeth': CURRENCY_PAIR.ETH_TO_TRX,
+        'eoseth': CURRENCY_PAIR.ETH_TO_EOS,
+        'icxeth': CURRENCY_PAIR.ETH_TO_ICX,
+        'rdneth': CURRENCY_PAIR.ETH_TO_RDN,
+        'qspeth': CURRENCY_PAIR.ETH_TO_QSP,
         'dashusdt': CURRENCY_PAIR.USDT_TO_DASH,
         'btcusdt': CURRENCY_PAIR.USDT_TO_BTC,
         'ltcusdt': CURRENCY_PAIR.USDT_TO_LTC,
@@ -140,5 +158,5 @@ def get_currency_pair_from_huobi(pair_name):
         'ethusdt': CURRENCY_PAIR.USDT_TO_ETH,
         'zecusdt': CURRENCY_PAIR.USDT_TO_ZEC,
         'neousdt': CURRENCY_PAIR.USDT_TO_NEO,
-        'omgusdt':CURRENCY_PAIR.USDT_TO_OMG
+        'eosusdt': CURRENCY_PAIR.USDT_TO_EOS,
     }.get(pair_name)

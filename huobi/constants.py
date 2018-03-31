@@ -13,9 +13,11 @@ HUOBI_GET_HISTORY = HUOBI_API_URL + "/market/history/trade?symbol="
 
 HUOBI_CURRENCY_PAIRS = ['dashbtc', 'ethbtc', 'ltcbtc', 'xrpbtc', 'bchbtc', 'etcbtc', 'xembtc', 'omgbtc', 'zecbtc',
                         'neobtc', 'qtumbtc', 'btgbtc', 'batbtc', 'rcnbtc', 'zrxbtc', 'lskbtc', 'engbtc', 'trxbtc',
-                        'omgeth', 'qtumeth', 'bateth', 'rcneth', 'engeth', 'trxeth',
+                        'eosbtc', 'icxbtc', 'rdnbtc', 'qspbtc',
+                        'omgeth', 'qtumeth', 'bateth', 'rcneth', 'engeth', 'trxeth', 'eoseth', 'icxeth', 'rdneth',
+                        'qspeth',
                         'dashusdt', 'btcusd', 'ltcusdt', 'xrpusdt', 'bchusdt', 'etcusdt', 'omgusdt', 'qtumusdt',
-                        'ethusdt', 'zecusdt', 'neousdt'
+                        'ethusdt', 'zecusdt', 'neousdt', 'eosusdt'
                         ]
 
 HUOBI_BUY_ORDER = "/v1/order/orders/place"
