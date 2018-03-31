@@ -15,7 +15,7 @@ from huobi.constants import HUOBI_DEAL_TIMEOUT, HUOBI_ACOUNT_ID, HUOBI_GET_ACCOU
 
 def get_huobi_account_impl(key):
 
-    final_url = HUOBI_API_URL + HUOBI_GET_ACCOUNT_INFO
+    final_url = HUOBI_API_URL + HUOBI_GET_ACCOUNT_INFO + "?"
 
     body = [('AccessKeyId', key.api_key),
             ('SignatureMethod', 'HmacSHA256'),
@@ -36,7 +36,7 @@ def get_huobi_account_impl(key):
 
     post_details = PostRequestDetails(final_url, headers, body)
 
-    err_msg = "get_all_trades_huobi for {pair_name}"
+    err_msg = "get_huobi_account"
 
     error_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
                                                    timeout=HUOBI_DEAL_TIMEOUT)

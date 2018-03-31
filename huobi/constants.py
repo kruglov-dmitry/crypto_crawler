@@ -24,7 +24,7 @@ HUOBI_SELL_ORDER = "/v1/order/orders/place"
 
 HUOBI_CANCEL_ORDER = "/v1/order/orders/"
 
-HUOBI_CHECK_BALANCE = "/v1/account/accounts/{account-id}/balance"
+HUOBI_CHECK_BALANCE = "/v1/account/accounts/"
 
 HUOBI_GET_OPEN_ORDERS = "/v1/order/orders"
 
@@ -33,7 +33,7 @@ HUOBI_GET_TRADE_HISTORY = "/v1/order/orders"
 HUOBI_NUM_OF_DEAL_RETRY = 1
 HUOBI_DEAL_TIMEOUT = 5
 
-HUOBI_GET_ACCOUNT_INFO = "/v1/account/accounts?"
+HUOBI_GET_ACCOUNT_INFO = "/v1/account/accounts"
 
 HUOBI_ACOUNT_ID = "huobi_account_id"
 

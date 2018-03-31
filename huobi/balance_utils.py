@@ -20,7 +20,8 @@ from utils.file_utils import log_to_file
 
 
 def get_balance_huobi_post_details(key):
-    final_url = HUOBI_API_URL + HUOBI_CHECK_BALANCE + get_huobi_account(key) + "/balance"
+    path = HUOBI_CHECK_BALANCE + get_huobi_account(key) + "/balance"
+    final_url = HUOBI_API_URL + path + "?"
 
     body = [('AccessKeyId', key.api_key),
             ('SignatureMethod', 'HmacSHA256'),
@@ -29,7 +30,9 @@ def get_balance_huobi_post_details(key):
 
     message = _urlencode(body).encode('utf8')
 
-    msg = "GET\n{base_url}\n{path}\n{msg1}".format(base_url=HUOBI_API_ONLY, path=HUOBI_CHECK_BALANCE, msg1=message)
+    msg = "GET\n{base_url}\n{path}\n{msg1}".format(base_url=HUOBI_API_ONLY, path=path, msg1=message)
+
+    print msg
 
     signature = sign_string_256_base64(key.secret, msg)
 
@@ -67,6 +70,8 @@ def get_balance_huobi(key):
 
     status_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
                                                    timeout=HUOBI_DEAL_TIMEOUT)
+
+    print res
 
     if get_logging_level() >= LOG_ALL_DEBUG:
         log_to_file(res, "balance.log")
