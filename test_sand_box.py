@@ -1,3 +1,4 @@
+# coding=utf-8
 from profilehooks import timecall
 
 from binance.balance_utils import get_balance_binance
@@ -528,6 +529,34 @@ def test_private_huobi_methods():
 
 test_private_huobi_methods()
 
+
 def test_trade_methods_huobi():
+    """
+    Sell Zil 1000 штук по 0.00000620 - должно сработать
+    Sell Zil 1000 по 0.00000750
+    Buy Zil 1000 по 0.00000525
+    :return:
+    """
+
     load_keys("./secret_keys")
-    key = get_key_by_exchange(EXCHANGE.HUOBI)
+    priority_queue = get_priority_queue()
+
+    ts = get_now_seconds_utc()
+    order = Trade(DEAL_TYPE.SELL, EXCHANGE.HUOBI, CURRENCY_PAIR.BTC_TO_ZIL,
+                  price=0.00000750, volume=1000.0,
+                  order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
+
+    msg = "Testing huobi - {tt}".format(tt=order)
+    err_code, json_document = init_deal(order, msg)
+    print json_document
+    order.order_id = parse_order_id(order.exchange_id, json_document)
+    priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+
+    """
+
+    error_code, r = add_buy_order_binance(bin_key, "RDNBTC", price=0.00022220, amount=10)
+    print r
+
+    error_code, r = add_sell_order_binance(bin_key, "RDNBTC", price=1.00022220, amount=1)
+    error_code, r = cancel_order_binance(bin_key, "RDNBTC", 1373492)
+    """
