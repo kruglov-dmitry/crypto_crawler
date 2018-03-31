@@ -54,6 +54,8 @@ class CURRENCY:
     BLZ = 50
     REQ = 51
     LINK = 52
+    NAS = 53
+    ELA = 54
 
     USD = 1000
     USDT = 1001
@@ -114,6 +116,8 @@ class CURRENCY:
                 CURRENCY.BLZ,
                 CURRENCY.REQ,
                 CURRENCY.LINK,
+                CURRENCY.NAS,
+                CURRENCY.ELA,
                 CURRENCY.USD,
                 CURRENCY.USDT
                 ]

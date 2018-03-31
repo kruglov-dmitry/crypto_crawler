@@ -53,6 +53,9 @@ class CURRENCY_PAIR:
     BTC_TO_REQ = 51         # huobi
     BTC_TO_LINK = 52        # huobi
 
+    BTC_TO_NAS = 53         # huobi
+    BTC_TO_ELA = 54         # huobi
+
     ETH_TO_DASH = 1001
     ETH_TO_BTC = 1002       # NOT EXIST ON kraken, poloniex, bittrex
     ETH_TO_LTC = 1003
@@ -93,7 +96,7 @@ class CURRENCY_PAIR:
     ETH_TO_ITC = 1037       # Not exist on binance, bittrex, poloniex
     ETH_TO_ARK = 1038       # Not exist at bittrex, poloniex
     ETH_TO_STRAT = 1039     # Not exist at poloniex
-    ETH_TO_LSK = 1040       # LISK binance\poloniex
+    ETH_TO_LSK = 1040       # LISK binance\poloniex\huobi
     ETH_TO_ENG = 1041       # ENIGMA  trex/binance
     ETH_TO_XVG = 1042       # VERGE   trex/binance
 
@@ -105,6 +108,9 @@ class CURRENCY_PAIR:
     ETH_TO_BLZ = 1048       # huobi
     ETH_TO_REQ = 1049       # huobi
     ETH_TO_LINK = 1050      # huobi
+
+    ETH_TO_NAS = 1051  # huobi
+    ETH_TO_ELA = 1052  # huobi
 
     USD_TO_DASH = 2001
     USD_TO_ETH = 2002
@@ -132,7 +138,6 @@ class CURRENCY_PAIR:
     USDT_TO_DGB = 3008       # NOT EXIST ON kraken, poloniex, bittrex
     USDT_TO_XEM = 3009
     USDT_TO_ARDR = 3010      # NOT EXIST ON kraken, poloniex, bittrex
-    # NOTE: NO OMG!
     USDT_TO_BTC = 3011      # NOT EXIST ON kraken
     USDT_TO_ZEC = 3012      # NOT EXIST ON kraken
     USDT_TO_REP = 3013      # NOT EXIST ON kraken
@@ -168,6 +173,9 @@ class CURRENCY_PAIR:
     USDT_TO_ZIL = 3041      # huobi
     USDT_TO_VEN = 3042      # huobi
     USDT_TO_ELF = 3043      # huobi
+
+    USDT_TO_NAS = 3044      # huobi
+    USDT_TO_ELA = 3045      # huobi
 
     USD_TO_USDT = 4000      # kraken only
 
@@ -225,6 +233,10 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.BTC_TO_BLZ,
                 CURRENCY_PAIR.BTC_TO_REQ,
                 CURRENCY_PAIR.BTC_TO_LINK,
+                CURRENCY_PAIR.BTC_TO_NAS,
+                CURRENCY_PAIR.BTC_TO_ELA,
+                CURRENCY_PAIR.BTC_TO_NAS,
+                CURRENCY_PAIR.BTC_TO_ELA,
                 CURRENCY_PAIR.ETH_TO_DASH,
                 CURRENCY_PAIR.ETH_TO_LTC,
                 CURRENCY_PAIR.ETH_TO_XRP,
@@ -273,6 +285,8 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.ETH_TO_BLZ,
                 CURRENCY_PAIR.ETH_TO_REQ,
                 CURRENCY_PAIR.ETH_TO_LINK,
+                CURRENCY_PAIR.ETH_TO_NAS,
+                CURRENCY_PAIR.ETH_TO_ELA,
                 CURRENCY_PAIR.USD_TO_DASH,
                 CURRENCY_PAIR.USD_TO_BTC,
                 CURRENCY_PAIR.USD_TO_LTC,
@@ -326,5 +340,7 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.USDT_TO_ZIL,
                 CURRENCY_PAIR.USDT_TO_VEN,
                 CURRENCY_PAIR.USDT_TO_ELF,
+                CURRENCY_PAIR.USDT_TO_NAS,
+                CURRENCY_PAIR.USDT_TO_ELA,
                 CURRENCY_PAIR.USD_TO_USDT
                 ]

@@ -14,11 +14,13 @@ HUOBI_GET_HISTORY = HUOBI_API_URL + "/market/history/trade?symbol="
 HUOBI_CURRENCY_PAIRS = ['dashbtc', 'ethbtc', 'ltcbtc', 'xrpbtc', 'bchbtc', 'etcbtc', 'xembtc', 'omgbtc', 'zecbtc',
                         'neobtc', 'qtumbtc', 'btgbtc', 'batbtc', 'rcnbtc', 'zrxbtc', 'lskbtc', 'engbtc', 'trxbtc',
                         'eosbtc', 'icxbtc', 'rdnbtc', 'qspbtc', 'ontbtc', 'hsrbtc', 'zilbtc', 'venbtc', 'elfbtc',
-                        'blzbtc', 'reqbtc', 'linkbtc',
+                        'blzbtc', 'reqbtc', 'linkbtc', 'nasbtc', 'elabtc',
                         'omgeth', 'qtumeth', 'bateth', 'rcneth', 'engeth', 'trxeth', 'eoseth', 'icxeth', 'rdneth',
                         'qspeth', 'onteth', 'hsreth', 'zileth', 'veneth', 'elfeth', 'blzeth', 'reqeth', 'linketh',
+                        'lsketh', 'naseth', 'elaeth',
                         'dashusdt', 'btcusd', 'ltcusdt', 'xrpusdt', 'bchusdt', 'etcusdt', 'omgusdt', 'qtumusdt',
-                        'ethusdt', 'zecusdt', 'neousdt', 'eosusdt', 'hsrusdt', 'zilusdt', 'venusdt', 'elfusdt'
+                        'ethusdt', 'zecusdt', 'neousdt', 'eosusdt', 'hsrusdt', 'zilusdt', 'venusdt', 'elfusdt',
+                        'nasusdt', 'elausdt'
                         ]
 
 HUOBI_BUY_ORDER = "/v1/order/orders/place"

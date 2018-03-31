@@ -37,6 +37,8 @@ def get_currency_name_for_huobi(currency_id):
         CURRENCY.BLZ: 'blz',
         CURRENCY.REQ: 'req',
         CURRENCY.LINK: 'link',
+        CURRENCY.ELA: 'ela',
+        CURRENCY.NAS: 'nas',
         CURRENCY.USDT: 'usdt'
     }.get(currency_id)
 
@@ -76,6 +78,8 @@ def get_currency_id_from_huobi(currency_name):
         'blz': CURRENCY.BLZ,
         'req': CURRENCY.REQ,
         'link': CURRENCY.LINK,
+        'ela': CURRENCY.ELA,
+        'nas': CURRENCY.NAS,
         'usdt': CURRENCY.USDT
     }.get(currency_name)
 
@@ -113,6 +117,8 @@ def get_currency_pair_to_huobi(pair_id):
         CURRENCY_PAIR.BTC_TO_BLZ: 'blzbtc',
         CURRENCY_PAIR.BTC_TO_REQ: 'reqbtc',
         CURRENCY_PAIR.BTC_TO_LINK: 'linkbtc',
+        CURRENCY_PAIR.BTC_TO_NAS: 'nasbtc',
+        CURRENCY_PAIR.BTC_TO_ELA: 'elabtc',
 
         CURRENCY_PAIR.ETH_TO_OMG: 'omgeth',
         CURRENCY_PAIR.ETH_TO_QTUM: 'qtumeth',
@@ -133,6 +139,9 @@ def get_currency_pair_to_huobi(pair_id):
         CURRENCY_PAIR.ETH_TO_BLZ: 'blzeth',
         CURRENCY_PAIR.ETH_TO_REQ: 'reqeth',
         CURRENCY_PAIR.ETH_TO_LINK: 'linketh',
+        CURRENCY_PAIR.ETH_TO_LSK: 'lsketh',
+        CURRENCY_PAIR.ETH_TO_NAS: 'naseth',
+        CURRENCY_PAIR.ETH_TO_ELA: 'elaeth',
 
         CURRENCY_PAIR.USDT_TO_DASH: 'dashusdt',
         CURRENCY_PAIR.USDT_TO_BTC: 'btcusdt',
@@ -145,12 +154,14 @@ def get_currency_pair_to_huobi(pair_id):
         CURRENCY_PAIR.USDT_TO_ETH: 'ethusdt',
         CURRENCY_PAIR.USDT_TO_ZEC: 'zecusdt',
         CURRENCY_PAIR.USDT_TO_NEO: 'neousdt',
-        CURRENCY_PAIR.USDT_TO_EOS:'eosusdt',
+        CURRENCY_PAIR.USDT_TO_EOS: 'eosusdt',
 
         CURRENCY_PAIR.USDT_TO_HSR: 'hsrusdt',
         CURRENCY_PAIR.USDT_TO_ZIL: 'zilusdt',
         CURRENCY_PAIR.USDT_TO_VEN: 'venusdt',
         CURRENCY_PAIR.USDT_TO_ELF: 'elfusdt',
+        CURRENCY_PAIR.USDT_TO_NAS: 'nasusdt',
+        CURRENCY_PAIR.USDT_TO_ELA: 'elausdt',
 
     }.get(pair_id)
 
@@ -188,6 +199,8 @@ def get_currency_pair_from_huobi(pair_name):
         'blzbtc': CURRENCY_PAIR.BTC_TO_BLZ,
         'reqbtc': CURRENCY_PAIR.BTC_TO_REQ,
         'linkbtc': CURRENCY_PAIR.BTC_TO_LINK,
+        'nasbtc': CURRENCY_PAIR.BTC_TO_NAS,
+        'elabtc': CURRENCY_PAIR.BTC_TO_ELA,
 
         'omgeth': CURRENCY_PAIR.ETH_TO_OMG,
         'qtumeth': CURRENCY_PAIR.ETH_TO_QTUM,
@@ -208,6 +221,9 @@ def get_currency_pair_from_huobi(pair_name):
         'blzeth': CURRENCY_PAIR.ETH_TO_BLZ,
         'reqeth': CURRENCY_PAIR.ETH_TO_REQ,
         'linketh': CURRENCY_PAIR.ETH_TO_LINK,
+        'lsketh': CURRENCY_PAIR.ETH_TO_LSK,
+        'naseth': CURRENCY_PAIR.ETH_TO_NAS,
+        'elaeth': CURRENCY_PAIR.ETH_TO_ELA,
 
         'dashusdt': CURRENCY_PAIR.USDT_TO_DASH,
         'btcusdt': CURRENCY_PAIR.USDT_TO_BTC,
@@ -226,4 +242,7 @@ def get_currency_pair_from_huobi(pair_name):
         'zilusdt': CURRENCY_PAIR.USDT_TO_ZIL,
         'venusdt': CURRENCY_PAIR.USDT_TO_VEN,
         'elfusdt': CURRENCY_PAIR.USDT_TO_ELF,
+        'nasusdt': CURRENCY_PAIR.USDT_TO_NAS,
+        'elausdt': CURRENCY_PAIR.USDT_TO_ELA,
+
     }.get(pair_name)
