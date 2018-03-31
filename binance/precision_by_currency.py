@@ -102,7 +102,7 @@ PRECISIONS_BTC = {
 # BASE_CURRENCY = BTC
 PRECISION_BTC_NUMBER = {
     "ETHBTC":  3,
-    "LTCBTC":  3,
+    "LTCBTC":  2,
     "BNBBTC":  0,
     "NEOBTC":  2,
     "GASBTC":  2,
