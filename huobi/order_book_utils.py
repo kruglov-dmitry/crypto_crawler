@@ -13,7 +13,7 @@ from enums.status import STATUS
 
 def get_order_book_huobi_url(pair_name, timest):
     #
-    final_url = HUOBI_GET_ORDER_BOOK + pair_name + "&type=step1"
+    final_url = HUOBI_GET_ORDER_BOOK + pair_name + "&type=step0"
 
     if should_print_debug():
         print_to_console(final_url, LOG_ALL_DEBUG)
