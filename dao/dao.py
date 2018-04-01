@@ -105,6 +105,7 @@ def sell_by_exchange(trade):
         currency = get_currency_pair_to_binance(trade.pair_id)
         res = add_sell_order_binance(key, currency, trade.price, trade.volume)
     elif trade.exchange_id == EXCHANGE.HUOBI:
+        print "sell_by_exchange for huobi"
         currency = get_currency_pair_to_huobi(trade.pair_id)
         res = add_sell_order_huobi(key, currency, trade.price, trade.volume)
     else:

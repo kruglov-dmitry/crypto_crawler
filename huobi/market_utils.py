@@ -4,6 +4,7 @@ from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_loggi
 
 from utils.key_utils import sign_string_256_base64
 from utils.file_utils import log_to_file
+from utils.time_utils import ts_to_string_utc, get_now_seconds_utc
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
@@ -15,21 +16,27 @@ from huobi.error_handling import is_error
 
 def cancel_order_huobi(key, pair_name, order_id):
 
-    final_url = HUOBI_API_URL + HUOBI_CANCEL_ORDER + str(order_id) + "/submitcancel"
+    HUOBI_CANCEL_PATH = HUOBI_CANCEL_ORDER + str(order_id) + "/submitcancel"
+    final_url = HUOBI_API_URL + HUOBI_CANCEL_PATH + "?"
 
-    body = []
+    body = [('AccessKeyId', key.api_key),
+            ('SignatureMethod', 'HmacSHA256'),
+            ('SignatureVersion', 2),
+            ('Timestamp', ts_to_string_utc(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S'))]
 
     message = _urlencode(body).encode('utf8')
 
-    msg = "POST\n{base_url}\n{path}\n{msg1}".format(base_url=HUOBI_API_ONLY, path=HUOBI_CANCEL_ORDER, msg1=message)
+    msg = "POST\n{base_url}\n{path}\n{msg1}".format(base_url=HUOBI_API_ONLY, path=HUOBI_CANCEL_PATH, msg1=message)
 
     signature = sign_string_256_base64(key.secret, msg)
 
     body.append(("Signature", signature))
 
-    final_url += _urlencode(body)
+    final_url += _urlencode(body).encode('utf8')
 
-    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    headers = {'content-type': 'application/json', 'accept': 'application/json'}
+
+    body = {}
 
     post_details = PostRequestDetails(final_url, headers, body)
 

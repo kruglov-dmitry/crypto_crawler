@@ -527,10 +527,11 @@ def test_private_huobi_methods():
         print order_history
 
 
-test_private_huobi_methods()
-
-
 def test_trade_methods_huobi():
+    from huobi.currency_utils import get_currency_pair_to_huobi
+    from huobi.market_utils import cancel_order_huobi
+    from huobi.order_utils import get_open_orders_huobi
+    from huobi.order_history import get_order_history_huobi
     """
     Sell Zil 1000 штук по 0.00000620 - должно сработать
     Sell Zil 1000 по 0.00000750
@@ -539,18 +540,41 @@ def test_trade_methods_huobi():
     """
 
     load_keys("./secret_keys")
+    key = get_key_by_exchange(EXCHANGE.HUOBI)
     priority_queue = get_priority_queue()
 
     ts = get_now_seconds_utc()
+    # order = Trade(DEAL_TYPE.SELL, EXCHANGE.HUOBI, CURRENCY_PAIR.BTC_TO_ZIL,
+    #               price=0.00000750, volume=1000.0,
+    #               order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
+    # order = Trade(DEAL_TYPE.BUY, EXCHANGE.HUOBI, CURRENCY_PAIR.BTC_TO_ZIL,
+    #               price=0.00000525, volume=1000.0,
+    #               order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
     order = Trade(DEAL_TYPE.SELL, EXCHANGE.HUOBI, CURRENCY_PAIR.BTC_TO_ZIL,
-                  price=0.00000750, volume=1000.0,
+                  price=0.00000620, volume=1000.0,
                   order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
 
     msg = "Testing huobi - {tt}".format(tt=order)
     err_code, json_document = init_deal(order, msg)
     print json_document
     order.order_id = parse_order_id(order.exchange_id, json_document)
-    priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+    print "Parsed order_id: ", order.order_id
+    # # priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+
+    cancel_order_huobi(key, 'pair_name', '2915287415')
+    cancel_order_huobi(key, 'pair_name', '2917275007')
+    cancel_order_huobi(key, 'pair_name', '2934276449')
+    cancel_order_huobi(key, 'pair_name', '2934368019')
+
+    pair_name = get_currency_pair_to_huobi(CURRENCY_PAIR.BTC_TO_ZIL)
+
+    res, open_orders = get_open_orders_huobi(key, pair_name)
+    print type(open_orders)
+    for b in open_orders:
+        print b, type(b)
+    res, order_history = get_order_history_huobi(key, pair_name)
+    for b in order_history:
+        print b
 
     """
 
@@ -560,3 +584,5 @@ def test_trade_methods_huobi():
     error_code, r = add_sell_order_binance(bin_key, "RDNBTC", price=1.00022220, amount=1)
     error_code, r = cancel_order_binance(bin_key, "RDNBTC", 1373492)
     """
+
+test_trade_methods_huobi()

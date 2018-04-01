@@ -1,3 +1,4 @@
+import json
 from urllib import urlencode as _urlencode
 
 from huobi.constants import HUOBI_BUY_ORDER, HUOBI_NUM_OF_DEAL_RETRY, HUOBI_DEAL_TIMEOUT, HUOBI_API_URL, HUOBI_API_ONLY
@@ -16,7 +17,7 @@ from utils.time_utils import ts_to_string_utc, get_now_seconds_utc
 
 def add_buy_order_huobi_url(key, pair_name, price, amount):
 
-    final_url = HUOBI_API_URL + HUOBI_BUY_ORDER
+    final_url = HUOBI_API_URL + HUOBI_BUY_ORDER + "?"
 
     body = [('AccessKeyId', key.api_key),
             ('SignatureMethod', 'HmacSHA256'),
@@ -33,16 +34,16 @@ def add_buy_order_huobi_url(key, pair_name, price, amount):
 
     final_url += _urlencode(body)
 
-    params = {
+    params = json.dumps({
         "account-id": get_huobi_account(key),
-        "amount": amount,
+        "amount": float_to_str(amount),
         "price": float_to_str(price),
         "source": "api",
         "symbol": pair_name,
         "type": "buy-limit"
-    }
+    })
 
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    headers = {'content-type': 'application/json', 'accept': 'application/json'}
 
     res = PostRequestDetails(final_url, headers, params)
 
