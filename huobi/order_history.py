@@ -16,25 +16,49 @@ from huobi.error_handling import is_error
 from enums.status import STATUS
 
 
-def get_order_history_huobi_post_details(key, pair_name, limit, last_order_id=None):
-
+def get_order_history_huobi_post_details(key, pair_name, time_start, time_end, limit):
+    """
+        FIXME NOTE: limit can be used as well
+    """
     final_url = HUOBI_API_URL + HUOBI_GET_TRADE_HISTORY + "?"
 
     # ('states', 'pre-submitted,submitted,partial-filled,partial-canceled'),
+    
+    ts1 = None
+    ts2 = None
+    if time_start >0 and time_end >= time_start:
+        ts1 = ts_to_string_utc(time_start, format_string='%Y-%m-%d')
+        ts2 = ts_to_string_utc(time_end, format_string='%Y-%m-%d')
 
-    body = [('AccessKeyId', key.api_key),
-            ('SignatureMethod', 'HmacSHA256'),
-            ('SignatureVersion', 2),
-            ('Timestamp', ts_to_string_utc(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S')),
-            ('direct', ''),
-            ('end_date', ''),
-            ('from', ''),
-            ('size', ''),
-            ('start_date', ''),
-            ('states', 'filled'),
-            ("symbol", pair_name),
-            ('types', '')
-            ]
+    if ts1 is None or ts2 is None:
+        body = [('AccessKeyId', key.api_key),
+                ('SignatureMethod', 'HmacSHA256'),
+                ('SignatureVersion', 2),
+                ('Timestamp', ts_to_string_utc(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S')),
+                ('direct', ''),
+                ('end_date', ''),
+                ('from', ''),
+                ('size', ''),
+                ('start_date', ''),
+                ('states', 'filled'),
+                ("symbol", pair_name),
+                ('types', '')
+                ]
+    else:
+        body = [('AccessKeyId', key.api_key),
+                ('SignatureMethod', 'HmacSHA256'),
+                ('SignatureVersion', 2),
+                ('Timestamp', ts_to_string_utc(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S')),
+                ('direct', ''),
+                ('end_date', ts2),
+                ('from', ''),
+                ('size', ''),
+                ('start_date', ts1),
+                ('states', 'filled'),
+                ("symbol", pair_name),
+                ('types', '')
+                ]
+
 
     message = _urlencode(body).encode('utf8')
 
@@ -81,9 +105,9 @@ def get_order_history_huobi_result_processor(json_document, pair_name):
     return STATUS.SUCCESS, orders
 
 
-def get_order_history_huobi(key, pair_name, limit=HUOBI_ORDER_HISTORY_LIMIT, last_order_id=None):
+def get_order_history_huobi(key, pair_name, time_start=0, time_end=get_now_seconds_utc(), limit=HUOBI_ORDER_HISTORY_LIMIT):
 
-    post_details = get_order_history_huobi_post_details(key, pair_name, limit, last_order_id)
+    post_details = get_order_history_huobi_post_details(key, pair_name, time_start, time_end, limit )
 
     err_msg = "get_all_orders_huobi for {pair_name}".format(pair_name=pair_name)
 

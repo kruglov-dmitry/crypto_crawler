@@ -140,7 +140,7 @@ class Candle(BaseData):
         :param currency:
         :return:
         """
-        timest = long(json_document["artifical_ts"])
+        timest = 0.001 * long(json_document["artifical_ts"])
 
         price_high = json_document["high"]
         price_low = json_document["low"]

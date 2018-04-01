@@ -18,7 +18,7 @@ HUOBI_CURRENCY_PAIRS = ['dashbtc', 'ethbtc', 'ltcbtc', 'xrpbtc', 'bchbtc', 'etcb
                         'omgeth', 'qtumeth', 'bateth', 'rcneth', 'engeth', 'trxeth', 'eoseth', 'icxeth', 'rdneth',
                         'qspeth', 'onteth', 'hsreth', 'zileth', 'veneth', 'elfeth', 'blzeth', 'reqeth', 'linketh',
                         'lsketh', 'naseth', 'elaeth',
-                        'dashusdt', 'btcusd', 'ltcusdt', 'xrpusdt', 'bchusdt', 'etcusdt', 'omgusdt', 'qtumusdt',
+                        'dashusdt', 'btcusdt', 'ltcusdt', 'xrpusdt', 'bchusdt', 'etcusdt', 'omgusdt', 'qtumusdt',
                         'ethusdt', 'zecusdt', 'neousdt', 'eosusdt', 'hsrusdt', 'zilusdt', 'venusdt', 'elfusdt',
                         'nasusdt', 'elausdt'
                         ]
