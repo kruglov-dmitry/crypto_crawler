@@ -7,7 +7,7 @@ from utils.exchange_utils import get_fee_by_exchange, get_exchange_name_by_id
 from utils.currency_utils import get_pair_name_by_id, get_currency_name_by_id, split_currency_pairs
 from utils.file_utils import log_to_file
 from utils.string_utils import float_to_str
-from utils.time_utils import ts_to_string
+from utils.time_utils import ts_to_string_local
 
 # OLAP :(
 from analysis.grouping_utils import group_orders_by_arbitrage_id, group_by_pair_and_exchange_id
@@ -120,7 +120,7 @@ def save_report(start_time, end_time, profit_by_base, profit_details,
                 missing_orders, failed_orders, loss_details, loss_by_base,
                 orders, history_trades,
                 file_name="what_we_have_at_the_end.log"):
-    msg = "Profit report for time period of {t1} - {t2}".format(t1=ts_to_string(start_time), t2=ts_to_string(end_time))
+    msg = "Profit report for time period of {t1} - {t2}".format(t1=ts_to_string_local(start_time), t2=ts_to_string_local(end_time))
     log_to_file(msg, file_name)
     msg = "Epoch format: {t1} - {t2}".format(t1=start_time, t2=end_time)
     log_to_file(msg, file_name)

@@ -29,6 +29,13 @@ from kraken.currency_utils import get_currency_pair_to_kraken
 from poloniex.currency_utils import get_currency_pair_to_poloniex
 from binance.currency_utils import get_currency_pair_to_binance
 
+from huobi.currency_utils import get_currency_pair_to_huobi
+from huobi.buy_utils import add_buy_order_huobi, add_buy_order_huobi_url
+from huobi.sell_utils import add_sell_order_huobi, add_sell_order_huobi_url
+from huobi.market_utils import cancel_order_huobi, parse_order_id_huobi
+from huobi.order_utils import get_open_orders_huobi
+
+
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
 from enums.deal_type import DEAL_TYPE
@@ -62,6 +69,9 @@ def buy_by_exchange(trade):
     elif trade.exchange_id == EXCHANGE.BINANCE:
         currency = get_currency_pair_to_binance(trade.pair_id)
         res = add_buy_order_binance(key, currency, trade.price, trade.volume)
+    elif trade.exchange_id == EXCHANGE.HUOBI:
+        currency = get_currency_pair_to_huobi(trade.pair_id)
+        res = add_buy_order_huobi(key, currency, trade.price, trade.volume)
     else:
         msg = "buy_by_exchange - Unknown exchange! Details: {res}".format(res=str(trade))
         print_to_console(msg, LOG_ALL_ERRORS)
@@ -94,6 +104,10 @@ def sell_by_exchange(trade):
     elif trade.exchange_id == EXCHANGE.BINANCE:
         currency = get_currency_pair_to_binance(trade.pair_id)
         res = add_sell_order_binance(key, currency, trade.price, trade.volume)
+    elif trade.exchange_id == EXCHANGE.HUOBI:
+        print "sell_by_exchange for huobi"
+        currency = get_currency_pair_to_huobi(trade.pair_id)
+        res = add_sell_order_huobi(key, currency, trade.price, trade.volume)
     else:
         msg = "buy_by_exchange - Unknown exchange! Details: {res}".format(res=str(trade))
         print_to_console(msg, LOG_ALL_ERRORS)
@@ -116,6 +130,9 @@ def cancel_by_exchange(trade):
     elif trade.exchange_id == EXCHANGE.BINANCE:
         pair_name = get_currency_pair_to_binance(trade.pair_id)
         res = cancel_order_binance(key, pair_name, trade.order_id)
+    elif trade.exchange_id == EXCHANGE.HUOBI:
+        pair_name = get_currency_pair_to_huobi(trade.pair_id)
+        res = cancel_order_huobi(key, pair_name, trade.order_id)
     else:
         msg = "cancel_by_exchange - Unknown exchange! Details: {res}".format(res=str(trade))
         print_to_console(msg, LOG_ALL_ERRORS)
@@ -131,12 +148,14 @@ def get_method_for_create_url_trade_by_exchange_id(trade):
             EXCHANGE.BITTREX: add_buy_order_bittrex_url,
             EXCHANGE.POLONIEX: add_buy_order_poloniex_url,
             EXCHANGE.KRAKEN: add_buy_order_kraken_url,
+            EXCHANGE.HUOBI: add_buy_order_huobi_url
         },
         DEAL_TYPE.SELL: {
             EXCHANGE.BINANCE: add_sell_order_binance_url,
             EXCHANGE.BITTREX: add_sell_order_bittrex_url,
             EXCHANGE.POLONIEX: add_sell_order_poloniex_url,
             EXCHANGE.KRAKEN: add_sell_order_kraken_url,
+            EXCHANGE.HUOBI: add_sell_order_huobi_url
         }
     }[trade.trade_type][trade.exchange_id]
 
@@ -147,6 +166,7 @@ def parse_order_id(exchange_id, json_document):
               EXCHANGE.BITTREX: parse_order_id_bittrex,
               EXCHANGE.BINANCE: parse_order_id_binance,
               EXCHANGE.KRAKEN: parse_order_id_kraken,
+              EXCHANGE.HUOBI: parse_order_id_huobi
             }[exchange_id]
 
     return method(json_document)
@@ -160,7 +180,8 @@ def get_open_orders_by_exchange(exchange_id, pair_id):
         EXCHANGE.BITTREX: get_open_orders_bittrix,
         EXCHANGE.KRAKEN: get_open_orders_kraken,
         EXCHANGE.POLONIEX: get_open_orders_poloniex,
-        EXCHANGE.BINANCE: get_open_orders_binance
+        EXCHANGE.BINANCE: get_open_orders_binance,
+        EXCHANGE.HUOBI: get_open_orders_huobi
     }[exchange_id]
 
     res = method(key, pair_name)

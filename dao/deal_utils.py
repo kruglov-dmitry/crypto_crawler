@@ -99,8 +99,8 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
         json_responce, order = entry
         if "ERROR" in json_responce:
 
-            msg = """   <b>ERROR: </b>NONE 
-            During deal placement: {u1} 
+            msg = """   <b>ERROR: </b>NONE
+            During deal placement: {u1}
             Details: {err_msg}
             """.format(u1=order, err_msg=json_responce)
 

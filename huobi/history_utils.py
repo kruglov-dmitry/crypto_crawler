@@ -13,7 +13,7 @@ from enums.status import STATUS
 
 def get_history_huobi_url(pair_name, date_start, date_end):
 
-    final_url = HUOBI_GET_HISTORY + pair_name
+    final_url = HUOBI_GET_HISTORY + pair_name + "&size=1000"
 
     if should_print_debug():
         print_to_console(final_url, LOG_ALL_OTHER_STUFF)
@@ -37,14 +37,15 @@ def get_history_huobi(pair_name, prev_time, now_time):
 def get_history_huobi_result_processor(json_document, pair_name, timest):
     all_history_records = []
 
-    if is_error(json_document) or "data" not in json_document or "data" not in json_document["data"]:
+    if is_error(json_document) or "data" not in json_document:
 
         msg = "get_history_huobi_result_processor - error response - {er}".format(er=json_document)
         log_to_file(msg, ERROR_LOG_FILE_NAME)
 
         return all_history_records
 
-    for record in json_document["data"]["data"]:
-        all_history_records.append(TradeHistory.from_huobi(record, pair_name, timest))
+    for entry in json_document["data"]:
+        for record in entry["data"]:
+            all_history_records.append(TradeHistory.from_huobi(record, pair_name, timest))
 
     return all_history_records

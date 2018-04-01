@@ -43,6 +43,11 @@ def signed_body_256(body, secret):
     return payload
 
 
+def sign_string_256_base64(secret, msg):
+    hmac_obj = hmac.new(key=secret.encode('utf-8'), msg=msg.encode('utf-8'), digestmod=hashlib.sha256)
+    return base64.b64encode(hmac_obj.digest())
+
+
 def signed_string(body, secret):
     #  The query's POST data signed by your key's "secret" according to the HMAC-SHA512 method.
     payload = hmac.new(secret, body, hashlib.sha512).hexdigest()

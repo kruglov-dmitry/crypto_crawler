@@ -11,7 +11,7 @@ from data_access.classes.ConnectionPool import ConnectionPool
 from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG
 from utils.currency_utils import get_pair_name_by_id
 from utils.string_utils import float_to_str
-from utils.time_utils import sleep_for, get_now_seconds_utc, ts_to_string
+from utils.time_utils import sleep_for, get_now_seconds_utc, ts_to_string_local
 import argparse
 from deploy.classes.CommonSettings import CommonSettings
 
@@ -37,7 +37,7 @@ def analyse_tickers(pg_conn, msg_queue):
             Date: {dt}
             Pair: {pair_name}, {ask_exchange}: {ask_price} {sell_exchange}: {sell_price}
             TAG: {ask_exchange}-{sell_exchange}
-            """.format(msg=entry[0], ts = timest, dt = ts_to_string(timest), pair_name=get_pair_name_by_id(entry[1]),
+            """.format(msg=entry[0], ts = timest, dt = ts_to_string_local(timest), pair_name=get_pair_name_by_id(entry[1]),
                        ask_exchange=entry[2].exchange, ask_price=float_to_str(entry[2].bid),
                        sell_exchange=entry[3].exchange, sell_price=float_to_str(entry[3].ask))
             print_to_console(msg, LOG_ALL_ERRORS)

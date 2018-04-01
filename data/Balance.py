@@ -5,7 +5,7 @@ from enums.exchange import EXCHANGE
 
 from utils.currency_utils import get_currency_name_by_id
 from utils.exchange_utils import get_exchange_name_by_id
-from utils.time_utils import ts_to_string, get_now_seconds_utc
+from utils.time_utils import ts_to_string_local, get_now_seconds_utc
 from utils.file_utils import log_to_file
 from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 
@@ -13,6 +13,7 @@ from bittrex.currency_utils import get_currency_name_for_bittrex
 from kraken.currency_utils import get_currency_name_for_kraken
 from poloniex.currency_utils import get_currency_name_for_poloniex
 from binance.currency_utils import get_currency_name_for_binance
+from huobi.currency_utils import get_currency_name_for_huobi
 
 """
 time_of_last_update,
@@ -34,7 +35,7 @@ class Balance(BaseData):
     def __str__(self):
         str_repr = "Balance at Exchange: {exch} Last updated: {dt} timest: {ts} %".format(
             exch=get_exchange_name_by_id(self.exchange_id),
-            dt=ts_to_string(self.last_update),
+            dt=ts_to_string_local(self.last_update),
             ts=self.last_update)
 
         str_repr += " Available balance:"
@@ -241,7 +242,7 @@ class Balance(BaseData):
 
             available_balance[currency_id] = ZERO_BALANCE
 
-            currency_name = get_currency_name_for_binance(currency_id)
+            currency_name = get_currency_name_for_huobi(currency_id)
 
             for entry in json_document["list"]:
                 if currency_name == entry["currency"]:

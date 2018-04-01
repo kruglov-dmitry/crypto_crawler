@@ -3,21 +3,28 @@ from collections import defaultdict
 from binance.constants import BINANCE_CURRENCY_PAIRS
 from binance.order_book_utils import get_order_book_binance, get_order_book_binance_url, \
     get_order_book_binance_result_processor
+
 from bittrex.constants import BITTREX_CURRENCY_PAIRS
-from bittrex.currency_utils import get_currency_pair_to_bittrex
 from bittrex.order_book_utils import get_order_book_bittrex, get_order_book_bittrex_url, \
     get_order_book_bittrex_result_processor
+
+from kraken.constants import KRAKEN_CURRENCY_PAIRS
+from kraken.order_book_utils import get_order_book_kraken, get_order_book_kraken_url, \
+    get_order_book_kraken_result_processor
+
+from poloniex.constants import POLONIEX_CURRENCY_PAIRS
+from poloniex.order_book_utils import get_order_book_poloniex, get_order_book_poloniex_url, \
+    get_order_book_poloniex_result_processor
+
+from huobi.constants import HUOBI_CURRENCY_PAIRS
+from huobi.order_book_utils import get_order_book_huobi, get_order_book_huobi_url, \
+    get_order_book_huobi_result_processor
+
 from constants import HTTP_TIMEOUT_SECONDS
 from data_access.classes.WorkUnit import WorkUnit
 from enums.currency_pair import CURRENCY_PAIR
 from enums.exchange import EXCHANGE
-from kraken.constants import KRAKEN_CURRENCY_PAIRS
-from kraken.order_book_utils import get_order_book_kraken, get_order_book_kraken_url, \
-    get_order_book_kraken_result_processor
-from poloniex.constants import POLONIEX_CURRENCY_PAIRS
-from poloniex.currency_utils import get_currency_pair_to_poloniex
-from poloniex.order_book_utils import get_order_book_poloniex, get_order_book_poloniex_url, \
-    get_order_book_poloniex_result_processor
+
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from utils.time_utils import get_now_seconds_utc
 
@@ -34,7 +41,8 @@ def get_order_book_constructor_by_exchange_id(exchange_id):
         EXCHANGE.BITTREX: get_order_book_bittrex_result_processor,
         EXCHANGE.KRAKEN: get_order_book_kraken_result_processor,
         EXCHANGE.POLONIEX: get_order_book_poloniex_result_processor,
-        EXCHANGE.BINANCE: get_order_book_binance_result_processor
+        EXCHANGE.BINANCE: get_order_book_binance_result_processor,
+        EXCHANGE.HUOBI: get_order_book_huobi_result_processor
     }[exchange_id]
 
 
@@ -103,34 +111,10 @@ def get_order_book_sync_and_slow():
         if order_book is not None:
             all_order_book[EXCHANGE.BINANCE].append(order_book)
 
-    return all_order_book
-
-
-def get_order_book_by_pair(pair_id):
-    """
-        Used for arbitrage bot.
-
-    :param pair_id:
-    :return:
-    """
-    all_order_book = defaultdict(list)
-
-    timest = get_now_seconds_utc()
-
-    poloniex_pair_name = get_currency_pair_to_poloniex(pair_id)
-    order_book = get_order_book_poloniex(poloniex_pair_name, timest)
-    if order_book is not None:
-        all_order_book[EXCHANGE.POLONIEX].append(order_book)
-
-    # kraken_pair_name = get_currency_pair_to_kraken(pair_id)
-    # order_book = get_order_book_kraken(kraken_pair_name, timest)
-    # if order_book is not None:
-    #    all_order_book[EXCHANGE.KRAKEN].append(order_book)
-
-    bittrex_pair_name = get_currency_pair_to_bittrex(pair_id)
-    order_book = get_order_book_bittrex(bittrex_pair_name, timest)
-    if order_book is not None:
-        all_order_book[EXCHANGE.BITTREX].append(order_book)
+    for currency in HUOBI_CURRENCY_PAIRS:
+        order_book = get_order_book_huobi(currency, timest)
+        if order_book is not None:
+            all_order_book[EXCHANGE.HUOBI].append(order_book)
 
     return all_order_book
 
@@ -140,7 +124,8 @@ def get_order_book_method_by_echange_id(exchange_id):
         EXCHANGE.BITTREX: get_order_book_bittrex,
         EXCHANGE.KRAKEN: get_order_book_kraken,
         EXCHANGE.POLONIEX: get_order_book_poloniex,
-        EXCHANGE.BINANCE: get_order_book_binance
+        EXCHANGE.BINANCE: get_order_book_binance,
+        EXCHANGE.HUOBI: get_order_book_huobi
     }[exchange_id]
 
 
@@ -149,7 +134,8 @@ def get_order_book_url_by_echange_id(exchange_id):
         EXCHANGE.BITTREX: get_order_book_bittrex_url,
         EXCHANGE.KRAKEN: get_order_book_kraken_url,
         EXCHANGE.POLONIEX: get_order_book_poloniex_url,
-        EXCHANGE.BINANCE: get_order_book_binance_url
+        EXCHANGE.BINANCE: get_order_book_binance_url,
+        EXCHANGE.HUOBI: get_order_book_huobi_url
     }[exchange_id]
 
 

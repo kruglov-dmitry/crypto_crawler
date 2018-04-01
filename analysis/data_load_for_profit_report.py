@@ -13,6 +13,10 @@ from poloniex.constants import POLONIEX_CURRENCY_PAIRS
 from binance.currency_utils import get_currency_pair_from_binance
 from bittrex.currency_utils import get_currency_pair_to_bittrex
 
+from huobi.constants import HUOBI_CURRENCY_PAIRS
+from huobi.order_history import get_order_history_huobi
+from huobi.currency_utils import get_currency_pair_to_huobi
+
 from utils.key_utils import get_key_by_exchange
 from utils.time_utils import sleep_for, get_now_seconds_utc
 
@@ -33,13 +37,14 @@ def fetch_trades_history_to_db(pg_conn, start_time, end_time, fetch_from_start):
     load_recent_binance_trades_to_db(pg_conn, start_time, end_time, fetch_from_start)
     load_recent_poloniex_trades_to_db(pg_conn, start_time, end_time)
     load_recent_bittrex_trades_to_db(pg_conn, start_time, end_time)
-
+    load_recent_huobi_trades_to_db(pg_conn, start_time, end_time)
 
 def get_trade_retrieval_method_by_exchange(exchange_id):
     return {
         EXCHANGE.BITTREX: load_recent_bittrex_trades_to_db,
         EXCHANGE.POLONIEX: load_recent_poloniex_trades_to_db,
-        EXCHANGE.BINANCE: load_recent_binance_trades_to_db
+        EXCHANGE.BINANCE: load_recent_binance_trades_to_db,
+        EXCHANGE.HUOBI: load_recent_huobi_trades_to_db
     }[exchange_id]
 
 
@@ -89,6 +94,34 @@ def load_recent_binance_orders_to_db(pg_conn, start_time, end_time=get_now_secon
                            unique_only, is_order_present_in_order_history, init_arbitrage_id=-10,
                            table_name="binance_order_history")
 
+
+def load_recent_huobi_trades_to_db(pg_conn, start_time, end_time=get_now_seconds_utc(), unique_only=True):
+    huobi_orders_by_pair = get_recent_huobi_trades()
+
+    for pair_id in huobi_orders_by_pair:
+        headline = "Loading poloniex huobi - {p}".format(p=get_currency_pair_to_huobi(pair_id))
+        wrap_with_progress_bar(headline, huobi_orders_by_pair[pair_id], save_to_pg_adapter, pg_conn,
+                               unique_only, is_trade_present_in_trade_history,
+                               init_arbitrage_id=-40, table_name="arbitrage_trades")
+
+
+def get_recent_huobi_trades(start_time=START_OF_TIME, end_time=get_now_seconds_utc()):
+
+    key = get_key_by_exchange(EXCHANGE.HUOBI)
+    huobi_orders_by_pair = defaultdict(list)
+
+    for pair_name in HUOBI_CURRENCY_PAIRS:
+        error_code, trades = get_order_history_huobi(key, pair_name=pair_name, time_start=start_time)
+        while error_code != STATUS.SUCCESS:
+            print "get_recent_huobi_trades: got error responce - Reprocessing"
+            sleep_for(2)
+            error_code, trades = get_order_history_huobi(key, pair_name=pair_name, time_start=start_time)
+
+        for trade in trades:
+            if start_time <= trade.create_time <= end_time:
+                huobi_orders_by_pair[trade.pair_id].append(trade)
+
+    return huobi_orders_by_pair
 
 def receive_binance_trade_batch(key, pair_name, limit, last_order_id):
     trades_by_pair = []

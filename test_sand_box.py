@@ -1,3 +1,4 @@
+# coding=utf-8
 from profilehooks import timecall
 
 from binance.balance_utils import get_balance_binance
@@ -46,7 +47,7 @@ from data_access.priority_queue import ORDERS_EXPIRE_MSG, get_priority_queue
 
 from enums.notifications import NOTIFICATION
 from data_access.telegram_notifications import send_single_message
-    
+
 
 from dao.deal_utils import init_deal
 from dao.order_utils import get_open_orders_for_arbitrage_pair
@@ -345,19 +346,6 @@ def test_new_sell_api():
     print json_repr
 
 
-def test_poloniex_trade_history():
-    from poloniex.market_utils import get_order_history_for_time_interval_poloniex
-    load_keys("./secret_keys")
-    key = get_key_by_exchange(EXCHANGE.POLONIEX)
-    pair_id = CURRENCY_PAIR.BTC_TO_OMG
-    pair_name = get_currency_pair_name_by_exchange_id(pair_id, EXCHANGE.POLONIEX)
-    time_end = get_now_seconds_utc()
-    time_start = time_end - 24 * 3600
-
-    limit = 100
-    get_order_history_for_time_interval_poloniex(key, pair_name, time_start, time_end, limit)
-
-
 def test_order_presence():
     pg_conn = init_pg_connection(_db_host="192.168.1.106", _db_port=5432)
     # 6479142
@@ -388,7 +376,7 @@ def test_expired_deal_placement():
     ts = get_now_seconds_utc()
     order = Trade(DEAL_TYPE.SELL, EXCHANGE.BINANCE, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001, volume=5.0,
                   order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
-    
+
     msg = "Replace existing order with new one - {tt}".format(tt=order)
     err_code, json_document = init_deal(order, msg)
     print json_document
@@ -410,17 +398,17 @@ def test_failed_deal_placement():
 
     #   from dao.order_utils import get_open_orders_by_exchange
     #   r = get_open_orders_by_exchange(EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_STRAT)
-    
+
     #   for rr in r:
     #       print r
-    
+
     #   raise
     #
     # msg = "Replace existing order with new one - {tt}".format(tt=order)
     # err_code, json_document = init_deal(order, msg)
     # print json_document
     # order.deal_id = parse_deal_id(order.exchange_id, json_document)
-    
+
     # msg_queue.add_order(ORDERS_MSG, order)
     sleep_for(3)
     msg_queue.add_order(FAILED_ORDERS_MSG, order)
@@ -493,3 +481,108 @@ def load_trades_from_csv_to_db():
         wrap_with_progress_bar(headline, bittrex_order_by_pair[pair_id], save_to_pg_adapter, pg_conn,
                                unique_only, is_trade_present_in_trade_history,
                                init_arbitrage_id=-20, table_name="arbitrage_trades")
+
+
+def test_public_huobi_methods():
+    from huobi.history_utils import get_history_huobi
+    from huobi.ticker_utils import get_ticker_huobi
+    from huobi.ohlc_utils import get_ohlc_huobi
+    from huobi.order_book_utils import get_order_book_huobi
+
+    from huobi.currency_utils import get_currency_pair_to_huobi
+
+    for pair_id in CURRENCY_PAIR.values():
+        pair_name = get_currency_pair_to_huobi(pair_id)
+        if pair_name is None:
+            print pair_id
+            continue
+        now_time = get_now_seconds_utc()
+        history = get_history_huobi(pair_name, now_time, now_time)
+        ticker = get_ticker_huobi(pair_name, now_time)
+        order_book = get_order_book_huobi(pair_name, now_time)
+        period = "15min"
+        candle = get_ohlc_huobi(pair_name, now_time, now_time, period)
+
+
+def test_private_huobi_methods():
+    from huobi.balance_utils import get_balance_huobi
+    from huobi.order_utils import get_open_orders_huobi
+    from huobi.order_history import get_order_history_huobi
+
+    from huobi.currency_utils import get_currency_pair_to_huobi
+
+    load_keys("./secret_keys")
+    key = get_key_by_exchange(EXCHANGE.HUOBI)
+    balance = get_balance_huobi(key)
+    print balance
+
+    for pair_id in CURRENCY_PAIR.values():
+        pair_name = get_currency_pair_to_huobi(pair_id)
+        if pair_name is None:
+            print pair_id
+            continue
+        open_orders = get_open_orders_huobi(key, pair_name)
+        print open_orders
+        order_history = get_order_history_huobi(key, pair_name)
+        print order_history
+
+
+def test_trade_methods_huobi():
+    from huobi.currency_utils import get_currency_pair_to_huobi
+    from huobi.market_utils import cancel_order_huobi
+    from huobi.order_utils import get_open_orders_huobi
+    from huobi.order_history import get_order_history_huobi
+    """
+    Sell Zil 1000 штук по 0.00000620 - должно сработать
+    Sell Zil 1000 по 0.00000750
+    Buy Zil 1000 по 0.00000525
+    :return:
+    """
+
+    load_keys("./secret_keys")
+    key = get_key_by_exchange(EXCHANGE.HUOBI)
+    priority_queue = get_priority_queue()
+
+    ts = get_now_seconds_utc()
+    # order = Trade(DEAL_TYPE.SELL, EXCHANGE.HUOBI, CURRENCY_PAIR.BTC_TO_ZIL,
+    #               price=0.00000750, volume=1000.0,
+    #               order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
+    # order = Trade(DEAL_TYPE.BUY, EXCHANGE.HUOBI, CURRENCY_PAIR.BTC_TO_ZIL,
+    #               price=0.00000525, volume=1000.0,
+    #               order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
+    order = Trade(DEAL_TYPE.SELL, EXCHANGE.HUOBI, CURRENCY_PAIR.BTC_TO_ZIL,
+                  price=0.00000620, volume=1000.0,
+                  order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
+
+    msg = "Testing huobi - {tt}".format(tt=order)
+    err_code, json_document = init_deal(order, msg)
+    print json_document
+    order.order_id = parse_order_id(order.exchange_id, json_document)
+    print "Parsed order_id: ", order.order_id
+    # # priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+
+    cancel_order_huobi(key, 'pair_name', '2915287415')
+    cancel_order_huobi(key, 'pair_name', '2917275007')
+    cancel_order_huobi(key, 'pair_name', '2934276449')
+    cancel_order_huobi(key, 'pair_name', '2934368019')
+
+    pair_name = get_currency_pair_to_huobi(CURRENCY_PAIR.BTC_TO_ZIL)
+
+    res, open_orders = get_open_orders_huobi(key, pair_name)
+    print type(open_orders)
+    for b in open_orders:
+        print b, type(b)
+    res, order_history = get_order_history_huobi(key, pair_name)
+    for b in order_history:
+        print b
+
+    """
+
+    error_code, r = add_buy_order_binance(bin_key, "RDNBTC", price=0.00022220, amount=10)
+    print r
+
+    error_code, r = add_sell_order_binance(bin_key, "RDNBTC", price=1.00022220, amount=1)
+    error_code, r = cancel_order_binance(bin_key, "RDNBTC", 1373492)
+    """
+
+test_trade_methods_huobi()

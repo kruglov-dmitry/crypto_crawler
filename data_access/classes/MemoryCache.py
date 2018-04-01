@@ -33,5 +33,5 @@ class MemoryCache:
     def get_value(self, key_name):
         return self.r.get(key_name)
 
-    def set_value(self, key_name):
-        return self.r.get(key_name)
+    def set_value(self, key_name, key_value):
+        return self.r.set(key_name, key_value)
