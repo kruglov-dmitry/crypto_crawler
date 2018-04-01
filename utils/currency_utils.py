@@ -6,6 +6,7 @@ from bittrex.currency_utils import get_currency_pair_to_bittrex
 from kraken.currency_utils import get_currency_pair_to_kraken
 from poloniex.currency_utils import get_currency_pair_to_poloniex
 from binance.currency_utils import get_currency_pair_to_binance
+from huobi.currency_utils import get_currency_pair_to_huobi
 
 
 def split_currency_pairs(pair_id):
@@ -565,4 +566,5 @@ def get_currency_pair_name_by_exchange_id(pair_id, exchange_id):
         EXCHANGE.KRAKEN: get_currency_pair_to_kraken(pair_id),
         EXCHANGE.POLONIEX: get_currency_pair_to_poloniex(pair_id),
         EXCHANGE.BINANCE: get_currency_pair_to_binance(pair_id),
+        EXCHANGE.HUOBI: get_currency_pair_to_huobi(pair_id),
     }[exchange_id]
