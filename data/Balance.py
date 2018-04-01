@@ -13,6 +13,7 @@ from bittrex.currency_utils import get_currency_name_for_bittrex
 from kraken.currency_utils import get_currency_name_for_kraken
 from poloniex.currency_utils import get_currency_name_for_poloniex
 from binance.currency_utils import get_currency_name_for_binance
+from huobi.currency_utils import get_currency_name_for_huobi
 
 """
 time_of_last_update,
@@ -241,7 +242,7 @@ class Balance(BaseData):
 
             available_balance[currency_id] = ZERO_BALANCE
 
-            currency_name = get_currency_name_for_binance(currency_id)
+            currency_name = get_currency_name_for_huobi(currency_id)
 
             for entry in json_document["list"]:
                 if currency_name == entry["currency"]:
