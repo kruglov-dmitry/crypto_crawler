@@ -198,16 +198,15 @@ def adjust_maximum_volume_by_trading_cap(deal_cap, volume):
 
 
 def round_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, min_volume, pair_id):
-    if sell_exchange_id == EXCHANGE.BINANCE or buy_exchange_id == EXCHANGE.BINANCE:
-        return round_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
-    return min_volume
+    # if sell_exchange_id == EXCHANGE.BINANCE or buy_exchange_id == EXCHANGE.BINANCE:
+    return round_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
+    # return min_volume
 
 
 def round_volume(exchange_id, min_volume, pair_id):
-    if exchange_id == EXCHANGE.BINANCE:
-        return round_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
-
-    return min_volume
+    # if exchange_id == EXCHANGE.BINANCE:
+    return round_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
+    # return min_volume
 
 
 def adjust_price_by_order_book(orders, min_volume):
