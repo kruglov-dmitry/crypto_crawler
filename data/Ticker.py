@@ -139,7 +139,7 @@ class Ticker(BaseData):
 
         currency_pair_id = get_currency_pair_from_huobi(pair_name)
 
-        return Ticker(currency_pair_id, lowest_ask, highest_bid, timest, EXCHANGE.BINANCE)
+        return Ticker(currency_pair_id, lowest_ask, highest_bid, timest, EXCHANGE.HUOBI)
 
     @classmethod
     def from_string(cls, some_string):
