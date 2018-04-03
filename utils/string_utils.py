@@ -12,6 +12,8 @@ def float_to_str(f):
             float_string = '{}{}{}.0'.format(sign, digits, zero_padding)
         else:
             float_string = '{}0.{}{}'.format(sign, zero_padding, digits)
+    elif float_string[-2:] == ".0":
+        float_string = float_string[:-2]
     return float_string
 
 
