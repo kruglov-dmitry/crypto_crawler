@@ -115,6 +115,11 @@ https://poloniex.com/public?command=returnTicker
 http://api.huobi.pro/v1/common/symbols
 
 
+### Rounding rules
+
+https://support.binance.com/hc/en-us/articles/115000594711-Trading-Rule
+
+
 ### Setup balance monitoring from the scratch
 ``` bash
 sudo curl -L https://github.com/docker/compose/releases/download/1.18.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
