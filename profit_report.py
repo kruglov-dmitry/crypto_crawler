@@ -52,8 +52,7 @@ if __name__ == "__main__":
     if should_fetch_history_to_db:
         fetch_trades_history_to_db(pg_conn, start_time, end_time, fetch_from_start)
 
-    orders, history_trades, binance_trades, binance_orders_at_bot, binance_orders_at_exchange = \
-        prepare_data(pg_conn, start_time, end_time)
+    orders, history_trades = prepare_data(pg_conn, start_time, end_time)
 
     missing_orders, failed_orders, orders_with_trades = group_trades_by_orders(orders, history_trades)
 
