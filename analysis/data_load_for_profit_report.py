@@ -96,7 +96,7 @@ def load_recent_binance_orders_to_db(pg_conn, start_time, end_time=get_now_secon
 
 
 def load_recent_huobi_trades_to_db(pg_conn, start_time, end_time=get_now_seconds_utc(), unique_only=True):
-    huobi_orders_by_pair = get_recent_huobi_trades()
+    huobi_orders_by_pair = get_recent_huobi_trades(start_time, end_time)
 
     for pair_id in huobi_orders_by_pair:
         headline = "Loading poloniex huobi - {p}".format(p=get_currency_pair_to_huobi(pair_id))
@@ -122,6 +122,7 @@ def get_recent_huobi_trades(start_time=START_OF_TIME, end_time=get_now_seconds_u
                 huobi_orders_by_pair[trade.pair_id].append(trade)
 
     return huobi_orders_by_pair
+
 
 def receive_binance_trade_batch(key, pair_name, limit, last_order_id):
     trades_by_pair = []

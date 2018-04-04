@@ -585,4 +585,34 @@ def test_trade_methods_huobi():
     error_code, r = cancel_order_binance(bin_key, "RDNBTC", 1373492)
     """
 
-test_trade_methods_huobi()
+
+def test_trade_history_huobi_methods():
+    from huobi.order_history import get_order_history_huobi
+    from analysis.data_load_for_profit_report import get_recent_huobi_trades
+
+    from huobi.currency_utils import get_currency_pair_to_huobi
+
+    load_keys("./secret_keys")
+    key = get_key_by_exchange(EXCHANGE.HUOBI)
+
+    POLL_TIMEOUT = 24 * 3600
+    time_end = get_now_seconds_utc()
+    time_start = time_end - POLL_TIMEOUT
+
+    pair_name = get_currency_pair_to_huobi(CURRENCY_PAIR.BTC_TO_LSK)
+
+    get_recent_huobi_trades(time_start, time_end)
+
+    huobi_orders_by_pair = get_recent_huobi_trades(time_start, time_end)
+
+    for pair_id in huobi_orders_by_pair:
+        for b in huobi_orders_by_pair[pair_id]:
+            print b
+
+    # res, order_history = get_order_history_huobi(key, pair_name, time_start, time_end)
+    # if len(order_history) > 0:
+    #    for b in order_history:
+    #        print b
+
+
+test_trade_history_huobi_methods()
