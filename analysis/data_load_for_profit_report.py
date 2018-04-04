@@ -99,7 +99,7 @@ def load_recent_huobi_trades_to_db(pg_conn, start_time, end_time=get_now_seconds
     huobi_orders_by_pair = get_recent_huobi_trades(start_time, end_time)
 
     for pair_id in huobi_orders_by_pair:
-        headline = "Loading poloniex huobi - {p}".format(p=get_currency_pair_to_huobi(pair_id))
+        headline = "Loading recent huobi trades for - {p}".format(p=get_currency_pair_to_huobi(pair_id))
         wrap_with_progress_bar(headline, huobi_orders_by_pair[pair_id], save_to_pg_adapter, pg_conn,
                                unique_only, is_trade_present_in_trade_history,
                                init_arbitrage_id=-40, table_name="arbitrage_trades")
