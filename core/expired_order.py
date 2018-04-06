@@ -10,6 +10,7 @@ from dao.ticker_utils import get_ticker
 from dao.dao import cancel_by_exchange, parse_order_id
 from dao.deal_utils import init_deal
 from dao.order_book_utils import get_order_book
+from dao.balance_utils import update_balance_by_exchange
 
 from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc
@@ -47,8 +48,6 @@ def process_expired_order(order, msg_queue, priority_queue, local_cache):
     """
 
     err_code, open_orders = get_open_orders_by_exchange(order.exchange_id, order.pair_id)
-
-    print len(open_orders)
 
     if err_code == STATUS.FAILURE:
         log_open_orders_by_exchange_bad_result(order)
@@ -97,6 +96,8 @@ def process_expired_order(order, msg_queue, priority_queue, local_cache):
 
         order.price = adjust_price_by_order_book(orders, order.volume)
 
+        # Forcefully update balance for exchange - maybe other processes consume those coins
+        update_balance_by_exchange(order.exchange_id)
         # Do we have enough coins at our balance
         balance = local_cache.get_balance(order.exchange_id)
 

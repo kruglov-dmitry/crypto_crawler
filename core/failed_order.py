@@ -2,6 +2,7 @@ from dao.order_book_utils import get_order_book
 from dao.ticker_utils import get_ticker
 from dao.deal_utils import init_deal
 from dao.dao import parse_order_id
+from dao.balance_utils import update_balance_by_exchange
 
 from core.arbitrage_core import adjust_price_by_order_book, compute_min_cap_from_ticker, \
     determine_maximum_volume_by_balance, round_volume
@@ -87,6 +88,9 @@ def process_failed_order(order, msg_queue, priority_queue, local_cache, pg_conn)
         orders = order_book.bid if order.trade_type == DEAL_TYPE.SELL else order_book.ask
 
         order.price = adjust_price_by_order_book(orders, order.volume)
+
+        # Forcefully update balance for exchange - maybe other processes consume those coins
+        update_balance_by_exchange(order.exchange_id)
         # Do we have enough coins at our balance
         balance = local_cache.get_balance(order.exchange_id)
 
