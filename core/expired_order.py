@@ -48,6 +48,8 @@ def process_expired_order(order, msg_queue, priority_queue, local_cache):
 
     err_code, open_orders = get_open_orders_by_exchange(order.exchange_id, order.pair_id)
 
+    print len(open_orders)
+
     if err_code == STATUS.FAILURE:
         log_open_orders_by_exchange_bad_result(order)
 
@@ -138,13 +140,17 @@ def process_expired_order(order, msg_queue, priority_queue, local_cache):
             log_cant_placing_new_deal(order, msg_queue)
 
             msg_queue.add_order(FAILED_ORDERS_MSG, order)
+    else:
+        print "NU VOT EPTA"
 
 
 def update_executed_volume(open_orders_at_both_exchanges, every_deal):
     # FIXME NOTE: I do hate functions with side effects this is very vicious practice
     # Open question: how to do it properly?
 
+    print "From our queue", every_deal
     for deal in open_orders_at_both_exchanges:
+        print "Open Order From exchange", deal
         if deal == every_deal:
             if every_deal.exchange_id != EXCHANGE.POLONIEX:
                 every_deal.volume = every_deal.volume - deal.executed_volume

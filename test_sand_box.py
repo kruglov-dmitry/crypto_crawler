@@ -544,37 +544,39 @@ def test_trade_methods_huobi():
     priority_queue = get_priority_queue()
 
     ts = get_now_seconds_utc()
-    # order = Trade(DEAL_TYPE.SELL, EXCHANGE.HUOBI, CURRENCY_PAIR.BTC_TO_ZIL,
-    #               price=0.00000750, volume=1000.0,
-    #               order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
+    order = Trade(DEAL_TYPE.SELL, EXCHANGE.HUOBI, CURRENCY_PAIR.BTC_TO_ZIL,
+                  price=0.00000750, volume=1000.0,
+                  order_book_time=ts, create_time=ts, execute_time=ts,
+                  order_id='whatever')
     # order = Trade(DEAL_TYPE.BUY, EXCHANGE.HUOBI, CURRENCY_PAIR.BTC_TO_ZIL,
     #               price=0.00000525, volume=1000.0,
     #               order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
-    order = Trade(DEAL_TYPE.SELL, EXCHANGE.HUOBI, CURRENCY_PAIR.BTC_TO_ZIL,
-                  price=0.00000620, volume=1000.0,
-                  order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
+    # order = Trade(DEAL_TYPE.SELL, EXCHANGE.HUOBI, CURRENCY_PAIR.BTC_TO_ZIL,
+    #               price=0.00000620, volume=1000.0,
+    #               order_book_time=ts, create_time=ts, execute_time=ts, order_id='whatever')
 
-    msg = "Testing huobi - {tt}".format(tt=order)
-    err_code, json_document = init_deal(order, msg)
-    print json_document
-    order.order_id = parse_order_id(order.exchange_id, json_document)
-    print "Parsed order_id: ", order.order_id
-    # # priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+    #### msg = "Testing huobi - {tt}".format(tt=order)
+    #### err_code, json_document = init_deal(order, msg)
+    #### print json_document
+    #### order.order_id = parse_order_id(order.exchange_id, json_document)
+    #### print "Parsed order_id: ", order.order_id
+    order.order_id = '3098735386'
+    priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
 
-    cancel_order_huobi(key, 'pair_name', '2915287415')
-    cancel_order_huobi(key, 'pair_name', '2917275007')
-    cancel_order_huobi(key, 'pair_name', '2934276449')
-    cancel_order_huobi(key, 'pair_name', '2934368019')
+    # cancel_order_huobi(key, 'pair_name', '2915287415')
+    # cancel_order_huobi(key, 'pair_name', '2917275007')
+    # cancel_order_huobi(key, 'pair_name', '2934276449')
+    # cancel_order_huobi(key, 'pair_name', '2934368019')
 
     pair_name = get_currency_pair_to_huobi(CURRENCY_PAIR.BTC_TO_ZIL)
 
     res, open_orders = get_open_orders_huobi(key, pair_name)
-    print type(open_orders)
+    # print type(open_orders)
     for b in open_orders:
         print b, type(b)
-    res, order_history = get_order_history_huobi(key, pair_name)
-    for b in order_history:
-        print b
+    # res, order_history = get_order_history_huobi(key, pair_name)
+    # for b in order_history:
+    #     print b
 
     """
 
@@ -621,4 +623,4 @@ def test_trade_history_huobi_methods():
     load_recent_huobi_trades_to_db(pg_conn, time_start, time_end, unique_only=True)
 
 
-test_trade_history_huobi_methods()
+test_trade_methods_huobi()
