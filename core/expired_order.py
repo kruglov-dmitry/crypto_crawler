@@ -149,9 +149,7 @@ def update_executed_volume(open_orders_at_both_exchanges, every_deal):
     # FIXME NOTE: I do hate functions with side effects this is very vicious practice
     # Open question: how to do it properly?
 
-    print "From our queue", every_deal
     for deal in open_orders_at_both_exchanges:
-        print "Open Order From exchange", deal
         if deal == every_deal:
             if every_deal.exchange_id != EXCHANGE.POLONIEX:
                 every_deal.volume = every_deal.volume - deal.executed_volume

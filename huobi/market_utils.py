@@ -73,4 +73,4 @@ def parse_order_id_huobi(json_document):
 
         return None
 
-    return json_document["data"]
+    return str(json_document["data"])

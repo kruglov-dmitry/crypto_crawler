@@ -23,7 +23,7 @@ def get_order_history_huobi_post_details(key, pair_name, time_start, time_end, l
     final_url = HUOBI_API_URL + HUOBI_GET_TRADE_HISTORY + "?"
 
     # ('states', 'filled,partial-canceled'),
-    
+
     ts1 = None
     ts2 = None
     if 0 < time_start <= time_end:
@@ -37,17 +37,17 @@ def get_order_history_huobi_post_details(key, pair_name, time_start, time_end, l
             ('direct', '')]
 
     if ts1 is None or ts2 is None:
-        body.append(('end_date', ''))
+        body.append(('end-date', ''))
     else:
-        body.append(('end_date', ts2))
+        body.append(('end-date', ts2))
 
     body.append(('from', ''))
     body.append(('size', ''))
 
     if ts1 is None or ts2 is None:
-        body.append(('start_date', ''))
+        body.append(('start-date', ''))
     else:
-        body.append(('start_date', ts1))
+        body.append(('start-date', ts1))
 
     body.append(('states', 'filled,partial-canceled'))
     body.append(("symbol", pair_name))
