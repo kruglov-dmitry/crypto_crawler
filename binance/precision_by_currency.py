@@ -239,7 +239,7 @@ def round_volume_by_binance_rules(volume, pair_id):
     base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
     if pair_name in PRECISION_NUMBER[base_currency_id]:
         return truncate_float(volume, PRECISION_NUMBER[base_currency_id][pair_name])
-    else
+    else:
         return volume
 
 
