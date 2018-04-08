@@ -169,11 +169,11 @@ def compute_time_key(timest, rounding_interval):
 
 def add_orders_to_watch_list(orders_pair, priority_queue):
 
-    msg = "Add order to watch list - {pair}".format(pair=str(orders_pair))
-    log_to_file(msg, "expire_deal.log")
-
     if orders_pair is None:
         return
+
+    msg = "Add order to watch list - {pair}".format(pair=str(orders_pair))
+    log_to_file(msg, "expire_deal.log")
 
     # cache deals to be checked
     if orders_pair.deal_1 is not None:
