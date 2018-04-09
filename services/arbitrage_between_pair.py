@@ -150,8 +150,8 @@ if __name__ == "__main__":
             last_order_book[order_book_dst.exchange_id] = order_book_dst
 
             print_to_console("I am still allive! ", LOG_ALL_DEBUG)
-            sleep_for(1)
+            sleep_for(2)
 
-        sleep_for(2)
+        sleep_for(3)
 
         deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)

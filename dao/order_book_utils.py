@@ -20,7 +20,7 @@ from huobi.constants import HUOBI_CURRENCY_PAIRS
 from huobi.order_book_utils import get_order_book_huobi, get_order_book_huobi_url, \
     get_order_book_huobi_result_processor
 
-from constants import HTTP_TIMEOUT_SECONDS
+from constants import HTTP_TIMEOUT_SECONDS, HTTP_TIMEOUT_ORDER_BOOK_ARBITRAGE
 from data_access.classes.WorkUnit import WorkUnit
 from enums.currency_pair import CURRENCY_PAIR
 from enums.exchange import EXCHANGE
@@ -82,7 +82,7 @@ def get_order_books_for_arbitrage_pair(cfg, date_end, processor):
 
         order_book_async_requests.append(WorkUnit(request_url, constructor, pair_name, date_end))
 
-    return processor.process_async_to_list(order_book_async_requests, HTTP_TIMEOUT_SECONDS)
+    return processor.process_async_to_list(order_book_async_requests, timeout=HTTP_TIMEOUT_ORDER_BOOK_ARBITRAGE)
 
 
 def get_order_book_sync_and_slow():
