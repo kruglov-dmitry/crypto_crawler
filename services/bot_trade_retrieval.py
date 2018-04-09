@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     if arguments.start_time is None or arguments.end_time is None:
         end_time = get_now_seconds_utc()
-        start_time = end_time - POLL_TIMEOUT
+        start_time = end_time - 24 * 3600
     else:
         end_time = parse_time(arguments.end_time, '%Y-%m-%d %H:%M:%S')
         start_time = parse_time(arguments.start_time, '%Y-%m-%d %H:%M:%S')
@@ -62,10 +62,12 @@ if __name__ == "__main__":
         for exchange_id in exchanges_ids:
             method = get_trade_retrieval_method_by_exchange(exchange_id)
             method(pg_conn, start_time, end_time)
+            sleep_for(1)
 
         print "Trade retrieval hearbeat"
 
         sleep_for(POLL_TIMEOUT)
 
         end_time = get_now_seconds_utc()
-        start_time = end_time - POLL_TIMEOUT
+        start_time = end_time - 24 * 3600
+        # start_time = end_time - POLL_TIMEOUT
