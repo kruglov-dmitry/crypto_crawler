@@ -153,13 +153,13 @@ def try_to_set_order_id(open_orders, order):
 
 
 def search_in_open_orders(order):
-    err_code, open_orders = get_open_orders_by_exchange(order.exchange_id, order.pair_id)
+    status_code, open_orders = get_open_orders_by_exchange(order.exchange_id, order.pair_id)
 
     print "WHYWHYW"
-    print err_code
-    print open_orders
+    print status_code
+    print "total", len(open_orders)
 
-    if err_code == STATUS.FAILURE:
+    if status_code == STATUS.FAILURE:
         log_open_orders_by_exchange_bad_result(order)
         return STATUS.FAILURE
 

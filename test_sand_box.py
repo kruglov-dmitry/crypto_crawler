@@ -632,3 +632,33 @@ def test_trade_history_huobi_methods():
     load_recent_huobi_trades_to_db(pg_conn, time_start, time_end, unique_only=True)
 
 
+def test_failed_order_placement_huobi():
+
+    load_keys("./secret_keys")
+
+    ts = get_now_seconds_utc()
+    order = Trade(DEAL_TYPE.SELL, EXCHANGE.HUOBI, CURRENCY_PAIR.BTC_TO_ZIL,
+                  price=0.00000750, volume=1000.0, order_book_time=ts, create_time=ts)
+
+    msg = "Testing huobi - {tt}".format(tt=order)
+    err_code, json_document = init_deal(order, msg)
+    print json_document
+
+    msg_queue = get_message_queue()
+    msg_queue.add_order(FAILED_ORDERS_MSG, order)
+
+
+def test_failed_order_placement_bittrex():
+    load_keys("./secret_keys")
+
+    ts = get_now_seconds_utc()
+    order = Trade(DEAL_TYPE.SELL, EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_ETH,
+                  price=0.075, volume=0.1, order_book_time=ts, create_time=ts)
+
+    msg = "Testing huobi - {tt}".format(tt=order)
+    err_code, json_document = init_deal(order, msg)
+    print json_document
+
+    msg_queue = get_message_queue()
+    msg_queue.add_order(FAILED_ORDERS_MSG, order)
+
