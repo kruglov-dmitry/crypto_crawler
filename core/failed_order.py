@@ -64,7 +64,6 @@ def process_failed_order(order, msg_queue, priority_queue, local_cache, pg_conn)
         log_trace_found_failed_order_in_history(order)
 
         update_order_details(pg_conn, order)
-        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
 
         return
 

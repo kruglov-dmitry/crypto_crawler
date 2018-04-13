@@ -4,21 +4,17 @@ from data.OrderBook import OrderBook, ORDER_BOOK_INSERT_BIDS, ORDER_BOOK_INSERT_
 from data.Trade import Trade
 from data.Candle import Candle
 
-from data_access.postgres_connection import PostgresConnection
+from data_access.classes.PostgresConnection import PostgresConnection
 from utils.time_utils import get_date_time_from_epoch
 from utils.file_utils import log_to_file
-from utils.currency_utils import split_currency_pairs
-from utils.string_utils import truncate_float
 
 from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME, FAILED_ORDER_PROCESSING_FILE_NAME
 from constants import START_OF_TIME
 
 from enums.exchange import EXCHANGE
-from enums.currency import CURRENCY
 
 
 def init_pg_connection(_db_host="192.168.1.106", _db_port=5432, _db_name="postgres"):
-    # FIXME NOTE hardcoding is baaad Dmitry! pass some config
     pg_conn = PostgresConnection(db_host=_db_host, db_port=_db_port, db_name=_db_name, db_user="postgres",
                                  db_password="postgres")
     pg_conn.connect()
@@ -73,6 +69,15 @@ def load_to_postgres(array, pattern_name, pg_conn):
             insert_data(entry, pg_conn, dummy_flag)
 
     pg_conn.commit()
+
+
+def bulk_insert_to_postgres(pg_conn, table_name, column_names, array):
+    from data_access.classes.IteratorFile import IteratorFile
+
+    cursor = pg_conn.get_cursor()
+
+    f = IteratorFile((x.tsv() for x in array))
+    cursor.copy_from(f, table_name, columns=column_names)
 
 
 def save_alarm_into_pg(src_ticker, dst_ticker, pg_conn):

@@ -13,7 +13,7 @@ from dao.order_book_utils import get_order_book
 from dao.balance_utils import update_balance_by_exchange
 
 from utils.file_utils import log_to_file
-from utils.time_utils import get_now_seconds_utc
+from utils.time_utils import get_now_seconds_utc, sleep_for
 
 from data_access.message_queue import ORDERS_MSG, FAILED_ORDERS_MSG
 from data_access.priority_queue import ORDERS_EXPIRE_MSG
@@ -73,6 +73,12 @@ def process_expired_order(order, msg_queue, priority_queue, local_cache):
             priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
 
             return
+
+        # FIXME NOTE
+        # so we want exchange update for us available balance
+        # as we observe situation where its not happen immediatly we want to mitigate delay
+        # with this dirty workaround
+        sleep_for(2)
 
         ticker = get_ticker(order.exchange_id, order.pair_id)
         if ticker is None:
