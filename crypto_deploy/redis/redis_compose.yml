@@ -1,0 +1,8 @@
+version: '2'
+
+services:
+  redis1:
+    image: redis
+    network_mode: host 
+    volumes:
+      - /docker/host/dir:/data
