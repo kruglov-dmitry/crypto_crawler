@@ -47,9 +47,9 @@ class TradeHistory(BaseData):
         self.exchange = get_exchange_name_by_id(self.exchange_id)
 
     def tsv(self):
-        return ("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(
+        return ("{}\t{}\t{}\t{}\t{}\t{}\t{}\t'{}'".format(
             self.pair_id, self.exchange_id, self.deal_type, self.price, self.amount, self.total, self.timest,
-            get_date_time_from_epoch(self.timest)))
+            get_date_time_from_epoch(self.timest)).decode('utf8'))
 
     def get_pg_arg_list(self):
         return (self.pair_id,

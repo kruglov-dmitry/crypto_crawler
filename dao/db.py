@@ -77,7 +77,15 @@ def bulk_insert_to_postgres(pg_conn, table_name, column_names, array):
     cursor = pg_conn.get_cursor()
 
     f = IteratorFile((x.tsv() for x in array))
-    cursor.copy_from(f, table_name, columns=column_names)
+    log_to_file(table_name, table_name + ".txt")
+    log_to_file(column_names, table_name + ".txt")
+    for x in array:
+        # if x.table_name == "candle":
+        #     print x
+        #     raise
+        log_to_file(x, table_name + ".txt")
+        # log_to_file(x.tsv(), "wtf.txt")
+    # cursor.copy_from(f, table_name, columns=column_names)
 
 
 def save_alarm_into_pg(src_ticker, dst_ticker, pg_conn):
@@ -214,7 +222,7 @@ def get_all_orders(pg_conn, table_name="arbitrage_orders", time_start=START_OF_T
     orders = []
 
     if time_start == START_OF_TIME and time_end == START_OF_TIME:
-        select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, 
+        select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume,
         order_id, trade_id, order_book_time, create_time, execute_time from {table_name}""".format(table_name=table_name)
     else:
         select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume,
@@ -349,9 +357,9 @@ def update_order_details(pg_conn, order):
 
 def get_last_binance_trade(pg_conn, start_date, end_time, pair_id, table_name="arbitrage_trades"):
 
-    select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, order_id, 
-    trade_id, order_book_time, create_time, execute_time from {table_name} where exchange_id = {exchange_id} and 
-    pair_id = {pair_id} and create_time >= {start_time} and create_time <= {end_time} 
+    select_query = """select arbitrage_id, exchange_id, trade_type, pair_id, price, volume, executed_volume, order_id,
+    trade_id, order_book_time, create_time, execute_time from {table_name} where exchange_id = {exchange_id} and
+    pair_id = {pair_id} and create_time >= {start_time} and create_time <= {end_time}
     ORDER BY create_time DESC limit 1""".format(
         table_name=table_name, exchange_id=EXCHANGE.BINANCE, pair_id=pair_id, start_time=start_date, end_time=end_time)
 

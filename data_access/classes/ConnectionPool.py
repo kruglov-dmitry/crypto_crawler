@@ -45,89 +45,101 @@ def log_responce(work_unit):
         msg = "For url {url} response {resp}".format(url=work_unit.url, resp=json_responce)
     else:
         msg = "For url {url} response {status_code}".format(url=work_unit.url, status_code=work_unit.future_result.value)
-    
+
     log_to_file(msg, POST_RESPONCE_FILE_NAME)
+
+
+def batch(iterable, n=1):
+    l = len(iterable)
+    for ndx in range(0, l, n):
+        yield iterable[ndx:min(ndx + n, l)]
 
 
 class ConnectionPool:
     def __init__(self, pool_size=POOL_SIZE):
         self.session = requests.Session()
-        self.network_pool = Pool(pool_size)
+        self.pool_size = pool_size
+        self.network_pool = Pool(self.pool_size)
 
     def async_get_from_list(self, work_units, timeout):
-
-        futures = []
-        for work_unit in work_units:
-            some_future = self.network_pool.spawn(self.session.get, work_unit.url, timeout=timeout)
-            work_unit.add_future(some_future)
-            futures.append(some_future)
-        gevent.joinall(futures)
-
         res = []
-        for work_unit in work_units:
-            if get_logging_level() >= LOG_ALL_DEBUG:
-                log_responce(work_unit)
-            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
-                res += work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
-            else:
-                log_to_file(work_unit.url, ERROR_LOG_FILE_NAME)
 
+        for work_units_batch in batch(work_units, self.pool_size):
+            futures = []
+            for work_unit in work_units_batch:
+                some_future = self.network_pool.spawn(self.session.get, work_unit.url, timeout=timeout)
+                work_unit.add_future(some_future)
+                futures.append(some_future)
+            gevent.joinall(futures)
+
+            for work_unit in work_units_batch:
+                if get_logging_level() >= LOG_ALL_DEBUG:
+                    log_responce(work_unit)
+                if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
+                    res += work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
+                else:
+                    log_to_file(work_unit.url, ERROR_LOG_FILE_NAME)
+            print "NEXT ITERATION for ", work_units_batch[0].url
         return res
 
     def async_get_to_list(self, work_units, timeout):
 
-        futures = []
-        for work_unit in work_units:
-            some_future = self.network_pool.spawn(self.session.get, work_unit.url, timeout=timeout)
-            work_unit.add_future(some_future)
-            futures.append(some_future)
-        gevent.joinall(futures)
-
         res = []
-        for work_unit in work_units:
-            if get_logging_level() >= LOG_ALL_DEBUG:
-                log_responce(work_unit)
-            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
-                some_ticker = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
-                if some_ticker is not None:
-                    res.append(some_ticker)
+
+        for work_units_batch in batch(work_units, self.pool_size):
+            futures = []
+            for work_unit in work_units_batch:
+                some_future = self.network_pool.spawn(self.session.get, work_unit.url, timeout=timeout)
+                work_unit.add_future(some_future)
+                futures.append(some_future)
+            gevent.joinall(futures)
+
+            for work_unit in work_units_batch:
+                if get_logging_level() >= LOG_ALL_DEBUG:
+                    log_responce(work_unit)
+                if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
+                    some_ticker = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
+                    if some_ticker is not None:
+                        res.append(some_ticker)
+                    else:
+                        res.append(None)
+                        log_responce_cant_be_parsed(work_unit, "bad_tickers.txt")
                 else:
                     res.append(None)
-                    log_responce_cant_be_parsed(work_unit, "bad_tickers.txt")
-            else:
-                res.append(None)
-                log_responce_cant_be_parsed(work_unit, POST_RESPONCE_FILE_NAME)
+                    log_responce_cant_be_parsed(work_unit, POST_RESPONCE_FILE_NAME)
 
         return res
 
     def async_post_to_list(self, work_units, timeout):
-        futures = []
-        for work_unit in work_units:
-            some_future = self.network_pool.spawn(self.session.post,
-                                                  work_unit.post_details.final_url,
-                                                  data=work_unit.post_details.body,
-                                                  headers=work_unit.post_details.headers,
-                                                  timeout=timeout)
-            work_unit.add_future(some_future)
-            futures.append(some_future)
-        gevent.joinall(futures)
-
         res = []
-        for work_unit in work_units:
-            if get_logging_level() >= LOG_ALL_DEBUG:
-                log_responce(work_unit)
-            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
-                some_result = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
-                # FIXME NOTE performance
-                if type(some_result) is list:
-                    res += some_result
-                else:
-                    res.append(some_result)
-            else:
-                err_msg = log_responce_cant_be_parsed(work_unit, POST_RESPONCE_FILE_NAME)
 
-                some_result = work_unit.method(err_msg, *work_unit.args)
-                res.append(some_result)
+        for work_units_batch in batch(work_units, self.pool_size):
+            futures = []
+            for work_unit in work_units_batch:
+                some_future = self.network_pool.spawn(self.session.post,
+                                                      work_unit.post_details.final_url,
+                                                      data=work_unit.post_details.body,
+                                                      headers=work_unit.post_details.headers,
+                                                      timeout=timeout)
+                work_unit.add_future(some_future)
+                futures.append(some_future)
+            gevent.joinall(futures)
+
+            for work_unit in work_units_batch:
+                if get_logging_level() >= LOG_ALL_DEBUG:
+                    log_responce(work_unit)
+                if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
+                    some_result = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
+                    # FIXME NOTE performance
+                    if type(some_result) is list:
+                        res += some_result
+                    else:
+                        res.append(some_result)
+                else:
+                    err_msg = log_responce_cant_be_parsed(work_unit, POST_RESPONCE_FILE_NAME)
+
+                    some_result = work_unit.method(err_msg, *work_unit.args)
+                    res.append(some_result)
 
         return res
 
