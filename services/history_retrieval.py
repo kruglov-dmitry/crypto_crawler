@@ -4,8 +4,8 @@ from dao.ohlc_utils import get_ohlc_speedup
 from data.Ticker import Ticker
 from dao.ticker_utils import get_ticker_speedup
 
-from data.Candle import Candle
-from data.TradeHistory import TradeHistory
+from data.Candle import CANDLE_TYPE_NAME, Candle
+from data.TradeHistory import TRADE_HISTORY_TYPE_NAME, TradeHistory
 from data_access.classes.ConnectionPool import ConnectionPool
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, set_log_folder, set_logging_level
@@ -43,35 +43,35 @@ if __name__ == "__main__":
 
         candles = get_ohlc_speedup(start_time, end_time, processor)
 
-        # bad_candles = [x for x in candles if x.timest == 0]
-        # candles = [x for x in candles if x.timest > 0]
+        bad_candles = [x for x in candles if x.timest == 0]
+        candles = [x for x in candles if x.timest > 0]
 
-        print "NOTHING ABOUT CANDLES AFTERWORD"
+        # print "NOTHING ABOUT CANDLES AFTERWORD"
 
         trade_history = get_history_speedup(start_time, end_time, processor)
 
         trade_history = [x for x in trade_history if x.timest > start_time]
 
-        tickers = get_ticker_speedup(end_time, processor)
+        # tickers = get_ticker_speedup(end_time, processor)
 
-        # load_to_postgres(candles, CANDLE_TYPE_NAME, pg_conn)
-        # load_to_postgres(trade_history, TRADE_HISTORY_TYPE_NAME, pg_conn)
+        load_to_postgres(candles, CANDLE_TYPE_NAME, pg_conn)
+        load_to_postgres(trade_history, TRADE_HISTORY_TYPE_NAME, pg_conn)
 
-        bulk_insert_to_postgres(pg_conn, Candle.table_name, Candle.columns, candles)
-        bulk_insert_to_postgres(pg_conn, TradeHistory.table_name, TradeHistory.columns, trade_history)
-        bulk_insert_to_postgres(pg_conn, Ticker.table_name, Ticker.columns, tickers)
+        # bulk_insert_to_postgres(pg_conn, Candle.table_name, Candle.columns, candles)
+        # bulk_insert_to_postgres(pg_conn, TradeHistory.table_name, TradeHistory.columns, trade_history)
+        # bulk_insert_to_postgres(pg_conn, Ticker.table_name, Ticker.columns, tickers)
 
-        raise
+        # raise
 
-        # if should_print_debug():
-        #     msg = """History retrieval at {tt}:
-        #     Candle size - {num}
-        #     Trade history size - {num2}""".format(tt=end_time, num=len(candles), num2=len(trade_history))
-        #     print_to_console(msg, LOG_ALL_ERRORS)
-        #     log_to_file(msg, "candles_trade_history.log")
+        if should_print_debug():
+            msg = """History retrieval at {tt}:
+            Candle size - {num}
+            Trade history size - {num2}""".format(tt=end_time, num=len(candles), num2=len(trade_history))
+            print_to_console(msg, LOG_ALL_ERRORS)
+            log_to_file(msg, "candles_trade_history.log")
 
-        # for b in bad_candles:
-        #     log_to_file(b, "bad_candles.log")
+        for b in bad_candles:
+            log_to_file(b, "bad_candles.log")
 
         print_to_console("Before sleep...", LOG_ALL_ERRORS)
-        sleep_for(1)
+        sleep_for(POLL_PERIOD_SECONDS)

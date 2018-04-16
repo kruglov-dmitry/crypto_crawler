@@ -37,7 +37,6 @@ def get_ohlc_kraken_result_processor(json_responce, currency, date_start, date_e
         for record in json_responce["result"][currency]:
             result_set.append(Candle.from_kraken(record, currency))
 
-    print "KRAKEN RESULT PROCESSOR"
     return result_set
 
 

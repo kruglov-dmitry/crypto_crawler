@@ -17,7 +17,7 @@ from utils.time_utils import get_date_time_from_epoch
 regex_string = "\[ask - (.*) bid - (.*) exchange - (.*) exchange_id - (.*) pair - (.*) pair_id - (.*) timest - (.*)\]"
 regex = re.compile(regex_string)
 
-TICKERS_TABLE_NAME = "ticker"
+TICKERS_TABLE_NAME = "tickers"
 TICKERS_COLUMNS = ("pair_id", "exchange_id", "lowest_ask", "highest_bid", "timest", "date_time")
 TICKERS_INSERT_QUERY = """insert into {table_name} ({columns}) values(%s, %s, %s, %s, %s, %s);""".format(
     table_name=TICKERS_TABLE_NAME, columns=','.join(TICKERS_COLUMNS))

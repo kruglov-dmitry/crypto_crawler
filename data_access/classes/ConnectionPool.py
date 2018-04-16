@@ -79,7 +79,7 @@ class ConnectionPool:
                     res += work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
                 else:
                     log_to_file(work_unit.url, ERROR_LOG_FILE_NAME)
-            print "NEXT ITERATION for ", work_units_batch[0].url
+            # print "NEXT ITERATION for ", work_units_batch[0].url
         return res
 
     def async_get_to_list(self, work_units, timeout):
