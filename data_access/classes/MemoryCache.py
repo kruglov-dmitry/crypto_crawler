@@ -35,3 +35,18 @@ class MemoryCache:
 
     def set_value(self, key_name, key_value):
         return self.r.set(key_name, key_value)
+
+    def cache_order_book(self, order_book):
+        """
+            We cannot rely on order book time because in case exchange return dublicative order book
+            time may be different.
+
+        :param order_book:
+        :return:
+        """
+        key = "{}-{}".format(order_book.exchange_id, order_book.pair_id)
+        self.r.set(key, pickle.dumps(order_book))
+
+    def get_last_order_book(self, pair_id, exchange_id):
+        key = "{}-{}".format(exchange_id, pair_id)
+        return pickle.loads(self.r.get(key))

@@ -9,11 +9,12 @@ from dao.order_utils import get_open_orders_by_exchange
 from dao.ticker_utils import get_ticker
 from dao.dao import cancel_by_exchange, parse_order_id
 from dao.deal_utils import init_deal
-from dao.order_book_utils import get_order_book
+from dao.order_book_utils import get_order_book, is_order_book_expired
 from dao.balance_utils import update_balance_by_exchange
 
 from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc, sleep_for
+from debug_utils import EXPIRED_ORDER_PROCESSING_FILE_NAME
 
 from data_access.message_queue import ORDERS_MSG, FAILED_ORDERS_MSG
 from data_access.priority_queue import ORDERS_EXPIRE_MSG
@@ -96,6 +97,12 @@ def process_expired_order(order, msg_queue, priority_queue, local_cache):
             priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
 
             log_cant_retrieve_order_book(order, msg_queue)
+            return
+
+        if is_order_book_expired(EXPIRED_ORDER_PROCESSING_FILE_NAME, order_book, local_cache, msg_queue):
+
+            priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+
             return
 
         orders = order_book.bid if order.trade_type == DEAL_TYPE.SELL else order_book.ask

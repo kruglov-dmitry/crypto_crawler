@@ -115,6 +115,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
 
 def is_no_pending_order(currency_id, src_exchange_id, dst_exchange_id):
     # FIXME - have to load active deals per exchange >_<
+    # 02.05.2018 issue 65 ?
     return True
 
 
