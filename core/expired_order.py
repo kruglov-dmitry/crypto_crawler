@@ -14,9 +14,9 @@ from dao.balance_utils import update_balance_by_exchange
 
 from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc, sleep_for
-from debug_utils import EXPIRED_ORDER_PROCESSING_FILE_NAME
+from debug_utils import EXPIRED_ORDER_PROCESSING_FILE_NAME, LOG_ALL_ERRORS
 
-from data_access.message_queue import ORDERS_MSG, FAILED_ORDERS_MSG
+from data_access.message_queue import ORDERS_MSG, FAILED_ORDERS_MSG, DEBUG_INFO_MSG
 from data_access.priority_queue import ORDERS_EXPIRE_MSG
 
 from enums.status import STATUS
@@ -139,6 +139,15 @@ def process_expired_order(order, msg_queue, priority_queue, local_cache):
 
         msg = "Replace existing order with new one - {tt}".format(tt=order)
         err_code, json_document = init_deal(order, msg)
+
+        msg = """We have tried to replace existing order with new one:
+        {o}
+        and got response:
+        {r}
+        """.format(o=order, r=json_document)
+        msg_queue.add_message(DEBUG_INFO_MSG, msg)
+        log_to_file(msg, EXPIRED_ORDER_PROCESSING_FILE_NAME)
+
         if err_code == STATUS.SUCCESS:
 
             order.execute_time = get_now_seconds_utc()

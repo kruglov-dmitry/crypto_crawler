@@ -9,7 +9,7 @@ from core.arbitrage_core import adjust_price_by_order_book, compute_min_cap_from
 
 from dao.db import update_order_details
 
-from data_access.message_queue import ORDERS_MSG, FAILED_ORDERS_MSG
+from data_access.message_queue import ORDERS_MSG, FAILED_ORDERS_MSG, DEBUG_INFO_MSG
 from data_access.priority_queue import ORDERS_EXPIRE_MSG
 
 from enums.deal_type import DEAL_TYPE
@@ -18,6 +18,7 @@ from enums.status import STATUS
 from constants import BALANCE_EXPIRED_THRESHOLD, FLOAT_POINT_PRECISION
 from debug_utils import FAILED_ORDER_PROCESSING_FILE_NAME
 from utils.time_utils import sleep_for, get_now_seconds_utc
+from utils.file_utils import log_to_file
 
 from dao.order_utils import get_open_orders_by_exchange
 from dao.order_history_utils import get_order_history_by_exchange
@@ -125,6 +126,15 @@ def process_failed_order(order, msg_queue, priority_queue, local_cache, pg_conn)
 
     msg = "Replace FAILED order with new one - {tt}".format(tt=order)
     err_code, json_document = init_deal(order, msg)
+
+    msg = """We have tried to replace failed order with new one:
+            {o}
+            and got response:
+            {r}
+            """.format(o=order, r=json_document)
+    msg_queue.add_message(DEBUG_INFO_MSG, msg)
+    log_to_file(msg, FAILED_ORDER_PROCESSING_FILE_NAME)
+
     if err_code == STATUS.SUCCESS:
 
         order.execute_time = get_now_seconds_utc()
@@ -159,10 +169,6 @@ def try_to_set_order_id(open_orders, order):
 
 def search_in_open_orders(order):
     status_code, open_orders = get_open_orders_by_exchange(order.exchange_id, order.pair_id)
-
-    print "WHYWHYW"
-    print status_code
-    print "total", len(open_orders)
 
     if status_code == STATUS.FAILURE:
         log_open_orders_by_exchange_bad_result(order)
