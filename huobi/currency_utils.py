@@ -39,6 +39,7 @@ def get_currency_name_for_huobi(currency_id):
         CURRENCY.LINK: 'link',
         CURRENCY.ELA: 'ela',
         CURRENCY.NAS: 'nas',
+        CURRENCY.ADA: 'ada',
         CURRENCY.USDT: 'usdt'
     }.get(currency_id)
 
@@ -80,6 +81,7 @@ def get_currency_id_from_huobi(currency_name):
         'link': CURRENCY.LINK,
         'ela': CURRENCY.ELA,
         'nas': CURRENCY.NAS,
+        'ada': CURRENCY.ADA,
         'usdt': CURRENCY.USDT
     }.get(currency_name)
 
@@ -119,6 +121,7 @@ def get_currency_pair_to_huobi(pair_id):
         CURRENCY_PAIR.BTC_TO_LINK: 'linkbtc',
         CURRENCY_PAIR.BTC_TO_NAS: 'nasbtc',
         CURRENCY_PAIR.BTC_TO_ELA: 'elabtc',
+        CURRENCY_PAIR.BTC_TO_ADA: 'adabtc',
 
         CURRENCY_PAIR.ETH_TO_OMG: 'omgeth',
         CURRENCY_PAIR.ETH_TO_QTUM: 'qtumeth',
@@ -142,6 +145,7 @@ def get_currency_pair_to_huobi(pair_id):
         CURRENCY_PAIR.ETH_TO_LSK: 'lsketh',
         CURRENCY_PAIR.ETH_TO_NAS: 'naseth',
         CURRENCY_PAIR.ETH_TO_ELA: 'elaeth',
+        CURRENCY_PAIR.ETH_TO_ADA: 'adaeth',
 
         CURRENCY_PAIR.USDT_TO_DASH: 'dashusdt',
         CURRENCY_PAIR.USDT_TO_BTC: 'btcusdt',
@@ -162,6 +166,7 @@ def get_currency_pair_to_huobi(pair_id):
         CURRENCY_PAIR.USDT_TO_ELF: 'elfusdt',
         CURRENCY_PAIR.USDT_TO_NAS: 'nasusdt',
         CURRENCY_PAIR.USDT_TO_ELA: 'elausdt',
+        CURRENCY_PAIR.USDT_TO_ADA: 'adausdt',
 
     }.get(pair_id)
 
@@ -201,6 +206,7 @@ def get_currency_pair_from_huobi(pair_name):
         'linkbtc': CURRENCY_PAIR.BTC_TO_LINK,
         'nasbtc': CURRENCY_PAIR.BTC_TO_NAS,
         'elabtc': CURRENCY_PAIR.BTC_TO_ELA,
+        'adabtc': CURRENCY_PAIR.BTC_TO_ADA,
 
         'omgeth': CURRENCY_PAIR.ETH_TO_OMG,
         'qtumeth': CURRENCY_PAIR.ETH_TO_QTUM,
@@ -224,6 +230,7 @@ def get_currency_pair_from_huobi(pair_name):
         'lsketh': CURRENCY_PAIR.ETH_TO_LSK,
         'naseth': CURRENCY_PAIR.ETH_TO_NAS,
         'elaeth': CURRENCY_PAIR.ETH_TO_ELA,
+        'adaeth': CURRENCY_PAIR.ETH_TO_ADA,
 
         'dashusdt': CURRENCY_PAIR.USDT_TO_DASH,
         'btcusdt': CURRENCY_PAIR.USDT_TO_BTC,
@@ -244,5 +251,6 @@ def get_currency_pair_from_huobi(pair_name):
         'elfusdt': CURRENCY_PAIR.USDT_TO_ELF,
         'nasusdt': CURRENCY_PAIR.USDT_TO_NAS,
         'elausdt': CURRENCY_PAIR.USDT_TO_ELA,
+        'adausdt': CURRENCY_PAIR.USDT_TO_ADA,
 
     }.get(pair_name)
