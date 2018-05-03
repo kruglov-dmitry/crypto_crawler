@@ -24,8 +24,8 @@ if __name__ == "__main__":
 
     print_to_console("2 stage - init balance retrieval per exchange...", LOG_ALL_ERRORS)
     for exchange_id in settings.exchanges:
-        deploy_unit = DeployUnit(BALANCE_UPDATE_DEPLOY_UNIT.BALANCE_SCREEN_NAME,
+        deploy_unit = DeployUnit(BALANCE_UPDATE_DEPLOY_UNIT.screen_name,
                                  get_exchange_name_by_id(exchange_id),
-                                 BALANCE_UPDATE_DEPLOY_UNIT.BALANCE_UPDATE_COMMAND + get_exchange_name_by_id(exchange_id))
+                                 BALANCE_UPDATE_DEPLOY_UNIT.command + get_exchange_name_by_id(exchange_id))
 
-        deploy_process_in_screen(BALANCE_UPDATE_DEPLOY_UNIT.screen_name, deploy_unit, should_create_window=False)
+        deploy_process_in_screen(BALANCE_UPDATE_DEPLOY_UNIT.screen_name, deploy_unit, should_create_window=True)
