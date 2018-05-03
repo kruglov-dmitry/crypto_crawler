@@ -115,6 +115,11 @@ https://poloniex.com/public?command=returnTicker
 http://api.huobi.pro/v1/common/symbols
 
 
+### Rounding rules
+
+https://support.binance.com/hc/en-us/articles/115000594711-Trading-Rule
+
+
 ### Setup balance monitoring from the scratch
 ``` bash
 sudo curl -L https://github.com/docker/compose/releases/download/1.18.0/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
@@ -169,3 +174,25 @@ find $1 -type f -print0 | xargs -0 stat --format '%Y :%y %n' | sort -nr | cut -d
 * api_key_full_path
 7. Sequentially execute all sells
 8. Profit report should be under your %HOME%/logs folder
+
+
+
+### How to setup dynuiuc domain name update
+```bash
+more /usr/lib/systemd/system/dynuiuc.service
+[Unit]
+Description=Dynu
+
+[Service]
+Type=forking
+PIDFile=/var/run/dynuiuc.pid
+ExecStart=/usr/bin/dynuiuc --conf_file /etc/dynuiuc/dynuiuc.conf --log_file /var/log/dynuiuc.log --pid_file /var/run/dynuiuc.pid --daemon
+ExecReload=/bin/kill -HUP $MAINPID
+# DK manually
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+sudo systemctl enable dynuiuc.service
+sudo service dynuiuc start

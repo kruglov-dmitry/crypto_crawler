@@ -22,43 +22,36 @@ def get_order_history_huobi_post_details(key, pair_name, time_start, time_end, l
     """
     final_url = HUOBI_API_URL + HUOBI_GET_TRADE_HISTORY + "?"
 
-    # ('states', 'pre-submitted,submitted,partial-filled,partial-canceled'),
-    
+    # ('states', 'filled,partial-canceled'),
+
     ts1 = None
     ts2 = None
-    if time_start >0 and time_end >= time_start:
+    if 0 < time_start <= time_end:
         ts1 = ts_to_string_utc(time_start, format_string='%Y-%m-%d')
         ts2 = ts_to_string_utc(time_end, format_string='%Y-%m-%d')
 
-    if ts1 is None or ts2 is None:
-        body = [('AccessKeyId', key.api_key),
-                ('SignatureMethod', 'HmacSHA256'),
-                ('SignatureVersion', 2),
-                ('Timestamp', ts_to_string_utc(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S')),
-                ('direct', ''),
-                ('end_date', ''),
-                ('from', ''),
-                ('size', ''),
-                ('start_date', ''),
-                ('states', 'filled'),
-                ("symbol", pair_name),
-                ('types', '')
-                ]
-    else:
-        body = [('AccessKeyId', key.api_key),
-                ('SignatureMethod', 'HmacSHA256'),
-                ('SignatureVersion', 2),
-                ('Timestamp', ts_to_string_utc(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S')),
-                ('direct', ''),
-                ('end_date', ts2),
-                ('from', ''),
-                ('size', ''),
-                ('start_date', ts1),
-                ('states', 'filled'),
-                ("symbol", pair_name),
-                ('types', '')
-                ]
+    body = [('AccessKeyId', key.api_key),
+            ('SignatureMethod', 'HmacSHA256'),
+            ('SignatureVersion', 2),
+            ('Timestamp', ts_to_string_utc(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S')),
+            ('direct', '')]
 
+    if ts1 is None or ts2 is None:
+        body.append(('end-date', ''))
+    else:
+        body.append(('end-date', ts2))
+
+    body.append(('from', ''))
+    body.append(('size', ''))
+
+    if ts1 is None or ts2 is None:
+        body.append(('start-date', ''))
+    else:
+        body.append(('start-date', ts1))
+
+    body.append(('states', 'filled,partial-canceled'))
+    body.append(("symbol", pair_name))
+    body.append(('types', ''))
 
     message = _urlencode(body).encode('utf8')
 

@@ -20,13 +20,14 @@ from huobi.constants import HUOBI_CURRENCY_PAIRS
 from huobi.order_book_utils import get_order_book_huobi, get_order_book_huobi_url, \
     get_order_book_huobi_result_processor
 
-from constants import HTTP_TIMEOUT_SECONDS
+from constants import HTTP_TIMEOUT_SECONDS, HTTP_TIMEOUT_ORDER_BOOK_ARBITRAGE
 from data_access.classes.WorkUnit import WorkUnit
 from enums.currency_pair import CURRENCY_PAIR
 from enums.exchange import EXCHANGE
 
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from utils.time_utils import get_now_seconds_utc
+from logging_tools.arbitrage_between_pair_logging import log_dublicative_order_book
 
 
 def get_order_book_constructor_by_exchange_id(exchange_id):
@@ -82,7 +83,7 @@ def get_order_books_for_arbitrage_pair(cfg, date_end, processor):
 
         order_book_async_requests.append(WorkUnit(request_url, constructor, pair_name, date_end))
 
-    return processor.process_async_to_list(order_book_async_requests, HTTP_TIMEOUT_SECONDS)
+    return processor.process_async_to_list(order_book_async_requests, timeout=HTTP_TIMEOUT_ORDER_BOOK_ARBITRAGE)
 
 
 def get_order_book_sync_and_slow():
@@ -151,3 +152,24 @@ def get_order_book(exchange_id, pair_id):
 
     return method(pair_name, timest)
 
+
+def is_order_book_expired(log_file_name, order_book, local_cache, msg_queue):
+
+    prev_order_book = local_cache.get_last_order_book(order_book.pair_id, order_book.exchange_id)
+
+    if prev_order_book is None:
+        return False
+
+    total_asks = len(order_book.ask)
+    number_of_same_asks = len(set(order_book.ask).intersection(prev_order_book.ask))
+
+    total_bids = len(order_book.bid)
+    number_of_same_bids = len(set(order_book.bid).intersection(prev_order_book.bid))
+
+    if total_asks == number_of_same_asks or total_bids == number_of_same_bids:
+        # FIXME NOTE: probably we can loose a bit this condition - for example check that order book
+        # should differ for more than 10% of bids OR asks ?
+        log_dublicative_order_book(log_file_name, order_book, prev_order_book, msg_queue)
+        return True
+
+    return False

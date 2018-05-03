@@ -4,101 +4,6 @@ from utils.string_utils import truncate_float
 from enums.currency import CURRENCY
 
 
-PRECISIONS_BTC = {
-    "ETHBTC":  0.001,
-    "LTCBTC":  0.01,
-    "BNBBTC":  1,
-    "NEOBTC":  0.01,
-    "GASBTC":  0.01,
-    "BCCBTC":  0.001,
-    "MCOBTC":  0.01,
-    "WTCBTC":  1,
-    "QTUMBTC": 0.01,
-    "OMGBTC":  0.01,
-    "ZRXBTC":  1,
-    "STRATBTC":0.01,
-    "SNGLSBTC":1,
-    "BQXBTC":  1,
-    "KNCBTC":  1,
-    "FUNBTC":  1,
-    "SNMBTC":  1,
-    "LINKBTC": 1,
-    "XVGBTC":  1,
-    "CTRBTC":  1,
-    "SALTBTC": 0.01,
-    "IOTABTC": 1,
-    "MDABTC":  1,
-    "MTLBTC":   1,
-    "SUBBTC":   1,
-    "EOSBTC":   1,
-    "SNTBTC":   1,
-    "ETCBTC":   0.01,
-    "MTHBTC":   1,
-    "ENGBTC":   1,
-    "DNTBTC":   1,
-    "BNTBTC":   1,
-    "ASTBTC":   1,
-    "DASHBTC":  0.001,
-    "ICNBTC":   1,
-    "OAXBTC":   1,
-    "BTGBTC":   0.01,
-    "EVXBTC":   1,
-    "REQBTC":   1,
-    "LRCBTC":   1,
-    "VIBBTC":   1,
-    "HSRBTC":   1,
-    "TRXBTC":   1,
-    "POWRBTC":  1,
-    "ARKBTC":   0.01,
-    "YOYOBTC":  1,
-    "XRPBTC":   1,
-    "MODBTC":   1,
-    "ENJBTC":   1,
-    "STORJBTC": 1,
-    "VENBTC":   1,
-    "KMDBTC":   1,
-    "RCNBTC":   1,
-    "NULSBTC":  1,
-    "RDNBTC":   1,
-    "XMRBTC":   0.001,
-    "DLTBTC":   0.001,
-    "AMBBTC":   0.001,
-    "BATBTC":   1,
-    "ZECBTC":   0.001,
-    "BCPTBTC":  1,
-    "ARNBTC":   1,
-    "GVTBTC":   0.01,
-    "CDTBTC":   1,
-    "GXSBTC":   0.01,
-    "POEBTC":   1,
-    "QSPBTC":   1,
-    "BTSBTC":   1,
-    "XZCBTC":   0.01,
-    "LSKBTC":   0.01,
-    "TNTBTC":   1,
-    "FUELBTC":  1,
-    "MANABTC":  1,
-    "BCDBTC":   0.001,
-    "DGDBTC":   0.001,
-    "ADXBTC":   1,
-    "ADABTC":   1,
-    "PPTBTC":   0.01,
-    "CMTBTC":   1,
-    "XLMBTC":   1,
-    "CNDBTC":   1,
-    "LENDBTC":  1,
-    "WABIBTC":  1,
-    "TNBBTC":   1,
-    "WAVESBTC": 0.01,
-    "ICXBTC":   0.01,
-    "GTOBTC":   1,
-    "OSTBTC":   1,
-    "ELFBTC":   1,
-    "AIONBTC":  1,
-    "NEBLBTC":  1
-}
-
-
 # BASE_CURRENCY = BTC
 PRECISION_BTC_NUMBER = {
     "ETHBTC":  3,
@@ -112,6 +17,7 @@ PRECISION_BTC_NUMBER = {
     "QTUMBTC": 2,
     "OMGBTC":  2,
     "ZRXBTC":  0,
+    "ZILBTC":  0,
     "STRATBTC": 2,
     "SNGLSBTC": 0,
     "BQXBTC":  0,
@@ -209,6 +115,7 @@ PRECISION_ETH_NUMBER = {
     "WTCETH": 2,
     "OMGETH": 2,
     "ZRXETH": 0,
+    "ZILETH":  0,
     "STRATETH": 2,
     "SNGLSETH": 0,
     "BXQETH": 0,
@@ -315,7 +222,7 @@ PRECISION_USDT_NUMBER = {
     "BTCUSDT": 6,
     "ETHUSDT": 5,
     "BNBUSDT": 2,
-    "BCCUSDT": 5,
+    "BCCUSDT": 4,   # FIXME NOTE 25.04.2018 binance 5, huobi - 4
     "NEOUSDT": 3,
     "LTCUSDT": 5
 }
@@ -330,7 +237,18 @@ PRECISION_NUMBER = {
 def round_volume_by_binance_rules(volume, pair_id):
     pair_name = get_currency_pair_to_binance(pair_id)
     base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
-    return truncate_float(volume, PRECISION_NUMBER[base_currency_id][pair_name])
+    if pair_name in PRECISION_NUMBER[base_currency_id]:
+        return truncate_float(volume, PRECISION_NUMBER[base_currency_id][pair_name])
+    else:
+        if base_currency_id == CURRENCY.USDT:
+            """
+            # We have error in regards of  Response is {u'status': u'error', u'err-code': 
+            u'order-orderamount-precision-error', u'data': None, 
+            u'err-msg': u'order amount precision error, scale: `4`'}
+            """
+            return 4
+        else:
+            return volume
 
 
 def round_volume_by_precisness_binance(pair_name, volume):

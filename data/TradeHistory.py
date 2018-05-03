@@ -19,14 +19,20 @@ from utils.time_utils import get_date_time_from_epoch
 regex_string = "\[amount - (.*) deal_type - (.*) exchange - (.*) exchange_id - (.*) pair - (.*) pair_id - (.*) price - (.*) timest - (.*) total - (.*)\]"
 regex = re.compile(regex_string)
 
-ORDER_HISTORY_INSERT_QUERY = "insert into trade_history (pair_id, exchange_id, deal_type, price, amount, total, " \
-                             "timest, date_time) values(%s, %s, %s, %s, %s, %s, %s, %s);"
+
+TRADE_HISTORY_TABLE_NAME = "trade_history"
+TRADE_HISTORY_COLUMNS = ("pair_id", "exchange_id", "deal_type", "price", "amount", "total", "timest", "date_time")
+TRADE_HISTORY_INSERT_QUERY = "insert into {table_name} ({columns}) values(%s, %s, %s, %s, %s, %s, %s, %s);".format(
+    table_name=TRADE_HISTORY_TABLE_NAME, columns=','.join(TRADE_HISTORY_COLUMNS))
 TRADE_HISTORY_TYPE_NAME = "trade_history"
 
 
 class TradeHistory(BaseData):
-    insert_query = ORDER_HISTORY_INSERT_QUERY
+    insert_query = TRADE_HISTORY_INSERT_QUERY
     type = TRADE_HISTORY_TYPE_NAME
+
+    table_name = TRADE_HISTORY_TABLE_NAME
+    columns = TRADE_HISTORY_COLUMNS
 
     def __init__(self, pair_id, timest, deal_type, price, amount, total, exchange_id):
         # FIXME NOTE - various volume data?
@@ -39,6 +45,11 @@ class TradeHistory(BaseData):
         self.total = float(total)
         self.exchange_id = int(exchange_id)
         self.exchange = get_exchange_name_by_id(self.exchange_id)
+
+    def tsv(self):
+        return ("{}\t{}\t{}\t{}\t{}\t{}\t{}\t'{}'".format(
+            self.pair_id, self.exchange_id, self.deal_type, self.price, self.amount, self.total, self.timest,
+            get_date_time_from_epoch(self.timest)).decode('utf8'))
 
     def get_pg_arg_list(self):
         return (self.pair_id,

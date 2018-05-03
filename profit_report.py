@@ -45,15 +45,14 @@ if __name__ == "__main__":
     pg_conn = init_pg_connection(_db_host=db_host, _db_port=db_port, _db_name=db_name)
 
     key_path = config.get("keys", "path_to_api_keys")
-    log_folder = config.get("logging_tools", "logs_folder")
+    log_folder = config.get("logging", "logs_folder")
     load_keys(key_path)
     set_log_folder(log_folder)
 
     if should_fetch_history_to_db:
         fetch_trades_history_to_db(pg_conn, start_time, end_time, fetch_from_start)
 
-    orders, history_trades, binance_trades, binance_orders_at_bot, binance_orders_at_exchange = \
-        prepare_data(pg_conn, start_time, end_time)
+    orders, history_trades = prepare_data(pg_conn, start_time, end_time)
 
     missing_orders, failed_orders, orders_with_trades = group_trades_by_orders(orders, history_trades)
 

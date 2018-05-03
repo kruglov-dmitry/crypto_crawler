@@ -33,6 +33,9 @@ HUOBI_CHECK_BALANCE = "/v1/account/accounts/"
 
 HUOBI_GET_OPEN_ORDERS = "/v1/order/orders"
 
+# /v1/order/orders/{order-id}/matchresults
+HUOBI_GET_ORDER_DETAILS = "/v1/order/orders/"
+
 HUOBI_GET_TRADE_HISTORY = "/v1/order/orders"
 
 HUOBI_NUM_OF_DEAL_RETRY = 1

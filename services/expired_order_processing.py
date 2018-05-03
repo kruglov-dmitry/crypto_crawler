@@ -13,9 +13,9 @@ from utils.key_utils import load_keys
 from utils.file_utils import log_to_file
 
 from core.expired_order import process_expired_order
+from constants import HEARTBEAT_TIMEOUT
 
 EXPIRATION_TIMEOUT = 15
-HEARTBEAT_TIMEOUT = 60
 
 
 if __name__ == "__main__":
@@ -53,7 +53,11 @@ if __name__ == "__main__":
                 sleep_for(EXPIRATION_TIMEOUT - order_age)
 
             process_expired_order(order, msg_queue, priority_queue, local_cache)
-        else:
+
+        sleep_for(1)
+        cnt += 1
+
+        if cnt >= HEARTBEAT_TIMEOUT:
+            cnt = 0
             print_to_console("Watch list is empty sleeping", LOG_ALL_ERRORS)
             log_to_file("Watch list is empty sleeping", EXPIRED_ORDER_PROCESSING_FILE_NAME)
-            sleep_for(1)

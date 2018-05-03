@@ -1,5 +1,4 @@
 import argparse
-import ConfigParser
 
 from data_access.message_queue import get_message_queue
 from data_access.priority_queue import get_priority_queue
@@ -31,7 +30,7 @@ from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for
 
 from logging_tools.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors, \
-    log_failed_to_retrieve_order_book
+    log_failed_to_retrieve_order_book, log_dublicative_order_book
 
 from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD, MIN_CAP_UPDATE_TIMEOUT
 
@@ -61,6 +60,29 @@ def update_min_cap(cfg, deal_cap, processor):
         log_to_file(msg, cfg.log_file_name)
 
         log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
+
+
+def is_order_books_expired(order_book_src, order_book_dst, local_cache, msg_queue):
+
+    for order_book in [order_book_src, order_book_dst]:
+        prev_order_book = local_cache.get_last_order_book(order_book.pair_id, order_book.exchange_id)
+
+        if prev_order_book is None:
+            continue
+
+        total_asks = len(order_book.ask)
+        number_of_same_asks = len(set(order_book.ask).intersection(prev_order_book.ask))
+
+        total_bids = len(order_book.bid)
+        number_of_same_bids = len(set(order_book.bid).intersection(prev_order_book.bid))
+
+        if total_asks == number_of_same_asks or total_bids == number_of_same_bids:
+            # FIXME NOTE: probably we can loose a bit this condition - for example check that order book
+            # should differ for more than 10% of bids OR asks ?
+            log_dublicative_order_book(cfg.log_file_name, order_book, prev_order_book, msg_queue)
+            return True
+
+    return False
 
 
 if __name__ == "__main__":
@@ -138,6 +160,13 @@ if __name__ == "__main__":
                 sleep_for(3)
                 continue
 
+            if is_order_books_expired(order_book_src, order_book_dst, local_cache, msg_queue):
+                sleep_for(3)
+                continue
+
+            local_cache.cache_order_book(order_book_src)
+            local_cache.cache_order_book(order_book_dst)
+
             # init_deals_with_logging_speedy
             status_code, deal_pair = method(order_book_src, order_book_dst, active_threshold, cfg.balance_threshold,
                                             init_deals_with_logging_speedy,
@@ -150,8 +179,8 @@ if __name__ == "__main__":
             last_order_book[order_book_dst.exchange_id] = order_book_dst
 
             print_to_console("I am still allive! ", LOG_ALL_DEBUG)
-            sleep_for(1)
+            sleep_for(2)
 
-        sleep_for(2)
+        sleep_for(3)
 
         deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)

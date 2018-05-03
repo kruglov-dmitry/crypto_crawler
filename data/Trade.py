@@ -381,6 +381,8 @@ class Trade(Deal):
     @classmethod
     def from_huobi(cls, json_document, pair_name):
         """
+            06.04.2018 NOTE - no filled amount, have to use special method to retrieve this data
+
             "id": 59378,
             "symbol": "ethusdt",
             "account-id": 100009,
@@ -398,7 +400,7 @@ class Trade(Deal):
             "canceled-at": 0,
             "exchange": "huobi",
             "batch": ""
-        :return: 
+        :return:
         """
 
         pair_id = get_currency_pair_from_huobi(pair_name)
@@ -406,7 +408,7 @@ class Trade(Deal):
         if "sell" in json_document["type"]:
             trade_type = DEAL_TYPE.SELL
 
-        order_id = json_document["id"]
+        order_id = str(json_document["id"])
         trade_id = json_document["id"]
 
         create_timest = 0.001 * long(json_document["created-at"])
@@ -414,9 +416,10 @@ class Trade(Deal):
 
         price = json_document["price"]
         volume = float(json_document["amount"])
+        executed_volume = float(json_document["field-amount"])
 
         return Trade(trade_type, EXCHANGE.HUOBI, pair_id, price, volume, create_timest, create_timest, execute_time=executed_timest,
-                     order_id=order_id, trade_id=trade_id, executed_volume=volume)
+                     order_id=order_id, trade_id=trade_id, executed_volume=executed_volume)
 
     @classmethod
     def from_row(cls, db_row):
