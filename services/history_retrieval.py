@@ -1,9 +1,11 @@
-from dao.db import init_pg_connection, load_to_postgres
+from dao.db import init_pg_connection, load_to_postgres, bulk_insert_to_postgres
 from dao.history_utils import get_history_speedup
 from dao.ohlc_utils import get_ohlc_speedup
+from data.Ticker import Ticker
+from dao.ticker_utils import get_ticker_speedup
 
-from data.Candle import CANDLE_TYPE_NAME
-from data.TradeHistory import TRADE_HISTORY_TYPE_NAME
+from data.Candle import CANDLE_TYPE_NAME, Candle
+from data.TradeHistory import TRADE_HISTORY_TYPE_NAME, TradeHistory
 from data_access.classes.ConnectionPool import ConnectionPool
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, set_log_folder, set_logging_level
@@ -44,12 +46,22 @@ if __name__ == "__main__":
         bad_candles = [x for x in candles if x.timest == 0]
         candles = [x for x in candles if x.timest > 0]
 
+        # print "NOTHING ABOUT CANDLES AFTERWORD"
+
         trade_history = get_history_speedup(start_time, end_time, processor)
 
         trade_history = [x for x in trade_history if x.timest > start_time]
 
+        # tickers = get_ticker_speedup(end_time, processor)
+
         load_to_postgres(candles, CANDLE_TYPE_NAME, pg_conn)
         load_to_postgres(trade_history, TRADE_HISTORY_TYPE_NAME, pg_conn)
+
+        # bulk_insert_to_postgres(pg_conn, Candle.table_name, Candle.columns, candles)
+        # bulk_insert_to_postgres(pg_conn, TradeHistory.table_name, TradeHistory.columns, trade_history)
+        # bulk_insert_to_postgres(pg_conn, Ticker.table_name, Ticker.columns, tickers)
+
+        # raise
 
         if should_print_debug():
             msg = """History retrieval at {tt}:

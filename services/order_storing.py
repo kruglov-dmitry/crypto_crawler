@@ -36,4 +36,4 @@ if __name__ == "__main__":
 
         if cnt >= HEARTBEAT_TIMEOUT:
             cnt = 0
-            print_to_console("Trade storing heartbeat", LOG_ALL_ERRORS)
+            print_to_console("Order storing heartbeat", LOG_ALL_ERRORS)

@@ -1,4 +1,4 @@
-from dao.order_book_utils import get_order_book
+from dao.order_book_utils import get_order_book, is_order_book_expired
 from dao.ticker_utils import get_ticker
 from dao.deal_utils import init_deal
 from dao.dao import parse_order_id
@@ -9,7 +9,7 @@ from core.arbitrage_core import adjust_price_by_order_book, compute_min_cap_from
 
 from dao.db import update_order_details
 
-from data_access.message_queue import ORDERS_MSG, FAILED_ORDERS_MSG
+from data_access.message_queue import ORDERS_MSG, FAILED_ORDERS_MSG, DEBUG_INFO_MSG
 from data_access.priority_queue import ORDERS_EXPIRE_MSG
 
 from enums.deal_type import DEAL_TYPE
@@ -18,6 +18,7 @@ from enums.status import STATUS
 from constants import BALANCE_EXPIRED_THRESHOLD, FLOAT_POINT_PRECISION
 from debug_utils import FAILED_ORDER_PROCESSING_FILE_NAME
 from utils.time_utils import sleep_for, get_now_seconds_utc
+from utils.file_utils import log_to_file
 
 from dao.order_utils import get_open_orders_by_exchange
 from dao.order_history_utils import get_order_history_by_exchange
@@ -64,7 +65,6 @@ def process_failed_order(order, msg_queue, priority_queue, local_cache, pg_conn)
         log_trace_found_failed_order_in_history(order)
 
         update_order_details(pg_conn, order)
-        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
 
         return
 
@@ -83,57 +83,72 @@ def process_failed_order(order, msg_queue, priority_queue, local_cache, pg_conn)
     min_volume = compute_min_cap_from_ticker(order.pair_id, ticker)
     order_book = get_order_book(order.exchange_id, order.pair_id)
 
-    if order_book is not None:
+    if order_book is None:
+        msg_queue.add_order(FAILED_ORDERS_MSG, order)
 
-        orders = order_book.bid if order.trade_type == DEAL_TYPE.SELL else order_book.ask
+        log_cant_retrieve_order_book(order, msg_queue, log_file_name=FAILED_ORDER_PROCESSING_FILE_NAME)
 
-        order.price = adjust_price_by_order_book(orders, order.volume)
+        return
 
-        # Forcefully update balance for exchange - maybe other processes consume those coins
-        update_balance_by_exchange(order.exchange_id)
-        # Do we have enough coins at our balance
-        balance = local_cache.get_balance(order.exchange_id)
+    if is_order_book_expired(FAILED_ORDER_PROCESSING_FILE_NAME, order_book, local_cache, msg_queue):
 
-        if balance.expired(BALANCE_EXPIRED_THRESHOLD):
-            msg_queue.add_order(FAILED_ORDERS_MSG, order)
+        msg_queue.add_order(FAILED_ORDERS_MSG, order)
 
-            log_balance_expired(order.exchange_id, BALANCE_EXPIRED_THRESHOLD, balance, msg_queue)
+        return
 
-            assert False
+    orders = order_book.bid if order.trade_type == DEAL_TYPE.SELL else order_book.ask
 
-        max_volume = determine_maximum_volume_by_balance(order.pair_id, order.trade_type,
-                                                         order.volume, order.price,
-                                                         balance)
+    order.price = adjust_price_by_order_book(orders, order.volume)
 
-        max_volume = round_volume(order.exchange_id, max_volume, order.pair_id)
+    # Forcefully update balance for exchange - maybe other processes consume those coins
+    update_balance_by_exchange(order.exchange_id)
+    # Do we have enough coins at our balance
+    balance = local_cache.get_balance(order.exchange_id)
 
-        if max_volume < min_volume:
-            log_too_small_volume(order, max_volume, min_volume, msg_queue)
+    if balance.expired(BALANCE_EXPIRED_THRESHOLD):
+        msg_queue.add_order(FAILED_ORDERS_MSG, order)
 
-            return
+        log_balance_expired(order.exchange_id, BALANCE_EXPIRED_THRESHOLD, balance, msg_queue)
 
-        order.volume = max_volume
-        order.create_time = get_now_seconds_utc()
+        assert False
 
-        msg = "Replace FAILED order with new one - {tt}".format(tt=order)
-        err_code, json_document = init_deal(order, msg)
-        if err_code == STATUS.SUCCESS:
+    max_volume = determine_maximum_volume_by_balance(order.pair_id, order.trade_type, order.volume, order.price, balance)
 
-            order.execute_time = get_now_seconds_utc()
-            order.order_book_time = long(order_book.timest)
-            order.order_id = parse_order_id(order.exchange_id, json_document)
+    max_volume = round_volume(order.exchange_id, max_volume, order.pair_id)
 
-            msg_queue.add_order(ORDERS_MSG, order)
+    if max_volume < min_volume:
+        log_too_small_volume(order, max_volume, min_volume, msg_queue)
 
-            priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+        return
 
-            log_placing_new_deal(order, msg_queue, log_file_name=FAILED_ORDER_PROCESSING_FILE_NAME)
-        else:
-            msg_queue.add_order(FAILED_ORDERS_MSG, order)
-            log_cant_placing_new_deal(order, msg_queue, log_file_name=FAILED_ORDER_PROCESSING_FILE_NAME)
+    order.volume = max_volume
+    order.create_time = get_now_seconds_utc()
+
+    msg = "Replace FAILED order with new one - {tt}".format(tt=order)
+    err_code, json_document = init_deal(order, msg)
+
+    msg = """We have tried to replace failed order with new one:
+            {o}
+            and got response:
+            {r}
+            """.format(o=order, r=json_document)
+    msg_queue.add_message(DEBUG_INFO_MSG, msg)
+    log_to_file(msg, FAILED_ORDER_PROCESSING_FILE_NAME)
+
+    if err_code == STATUS.SUCCESS:
+
+        order.execute_time = get_now_seconds_utc()
+        order.order_book_time = long(order_book.timest)
+        order.order_id = parse_order_id(order.exchange_id, json_document)
+
+        msg_queue.add_order(ORDERS_MSG, order)
+
+        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+
+        log_placing_new_deal(order, msg_queue, log_file_name=FAILED_ORDER_PROCESSING_FILE_NAME)
     else:
         msg_queue.add_order(FAILED_ORDERS_MSG, order)
-        log_cant_retrieve_order_book(order, msg_queue, log_file_name=FAILED_ORDER_PROCESSING_FILE_NAME)
+        log_cant_placing_new_deal(order, msg_queue, log_file_name=FAILED_ORDER_PROCESSING_FILE_NAME)
 
 
 def try_to_set_order_id(open_orders, order):
@@ -153,13 +168,9 @@ def try_to_set_order_id(open_orders, order):
 
 
 def search_in_open_orders(order):
-    err_code, open_orders = get_open_orders_by_exchange(order.exchange_id, order.pair_id)
+    status_code, open_orders = get_open_orders_by_exchange(order.exchange_id, order.pair_id)
 
-    print "WHYWHYW"
-    print err_code
-    print open_orders
-
-    if err_code == STATUS.FAILURE:
+    if status_code == STATUS.FAILURE:
         log_open_orders_by_exchange_bad_result(order)
         return STATUS.FAILURE
 

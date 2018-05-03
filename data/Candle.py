@@ -18,14 +18,19 @@ from utils.time_utils import get_date_time_from_epoch
 regex_string = "\[close - (.*) exchange - (.*) exchange_id - (.*) high - (.*) low - (.*) open - (.*) pair - (.*) pair_id - (.*) timest - (.*)\]"
 regex = re.compile(regex_string)
 
-CANDLE_INSERT_QUERY = "insert into candle (pair_id, exchange_id, open, close, high, low, timest, date_time)" \
-                      " values (%s, %s, %s, %s, %s, %s, %s, %s);"
+CANDLE_TABLE_NAME = "candle"
+CANDLE_COLUMNS = ("pair_id", "exchange_id", "open", "close", "high", "low", "timest", "date_time")
+CANDLE_INSERT_QUERY = """insert into {table_name} ({columns}) values (%s, %s, %s, %s, %s, %s, %s, %s);""".format(
+    table_name=CANDLE_TABLE_NAME, columns=','.join(CANDLE_COLUMNS))
 CANDLE_TYPE_NAME = "ohlc"
 
 
 class Candle(BaseData):
     insert_query = CANDLE_INSERT_QUERY
     type = CANDLE_TYPE_NAME
+
+    table_name = CANDLE_TABLE_NAME
+    columns = CANDLE_COLUMNS
 
     def __init__(self, pair_id, timest, price_high, price_low, price_open, price_close, exchange_id):
         # FIXME NOTE - various volume data?
@@ -38,6 +43,11 @@ class Candle(BaseData):
         self.close = float(price_close)
         self.exchange_id = int(exchange_id)
         self.exchange = get_exchange_name_by_id(self.exchange_id)
+
+    def tsv(self):
+        return ("{}\t{}\t{}\t{}\t{}\t{}\t{}\t'{}'".format(
+            self.pair_id, self.exchange_id, self.open, self.close, self.high, self.low, self.timest,
+            get_date_time_from_epoch(self.timest)).decode('utf8'))
 
     def get_pg_arg_list(self):
         return (self.pair_id,

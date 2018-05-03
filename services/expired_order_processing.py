@@ -16,7 +16,6 @@ from core.expired_order import process_expired_order
 from constants import HEARTBEAT_TIMEOUT
 
 EXPIRATION_TIMEOUT = 15
-HEARTBEAT_TIMEOUT = 60
 
 
 if __name__ == "__main__":

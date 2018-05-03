@@ -1,0 +1,9 @@
+version: '2'
+
+services:
+  tarantool1:
+    image: tarantool/tarantool:1.7
+    network_mode: host 
+    volumes:
+      - /home/dima/tarantool_DB:/var/lib/tarantool
+      - /home/dima/tarantool_DB:/opt/tarantool
