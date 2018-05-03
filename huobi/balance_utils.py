@@ -32,8 +32,6 @@ def get_balance_huobi_post_details(key):
 
     msg = "GET\n{base_url}\n{path}\n{msg1}".format(base_url=HUOBI_API_ONLY, path=path, msg1=message)
 
-    print msg
-
     signature = sign_string_256_base64(key.secret, msg)
 
     body.append(("Signature", signature))
@@ -51,7 +49,7 @@ def get_balance_huobi_post_details(key):
 
 
 def get_balance_huobi_result_processor(json_document, timest):
-    if not is_error(json_document) and "data" in json_document:
+    if not is_error(json_document) and "data" in json_document and json_document["data"] is not None:
         return STATUS.SUCCESS, Balance.from_huobi(timest, json_document["data"])
 
     msg = "get_balance_huobi_result_processor - error response - {er}".format(er=json_document)
