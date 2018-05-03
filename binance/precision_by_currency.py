@@ -237,14 +237,8 @@ PRECISION_NUMBER = {
 def round_volume_by_binance_rules(volume, pair_id):
     pair_name = get_currency_pair_to_binance(pair_id)
     base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
+
     if pair_name in PRECISION_NUMBER[base_currency_id]:
         return truncate_float(volume, PRECISION_NUMBER[base_currency_id][pair_name])
-    else:
-        return volume
 
-
-def round_volume_by_precisness_binance(pair_name, volume):
-    num = PRECISION_BTC_NUMBER[pair_name]
-    format_string = ".{n}f".format(n=num)
-
-    return format(volume, format_string)
+    return volume

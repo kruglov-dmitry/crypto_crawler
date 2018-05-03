@@ -13,15 +13,18 @@ from enums.status import STATUS
 
 from utils.file_utils import log_to_file
 from utils.key_utils import sign_kraken
+from utils.time_utils import get_now_seconds_utc
 
 from constants import EMPTY_LIST
 
 
-def get_closed_orders_kraken_post_details(key, pair_name=None):
+def get_closed_orders_kraken_post_details(key, pair_name=None, time_start=0, time_end=get_now_seconds_utc()):
     final_url = KRAKEN_BASE_API_URL + KRAKEN_GET_CLOSE_ORDERS
 
     body = {
-        "nonce": generate_nonce()
+        "nonce": generate_nonce(),
+        "start": time_start,
+        "end": time_end
     }
 
     headers = {"API-Key": key.api_key, "API-Sign": sign_kraken(body, KRAKEN_GET_CLOSE_ORDERS, key.secret)}
@@ -59,9 +62,9 @@ def get_order_history_kraken_result_processor(json_document, pair_name):
     return orders
 
 
-def get_order_history_kraken(key, pair_name=None):
+def get_order_history_kraken(key, pair_name=None, time_start=0, time_end=get_now_seconds_utc()):
 
-    post_details = get_closed_orders_kraken_post_details(key, pair_name)
+    post_details = get_closed_orders_kraken_post_details(key, pair_name, time_start, time_end)
 
     err_msg = "check kraken closed orders called"
 

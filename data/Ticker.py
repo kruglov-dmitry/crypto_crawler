@@ -17,14 +17,20 @@ from utils.time_utils import get_date_time_from_epoch
 regex_string = "\[ask - (.*) bid - (.*) exchange - (.*) exchange_id - (.*) pair - (.*) pair_id - (.*) timest - (.*)\]"
 regex = re.compile(regex_string)
 
-TICKERS_INSERT_QUERY = "insert into tickers(pair_id, exchange_id, lowest_ask, highest_bid, " \
-                             "timest, date_time) values(%s, %s, %s, %s, %s, %s);"
+TICKERS_TABLE_NAME = "tickers"
+TICKERS_COLUMNS = ("pair_id", "exchange_id", "lowest_ask", "highest_bid", "timest", "date_time")
+TICKERS_INSERT_QUERY = """insert into {table_name} ({columns}) values(%s, %s, %s, %s, %s, %s);""".format(
+    table_name=TICKERS_TABLE_NAME, columns=','.join(TICKERS_COLUMNS))
+
 TICKER_TYPE_NAME = "ticker"
 
 
 class Ticker(BaseData):
     insert_query = TICKERS_INSERT_QUERY
     type = TICKER_TYPE_NAME
+
+    table_name = TICKERS_TABLE_NAME
+    columns = TICKERS_COLUMNS
 
     def __init__(self, pair_id, lowest_ask, highest_bid, timest, exchange_id):
         self.pair_id = int(pair_id)
@@ -34,6 +40,10 @@ class Ticker(BaseData):
         self.timest = long(timest)
         self.exchange_id = int(exchange_id)
         self.exchange = get_exchange_name_by_id(self.exchange_id)
+
+    def tsv(self):
+        return ("{}\t{}\t{}\t{}\t{}\t'{}'".format(
+            self.pair_id, self.exchange_id, self.ask, self.bid, self.timest, get_date_time_from_epoch(self.timest)).decode('utf8'))
 
     def get_pg_arg_list(self):
         return (self.pair_id,
