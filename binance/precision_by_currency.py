@@ -222,7 +222,7 @@ PRECISION_USDT_NUMBER = {
     "BTCUSDT": 6,
     "ETHUSDT": 5,
     "BNBUSDT": 2,
-    "BCCUSDT": 4,   # FIXME NOTE 25.04.2018 binance 5, huobi - 4
+    "BCCUSDT": 5,
     "NEOUSDT": 3,
     "LTCUSDT": 5
 }
@@ -237,22 +237,8 @@ PRECISION_NUMBER = {
 def round_volume_by_binance_rules(volume, pair_id):
     pair_name = get_currency_pair_to_binance(pair_id)
     base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
+
     if pair_name in PRECISION_NUMBER[base_currency_id]:
         return truncate_float(volume, PRECISION_NUMBER[base_currency_id][pair_name])
-    else:
-        if base_currency_id == CURRENCY.USDT:
-            """
-            # We have error in regards of  Response is {u'status': u'error', u'err-code': 
-            u'order-orderamount-precision-error', u'data': None, 
-            u'err-msg': u'order amount precision error, scale: `4`'}
-            """
-            return 4
-        else:
-            return volume
 
-
-def round_volume_by_precisness_binance(pair_name, volume):
-    num = PRECISION_BTC_NUMBER[pair_name]
-    format_string = ".{n}f".format(n=num)
-
-    return format(volume, format_string)
+    return volume
