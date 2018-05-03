@@ -9,7 +9,7 @@ FULL_COMMAND = PYTHON_INTERPETATOR + " -m services.arbitrage_between_pair"
 
 BALANCE_SCREEN_NAME = "Balance_Retrieval"
 BALANCE_WINDOW_NAME = "balance_update"
-BALANCE_UPDATE_COMMAND = PYTHON_INTERPETATOR + " -m services.balance_monitoring --cfg " + COMMON_CFG 
+BALANCE_UPDATE_COMMAND = PYTHON_INTERPETATOR + " -m services.balance_monitoring --cfg " + COMMON_CFG + " --exchange "
 BALANCE_UPDATE_DEPLOY_UNIT = DeployUnit(BALANCE_SCREEN_NAME, BALANCE_WINDOW_NAME, BALANCE_UPDATE_COMMAND)
 
 COMMON_SCREEN_NAME = "crypto"
