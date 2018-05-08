@@ -11,6 +11,7 @@ from debug_utils import get_logging_level, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME, P
 from enums.http_request import HTTP_REQUEST
 from enums.status import STATUS
 
+from profilehooks import timecall
 
 def log_responce_cant_be_parsed(work_unit, file_name):
     msg = "For url {url} response {resp} can't be parsed. Next line should be json if any. ".format(
@@ -61,9 +62,12 @@ class ConnectionPool:
         self.pool_size = pool_size
         self.network_pool = Pool(self.pool_size)
 
+    @timecall
     def async_get_from_list(self, work_units, timeout):
         res = []
 
+	print "available", self.network_pool.free_count()
+	print "Job batch size: ", len(work_units), " Pool size: ", self.pool_size
         for work_units_batch in batch(work_units, self.pool_size):
             futures = []
             for work_unit in work_units_batch:
@@ -72,14 +76,28 @@ class ConnectionPool:
                 futures.append(some_future)
             gevent.joinall(futures)
 
+	    print "Batch size: ", len(work_units_batch)
             for work_unit in work_units_batch:
                 if get_logging_level() >= LOG_ALL_DEBUG:
                     log_responce(work_unit)
                 if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
-                    res += work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
+                    some_ticker = None
+                    try:
+                        some_ticker = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
+                    except:
+                        log_to_file(work_unit.future_result.value,"mistery.log")		
+                    if some_ticker is not None:
+			if type(some_ticker) is list:
+				res += some_ticker
+			else:	
+                        	res.append(some_ticker)
+                    else:
+                        res.append(None)
+                    # res += work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
                 else:
                     log_to_file(work_unit.url, ERROR_LOG_FILE_NAME)
-            # print "NEXT ITERATION for ", work_units_batch[0].url
+            print "NEXT ITERATION for ", work_units_batch[0].url
+	print "Finished?", len(res)
         return res
 
     def async_get_to_list(self, work_units, timeout):
@@ -98,7 +116,12 @@ class ConnectionPool:
                 if get_logging_level() >= LOG_ALL_DEBUG:
                     log_responce(work_unit)
                 if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
-                    some_ticker = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
+                    some_ticker = None
+                    try:
+                        some_ticker = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
+                    except:
+                        log_to_file(work_unit.future_result.value,"mistery.log")		
+
                     if some_ticker is not None:
                         res.append(some_ticker)
                     else:

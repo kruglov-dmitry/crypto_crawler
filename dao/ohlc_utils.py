@@ -45,6 +45,8 @@ def get_ohlc_speedup(date_start, date_end, processor):
     ohlc_async_requests = []
 
     for exchange_id in EXCHANGE.values():
+	if exchange_id != EXCHANGE.KRAKEN:
+		continue
         for pair_id in CURRENCY_PAIR.values():
 
             pair_name = get_currency_pair_name_by_exchange_id(pair_id, exchange_id)
