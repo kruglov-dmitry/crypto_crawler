@@ -133,8 +133,6 @@ if __name__ == "__main__":
 
     balance_state = dummy_balance_init(timest=0, default_volume=0, default_available_volume=0)
 
-    last_order_book = {}
-
     while True:
 
         if get_now_seconds_utc() - deal_cap.last_updated > MIN_CAP_UPDATE_TIMEOUT:
@@ -174,9 +172,6 @@ if __name__ == "__main__":
                                             msg_queue=msg_queue)
 
             add_orders_to_watch_list(deal_pair, priority_queue)
-
-            last_order_book[order_book_src.exchange_id] = order_book_src
-            last_order_book[order_book_dst.exchange_id] = order_book_dst
 
             print_to_console("I am still allive! ", LOG_ALL_DEBUG)
             sleep_for(2)

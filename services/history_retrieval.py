@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
         trade_history = [x for x in trade_history if x.timest > start_time]
 
-        # tickers = get_ticker_speedup(end_time, processor)
+        tickers = get_ticker_speedup(end_time, processor)
 
         load_to_postgres(candles, CANDLE_TYPE_NAME, pg_conn)
         load_to_postgres(trade_history, TRADE_HISTORY_TYPE_NAME, pg_conn)
