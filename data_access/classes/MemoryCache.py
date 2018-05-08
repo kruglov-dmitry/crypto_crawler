@@ -49,4 +49,8 @@ class MemoryCache:
 
     def get_last_order_book(self, pair_id, exchange_id):
         key = "{}-{}".format(exchange_id, pair_id)
-        return pickle.loads(self.r.get(key))
+        value = self.r.get(key)
+        if value is None:
+            return None
+
+        return pickle.loads(value)
