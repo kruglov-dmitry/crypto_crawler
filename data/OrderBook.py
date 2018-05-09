@@ -20,17 +20,25 @@ regex = re.compile(regex_string)
 deal_array_regex_string = "price - ([0-9]*.[0-9e-]*) volume - ([0-9]*.[0-9e-]*)"
 deal_array_regex = re.compile(deal_array_regex_string)
 
-ORDER_BOOK_INSERT_QUERY = "insert into order_book(pair_id, exchange_id, timest, date_time) " \
-                          "values(%s, %s, %s, %s) RETURNING id;"
 ORDER_BOOK_TYPE_NAME = "order_book"
 
 ORDER_BOOK_INSERT_BIDS = "insert into order_book_bid(order_book_id, price, volume) values (%s, %s, %s);"
 ORDER_BOOK_INSERT_ASKS = "insert into order_book_ask(order_book_id, price, volume) values (%s, %s, %s);"
 
+ORDER_BOOK_TABLE_NAME = "order_book"
+ORDER_BOOK_COLUMNS = ("pair_id", "exchange_id", "timest", "date_time")
+ORDER_BOOK_INSERT_QUERY = """insert into {table_name} ({columns}) values(%s, %s, %s, %s) returning id;""".format(
+    table_name=ORDER_BOOK_TABLE_NAME, columns=','.join(ORDER_BOOK_COLUMNS))
+
+TICKER_TYPE_NAME = "ticker"
+
 
 class OrderBook(BaseData):
     insert_query = ORDER_BOOK_INSERT_QUERY
     type = ORDER_BOOK_TYPE_NAME
+
+    table_name = ORDER_BOOK_TABLE_NAME
+    columns = ORDER_BOOK_COLUMNS
 
     def __init__(self, pair_id, timest, ask_bids, sell_bids, exchange_id):
         # FIXME NOTE - various volume data?
