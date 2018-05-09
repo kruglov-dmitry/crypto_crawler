@@ -20,12 +20,17 @@ def log_responce_cant_be_parsed(work_unit, file_name=None):
     except:
         pass
 
+    responce_code = ""
+    try:
+	responce_code = work_unit.future_result.value.status_code
+    except:
+	pass
+
     msg = """   ERROR
     For url {url} Response {resp} can't be parsed.
-    HTTP Responce code: {hc}
-    JSON Data if any: {js} 
-    """.format(url=work_unit.url, resp=work_unit.future_result.value, hc=work_unit.future_result.value.status_code,
-               js=json_responce)
+    HTTP Responce code, if any: {hc}
+    JSON Data, if any: {js} 
+    """.format(url=work_unit.url, resp=work_unit.future_result.value, hc=responce_code, js=json_responce)
     log_to_file(msg, ERROR_LOG_FILE_NAME)
 
     if file_name is not None:
