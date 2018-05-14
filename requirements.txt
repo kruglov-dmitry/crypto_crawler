@@ -6,3 +6,7 @@ redis
 gevent
 # fast progress bar
 tqdm
+# huobi\poloniex\binance
+websocket
+# bittrex websocket subscription
+signalr-client
