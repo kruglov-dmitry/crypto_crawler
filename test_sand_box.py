@@ -697,4 +697,59 @@ def test_pool():
 	    futures.append(processor.network_pool.spawn(heavy_load))
 	gevent.joinall(futures)
 
-test_pool()
+def compare_order_book():
+    from huobi.order_book_utils import get_order_book_huobi
+    import time
+    from websocket import create_connection
+    import zlib
+    from huobi.currency_utils import get_currency_pair_to_huobi
+    from utils.file_utils import log_to_file
+    from data.OrderBook import OrderBook
+    import json
+
+    ws = None
+
+
+    for pair_id in [CURRENCY_PAIR.BTC_TO_ETH]:
+        pair_name = get_currency_pair_to_huobi(pair_id)
+        if pair_name is None:
+            print pair_id
+            continue
+        now_time = get_now_seconds_utc()
+        order_book1 = get_order_book_huobi(pair_name, now_time)
+	log_to_file(order_book1,"rest_api.txt")
+
+	tradeStr="""{"sub": "market.ethbtc.depth.step0","id": "id10"}"""
+	# tradeStr="""{{'sub': 'market.{pp}.depth.step0','id': 'id10'}}""".format(pp=pair_name)
+
+        while(1):
+	    try:
+	        ws = create_connection("wss://api.huobipro.com/ws")
+	        break
+            except:
+	        print('connect ws error,retry...')
+	        time.sleep(5)
+        def process_result(result,tradeStr):
+            result=zlib.decompress(compressData, 16+zlib.MAX_WBITS).decode('utf-8')
+            if result[:7] == '{"ping"':
+	        ts=result[8:21]
+	        pong='{"pong":'+ts+'}'
+	        ws.send(pong)
+	        ws.send(tradeStr)
+            return result
+
+	ws.send(tradeStr)
+	compressData=ws.recv()
+	print "CONFIRMATION OF SUBSCRIPTION:", process_result(compressData, tradeStr)
+	
+	while True:
+	    compressData=ws.recv()
+	    json_repr = process_result(compressData, tradeStr)
+	    print "DELTA?", json_repr 
+	    if "ping" not in json_repr:
+		json_repr = json.loads(json_repr)
+	        order_book2 = OrderBook.from_huobi(json_repr["tick"], pair_name,get_now_seconds_utc())
+	        log_to_file(order_book2,"socket_api.txt")
+                break
+
+compare_order_book()
