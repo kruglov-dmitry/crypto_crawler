@@ -1,5 +1,5 @@
 from requests import Session
-from bittrex.socket_api import WebSocketConnection
+from signalr import Connection
 
 from websocket import create_connection
 import zlib
@@ -7,34 +7,109 @@ import websocket
 import time
 import ssl
 
+import thread
+import json
+
+from zlib import decompress, MAX_WBITS
+from json import loads
+from base64 import b64decode
+
+
+class WebSocket:
+    def __init__(self, exchange_id, base_url, method_decode_message):
+        self.base_url = base_url
+        self.callback = method_decode_message
+        self.exchange_id = exchange_id
+
+    def set_order_book(self, src_order_book, dst_order_book):
+        self.src_order_book = src_order_book
+        self.dst_order_book = dst_order_book
+
+    def subscribe(self, pair_id):
+        # by default follow binance solution:
+        # get get_order_book
+        self.src_order_book = (pair_id)
+        # subscribe to feed
+        #   HOW: validate that order book is updating?
+        # init phase finished - need some signal for that
+
+    def on_recieve(self, msg):
+        # exchange_specific preprocessing
+
+        # order book update
+        self.src_order_book += 1
+
+        if False:
+            # init order placement
+            pass
+
+
+def sketch():
+
+    from enums.exchange import EXCHANGE
+
+    def my_print(w):
+        print w
+
+    ws1 = WebSocket("https://socket.bittrex.com/signalr", EXCHANGE.BITTREX, my_print)
+    ws2 = WebSocket("wss://api2.poloniex.com/", EXCHANGE.POLONIEX, my_print)
+
+    pair_id = None
+
+    ws1.subscribe(pair_id)
+    ws2.subscribe(pair_id)
+
 
 def test_bittrex():
-    with Session() as session:
-        session.auth = HTTPBasicAuth("known", "user")
-        connection = WebSocketConnection("http://localhost:5000/signalr", session)
-        chat = connection.register_hub('chat')
+    def process_message(message):
+        deflated_msg = decompress(b64decode(message), -MAX_WBITS)
+        return loads(deflated_msg.decode())
 
-        def print_received_message(data):
-            print('received: ', data)
+    def on_receive(**kwargs):
+        print "on_receive", kwargs
+        if 'R' in kwargs and type(kwargs['R']) is not bool:
+            msg = process_message(kwargs['R'])
+            if msg is not None:
+                print msg
 
-        def print_topic(topic, user):
-            print('topic: ', topic, user)
+    def on_public(args):
+        print "on_public", args
+        msg = process_message(args)
+        if msg is not None:
+            print msg
 
-        def print_error(error):
-            print('error: ', error)
+    def on_private(args):
+        # print 100
+        pass
 
-        chat.client.on('newMessageReceived', print_received_message)
-        chat.client.on('topicChanged', print_topic)
+    # create error handler
+    def print_error(error):
+        print('error: ', error)
 
-        connection.error += print_error
+    def main():
+        with Session() as session:
+            connection = Connection("https://socket.bittrex.com/signalr", session)
+            hub = connection.register_hub('c2')
 
-        with connection:
-            chat.server.invoke('send', 'Python is here')
-            chat.server.invoke('setTopic', 'Welcome python!')
-            chat.server.invoke('requestError')
-            chat.server.invoke('send', 'Bye-bye!')
+            connection.received += on_receive
 
-            connection.wait(1)
+            hub.client.on(BittrexParameters.MARKET_DELTA, on_public)
+            hub.client.on(BittrexParameters.SUMMARY_DELTA, on_public)
+            hub.client.on(BittrexParameters.SUMMARY_DELTA_LITE, on_public)
+            hub.client.on(BittrexParameters.BALANCE_DELTA, on_private)
+            hub.client.on(BittrexParameters.ORDER_DELTA, on_private)
+
+            connection.error += print_error
+
+            connection.start()
+
+            hub.server.invoke("QueryExchangeState", "BTC-ETH")
+            connection.wait(10)
+
+            # with connection:
+            while connection.started:
+                hub.server.invoke("SubscribeToExchangeDeltas", "BTC-ETH")
+
 
 def test_huobi():
     def process_result(result):
@@ -63,6 +138,7 @@ def test_huobi():
     while(1):
         compressData=ws.recv()
         print "DELTA?", process_result(compressData)
+
 
 def test_binance():
     def on_message(ws, message):
@@ -96,6 +172,39 @@ def test_binance():
     # ws.run_forever()
     ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
+
+def test_poloinex():
+    def on_message(ws, message):
+        print(message)
+
+    def on_error(ws, error):
+        print(error)
+
+    def on_close(ws):
+        print("### closed ###")
+
+    def on_open(ws):
+        print("ONOPEN")
+
+        def run(*args):
+            ws.send(json.dumps({'command': 'subscribe', 'channel': 1001}))
+            ws.send(json.dumps({'command': 'subscribe', 'channel': 1002}))
+            ws.send(json.dumps({'command': 'subscribe', 'channel': 1003}))
+            ws.send(json.dumps({'command': 'subscribe', 'channel': 'BTC_ETH'}))
+            while True:
+                time.sleep(1)
+            ws.close()
+            print("thread terminating...")
+
+        thread.start_new_thread(run, ())
+
+    websocket.enableTrace(True)
+    ws = websocket.WebSocketApp("wss://api2.poloniex.com/",
+                              on_message = on_message,
+                              on_error = on_error,
+                              on_close = on_close)
+    ws.on_open = on_open
+    ws.run_forever()
 
 if __name__ == "__main__":
     pass
