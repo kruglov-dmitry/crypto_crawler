@@ -8,3 +8,7 @@ gevent
 tqdm
 # process spawning
 subprocess32
+# huobi\poloniex\binance
+websocket
+# bittrex websocket subscription
+signalr-client

@@ -21,6 +21,7 @@ from huobi.ticker_utils import get_ticker_huobi, get_ticker_huobi_url, get_ticke
 
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from utils.time_utils import get_now_seconds_utc
+from constants import HTTP_TIMEOUT_SECONDS
 
 
 def get_ticker_constructor_by_exchange_id(exchange_id):
@@ -58,7 +59,7 @@ def get_ticker_speedup(timest, processor):
 
             ohlc_async_requests.append(WorkUnit(request_url, constructor, pair_name, timest))
 
-    async_results = processor.process_async_to_list(ohlc_async_requests, timeout=15)
+    async_results = processor.process_async_to_list(ohlc_async_requests, timeout=HTTP_TIMEOUT_SECONDS)
 
     async_results += get_tickers_poloniex(POLONIEX_CURRENCY_PAIRS, timest)
     async_results += get_tickers_binance(BINANCE_CURRENCY_PAIRS, timest)

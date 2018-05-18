@@ -9,6 +9,7 @@ from enums.status import STATUS
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
 from utils.file_utils import log_to_file
+from utils.time_utils import get_now_seconds_utc_ms
 
 
 def get_ohlc_kraken_url(currency, date_start, date_end, period):
@@ -36,6 +37,8 @@ def get_ohlc_kraken_result_processor(json_responce, currency, date_start, date_e
         # [1500874200,"0.00007056","0.00007071","0.00007006","0.00007007","0.00007041","90031.72579746",33],
         for record in json_responce["result"][currency]:
             result_set.append(Candle.from_kraken(record, currency))
+
+    log_to_file(json_responce["result"], currency + str(get_now_seconds_utc_ms()))
 
     return result_set
 
