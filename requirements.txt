@@ -6,3 +6,5 @@ redis
 gevent
 # fast progress bar
 tqdm
+# process spawning
+subprocess32
