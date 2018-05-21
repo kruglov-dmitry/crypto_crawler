@@ -15,33 +15,7 @@ from json import loads
 from base64 import b64decode
 
 
-class WebSocket:
-    def __init__(self, exchange_id, base_url, method_decode_message):
-        self.base_url = base_url
-        self.callback = method_decode_message
-        self.exchange_id = exchange_id
 
-    def set_order_book(self, src_order_book, dst_order_book):
-        self.src_order_book = src_order_book
-        self.dst_order_book = dst_order_book
-
-    def subscribe(self, pair_id):
-        # by default follow binance solution:
-        # get get_order_book
-        self.src_order_book = (pair_id)
-        # subscribe to feed
-        #   HOW: validate that order book is updating?
-        # init phase finished - need some signal for that
-
-    def on_recieve(self, msg):
-        # exchange_specific preprocessing
-
-        # order book update
-        self.src_order_book += 1
-
-        if False:
-            # init order placement
-            pass
 
 
 def sketch():
