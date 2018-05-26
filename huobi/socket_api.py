@@ -23,8 +23,7 @@ def default_on_public(args):
 
 
 class SubscriptionHuobi:
-    def __init__(self, pair_id, base_url=HuobiParameters.URL,
-                 on_update=default_on_public):
+    def __init__(self, pair_id, on_update=default_on_public, base_url=HuobiParameters.URL):
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points

@@ -60,8 +60,8 @@ def default_on_error(error):
 
 
 class SubscriptionBittrex:
-    def __init__(self, pair_id, base_url=BittrexParameters.URL, hub_name=BittrexParameters.HUB,
-                 on_receive=default_on_receive, on_error=default_on_error, on_update=default_on_public):
+    def __init__(self, pair_id, on_update=default_on_public, base_url=BittrexParameters.URL,
+                 hub_name=BittrexParameters.HUB, on_receive=default_on_receive, on_error=default_on_error):
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points

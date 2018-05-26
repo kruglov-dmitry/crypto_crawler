@@ -34,8 +34,7 @@ def on_close(ws):
 
 
 class SubscriptionPoloniex:
-    def __init__(self, pair_id, base_url=PoloniexParameters.URL,
-                 on_update=default_on_public):
+    def __init__(self, pair_id, on_update=default_on_public, base_url=PoloniexParameters.URL):
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points

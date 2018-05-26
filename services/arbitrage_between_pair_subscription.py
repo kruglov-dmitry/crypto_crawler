@@ -22,6 +22,7 @@ from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG, set_log
     CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME, set_log_folder
 
 from enums.deal_type import DEAL_TYPE
+from enums.exchange import EXCHANGE
 
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from utils.exchange_utils import get_exchange_name_by_id
@@ -32,12 +33,26 @@ from utils.time_utils import get_now_seconds_utc, sleep_for
 from logging_tools.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors, \
     log_failed_to_retrieve_order_book, log_dublicative_order_book
 
-from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD, MIN_CAP_UPDATE_TIMEOUT
+from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD
 
 from deploy.classes.CommonSettings import CommonSettings
 
+from huobi.socket_api import SubscriptionHuobi
+from bittrex.socket_api import SubscriptionBittrex
+from binance.socket_api import SubscriptionBinance
+from poloniex.socket_api import SubscriptionPoloniex
+
 
 import threading
+
+
+def get_subcribtion_by_exchange(exchange_id):
+    return {
+        EXCHANGE.POLONIEX: SubscriptionPoloniex,
+        EXCHANGE.HUOBI: SubscriptionHuobi,
+        EXCHANGE.BINANCE: SubscriptionBinance,
+        EXCHANGE.BITTREX: SubscriptionBittrex
+    }[exchange_id]
 
 
 class ArbitrageListener:
@@ -51,7 +66,6 @@ class ArbitrageListener:
         self.reverse_threshold = cfg.reverse_threshold
         self.balance_threshold = cfg.balance_threshold
 
-        # FIXME NOTE - not present commands
         self.cap_update_timeout = cfg.cap_update_timeout
         self.balance_update_timeout = cfg.balance_update_timeout
 
@@ -61,12 +75,10 @@ class ArbitrageListener:
 
         self.processor = ConnectionPool(pool_size=2)
 
-
         # Should be updated by method below
         self.deal_cap = None
         self.balance_state = None
         self.order_book_src, self.order_book_dst = None, None
-
 
         self.init_deal_cap()
         self.init_balance_state()
@@ -80,9 +92,6 @@ class ArbitrageListener:
 
         #
         self.subsribe_to_order_book_update()
-
-
-
 
     def init_deal_cap(self):
         self.deal_cap = MarketCap(cfg.pair_id, get_now_seconds_utc())
@@ -140,12 +149,20 @@ class ArbitrageListener:
         # for both exchanges
         # Question 1 - selection of method for subscriptions
         # Question 2 - synchronisation of order book <<?>>
-        pass
 
-    def on_order_book_update(self):
+        buy_subscription_constructor = get_subcribtion_by_exchange(self.buy_exchange_id)
+        sell_subscription_constructor = get_subcribtion_by_exchange(self.sell_exchange_id)
+
+        buy_subscription_constructor(self.pair_id, self.on_order_book_update)
+        sell_subscription_constructor(self.pair_id, self.on_order_book_update)
+
+    def on_order_book_update(self, exchange_id, order_book_delta):
         # update order book first
 
+        print "on_order_book_update"
+        print exchange_id, order_book_delta
 
+        """
         for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
 
             method = search_for_arbitrage if mode_id == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
@@ -164,29 +181,7 @@ class ArbitrageListener:
             add_orders_to_watch_list(deal_pair, self.priority_queue)
 
         self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
-
-
-def is_order_books_expired(order_book_src, order_book_dst, local_cache, msg_queue):
-
-    for order_book in [order_book_src, order_book_dst]:
-        prev_order_book = local_cache.get_last_order_book(order_book.pair_id, order_book.exchange_id)
-
-        if prev_order_book is None:
-            continue
-
-        total_asks = len(order_book.ask)
-        number_of_same_asks = len(set(order_book.ask).intersection(prev_order_book.ask))
-
-        total_bids = len(order_book.bid)
-        number_of_same_bids = len(set(order_book.bid).intersection(prev_order_book.bid))
-
-        if total_asks == number_of_same_asks or total_bids == number_of_same_bids:
-            # FIXME NOTE: probably we can loose a bit this condition - for example check that order book
-            # should differ for more than 10% of bids OR asks ?
-            log_dublicative_order_book(cfg.log_file_name, order_book, prev_order_book, msg_queue)
-            return True
-
-    return False
+        """
 
 
 if __name__ == "__main__":
@@ -217,12 +212,6 @@ if __name__ == "__main__":
     set_logging_level(app_settings.logging_level_id)
     set_log_folder(app_settings.log_folder)
     load_keys(app_settings.key_path)
-
-    priority_queue = get_priority_queue(host=app_settings.cache_host, port=app_settings.cache_port)
-    msg_queue = get_message_queue(host=app_settings.cache_host, port=app_settings.cache_port)
-    local_cache = get_cache(host=app_settings.cache_host, port=app_settings.cache_port)
-
-    processor = ConnectionPool(pool_size=2)
 
     # to avoid time-consuming check in future - validate arguments here
     for exchange_id in [results.sell_exchange_id, results.buy_exchange_id]:
