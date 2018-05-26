@@ -61,6 +61,13 @@ class ArbitrageListener:
 
         self.processor = ConnectionPool(pool_size=2)
 
+
+        # Should be updated by method below
+        self.deal_cap = None
+        self.balance_state = None
+        self.order_book_src, self.order_book_dst = None, None
+
+
         self.init_deal_cap()
         self.init_balance_state()
 
@@ -73,6 +80,9 @@ class ArbitrageListener:
 
         #
         self.subsribe_to_order_book_update()
+
+
+
 
     def init_deal_cap(self):
         self.deal_cap = MarketCap(cfg.pair_id, get_now_seconds_utc())
@@ -133,6 +143,9 @@ class ArbitrageListener:
         pass
 
     def on_order_book_update(self):
+        # update order book first
+
+
         for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
 
             method = search_for_arbitrage if mode_id == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
