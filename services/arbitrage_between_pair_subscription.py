@@ -42,7 +42,7 @@ from bittrex.socket_api import SubscriptionBittrex
 from binance.socket_api import SubscriptionBinance
 from poloniex.socket_api import SubscriptionPoloniex
 
-
+import thread
 import threading
 
 
@@ -128,7 +128,7 @@ class ArbitrageListener:
 
     def init_order_books(self):
         cur_timest_sec = get_now_seconds_utc()
-        self.order_book_src, self.order_book_dst = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec, processor)
+        self.order_book_src, self.order_book_dst = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec, self.processor)
 
     def subscribe_cap_update(self):
         self.update_min_cap()
@@ -153,14 +153,25 @@ class ArbitrageListener:
         buy_subscription_constructor = get_subcribtion_by_exchange(self.buy_exchange_id)
         sell_subscription_constructor = get_subcribtion_by_exchange(self.sell_exchange_id)
 
-        buy_subscription_constructor(self.pair_id, self.on_order_book_update)
-        sell_subscription_constructor(self.pair_id, self.on_order_book_update)
+	threads = []
+
+        buy_subscription = buy_subscription_constructor(self.pair_id, self.on_order_book_update)
+	# thread.start_new_thread(buy_subscription.subscribe, ())
+	# t1 = threading.Thread(target=buy_subscription.subscribe)
+
+        sell_subscription = sell_subscription_constructor(self.pair_id, self.on_order_book_update)
+	thread.start_new_thread(sell_subscription.subscribe, ())
+	# t2 = threading.Thread(target=sell_subscription.subscribe)
+
+	# t1.start()
+	# t2.start()
 
     def on_order_book_update(self, exchange_id, order_book_delta):
         # update order book first
 
-        print "on_order_book_update"
+        print "on_order_book_update", thread.get_ident()
         print exchange_id, order_book_delta
+	# print self.order_book_src, self.order_book_dst
 
         """
         for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:

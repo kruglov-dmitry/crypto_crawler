@@ -4,6 +4,7 @@ import time
 import thread
 
 from poloniex.currency_utils import get_currency_pair_to_poloniex
+from enums.exchange import EXCHANGE
 
 
 def process_message(compressData):
@@ -64,12 +65,11 @@ class SubscriptionPoloniex:
             ws.close()
             print("thread terminating...")
 
-        thread.start_new_thread(run, ws)
+        thread.start_new_thread(run, (ws,))
 
-    def on_public(self, args):
-        print "on_public", args
+    def on_public(self, ws, args):
         msg = process_message(args)
-        self.on_update(msg)
+        self.on_update(EXCHANGE.POLONIEX, msg)
 
     def subscribe(self):
         websocket.enableTrace(True)

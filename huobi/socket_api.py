@@ -5,6 +5,7 @@ import zlib
 import uuid
 
 from huobi.currency_utils import get_currency_pair_to_huobi
+from enums.exchange import EXCHANGE
 
 
 def process_message(compressData):
@@ -13,7 +14,7 @@ def process_message(compressData):
 
 class HuobiParameters:
     URL = "wss://api.huobipro.com/ws"
-    SUBSCRIPTION_STRING = """{"sub": "market.{pair_name}.depth.step0","id": "{uuid_id}"}"""
+    SUBSCRIPTION_STRING = """{{"sub": "market.{pair_name}.depth.step0","id": "{uuid_id}"}}"""
 
 
 def default_on_public(args):
@@ -43,20 +44,37 @@ class SubscriptionHuobi:
 
         self.on_update = on_update
 
-    def on_public(self, args):
-        print "on_public", args
+    def on_public(self, ws, args):
         msg = process_message(args)
-        self.on_update(msg)
+        self.on_update(EXCHANGE.HUOBI, msg)
+    
+    def on_error(self, ws, error):
+	print error
+	self.subscribe()
+    
+    def on_close(self, ws):
+        print("### closed ###")
+    
+    def on_open(self, ws):
+        print("ONOPEN")
+	ws.send(self.subscription_url)
+        compressData=ws.recv()
+        print "CONFIRMATION OF SUBSCRIPTION:", process_message(compressData)
 
     def subscribe(self):
         websocket.enableTrace(True)
-        ws = websocket.WebSocketApp(HuobiParameters.URL + self.subscription_url)
+        ws = websocket.WebSocketApp(HuobiParameters.URL,
+                                    on_message=self.on_public,
+                                    on_error=self.on_error,
+                                    on_close=self.on_close)
+        ws.on_open = self.on_open
+        # ws = websocket.WebSocketApp(HuobiParameters.URL + self.subscription_url)
 
-        ws.on_message = self.on_public
+        # ws.on_message = self.on_public
 
-        ws.on_error = self.subscribe
+        # ws.on_error = self.subscribe
 
-        ws.on_close = default_on_public
-        ws.on_open = default_on_public
+        # ws.on_close = default_on_public
+        # ws.on_open = default_on_public
 
         ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})

@@ -1,6 +1,7 @@
 import websocket
 
 from binance.currency_utils import get_currency_pair_to_binance
+from enums.exchange import EXCHANGE
 
 
 def process_message(compressData):
@@ -14,9 +15,9 @@ class BinanceParameters:
 
 
 def default_on_public(args):
-    print "on_public", args
+    # print "on_public", args
     msg = process_message(args)
-    print msg
+    # print msg
 
 
 class SubscriptionBinance:
@@ -34,7 +35,7 @@ class SubscriptionBinance:
         self.url = base_url
 
         self.pair_id = pair_id
-        self.pair_name = get_currency_pair_to_binance(self.pair_id)
+        self.pair_name = get_currency_pair_to_binance(self.pair_id).lower()
 
         self.subscription_url = BinanceParameters.SUBSCRIBE_UPDATE.format(pair_name=self.pair_name)
 
@@ -43,17 +44,22 @@ class SubscriptionBinance:
     def on_open(self, ws):
         print("ONOPEN")
 
-    def on_close(ws):
+    def on_close(self, ws):
         print("### closed ###")
 
-    def on_public(self, args):
-        print "on_public", args
+    def on_public(self, ws, args):
         msg = process_message(args)
-        self.on_update(msg)
+        self.on_update(EXCHANGE.BINANCE, msg)
+
+    def on_error(self, ws, error):
+	print error
+	self.subscribe()
 
     def subscribe(self):
-        websocket.enableTrace(True)
-        ws = websocket.WebSocketApp(BinanceParameters.URL+self.subscription_url,
+        # websocket.enableTrace(True)
+	final_url = BinanceParameters.URL+self.subscription_url
+	print final_url
+        ws = websocket.WebSocketApp(final_url,
                                     on_message=self.on_public,
                                     on_error=self.subscribe,
                                     on_close=self.on_close)

@@ -10,6 +10,8 @@ import hmac
 
 from bittrex.currency_utils import get_currency_pair_to_bittrex
 
+from enums.exchange import EXCHANGE
+
 
 class BittrexParameters:
     # Connection parameters
@@ -38,16 +40,16 @@ def process_message(message):
 
 
 def default_on_receive(**kwargs):
-    print "on_receive", kwargs
+    # print "on_receive", kwargs
     if 'R' in kwargs and type(kwargs['R']) is not bool:
         msg = process_message(kwargs['R'])
-        print msg
+        # print msg
 
 
 def default_on_public(args):
-    print "on_public", args
+    # print "on_public", args
     msg = process_message(args)
-    print msg
+    # print msg
 
 
 def default_on_private(args):
@@ -88,7 +90,7 @@ class SubscriptionBittrex:
     def on_public(self, args):
         print "on_public", args
         msg = process_message(args)
-        self.on_update(msg)
+        self.on_update(EXCHANGE.BITTREX, msg)
 
     def subscribe(self):
         with Session() as session:
