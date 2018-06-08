@@ -5,7 +5,7 @@ from bittrex.currency_utils import get_currency_pair_from_bittrex
 from kraken.currency_utils import get_currency_pair_from_kraken
 from poloniex.currency_utils import get_currency_pair_from_poloniex
 from binance.currency_utils import get_currency_pair_from_binance
-from huobi.currency_utils import get_currency_pair_from_huobi
+from huobi.currency_utils import get_currency_pair_to_huobi, get_currency_pair_from_huobi
 
 from BaseData import BaseData
 from Deal import Deal
@@ -14,7 +14,7 @@ from enums.exchange import EXCHANGE
 from enums.deal_type import DEAL_TYPE
 
 from utils.exchange_utils import get_exchange_name_by_id
-from utils.time_utils import get_now_seconds_utc, get_date_time_from_epoch
+from utils.time_utils import get_now_seconds_utc_ms, get_date_time_from_epoch
 from utils.file_utils import log_to_file
 
 from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
@@ -213,7 +213,7 @@ class OrderBook(BaseData):
 
         pair_id = get_currency_pair_from_huobi(pair_name)
 
-        sequence_id = long(json_document["id"])
+        sequence_id = long(json_document["version"])
 
         return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.HUOBI, sequence_id)
 
@@ -313,7 +313,11 @@ class OrderBook(BaseData):
         # We suppose that bid and ask are sorted in particular order:
         # for bids - highest - first
         # for asks - lowest - first
-        delta = order_book_delta[3]
+	
+	if len(order_book_delta) < 3:
+		return
+
+        delta = order_book_delta[2]
         for entry in delta:
             if entry[0] == POLONIEX_ORDER:
                 new_deal = Deal(entry[2], entry[3])
@@ -325,7 +329,6 @@ class OrderBook(BaseData):
                 else:
                     msg = "Poloniex socket update parsing - {wtf} total: {ttt}".format(wtf=entry, ttt=order_book_delta)
                     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                    raise
             elif entry[0] == POLONIEX_TRADE:
 
                 # FIXME NOTE:   this is ugly hack to avoid creation of custom objects
@@ -562,50 +565,67 @@ class OrderBook(BaseData):
         asks = order_book_delta["a"]
         bids = order_book_delta["b"]
 
+	# print 10
+
         for a in asks:
             new_deal = Deal(a[0], a[1])
             if new_deal.volume > 0:  # Add
                 # Update whatever was there
+		# print 101
                 bisect.insort_left(self.ask, new_deal)
+		# print 102
             else:
                 item_insert_point = bisect.bisect(self.ask, new_deal)
                 is_present = self.ask[item_insert_point - 1:item_insert_point] == [new_deal]
                 if is_present:
+		    # print 103
                     del self.ask[item_insert_point - 1]
+		    # print 104
                 else:
                     msg = "BINANCE socket CANT FIND IN ASK update {wtf}".format(wtf=new_deal)
                     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+	
+	# print 1000
 
         for a in bids:
             new_deal = Deal(a[0], a[1])
             if new_deal.volume > 0:  # Add
                 # Update whatever was there
+		# print 1001
                 bisect.insort_left(self.bid, new_deal)
+		# print 1002
             else:
                 item_insert_point = bisect.bisect(self.bid, new_deal)
                 is_present = self.bid[item_insert_point - 1:item_insert_point] == [new_deal]
                 if is_present:
+		    # print 1003
                     del self.bid[item_insert_point - 1]
+		    # print 1004
                 else:
                     msg = "BINANCE socket CANT FIND IN BID update {wtf}".format(wtf=new_deal)
                     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
+	# print 10000	
+
+
     def update_for_huobi(self, order_book_delta):
+        if "tick" in order_book_delta:
+            import copy
+            from utils.time_utils import get_now_seconds_utc
 
-        import json     # FIXME move to another?
-        import copy
-        from utils.time_utils import get_now_seconds_utc
+	    pair_name = get_currency_pair_to_huobi(self.pair_id)
 
-        json_repr = json.loads(order_book_delta)
-        order_book2 = OrderBook.from_huobi(json_repr["tick"], self.pair_name, get_now_seconds_utc())
+            order_book2 = OrderBook.from_huobi(order_book_delta["tick"], pair_name, get_now_seconds_utc())
 
-        # FIXME NOTE - anything else except bid\ask ???
+            # FIXME NOTE - anything else except bid\ask ???
 
-        self.ask = copy.deepcopy(order_book2.ask)
-        self.bid = copy.deepcopy(order_book2.bid)
+            self.ask = copy.deepcopy(order_book2.ask)
+            self.bid = copy.deepcopy(order_book2.bid)
+        else:
+            print "update for huobi: ", order_book_delta
 
     def update(self, exchange_id, order_book_delta):
-	ts = str(get_now_seconds_utc())
+	ts = str(get_now_seconds_utc_ms())
 	e_name = get_exchange_name_by_id(exchange_id)
 	file_name = e_name + "_" + ts + "_before.txt"
         log_to_file(self, file_name)

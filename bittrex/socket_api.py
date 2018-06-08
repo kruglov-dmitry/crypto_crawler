@@ -88,7 +88,7 @@ class SubscriptionBittrex:
         self.hub = None
 
     def on_public(self, args):
-        print "on_public", args
+        # print "on_public", args
         msg = process_message(args)
         self.on_update(EXCHANGE.BITTREX, msg)
 

@@ -1,3 +1,4 @@
+from json import loads
 import websocket
 import ssl
 
@@ -9,7 +10,7 @@ from enums.exchange import EXCHANGE
 
 
 def process_message(compressData):
-    return zlib.decompress(compressData, 16 + zlib.MAX_WBITS).decode('utf-8')
+    return loads(zlib.decompress(compressData, 16 + zlib.MAX_WBITS))
 
 
 class HuobiParameters:
@@ -46,6 +47,7 @@ class SubscriptionHuobi:
 
     def on_public(self, ws, args):
         msg = process_message(args)
+	
         self.on_update(EXCHANGE.HUOBI, msg)
     
     def on_error(self, ws, error):
@@ -54,12 +56,13 @@ class SubscriptionHuobi:
     
     def on_close(self, ws):
         print("### closed ###")
+	self.subscribe()
     
     def on_open(self, ws):
         print("ONOPEN")
 	ws.send(self.subscription_url)
-        compressData=ws.recv()
-        print "CONFIRMATION OF SUBSCRIPTION:", process_message(compressData)
+        #  compressData=ws.recv()
+        #  print "CONFIRMATION OF SUBSCRIPTION:", process_message(compressData)
 
     def subscribe(self):
         websocket.enableTrace(True)

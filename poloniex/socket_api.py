@@ -1,3 +1,4 @@
+from json import loads
 import websocket
 import json
 import time
@@ -8,7 +9,7 @@ from enums.exchange import EXCHANGE
 
 
 def process_message(compressData):
-    return compressData
+    return loads(compressData)
 
 
 class PoloniexParameters:

@@ -128,7 +128,7 @@ class ArbitrageListener:
 
     def init_order_books(self):
         cur_timest_sec = get_now_seconds_utc()
-        self.order_book_buy, self.order_book_sell = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec, self.processor)
+        self.order_book_sell, self.order_book_buy = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec, self.processor)
 
         self.order_book_buy.sort_by_price()
         self.order_book_sell.sort_by_price()
@@ -153,23 +153,24 @@ class ArbitrageListener:
         # Question 1 - selection of method for subscriptions
         # Question 2 - synchronisation of order book <<?>>
 
+        print "subscription BUY: ",  get_exchange_name_by_id(self.buy_exchange_id), " SELL: ", get_exchange_name_by_id(self.sell_exchange_id)
+
         buy_subscription_constructor = get_subcribtion_by_exchange(self.buy_exchange_id)
         sell_subscription_constructor = get_subcribtion_by_exchange(self.sell_exchange_id)
 
-        buy_subscription = buy_subscription_constructor(self.pair_id, self.on_order_book_update)
-        thread.start_new_thread(buy_subscription.subscribe, ())
+        # buy_subscription = buy_subscription_constructor(self.pair_id, self.on_order_book_update)
+        # thread.start_new_thread(buy_subscription.subscribe, ())
 
         sell_subscription = sell_subscription_constructor(self.pair_id, self.on_order_book_update)
         thread.start_new_thread(sell_subscription.subscribe, ())
 
     def on_order_book_update(self, exchange_id, order_book_delta):
-        print "on_order_book_update", thread.get_ident()
-        print exchange_id, order_book_delta
+        print "on_order_book_update for",  get_exchange_name_by_id(exchange_id), " thread_id: ",  thread.get_ident()
+        # print exchange_id, order_book_delta
         if exchange_id == self.buy_exchange_id:
             self.order_book_buy.update(exchange_id, order_book_delta)
         else:
             self.order_book_sell.update(exchange_id, order_book_delta)
-
 
         """
         for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:

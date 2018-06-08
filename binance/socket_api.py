@@ -1,3 +1,4 @@
+from json import loads
 import websocket
 
 from binance.currency_utils import get_currency_pair_to_binance
@@ -5,7 +6,7 @@ from enums.exchange import EXCHANGE
 
 
 def process_message(compressData):
-    return compressData
+    return loads(compressData)
 
 
 class BinanceParameters:
@@ -15,7 +16,6 @@ class BinanceParameters:
 
 
 def default_on_public(args):
-    # print "on_public", args
     msg = process_message(args)
     # print msg
 
@@ -46,6 +46,7 @@ class SubscriptionBinance:
 
     def on_close(self, ws):
         print("### closed ###")
+	self.subscribe()
 
     def on_public(self, ws, args):
         msg = process_message(args)
