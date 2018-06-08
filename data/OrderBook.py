@@ -48,7 +48,7 @@ class OrderBook(BaseData):
     table_name = ORDER_BOOK_TABLE_NAME
     columns = ORDER_BOOK_COLUMNS
 
-    def __init__(self, pair_id, timest, ask_bids, sell_bids, exchange_id):
+    def __init__(self, pair_id, timest, ask_bids, sell_bids, exchange_id, sequence_id=None):
         # FIXME NOTE - various volume data?
         self.pair_id = int(pair_id)
         self.pair_name = get_pair_name_by_id(self.pair_id)
@@ -57,6 +57,7 @@ class OrderBook(BaseData):
         self.bid = sell_bids
         self.exchange_id = int(exchange_id)
         self.exchange = get_exchange_name_by_id(self.exchange_id)
+        self.sequence_id = sequence_id
 
     def sort_by_price(self):
         self.bid = sorted(self.bid, key=lambda x: x.price, reverse=True)        # highest - first
@@ -113,7 +114,9 @@ class OrderBook(BaseData):
         for b in json_document["bids"]:
             sell_bids.append(Deal(b[0], b[1]))
 
-        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.POLONIEX)
+        sequence_id = long(json_document["seq"])
+
+        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.POLONIEX, sequence_id)
 
     @classmethod
     def from_kraken(cls, json_document, currency, timest):
@@ -173,7 +176,9 @@ class OrderBook(BaseData):
 
         pair_id = get_currency_pair_from_binance(currency)
 
-        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.BINANCE)
+        sequence_id = long(json_document["lastUpdateId"])
+
+        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.BINANCE, sequence_id)
 
     @classmethod
     def from_huobi(cls, json_document, pair_name, timest):
@@ -208,7 +213,9 @@ class OrderBook(BaseData):
 
         pair_id = get_currency_pair_from_huobi(pair_name)
 
-        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.HUOBI)
+        sequence_id = long(json_document["id"])
+
+        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.HUOBI, sequence_id)
 
     @classmethod
     def from_string(cls, some_string):
