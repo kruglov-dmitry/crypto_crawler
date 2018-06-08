@@ -153,8 +153,6 @@ class ArbitrageListener:
         # Question 1 - selection of method for subscriptions
         # Question 2 - synchronisation of order book <<?>>
 
-        print "subscription BUY: ",  get_exchange_name_by_id(self.buy_exchange_id), " SELL: ", get_exchange_name_by_id(self.sell_exchange_id)
-
         buy_subscription_constructor = get_subcribtion_by_exchange(self.buy_exchange_id)
         sell_subscription_constructor = get_subcribtion_by_exchange(self.sell_exchange_id)
 
@@ -165,12 +163,26 @@ class ArbitrageListener:
         thread.start_new_thread(sell_subscription.subscribe, ())
 
     def on_order_book_update(self, exchange_id, order_book_delta):
-        print "on_order_book_update for",  get_exchange_name_by_id(exchange_id), " thread_id: ",  thread.get_ident()
+        # print "on_order_book_update for",  get_exchange_name_by_id(exchange_id), " thread_id: ",  thread.get_ident()
         # print exchange_id, order_book_delta
         if exchange_id == self.buy_exchange_id:
             self.order_book_buy.update(exchange_id, order_book_delta)
         else:
             self.order_book_sell.update(exchange_id, order_book_delta)
+
+	bids = self.order_book_sell.bid[:10]
+	asks = self.order_book_buy.ask[:10]
+
+	import os
+	os.system( 'clear' )
+
+	print "BIDS:"
+	for b in bids:
+            print b
+
+        print "ASKS"
+	for a in asks:
+            print a
 
         """
         for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:

@@ -83,10 +83,10 @@ class ConnectionPool:
             result = None
 
             if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
-                # try:
-                result = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
-                # except:
-                #     pass
+                try:
+                    result = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
+                except:
+                    pass
 
                 if result is not None:
                     if type(result) is list:

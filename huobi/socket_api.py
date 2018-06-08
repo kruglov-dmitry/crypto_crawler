@@ -65,7 +65,7 @@ class SubscriptionHuobi:
         #  print "CONFIRMATION OF SUBSCRIPTION:", process_message(compressData)
 
     def subscribe(self):
-        websocket.enableTrace(True)
+        # websocket.enableTrace(True)
         ws = websocket.WebSocketApp(HuobiParameters.URL,
                                     on_message=self.on_public,
                                     on_error=self.on_error,
