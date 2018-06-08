@@ -73,7 +73,7 @@ class SubscriptionPoloniex:
         self.on_update(EXCHANGE.POLONIEX, msg)
 
     def subscribe(self):
-        websocket.enableTrace(True)
+        # websocket.enableTrace(True)
         ws = websocket.WebSocketApp(PoloniexParameters.URL,
                                     on_message=self.on_public,
                                     on_error=self.subscribe,
