@@ -58,7 +58,8 @@ class SubscriptionPoloniex:
 
         def run(ws):
             ws.send(json.dumps({'command': 'subscribe', 'channel': PoloniexParameters.SUBSCRIBE_HEARTBEAT}))
-            ws.send(json.dumps({'command': 'subscribe', 'channel': PoloniexParameters.SUBSCRIBE_TICKER}))
+            # ws.send(json.dumps({'command': 'subscribe', 'channel': PoloniexParameters.SUBSCRIBE_TICKER}))
+            ws.send(json.dumps({'command': 'subscribe', 'channel': self.pair_name}))
             ws.send(json.dumps({'command': 'subscribe', 'channel': self.pair_name}))
             while True:
                 time.sleep(1)

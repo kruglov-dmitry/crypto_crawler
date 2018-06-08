@@ -156,11 +156,11 @@ class ArbitrageListener:
 	threads = []
 
         buy_subscription = buy_subscription_constructor(self.pair_id, self.on_order_book_update)
-	# thread.start_new_thread(buy_subscription.subscribe, ())
+	thread.start_new_thread(buy_subscription.subscribe, ())
 	# t1 = threading.Thread(target=buy_subscription.subscribe)
 
         sell_subscription = sell_subscription_constructor(self.pair_id, self.on_order_book_update)
-	thread.start_new_thread(sell_subscription.subscribe, ())
+	# thread.start_new_thread(sell_subscription.subscribe, ())
 	# t2 = threading.Thread(target=sell_subscription.subscribe)
 
 	# t1.start()
