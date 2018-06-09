@@ -30,16 +30,20 @@ class Deal:
         print "comparing", self.price, "and", other.price, " result", self.price < other.price   
         return self.price > other.price
 
-def search(some_list, target, cmp_method):
+def binary_search(some_list, target, cmp_method):
+    """
+
+    Generic method that will return INDEX for insertion of `target` element into list `some_list`
+
+    :param some_list: element must have implementation of __eq__ method
+    :param target: elements to be inserted
+    :param cmp_method:
+    :return:
+
+    """
     min_idx = 0
     max_idx = len(some_list) - 1
     mid_idx = (min_idx + max_idx) / 2
-
-    # uncomment next line for traces
-    print "Elem for insertion: ", target, mid_idx
-    print "Current list:"
-    for b in some_list:
-        print b
 
     if mid_idx < 0:
         return 0 
@@ -51,17 +55,12 @@ def search(some_list, target, cmp_method):
             return mid_idx
 
     while min_idx < max_idx:
-        print mid_idx
-        if some_list[mid_idx].price == target.price:
-        # if some_list[mid_idx] == target:
-            print "return"
+        if some_list[mid_idx] == target:
             return mid_idx
         elif cmp_method(some_list[mid_idx], target):
-            print "Go deeper: ", mid_idx + 1
-            return mid_idx + 1 + search(some_list[mid_idx + 1:], target, cmp_method)
+            return mid_idx + 1 + binary_search(some_list[mid_idx + 1:], target, cmp_method)
         else:
-            print "Back"
-            return search(some_list[:mid_idx], target, cmp_method)
+            return binary_search(some_list[:mid_idx], target, cmp_method)
 
 def cmp_method_bid(a, b):
     return a.price < b.price
@@ -91,10 +90,10 @@ import bisect
 
 # bisect.insort_left(a, b)
 # bisect.insort_left(a, b1)
-idx = search(a, b, cmp_method_bid)
+idx = binary_search(a, b, cmp_method_bid)
 print "Found index for insertion: ",  idx, b
 a.insert(idx, b)
-idx = search(a, b1, cmp_method_bid)
+idx = binary_search(a, b1, cmp_method_bid)
 print "Found index for insertion: ",  idx, b1
 a.insert(idx, b1)
 

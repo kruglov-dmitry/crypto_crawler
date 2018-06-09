@@ -7,6 +7,8 @@ from poloniex.currency_utils import get_currency_pair_from_poloniex
 from binance.currency_utils import get_currency_pair_from_binance
 from huobi.currency_utils import get_currency_pair_to_huobi, get_currency_pair_from_huobi
 
+from analysis.binary_search import binary_search
+
 from BaseData import BaseData
 from Deal import Deal
 
@@ -40,6 +42,13 @@ ORDER_BOOK_INSERT_QUERY = """insert into {table_name} ({columns}) values(%s, %s,
     table_name=ORDER_BOOK_TABLE_NAME, columns=','.join(ORDER_BOOK_COLUMNS))
 
 TICKER_TYPE_NAME = "ticker"
+
+
+def cmp_method_bid(a, b):
+    return a.price < b.price
+
+def cmp_method_ask(a, b):
+    return a.price < b.price
 
 
 class OrderBook(BaseData):
@@ -263,6 +272,68 @@ class OrderBook(BaseData):
 
         return OrderBook(currency_pair_id, timest, ask_bids, sell_bids, exchange_id)
 
+    def search(self, some_list, target, cmp_method):
+        min_idx = 0
+        max_idx = len(some_list) - 1
+        mid_idx = (min_idx + max_idx) / 2
+
+        # uncomment next line for traces
+        # print lst, target, avg
+
+        while min_idx < max_idx:
+            if some_list[mid_idx] == target:
+                return mid_idx
+            elif cmp_method(some_list[mid_idx], target):
+                return mid_idx + 1 + self.search(some_list[mid_idx + 1:], target, cmp_method)
+            else:
+                return self.search(some_list[:mid_idx], target, cmp_method)
+
+    def insert_new_bid_preserve_order(self, bid):
+        """
+
+        Bids array are sorted in reversed order i.e. highest - first
+        NOTE: consider new value volume as overwrite
+
+        :param bid:
+        :return:
+        """
+
+        almost_zero = bid.volume <= FLOAT_POINT_PRECISION
+        item_insert_point = binary_search(self.ask, bid, cmp_method_bid)
+        is_present = self.bid[item_insert_point - 1:item_insert_point] == [bid]
+        should_delete = almost_zero and is_present
+
+        if should_delete:
+            del self.bid[item_insert_point - 1]
+        elif is_present:
+            self.bid[item_insert_point - 1].volume = bid.volume
+        else:
+            # FIXME NOTE O(n) - slow by python implementation
+            self.bid.insert(item_insert_point - 1, bid)
+
+    def insert_new_ask_preserve_order(self, ask):
+        """
+        Ask array are sorted in reversed order i.e. lowest - first
+
+        self.ask = sorted(self.ask, key = lambda x: x.price, reverse=False)
+
+        :param ask:
+        :return:
+        """
+
+        almost_zero = ask.volume <= FLOAT_POINT_PRECISION
+        item_insert_point = binary_search(self.ask, ask, cmp_method_ask)
+        is_present = self.ask[item_insert_point - 1:item_insert_point] == [ask]
+        should_delete = almost_zero and is_present
+
+        if should_delete:
+            del self.ask[item_insert_point - 1]
+        elif is_present:
+            self.ask[item_insert_point - 1].volume = ask.volume
+        else:
+            # FIXME NOTE O(n) - slow by python implementation
+            self.ask.insert(item_insert_point - 1, ask)
+
     def update_for_poloniex(self, order_book_delta):
         """
         Message format for ticker
@@ -322,22 +393,11 @@ class OrderBook(BaseData):
             if entry[0] == POLONIEX_ORDER:
                 new_deal = Deal(entry[2], entry[3])
 
-                almost_zero = new_deal.volume <= FLOAT_POINT_PRECISION
-                item_insert_point = bisect.bisect(self.ask, new_deal)
-                is_present = self.ask[item_insert_point - 1:item_insert_point] == [new_deal]
-                should_delete = almost_zero and is_present
-
                 # If it is just orders - we insert in a way to keep sorted order
                 if entry[1] == POLONIEX_ORDER_ASK:
-                    if should_delete:
-                        del self.ask[item_insert_point - 1]
-                    else:
-                        bisect.insort_left(self.ask, new_deal)
+                    self.insert_new_ask_preserve_order(new_deal)
                 elif entry[1] == POLONIEX_ORDER_BID:
-                    if should_delete:
-                        del self.ask[item_insert_point - 1]
-                    else:
-                        bisect.insort_left(self.bid, new_deal)
+                    self.insert_new_bid_preserve_order(new_deal)
                 else:
                     msg = "Poloniex socket update parsing - {wtf} total: {ttt}".format(wtf=entry, ttt=order_book_delta)
                     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
@@ -354,8 +414,9 @@ class OrderBook(BaseData):
 
                 if entry[2] == POLONIEX_ORDER_BID:
 
-                    item_insert_point = bisect.bisect(self.ask, new_deal)
+                    item_insert_point = binary_search(self.ask, new_deal, cmp_method_ask)
                     is_present = self.ask[item_insert_point - 1:item_insert_point] == [new_deal]
+
                     if is_present:
                         self.ask[item_insert_point - 1].volume -= new_deal.volume
                         if self.ask[item_insert_point - 1].volume <= FLOAT_POINT_PRECISION:
@@ -367,7 +428,7 @@ class OrderBook(BaseData):
 
                 elif entry[2] == POLONIEX_ORDER_ASK:
 
-                    item_insert_point = bisect.bisect(self.bid, new_deal)
+                    item_insert_point = binary_search(self.bid, new_deal, cmp_method_bid)
                     is_present = self.bid[item_insert_point - 1:item_insert_point] == [new_deal]
                     if is_present:
                         self.bid[item_insert_point - 1].volume -= new_deal.volume
