@@ -1,4 +1,5 @@
 from BaseData import BaseData
+from constants import FLOAT_POINT_PRECISION 
 
 
 class Deal(BaseData):
@@ -10,5 +11,5 @@ class Deal(BaseData):
         """Overrides the default implementation"""
         if isinstance(self, other.__class__):
             # FIXME ROUNDING
-            return self.price == other.price
+            return abs(self.price - other.price) <= FLOAT_POINT_PRECISION
         return False

@@ -19,7 +19,7 @@ from utils.exchange_utils import get_exchange_name_by_id
 from utils.time_utils import get_now_seconds_utc_ms, get_date_time_from_epoch
 from utils.file_utils import log_to_file
 
-from constants import FLOAT_POINT_PRECISION
+from constants import MAX_VOLUME_ORDER_BOOK, FLOAT_POINT_PRECISION
 from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
 
 import bisect
@@ -298,18 +298,18 @@ class OrderBook(BaseData):
         :return:
         """
 
-        almost_zero = bid.volume <= FLOAT_POINT_PRECISION
+        almost_zero = bid.volume <= MAX_VOLUME_ORDER_BOOK
         item_insert_point = binary_search(self.ask, bid, cmp_method_bid)
-        is_present = self.bid[item_insert_point - 1:item_insert_point] == [bid]
+        is_present = self.bid[item_insert_point] == bid
         should_delete = almost_zero and is_present
 
         if should_delete:
-            del self.bid[item_insert_point - 1]
+            del self.bid[item_insert_point]
         elif is_present:
-            self.bid[item_insert_point - 1].volume = bid.volume
-        else:
+            self.bid[item_insert_point].volume = bid.volume
+        elif not almost_zero:
             # FIXME NOTE O(n) - slow by python implementation
-            self.bid.insert(item_insert_point - 1, bid)
+            self.bid.insert(item_insert_point, bid)
 
     def insert_new_ask_preserve_order(self, ask):
         """
@@ -321,18 +321,18 @@ class OrderBook(BaseData):
         :return:
         """
 
-        almost_zero = ask.volume <= FLOAT_POINT_PRECISION
+        almost_zero = ask.volume <= MAX_VOLUME_ORDER_BOOK
         item_insert_point = binary_search(self.ask, ask, cmp_method_ask)
-        is_present = self.ask[item_insert_point - 1:item_insert_point] == [ask]
+        is_present = self.ask[item_insert_point] == ask
         should_delete = almost_zero and is_present
 
         if should_delete:
-            del self.ask[item_insert_point - 1]
+            del self.ask[item_insert_point]
         elif is_present:
-            self.ask[item_insert_point - 1].volume = ask.volume
-        else:
+            self.ask[item_insert_point].volume = ask.volume
+        elif not almost_zero:
             # FIXME NOTE O(n) - slow by python implementation
-            self.ask.insert(item_insert_point - 1, ask)
+            self.ask.insert(item_insert_point, ask)
 
     def update_for_poloniex(self, order_book_delta):
         """
@@ -415,27 +415,27 @@ class OrderBook(BaseData):
                 if entry[2] == POLONIEX_ORDER_BID:
 
                     item_insert_point = binary_search(self.ask, new_deal, cmp_method_ask)
-                    is_present = self.ask[item_insert_point - 1:item_insert_point] == [new_deal]
+                    is_present = self.ask[item_insert_point] == new_deal
 
                     if is_present:
-                        self.ask[item_insert_point - 1].volume -= new_deal.volume
-                        if self.ask[item_insert_point - 1].volume <= FLOAT_POINT_PRECISION:
-                            del self.ask[item_insert_point - 1]
+                        self.ask[item_insert_point].volume -= new_deal.volume
+                        if self.ask[item_insert_point].volume <= MAX_VOLUME_ORDER_BOOK:
+                            del self.ask[item_insert_point]
                     else:
-                        msg = "Poloniex socket update we got trade but cant find order price for it: ".format(
+                        msg = "Poloniex socket update we got trade but cant find order price for it: {wtf}".format(
                             wtf=new_deal)
                         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
                 elif entry[2] == POLONIEX_ORDER_ASK:
 
                     item_insert_point = binary_search(self.bid, new_deal, cmp_method_bid)
-                    is_present = self.bid[item_insert_point - 1:item_insert_point] == [new_deal]
+                    is_present = self.bid[item_insert_point] == new_deal
                     if is_present:
-                        self.bid[item_insert_point - 1].volume -= new_deal.volume
-                        if self.bid[item_insert_point - 1].volume <= FLOAT_POINT_PRECISION:
-                            del self.bid[item_insert_point - 1]
+                        self.bid[item_insert_point].volume -= new_deal.volume
+                        if self.bid[item_insert_point].volume <= MAX_VOLUME_ORDER_BOOK:
+                            del self.bid[item_insert_point]
                     else:
-                        msg = "Poloniex socket update we got trade but cant find order price for it: ".format(
+                        msg = "Poloniex socket update we got trade but cant find order price for it: {wtf}".format(
                             wtf=new_deal)
                         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
                 else:
