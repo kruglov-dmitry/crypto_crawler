@@ -6,10 +6,9 @@ class Deal(BaseData):
         self.price = float(price)
         self.volume = float(volume)
 
-    def __lt__(self, other):
-        """
-        Used by biset.insert to maintain ordered asks\bids of order book
-        :param other:
-        :return:
-        """
-        return self.price > other.price
+    def __eq__(self, other):
+        """Overrides the default implementation"""
+        if isinstance(self, other.__class__):
+            # FIXME ROUNDING
+            return self.price == other.price
+        return False
