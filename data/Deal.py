@@ -12,4 +12,4 @@ class Deal(BaseData):
         :param other:
         :return:
         """
-        return self.price < other.price
+        return self.price > other.price

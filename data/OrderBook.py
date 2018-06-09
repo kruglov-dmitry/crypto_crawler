@@ -17,6 +17,7 @@ from utils.exchange_utils import get_exchange_name_by_id
 from utils.time_utils import get_now_seconds_utc_ms, get_date_time_from_epoch
 from utils.file_utils import log_to_file
 
+from constants import FLOAT_POINT_PRECISION
 from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
 
 import bisect
@@ -313,19 +314,30 @@ class OrderBook(BaseData):
         # We suppose that bid and ask are sorted in particular order:
         # for bids - highest - first
         # for asks - lowest - first
-	
-	if len(order_book_delta) < 3:
-		return
+        if len(order_book_delta) < 3:
+            return
 
         delta = order_book_delta[2]
         for entry in delta:
             if entry[0] == POLONIEX_ORDER:
                 new_deal = Deal(entry[2], entry[3])
+
+                almost_zero = new_deal.volume <= FLOAT_POINT_PRECISION
+                item_insert_point = bisect.bisect(self.ask, new_deal)
+                is_present = self.ask[item_insert_point - 1:item_insert_point] == [new_deal]
+                should_delete = almost_zero and is_present
+
                 # If it is just orders - we insert in a way to keep sorted order
                 if entry[1] == POLONIEX_ORDER_ASK:
-                    bisect.insort_left(self.ask, new_deal)
+                    if should_delete:
+                        del self.ask[item_insert_point - 1]
+                    else:
+                        bisect.insort_left(self.ask, new_deal)
                 elif entry[1] == POLONIEX_ORDER_BID:
-                    bisect.insort_left(self.bid, new_deal)
+                    if should_delete:
+                        del self.ask[item_insert_point - 1]
+                    else:
+                        bisect.insort_left(self.bid, new_deal)
                 else:
                     msg = "Poloniex socket update parsing - {wtf} total: {ttt}".format(wtf=entry, ttt=order_book_delta)
                     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
@@ -346,7 +358,7 @@ class OrderBook(BaseData):
                     is_present = self.ask[item_insert_point - 1:item_insert_point] == [new_deal]
                     if is_present:
                         self.ask[item_insert_point - 1].volume -= new_deal.volume
-                        if self.ask[item_insert_point - 1].volume <= 0:
+                        if self.ask[item_insert_point - 1].volume <= FLOAT_POINT_PRECISION:
                             del self.ask[item_insert_point - 1]
                     else:
                         msg = "Poloniex socket update we got trade but cant find order price for it: ".format(
@@ -359,7 +371,7 @@ class OrderBook(BaseData):
                     is_present = self.bid[item_insert_point - 1:item_insert_point] == [new_deal]
                     if is_present:
                         self.bid[item_insert_point - 1].volume -= new_deal.volume
-                        if self.bid[item_insert_point - 1].volume <= 0:
+                        if self.bid[item_insert_point - 1].volume <= FLOAT_POINT_PRECISION:
                             del self.bid[item_insert_point - 1]
                     else:
                         msg = "Poloniex socket update we got trade but cant find order price for it: ".format(
@@ -487,7 +499,7 @@ class OrderBook(BaseData):
                 if type_update == BITTREX_ORDER_ADD:
                     if is_present:
                         self.bid[item_insert_point - 1].volume -= new_deal.volume
-                        if self.bid[item_insert_point - 1].volume <= 0:
+                        if self.bid[item_insert_point - 1].volume <= FLOAT_POINT_PRECISION:
                             del self.bid[item_insert_point - 1]
                     else:
                         msg = "Bittrex socket un-supported fill request FILL AND ADD??? {wtf}".format(wtf=new_deal)
@@ -501,7 +513,7 @@ class OrderBook(BaseData):
                 elif type_update == BITTREX_ORDER_UPDATE:
                     if is_present:
                         self.bid[item_insert_point - 1].volume -= new_deal.volume
-                        if self.bid[item_insert_point - 1].volume <= 0:
+                        if self.bid[item_insert_point - 1].volume <= FLOAT_POINT_PRECISION:
                             del self.bid[item_insert_point - 1]
                     else:
                         msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE??? {wtf}".format(wtf=new_deal)
@@ -516,7 +528,7 @@ class OrderBook(BaseData):
                 if type_update == BITTREX_ORDER_ADD:
                     if is_present:
                         self.ask[item_insert_point - 1].volume -= new_deal.volume
-                        if self.ask[item_insert_point - 1].volume <= 0:
+                        if self.ask[item_insert_point - 1].volume <= FLOAT_POINT_PRECISION:
                             del self.ask[item_insert_point - 1]
                     else:
                         msg = "Bittrex socket CANT FIND fill request FILL AND ADD??? {wtf}".format(wtf=new_deal)
@@ -565,47 +577,47 @@ class OrderBook(BaseData):
         asks = order_book_delta["a"]
         bids = order_book_delta["b"]
 
-	# print 10
+        # print 10
 
         for a in asks:
             new_deal = Deal(a[0], a[1])
             if new_deal.volume > 0:  # Add
                 # Update whatever was there
-		# print 101
+                # print 101
                 bisect.insort_left(self.ask, new_deal)
-		# print 102
+                # print 102
             else:
                 item_insert_point = bisect.bisect(self.ask, new_deal)
                 is_present = self.ask[item_insert_point - 1:item_insert_point] == [new_deal]
                 if is_present:
-		    # print 103
+                    # print 103
                     del self.ask[item_insert_point - 1]
-		    # print 104
+                    # print 104
                 else:
                     msg = "BINANCE socket CANT FIND IN ASK update {wtf}".format(wtf=new_deal)
                     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 	
-	# print 1000
+        # print 1000
 
         for a in bids:
             new_deal = Deal(a[0], a[1])
             if new_deal.volume > 0:  # Add
                 # Update whatever was there
-		# print 1001
+                # print 1001
                 bisect.insort_left(self.bid, new_deal)
-		# print 1002
+                # print 1002
             else:
                 item_insert_point = bisect.bisect(self.bid, new_deal)
                 is_present = self.bid[item_insert_point - 1:item_insert_point] == [new_deal]
                 if is_present:
-		    # print 1003
+                    # print 1003
                     del self.bid[item_insert_point - 1]
-		    # print 1004
+                    # print 1004
                 else:
                     msg = "BINANCE socket CANT FIND IN BID update {wtf}".format(wtf=new_deal)
                     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
-	# print 10000	
+        # print 10000
 
 
     def update_for_huobi(self, order_book_delta):
@@ -613,7 +625,7 @@ class OrderBook(BaseData):
             import copy
             from utils.time_utils import get_now_seconds_utc
 
-	    pair_name = get_currency_pair_to_huobi(self.pair_id)
+            pair_name = get_currency_pair_to_huobi(self.pair_id)
 
             order_book2 = OrderBook.from_huobi(order_book_delta["tick"], pair_name, get_now_seconds_utc())
 
@@ -625,11 +637,11 @@ class OrderBook(BaseData):
             print "update for huobi: ", order_book_delta
 
     def update(self, exchange_id, order_book_delta):
-	ts = str(get_now_seconds_utc_ms())
-	e_name = get_exchange_name_by_id(exchange_id)
-	file_name = e_name + "_" + ts + "_before.txt"
+        ts = str(get_now_seconds_utc_ms())
+        e_name = get_exchange_name_by_id(exchange_id)
+        file_name = e_name + "_" + ts + "_before.txt"
         log_to_file(self, file_name)
-	method = {
+        method = {
             EXCHANGE.POLONIEX: self.update_for_poloniex,
             EXCHANGE.BITTREX: self.update_for_bittrex,
             EXCHANGE.BINANCE: self.update_for_binance,
@@ -637,5 +649,5 @@ class OrderBook(BaseData):
         }[exchange_id]
         method(order_book_delta)
 
-	file_name = e_name + "_" + ts + "_after.txt"
+        file_name = e_name + "_" + ts + "_after.txt"
         log_to_file(self, file_name)

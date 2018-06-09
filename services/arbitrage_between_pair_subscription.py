@@ -30,8 +30,7 @@ from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for
 
-from logging_tools.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors, \
-    log_failed_to_retrieve_order_book, log_dublicative_order_book
+from logging_tools.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors
 
 from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD
 
@@ -128,7 +127,8 @@ class ArbitrageListener:
 
     def init_order_books(self):
         cur_timest_sec = get_now_seconds_utc()
-        self.order_book_sell, self.order_book_buy = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec, self.processor)
+        self.order_book_sell, self.order_book_buy = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec,
+                                                                                       self.processor)
 
         self.order_book_buy.sort_by_price()
         self.order_book_sell.sort_by_price()
@@ -141,7 +141,8 @@ class ArbitrageListener:
         cur_timest_sec = get_now_seconds_utc()
         self.balance_state = get_updated_balance_arbitrage(cfg, self.balance_state, self.local_cache)
 
-        if self.balance_state.expired(cur_timest_sec, self.buy_exchange_id, self.sell_exchange_id, BALANCE_EXPIRED_THRESHOLD):
+        if self.balance_state.expired(cur_timest_sec, self.buy_exchange_id, self.sell_exchange_id,
+                                      BALANCE_EXPIRED_THRESHOLD):
             log_balance_expired_errors(cfg, self.msg_queue, self.balance_state)
 
             assert False
@@ -170,18 +171,19 @@ class ArbitrageListener:
         else:
             self.order_book_sell.update(exchange_id, order_book_delta)
 
-	bids = self.order_book_sell.bid[:10]
-	asks = self.order_book_buy.ask[:10]
+        bids = self.order_book_sell.bid[:10]
+        asks = self.order_book_buy.ask[:10]
 
-	import os
-	os.system( 'clear' )
+        import os
+        os.system('clear')
 
-	print "BIDS:"
-	for b in bids:
+        print get_exchange_name_by_id(exchange_id)
+        print "BIDS:"
+        for b in bids:
             print b
 
         print "ASKS"
-	for a in asks:
+        for a in asks:
             print a
 
         """
