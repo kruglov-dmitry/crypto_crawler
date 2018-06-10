@@ -47,6 +47,7 @@ TICKER_TYPE_NAME = "ticker"
 def cmp_method_bid(a, b):
     return a.price < b.price
 
+
 def cmp_method_ask(a, b):
     return a.price > b.price
 
@@ -58,13 +59,13 @@ class OrderBook(BaseData):
     table_name = ORDER_BOOK_TABLE_NAME
     columns = ORDER_BOOK_COLUMNS
 
-    def __init__(self, pair_id, timest, ask_bids, sell_bids, exchange_id, sequence_id=None):
+    def __init__(self, pair_id, timest, sell_bids, buy_bids, exchange_id, sequence_id=None):
         # FIXME NOTE - various volume data?
         self.pair_id = int(pair_id)
         self.pair_name = get_pair_name_by_id(self.pair_id)
         self.timest = timest
-        self.ask = ask_bids
-        self.bid = sell_bids
+        self.ask = sell_bids
+        self.bid = buy_bids
         self.exchange_id = int(exchange_id)
         self.exchange = get_exchange_name_by_id(self.exchange_id)
         self.sequence_id = sequence_id
@@ -116,17 +117,17 @@ class OrderBook(BaseData):
         timest = timest
         pair_id = get_currency_pair_from_poloniex(currency)
 
-        ask_bids = []
-        for b in json_document["asks"]:
-            ask_bids.append(Deal(b[0], b[1]))
-
         sell_bids = []
-        for b in json_document["bids"]:
+        for b in json_document["asks"]:
             sell_bids.append(Deal(b[0], b[1]))
+
+        buy_bids = []
+        for b in json_document["bids"]:
+            buy_bids.append(Deal(b[0], b[1]))
 
         sequence_id = long(json_document["seq"])
 
-        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.POLONIEX, sequence_id)
+        return OrderBook(pair_id, timest, sell_bids, buy_bids, EXCHANGE.POLONIEX, sequence_id)
 
     @classmethod
     def from_kraken(cls, json_document, currency, timest):
@@ -135,17 +136,17 @@ class OrderBook(BaseData):
         "bids":[["0.080928","0.100",1501691107],["0.080926","0.255",1501691110]
         """
 
-        ask_bids = []
-        for b in json_document["asks"]:
-            ask_bids.append(Deal(b[0], b[1]))
-
         sell_bids = []
-        for b in json_document["bids"]:
+        for b in json_document["asks"]:
             sell_bids.append(Deal(b[0], b[1]))
+
+        buy_bids = []
+        for b in json_document["bids"]:
+            buy_bids.append(Deal(b[0], b[1]))
 
         pair_id = get_currency_pair_from_kraken(currency)
 
-        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.KRAKEN)
+        return OrderBook(pair_id, timest, sell_bids, buy_bids, EXCHANGE.KRAKEN)
 
     @classmethod
     def from_bittrex(cls, json_document, currency, timest):
@@ -154,19 +155,19 @@ class OrderBook(BaseData):
         "sell":[{"Quantity":0.38767680,"Rate":0.01560999},{"Quantity":2.24182363,"Rate":0.01561999}
         """
 
-        ask_bids = []
+        sell_bids = []
         if "sell" in json_document and json_document["sell"] is not None:
             for b in json_document["sell"]:
-                ask_bids.append(Deal(b["Rate"], b["Quantity"]))
+                sell_bids.append(Deal(b["Rate"], b["Quantity"]))
 
-        sell_bids = []
+        buy_bids = []
         if "buy" in json_document and json_document["buy"] is not None:
             for b in json_document["buy"]:
-                sell_bids.append(Deal(b["Rate"], b["Quantity"]))
+                buy_bids.append(Deal(b["Rate"], b["Quantity"]))
 
         pair_id = get_currency_pair_from_bittrex(currency)
 
-        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.BITTREX)
+        return OrderBook(pair_id, timest, sell_bids, buy_bids, EXCHANGE.BITTREX)
 
     @classmethod
     def from_binance(cls, json_document, currency, timest):
@@ -174,21 +175,21 @@ class OrderBook(BaseData):
         "lastUpdateId":1668114,"bids":[["0.40303000","22.00000000",[]],],"asks":[["0.41287000","1.00000000",[]]
         """
 
-        ask_bids = []
+        sell_bids = []
         if "asks" in json_document:
             for b in json_document["asks"]:
-                ask_bids.append(Deal(price=b[0], volume=b[1]))
+                sell_bids.append(Deal(price=b[0], volume=b[1]))
 
-        sell_bids = []
+        buy_bids = []
         if "bids" in json_document:
             for b in json_document["bids"]:
-                sell_bids.append(Deal(price=b[0], volume=b[1]))
+                buy_bids.append(Deal(price=b[0], volume=b[1]))
 
         pair_id = get_currency_pair_from_binance(currency)
 
         sequence_id = long(json_document["lastUpdateId"])
 
-        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.BINANCE, sequence_id)
+        return OrderBook(pair_id, timest, sell_bids, buy_bids, EXCHANGE.BINANCE, sequence_id)
 
     @classmethod
     def from_huobi(cls, json_document, pair_name, timest):
@@ -211,21 +212,21 @@ class OrderBook(BaseData):
         :return:
         """
 
-        ask_bids = []
+        sell_bids = []
         if "asks" in json_document:
             for b in json_document["asks"]:
-                ask_bids.append(Deal(price=b[0], volume=b[1]))
+                sell_bids.append(Deal(price=b[0], volume=b[1]))
 
-        sell_bids = []
+        buy_bids = []
         if "bids" in json_document:
             for b in json_document["bids"]:
-                sell_bids.append(Deal(price=b[0], volume=b[1]))
+                buy_bids.append(Deal(price=b[0], volume=b[1]))
 
         pair_id = get_currency_pair_from_huobi(pair_name)
 
         sequence_id = long(json_document["version"])
 
-        return OrderBook(pair_id, timest, ask_bids, sell_bids, EXCHANGE.HUOBI, sequence_id)
+        return OrderBook(pair_id, timest, sell_bids, buy_bids, EXCHANGE.HUOBI, sequence_id)
 
     @classmethod
     def from_string(cls, some_string):
@@ -283,7 +284,7 @@ class OrderBook(BaseData):
         """
 
         almost_zero = bid.volume <= MAX_VOLUME_ORDER_BOOK
-        item_insert_point = binary_search(self.ask, bid, cmp_method_bid)
+        item_insert_point = binary_search(self.bid, bid, cmp_method_bid)
         is_present = self.bid[item_insert_point] == bid
         should_delete = almost_zero and is_present
 
@@ -641,7 +642,7 @@ class OrderBook(BaseData):
         for a in asks:
             new_deal = Deal(a[0], a[1])
             if new_deal.volume > 0:
-                bisect.insort_left(self.ask, new_deal)
+                self.insert_new_ask_preserve_order(new_deal)
             else:
 
                 item_insert_point = binary_search(self.ask, new_deal, cmp_method_ask)
@@ -684,7 +685,7 @@ class OrderBook(BaseData):
             self.bid = copy.deepcopy(order_book2.bid)
 
             self.sort_by_price()
-            
+
         else:
             print "update for huobi: ", order_book_delta
 
