@@ -48,7 +48,7 @@ def cmp_method_bid(a, b):
     return a.price < b.price
 
 def cmp_method_ask(a, b):
-    return a.price < b.price
+    return a.price > b.price
 
 
 class OrderBook(BaseData):
@@ -272,22 +272,6 @@ class OrderBook(BaseData):
 
         return OrderBook(currency_pair_id, timest, ask_bids, sell_bids, exchange_id)
 
-    def search(self, some_list, target, cmp_method):
-        min_idx = 0
-        max_idx = len(some_list) - 1
-        mid_idx = (min_idx + max_idx) / 2
-
-        # uncomment next line for traces
-        # print lst, target, avg
-
-        while min_idx < max_idx:
-            if some_list[mid_idx] == target:
-                return mid_idx
-            elif cmp_method(some_list[mid_idx], target):
-                return mid_idx + 1 + self.search(some_list[mid_idx + 1:], target, cmp_method)
-            else:
-                return self.search(some_list[:mid_idx], target, cmp_method)
-
     def insert_new_bid_preserve_order(self, bid):
         """
 
@@ -311,28 +295,28 @@ class OrderBook(BaseData):
             # FIXME NOTE O(n) - slow by python implementation
             self.bid.insert(item_insert_point, bid)
 
-    def insert_new_ask_preserve_order(self, ask):
+    def insert_new_ask_preserve_order(self, new_ask):
         """
         Ask array are sorted in reversed order i.e. lowest - first
 
         self.ask = sorted(self.ask, key = lambda x: x.price, reverse=False)
 
-        :param ask:
+        :param new_ask:
         :return:
         """
 
-        almost_zero = ask.volume <= MAX_VOLUME_ORDER_BOOK
-        item_insert_point = binary_search(self.ask, ask, cmp_method_ask)
-        is_present = self.ask[item_insert_point] == ask
+        almost_zero = new_ask.volume <= MAX_VOLUME_ORDER_BOOK
+        item_insert_point = binary_search(self.ask, new_ask, cmp_method_ask)
+        is_present = self.ask[item_insert_point] == new_ask
         should_delete = almost_zero and is_present
 
         if should_delete:
             del self.ask[item_insert_point]
         elif is_present:
-            self.ask[item_insert_point].volume = ask.volume
+            self.ask[item_insert_point].volume = new_ask.volume
         elif not almost_zero:
             # FIXME NOTE O(n) - slow by python implementation
-            self.ask.insert(item_insert_point, ask)
+            self.ask.insert(item_insert_point, new_ask)
 
     def update_for_poloniex(self, order_book_delta):
         """
@@ -492,22 +476,29 @@ class OrderBook(BaseData):
         for new_sell in sells:
 
             new_deal = Deal(new_sell["R"], new_sell["Q"])
+
+            if "TY" not in new_sell:
+                msg = "Bittrex socket update - within SELL array some weird format - no TY - {wtf}".format(
+                    wtf=new_sell)
+                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+                continue
+
             type_update = int(new_sell["TY"])
 
-            item_insert_point = bisect.bisect(self.ask, new_deal)
-            is_present = self.ask[item_insert_point - 1:item_insert_point] == [new_deal]
+            item_insert_point = binary_search(self.ask, new_deal, cmp_method_ask)
+            is_present = self.ask[item_insert_point] == new_deal
 
             if type_update == BITTREX_ORDER_ADD:
-                bisect.insort_left(self.ask, new_deal)
+                self.insert_new_ask_preserve_order(new_deal)
             elif type_update == BITTREX_ORDER_REMOVE:
                 if is_present:
-                    del self.ask[item_insert_point - 1]
+                    del self.ask[item_insert_point]
                 else:
                     msg = "Bittrex socket update - got sell REMOVE not found in local orderbook - {wtf}".format(wtf=new_sell)
                     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
             elif type_update == BITTREX_ORDER_UPDATE:
                 if is_present:
-                    self.ask[item_insert_point - 1].volume = new_deal.volume
+                    self.ask[item_insert_point].volume = new_deal.volume
                 else:
                     msg = "Bittrex socket update - got sell UPDATE not found in local orderbook - {wtf}".format(wtf=new_sell)
                     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
@@ -518,24 +509,29 @@ class OrderBook(BaseData):
         for new_buy in buys:
 
             new_deal = Deal(new_buy["R"], new_buy["Q"])
+
+            if "TY" not in new_buy:
+                msg = "Bittrex socket update - within BUYS array some weird format - no TY - {wtf}".format(wtf=new_buy)
+                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+                continue
+
             type_update = int(new_buy["TY"])
 
-            item_insert_point = bisect.bisect(self.bid, new_deal)
-            is_present = self.bid[item_insert_point - 1:item_insert_point] == [new_deal]
+            item_insert_point = binary_search(self.bid, new_deal, cmp_method_bid)
+            is_present = self.bid[item_insert_point] == new_deal
 
             if type_update == BITTREX_ORDER_ADD:
-                bisect.insort_left(self.bid, new_deal)
+                self.insert_new_bid_preserve_order(new_deal)
             elif type_update == BITTREX_ORDER_REMOVE:
                 if is_present:
-                    del self.bid[item_insert_point - 1]
+                    del self.bid[item_insert_point]
                 else:
                     msg = "Bittrex socket update - got buy REMOVE not found in local orderbook - {wtf}".format(
                         wtf=new_buy)
                     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
             elif type_update == BITTREX_ORDER_UPDATE:
-
                 if is_present:
-                    self.bid[item_insert_point - 1].volume = new_deal.volume
+                    self.bid[item_insert_point].volume = new_deal.volume
                 else:
                     msg = "Bittrex socket update we got order but cant find order price for it - {wtf}".format(
                         wtf=new_deal)
@@ -546,36 +542,40 @@ class OrderBook(BaseData):
 
         for new_fill in fills:
             new_deal = Deal(new_fill["R"], new_fill["Q"])
+
+            if "TY" not in new_fill:
+                msg = "Bittrex socket update - within FILLS array some weird format - no TY - {wtf}".format(wtf=new_fill)
+                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+                continue
+
             type_update = int(new_fill["TY"])
 
             deal_direction = DEAL_TYPE.BUY if "BUY" in new_fill["OT"] else DEAL_TYPE.SELL
 
             if deal_direction == DEAL_TYPE.BUY:
 
-                # FIXME is it really bid?
-
-                item_insert_point = bisect.bisect(self.bid, new_deal)
-                is_present = self.bid[item_insert_point - 1:item_insert_point] == [new_deal]
+                item_insert_point = binary_search(self.bid, new_deal, cmp_method_bid)
+                is_present = self.bid[item_insert_point] == new_deal
 
                 if type_update == BITTREX_ORDER_ADD:
                     if is_present:
-                        self.bid[item_insert_point - 1].volume -= new_deal.volume
-                        if self.bid[item_insert_point - 1].volume <= FLOAT_POINT_PRECISION:
-                            del self.bid[item_insert_point - 1]
+                        self.bid[item_insert_point].volume -= new_deal.volume
+                        if self.bid[item_insert_point].volume <= FLOAT_POINT_PRECISION:
+                            del self.bid[item_insert_point]
                     else:
                         msg = "Bittrex socket un-supported fill request FILL AND ADD??? {wtf}".format(wtf=new_deal)
                         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
                 elif type_update == BITTREX_ORDER_REMOVE:
                     if is_present:
-                        del self.bid[item_insert_point - 1]
+                        del self.bid[item_insert_point]
                     else:
                         msg = "Bittrex socket CANT FIND fill request FILL AND REMOVE??? {wtf}".format(wtf=new_deal)
                         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
                 elif type_update == BITTREX_ORDER_UPDATE:
                     if is_present:
-                        self.bid[item_insert_point - 1].volume -= new_deal.volume
-                        if self.bid[item_insert_point - 1].volume <= FLOAT_POINT_PRECISION:
-                            del self.bid[item_insert_point - 1]
+                        self.bid[item_insert_point].volume -= new_deal.volume
+                        if self.bid[item_insert_point].volume <= FLOAT_POINT_PRECISION:
+                            del self.bid[item_insert_point]
                     else:
                         msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE??? {wtf}".format(wtf=new_deal)
                         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
@@ -583,26 +583,26 @@ class OrderBook(BaseData):
                     msg = "Bittrex socket UNKNOWN fill request for BUY {wtf}".format(wtf=new_deal)
                     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
             else:
-                item_insert_point = bisect.bisect(self.bid, new_deal)
-                is_present = self.ask[item_insert_point - 1:item_insert_point] == [new_deal]
+                item_insert_point = binary_search(self.ask, new_deal, cmp_method_ask)
+                is_present = self.bid[item_insert_point] == new_deal
 
                 if type_update == BITTREX_ORDER_ADD:
                     if is_present:
-                        self.ask[item_insert_point - 1].volume -= new_deal.volume
-                        if self.ask[item_insert_point - 1].volume <= FLOAT_POINT_PRECISION:
-                            del self.ask[item_insert_point - 1]
+                        self.ask[item_insert_point].volume -= new_deal.volume
+                        if self.ask[item_insert_point].volume <= FLOAT_POINT_PRECISION:
+                            del self.ask[item_insert_point]
                     else:
                         msg = "Bittrex socket CANT FIND fill request FILL AND ADD??? {wtf}".format(wtf=new_deal)
                         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
                 elif type_update == BITTREX_ORDER_REMOVE:
                     if is_present:
-                        del self.ask[item_insert_point - 1]
+                        del self.ask[item_insert_point]
                     else:
                         msg = "Bittrex socket un-supported fill request FILL AND REMOVE??? {wtf}".format(wtf=new_deal)
                         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
                 elif type_update == BITTREX_ORDER_UPDATE:
                     if is_present:
-                        self.ask[item_insert_point - 1].volume -= new_deal.volume
+                        self.ask[item_insert_point].volume -= new_deal.volume
                     else:
                         msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE??? {wtf}".format(wtf=new_deal)
                         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
