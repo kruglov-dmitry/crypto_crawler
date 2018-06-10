@@ -638,48 +638,36 @@ class OrderBook(BaseData):
         asks = order_book_delta["a"]
         bids = order_book_delta["b"]
 
-        # print 10
-
         for a in asks:
             new_deal = Deal(a[0], a[1])
-            if new_deal.volume > 0:  # Add
-                # Update whatever was there
-                # print 101
+            if new_deal.volume > 0:
                 bisect.insort_left(self.ask, new_deal)
-                # print 102
             else:
-                item_insert_point = bisect.bisect(self.ask, new_deal)
-                is_present = self.ask[item_insert_point - 1:item_insert_point] == [new_deal]
+
+                item_insert_point = binary_search(self.ask, new_deal, cmp_method_ask)
+                is_present = self.ask[item_insert_point] == new_deal
+
                 if is_present:
-                    # print 103
-                    del self.ask[item_insert_point - 1]
-                    # print 104
+                    del self.ask[item_insert_point]
                 else:
                     msg = "BINANCE socket CANT FIND IN ASK update {wtf}".format(wtf=new_deal)
                     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-	
-        # print 1000
 
         for a in bids:
             new_deal = Deal(a[0], a[1])
-            if new_deal.volume > 0:  # Add
-                # Update whatever was there
-                # print 1001
-                bisect.insort_left(self.bid, new_deal)
-                # print 1002
+
+            if new_deal.volume > 0:
+                self.insert_new_bid_preserve_order(new_deal)
             else:
-                item_insert_point = bisect.bisect(self.bid, new_deal)
-                is_present = self.bid[item_insert_point - 1:item_insert_point] == [new_deal]
+
+                item_insert_point = binary_search(self.bid, new_deal, cmp_method_bid)
+                is_present = self.bid[item_insert_point] == new_deal
+
                 if is_present:
-                    # print 1003
-                    del self.bid[item_insert_point - 1]
-                    # print 1004
+                    del self.bid[item_insert_point]
                 else:
                     msg = "BINANCE socket CANT FIND IN BID update {wtf}".format(wtf=new_deal)
                     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-
-        # print 10000
-
 
     def update_for_huobi(self, order_book_delta):
         if "tick" in order_book_delta:
@@ -694,6 +682,9 @@ class OrderBook(BaseData):
 
             self.ask = copy.deepcopy(order_book2.ask)
             self.bid = copy.deepcopy(order_book2.bid)
+
+            self.sort_by_price()
+            
         else:
             print "update for huobi: ", order_book_delta
 
