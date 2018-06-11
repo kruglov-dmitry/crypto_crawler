@@ -44,11 +44,11 @@ ORDER_BOOK_INSERT_QUERY = """insert into {table_name} ({columns}) values(%s, %s,
 TICKER_TYPE_NAME = "ticker"
 
 
-def cmp_method_bid(a, b):
+def cmp_method_ask(a, b):
     return a.price < b.price
 
 
-def cmp_method_ask(a, b):
+def cmp_method_bid(a, b):
     return a.price > b.price
 
 
