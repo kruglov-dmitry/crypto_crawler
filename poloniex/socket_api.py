@@ -21,10 +21,9 @@ class PoloniexParameters:
     SUBSCRIBE_HEARTBEAT = 1010
 
 
-def default_on_public(args):
-    print "on_public", args
+def default_on_public(exchange_id, args):
     msg = process_message(args)
-    print msg
+    print exchange_id, msg
 
 
 def on_error(ws, error):
@@ -40,8 +39,6 @@ class SubscriptionPoloniex:
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points
-        :param on_receive:  - pass
-        :param on_error:    - recconect
         :param on_update:   - idea is the following:
             we pass reference to method WITH initialized order book for that pair_id
             whenever we receive update we update order book and trigger checks for arbitrage
@@ -55,12 +52,12 @@ class SubscriptionPoloniex:
         self.on_update = on_update
 
     def on_open(self, ws):
-        print("ONOPEN")
+
+        print "Opening connection..."
 
         def run(ws):
             ws.send(json.dumps({'command': 'subscribe', 'channel': PoloniexParameters.SUBSCRIBE_HEARTBEAT}))
             # ws.send(json.dumps({'command': 'subscribe', 'channel': PoloniexParameters.SUBSCRIBE_TICKER}))
-            ws.send(json.dumps({'command': 'subscribe', 'channel': self.pair_name}))
             ws.send(json.dumps({'command': 'subscribe', 'channel': self.pair_name}))
             while True:
                 time.sleep(1)
@@ -73,11 +70,15 @@ class SubscriptionPoloniex:
         msg = process_message(args)
         self.on_update(EXCHANGE.POLONIEX, msg)
 
+    def on_close(self, ws, args):
+        print("Connection closed, Reconnecting...")
+        self.subscribe()
+
     def subscribe(self):
         # websocket.enableTrace(True)
         ws = websocket.WebSocketApp(PoloniexParameters.URL,
                                     on_message=self.on_public,
                                     on_error=self.subscribe,
-                                    on_close=on_close)
+                                    on_close=self.on_close)
         ws.on_open = self.on_open
         ws.run_forever()

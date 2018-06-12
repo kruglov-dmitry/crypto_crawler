@@ -15,9 +15,9 @@ class BinanceParameters:
     SUBSCRIBE_UPDATE = "{pair_name}@depth"
 
 
-def default_on_public(args):
+def default_on_public(exchange_id, args):
     msg = process_message(args)
-    # print msg
+    print exchange_id, msg
 
 
 class SubscriptionBinance:
@@ -42,27 +42,29 @@ class SubscriptionBinance:
         self.on_update = on_update
 
     def on_open(self, ws):
-        print("ONOPEN")
+        print "Opening connection..."
 
     def on_close(self, ws):
-        print("### closed ###")
-	self.subscribe()
+        print("Connection closed, Reconnecting...")
+        self.subscribe()
 
     def on_public(self, ws, args):
         msg = process_message(args)
         self.on_update(EXCHANGE.BINANCE, msg)
 
     def on_error(self, ws, error):
-	print error
-	self.subscribe()
+        print "Error: ", error
+        self.subscribe()
 
     def subscribe(self):
         # websocket.enableTrace(True)
-	final_url = BinanceParameters.URL+self.subscription_url
-	print final_url
+        final_url = BinanceParameters.URL+self.subscription_url
+        print final_url
         ws = websocket.WebSocketApp(final_url,
                                     on_message=self.on_public,
                                     on_error=self.subscribe,
                                     on_close=self.on_close)
+
         ws.on_open = self.on_open
+
         ws.run_forever()

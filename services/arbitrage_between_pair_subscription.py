@@ -172,7 +172,7 @@ class ArbitrageListener:
             self.order_book_sell.update(exchange_id, order_book_delta)
 
         bids = self.order_book_sell.bid[:10]
-        asks = self.order_book_buy.ask[:10]
+        asks = self.order_book_sell.ask[:10]
 
         import os
         os.system('clear')

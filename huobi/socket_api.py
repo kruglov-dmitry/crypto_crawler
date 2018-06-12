@@ -18,10 +18,10 @@ class HuobiParameters:
     SUBSCRIPTION_STRING = """{{"sub": "market.{pair_name}.depth.step0","id": "{uuid_id}"}}"""
 
 
-def default_on_public(args):
+def default_on_public(exchange_id, args):
     print "on_public", args
     msg = process_message(args)
-    print msg
+    print exchange_id, msg
 
 
 class SubscriptionHuobi:
@@ -47,37 +47,33 @@ class SubscriptionHuobi:
 
     def on_public(self, ws, args):
         msg = process_message(args)
-	
         self.on_update(EXCHANGE.HUOBI, msg)
-    
+
     def on_error(self, ws, error):
-	print error
-	self.subscribe()
-    
+        print "Error:", error
+        self.subscribe()
+
     def on_close(self, ws):
-        print("### closed ###")
-	self.subscribe()
-    
+        print("Connection closed, Reconnecting...")
+        self.subscribe()
+
     def on_open(self, ws):
-        print("ONOPEN")
-	ws.send(self.subscription_url)
+
+        print "Opening connection..."
+
+        ws.send(self.subscription_url)
+
         #  compressData=ws.recv()
         #  print "CONFIRMATION OF SUBSCRIPTION:", process_message(compressData)
 
     def subscribe(self):
+
         # websocket.enableTrace(True)
+
         ws = websocket.WebSocketApp(HuobiParameters.URL,
                                     on_message=self.on_public,
                                     on_error=self.on_error,
                                     on_close=self.on_close)
         ws.on_open = self.on_open
-        # ws = websocket.WebSocketApp(HuobiParameters.URL + self.subscription_url)
-
-        # ws.on_message = self.on_public
-
-        # ws.on_error = self.subscribe
-
-        # ws.on_close = default_on_public
-        # ws.on_open = default_on_public
 
         ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
