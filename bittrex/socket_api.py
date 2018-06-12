@@ -69,7 +69,7 @@ class SubscriptionBittrex:
 
         # self.on_receive = on_receive
 
-        self.on_update = on_update
+        self.on_update_impl = on_update
 
         self.hub = None
 
@@ -79,7 +79,7 @@ class SubscriptionBittrex:
 
     def on_update(self, args):
         msg = process_message(args)
-        self.on_update(EXCHANGE.BITTREX, msg)
+        self.on_update_impl(EXCHANGE.BITTREX, msg)
 
     def subscribe(self):
         with Session() as session:
