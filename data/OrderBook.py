@@ -44,11 +44,11 @@ ORDER_BOOK_INSERT_QUERY = """insert into {table_name} ({columns}) values(%s, %s,
 TICKER_TYPE_NAME = "ticker"
 
 
-def cmp_method_bid(a, b):
+def cmp_method_ask(a, b):
     return a.price < b.price
 
 
-def cmp_method_ask(a, b):
+def cmp_method_bid(a, b):
     return a.price > b.price
 
 
@@ -281,7 +281,9 @@ class OrderBook(BaseData):
 
         almost_zero = bid.volume <= MAX_VOLUME_ORDER_BOOK
         item_insert_point = binary_search(self.bid, bid, cmp_method_bid)
-        is_present = self.bid[item_insert_point] == bid
+        is_present = False
+        if item_insert_point < len(self.bid):
+            is_present = self.bid[item_insert_point] == bid
         should_delete = almost_zero and is_present
 
         if should_delete:
@@ -304,7 +306,9 @@ class OrderBook(BaseData):
 
         almost_zero = new_ask.volume <= MAX_VOLUME_ORDER_BOOK
         item_insert_point = binary_search(self.ask, new_ask, cmp_method_ask)
-        is_present = self.ask[item_insert_point] == new_ask
+        is_present = False
+        if item_insert_point < len(self.ask):
+            is_present = self.ask[item_insert_point] == new_ask
         should_delete = almost_zero and is_present
 
         if should_delete:
@@ -483,7 +487,13 @@ class OrderBook(BaseData):
             type_update = int(new_sell["TY"])
 
             item_insert_point = binary_search(self.ask, new_deal, cmp_method_ask)
-            is_present = self.ask[item_insert_point] == new_deal
+            try:
+                is_present = self.ask[item_insert_point] == new_deal
+            except:
+                msg = "for item {wtf} SELL - ASK found index is {idx}".format(wtf=new_deal, idx=item_insert_point)
+                log_to_file(msg, "fuck.log")
+                log_to_file(self, "fuck.log")
+                is_present = False
 
             if type_update == BITTREX_ORDER_ADD:
                 self.insert_new_ask_preserve_order(new_deal)
@@ -515,7 +525,13 @@ class OrderBook(BaseData):
             type_update = int(new_buy["TY"])
 
             item_insert_point = binary_search(self.bid, new_deal, cmp_method_bid)
-            is_present = self.bid[item_insert_point] == new_deal
+            try:
+                is_present = self.bid[item_insert_point] == new_deal
+            except:
+                msg = "for {wtf} BUY - BID we found index {idx}".format(wtf=new_deal, idx=item_insert_point)
+                log_to_file(msg, "fuck.log")
+                log_to_file(self, "fuck.log")
+                is_present = False
 
             if type_update == BITTREX_ORDER_ADD:
                 self.insert_new_bid_preserve_order(new_deal)
