@@ -75,7 +75,7 @@ a = []
 for idx in xrange(10):
 
   b = Deal(random.uniform(0, 1), random.uniform(0, 1))
-  a.append(b)
+  # a.append(b)
 
 a = sorted(a, key=lambda x: x.price, reverse=True)
 # a = sorted(a, key=lambda x: x.price, reverse=False)
