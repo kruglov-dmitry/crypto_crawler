@@ -11,5 +11,5 @@ class Deal(BaseData):
         """Overrides the default implementation"""
         if isinstance(self, other.__class__):
             # FIXME ROUNDING
-            return abs(self.price - other.price) <= FLOAT_POINT_PRECISION
+            return abs(self.price - other.price) < FLOAT_POINT_PRECISION
         return False
