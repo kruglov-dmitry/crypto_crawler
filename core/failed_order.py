@@ -15,7 +15,7 @@ from data_access.priority_queue import ORDERS_EXPIRE_MSG
 from enums.deal_type import DEAL_TYPE
 from enums.status import STATUS
 
-from constants import BALANCE_EXPIRED_THRESHOLD, FLOAT_POINT_PRECISION
+from constants import BALANCE_EXPIRED_THRESHOLD
 from debug_utils import FAILED_ORDER_PROCESSING_FILE_NAME
 from utils.time_utils import sleep_for, get_now_seconds_utc
 from utils.file_utils import log_to_file
@@ -156,11 +156,9 @@ def try_to_set_order_id(open_orders, order):
     print "Compare ", order
     for every_order in open_orders:
         print every_order
-        if order.pair_id == every_order.pair_id and \
-                        order.trade_type == every_order.trade_type and \
-                        abs(order.price - every_order.price) < FLOAT_POINT_PRECISION and \
-                        every_order.create_time >= order.create_time and \
-                        abs(order.create_time - every_order.create_time) < 15:
+        if order.pair_id == every_order.pair_id and order.trade_type == every_order.trade_type and \
+                order.price == every_order.price and every_order.create_time >= order.create_time and \
+                abs(order.create_time - every_order.create_time) < 15:
             # FIXME
             print "FOUND!!!"
             order.order_id = every_order.order_id

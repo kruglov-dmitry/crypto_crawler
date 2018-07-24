@@ -1,4 +1,5 @@
 import sys
+from decimal import Decimal
 
 sys.setrecursionlimit(10000)
 
@@ -7,6 +8,7 @@ from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, ER
 from utils.time_utils import get_now_seconds_utc
 from utils.currency_utils import split_currency_pairs
 from utils.file_utils import log_to_file
+from utils.string_utils import truncate_float
 
 from core.base_analysis import get_change
 
@@ -22,7 +24,7 @@ from data_access.memory_cache import get_next_arbitrage_id
 from binance.precision_by_currency import round_volume_by_binance_rules
 from huobi.precision_by_currency import round_volume_by_huobi_rules
 
-from constants import FIRST, LAST, NO_MAX_CAP_LIMIT, MIN_VOLUME_COEFFICIENT, MAX_VOLUME_COEFFICIENT
+from constants import FIRST, LAST, NO_MAX_CAP_LIMIT, MIN_VOLUME_COEFFICIENT, MAX_VOLUME_COEFFICIENT, DECIMAL_ZERO
 
 from logging_tools.arbitrage_core_logging import log_arbitrage_heart_beat, log_arbitrage_determined_volume_not_enough, \
     log_currency_disbalance_present, log_currency_disbalance_heart_beat, log_arbitrage_determined_price_not_enough
@@ -132,7 +134,7 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
     :param first_order_book:
     :param second_order_book:
     :param balance_state:
-    :return:
+    :return:    Decimal object representing exact number
     """
 
     # 1st stage: What is minimum amount of volume according to order book
@@ -158,12 +160,21 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
                                                    min_volume,
                                                    second_order_book.ask[LAST].price):
         min_volume = ( MAX_VOLUME_COEFFICIENT * balance_state.get_available_volume_by_currency(
-            base_currency_id, second_order_book.exchange_id)) / float(second_order_book.ask[LAST].price)
+            base_currency_id, second_order_book.exchange_id)) / second_order_book.ask[LAST].price
 
     return min_volume
 
 
 def determine_maximum_volume_by_balance(pair_id, deal_type, volume, price, balance):
+    """
+    :param pair_id:
+    :param deal_type:
+    :param volume:
+    :param price:
+    :param balance:
+    :return: Decimal object representing exact volume
+    """
+
     base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
 
     if deal_type == DEAL_TYPE.SELL:
@@ -173,7 +184,7 @@ def determine_maximum_volume_by_balance(pair_id, deal_type, volume, price, balan
     elif deal_type == DEAL_TYPE.BUY:
         # what is maximum volume we can buy at exchange
         if not balance.do_we_have_enough(base_currency_id, volume * price):
-            volume = (MAX_VOLUME_COEFFICIENT * balance.available_balance[base_currency_id]) / float(price)
+            volume = (MAX_VOLUME_COEFFICIENT * balance.available_balance[base_currency_id]) / price
     else:
 
         assert deal_type not in [DEAL_TYPE.BUY, DEAL_TYPE.SELL]
@@ -206,7 +217,7 @@ def round_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, min_volume
     elif sell_exchange_id == EXCHANGE.HUOBI or buy_exchange_id == EXCHANGE.HUOBI:
         return round_volume_by_huobi_rules(volume=min_volume, pair_id=pair_id)
     else:
-        return min_volume
+        return truncate_float(min_volume, 8)
 
 
 def round_volume(exchange_id, min_volume, pair_id):
@@ -215,7 +226,7 @@ def round_volume(exchange_id, min_volume, pair_id):
     elif exchange_id == EXCHANGE.HUOBI:
         return round_volume_by_huobi_rules(volume=min_volume, pair_id=pair_id)
     else:
-        return min_volume
+        return truncate_float(min_volume, 8)
 
 
 def adjust_price_by_order_book(orders, min_volume):
@@ -227,11 +238,11 @@ def adjust_price_by_order_book(orders, min_volume):
         In short dive into order book, take price from level where we can place min_volume * 2
 
     :param orders: the most recent order book
-    :param min_volume: volume determined according to various check
-    :return:
+    :param min_volume: Decimal value of volume determined according to various checks
+    :return: Decimal object with exact price
     """
-    new_price = -10.0
-    acc_volume = 0.0
+    new_price = Decimal(-10.0)
+    acc_volume = Decimal(0.0)
     max_volume = 2 * min_volume
     max_len = len(orders)
 
@@ -271,7 +282,7 @@ def adjust_currency_balance(first_order_book, second_order_book, threshold, bala
     if balance_state.is_there_disbalance(dst_currency_id, src_exchange_id, dst_exchange_id, balance_threshold) and \
             is_no_pending_order(pair_id, src_exchange_id, dst_exchange_id):
 
-        max_volume = 0.5 * abs(balance_state.get_available_volume_by_currency(dst_currency_id, dst_exchange_id) -
+        max_volume = Decimal(0.5) * abs(balance_state.get_available_volume_by_currency(dst_currency_id, dst_exchange_id) -
                             balance_state.get_available_volume_by_currency(dst_currency_id, src_exchange_id))
 
         # FIXME NOTE: side effect here
@@ -290,7 +301,7 @@ def adjust_currency_balance(first_order_book, second_order_book, threshold, bala
 
 
 def compute_new_min_cap_from_tickers(pair_id, tickers):
-    min_price = 0.0
+    min_price = DECIMAL_ZERO
 
     for ticker in tickers:
         if ticker is not None:
@@ -298,21 +309,21 @@ def compute_new_min_cap_from_tickers(pair_id, tickers):
 
     base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
 
-    if min_price != 0.0:
+    if min_price != DECIMAL_ZERO:
         return MIN_VOLUME_COEFFICIENT[base_currency_id] / min_price
 
-    return 0.0
+    return DECIMAL_ZERO
 
 
 def compute_min_cap_from_ticker(pair_id, ticker):
-    min_price = 0.0
+    min_price = DECIMAL_ZERO
 
     if ticker is not None:
         min_price = max(min_price, ticker.ask)
 
     base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
 
-    if min_price != 0.0:
+    if min_price != DECIMAL_ZERO:
         return MIN_VOLUME_COEFFICIENT[base_currency_id] / min_price
 
-    return 0.0
+    return DECIMAL_ZERO
