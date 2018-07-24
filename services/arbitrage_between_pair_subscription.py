@@ -148,15 +148,15 @@ class ArbitrageListener:
 
     def subscribe_balance_update(self):
         cur_timest_sec = get_now_seconds_utc()
-        self.balance_state = get_updated_balance_arbitrage(cfg, self.balance_state, self.local_cache)
+        # self.balance_state = get_updated_balance_arbitrage(cfg, self.balance_state, self.local_cache)
 
-        if self.balance_state.expired(cur_timest_sec, self.buy_exchange_id, self.sell_exchange_id,
-                                      BALANCE_EXPIRED_THRESHOLD):
-            log_balance_expired_errors(cfg, self.msg_queue, self.balance_state)
+        # if self.balance_state.expired(cur_timest_sec, self.buy_exchange_id, self.sell_exchange_id,
+        #                               BALANCE_EXPIRED_THRESHOLD):
+        #     log_balance_expired_errors(cfg, self.msg_queue, self.balance_state)
 
-            assert False
+        #     assert False
 
-        threading.Timer(self.balance_update_timeout, self.subscribe_balance_update).start()
+        # threading.Timer(self.balance_update_timeout, self.subscribe_balance_update).start()
 
     def subsribe_to_order_book_update(self):
         # for both exchanges
@@ -166,8 +166,8 @@ class ArbitrageListener:
         buy_subscription_constructor = get_subcribtion_by_exchange(self.buy_exchange_id)
         sell_subscription_constructor = get_subcribtion_by_exchange(self.sell_exchange_id)
 
-        # buy_subscription = buy_subscription_constructor(self.pair_id, self.on_order_book_update)
-        # thread.start_new_thread(buy_subscription.subscribe, ())
+        buy_subscription = buy_subscription_constructor(self.pair_id, self.on_order_book_update)
+        thread.start_new_thread(buy_subscription.subscribe, ())
 
         sell_subscription = sell_subscription_constructor(self.pair_id, self.on_order_book_update)
         thread.start_new_thread(sell_subscription.subscribe, ())
@@ -180,20 +180,20 @@ class ArbitrageListener:
         else:
             self.order_book_sell.update(exchange_id, order_book_delta)
 
-        bids = self.order_book_sell.bid[:10]
-        asks = self.order_book_sell.ask[:10]
+            bids = self.order_book_sell.bid[:10]
+            asks = self.order_book_sell.ask[:10]
 
-        import os
-        os.system('clear')
+            import os
+            os.system('clear')
 
-        print get_exchange_name_by_id(exchange_id)
-        print "BIDS:"
-        for b in bids:
-            print b
+            print get_exchange_name_by_id(exchange_id)
+            print "BIDS:"
+            for b in bids:
+                print b
 
-        print "ASKS"
-        for a in asks:
-            print a
+            print "ASKS"
+            for a in asks:
+                print a
 
         """
         for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
