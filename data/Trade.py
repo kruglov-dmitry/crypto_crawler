@@ -1,4 +1,5 @@
 from Deal import Deal
+from decimal import Decimal
 
 from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
@@ -25,14 +26,14 @@ class Trade(Deal):
         self.trade_type = int(trade_type)
         self.exchange_id = int(exchange_id)
         self.pair_id = int(pair_id)
-        self.price = float(price)
-        self.volume = float(volume)
+        self.price = Decimal(price)
+        self.volume = Decimal(volume)
         self.order_book_time = long(order_book_time)
         self.create_time = long(create_time)
         self.execute_time = long(execute_time) if execute_time is not None else execute_time
         self.order_id = order_id
         self.trade_id = trade_id
-        self.executed_volume = float(executed_volume) if executed_volume is not None else executed_volume
+        self.executed_volume = Decimal(executed_volume) if executed_volume is not None else executed_volume
         self.arbitrage_id = long(arbitrage_id)
 
     def __str__(self):
@@ -254,12 +255,12 @@ class Trade(Deal):
             timest = parse_time(json_document["Opened"], '%Y-%m-%dT%H:%M:%S')
 
         price = json_document["Limit"]
-        volume = float(json_document["Quantity"])
+        volume = Decimal(json_document["Quantity"])
         trade_type = DEAL_TYPE.BUY
         if "SELL" in json_document["OrderType"]:
             trade_type = DEAL_TYPE.SELL
         trade_id = json_document["OrderUuid"]
-        executed_volume = volume - float(json_document["QuantityRemaining"])
+        executed_volume = volume - Decimal(json_document["QuantityRemaining"])
 
         return Trade(trade_type, EXCHANGE.BITTREX, pair_id, price, volume, timest, timest, execute_time=timest,
                      order_id=trade_id, executed_volume=executed_volume)
@@ -310,8 +311,8 @@ class Trade(Deal):
 
         price = json_document["PricePerUnit"]
 
-        volume = float(json_document["Quantity"])
-        executed_volume = volume - float(json_document["QuantityRemaining"])
+        volume = Decimal(json_document["Quantity"])
+        executed_volume = volume - Decimal(json_document["QuantityRemaining"])
 
         return Trade(trade_type, EXCHANGE.BITTREX, pair_id, price, volume, order_book_time=timest, create_time=timest,
                      execute_time=execute_timest, order_id=order_id, trade_id=order_id, executed_volume=executed_volume)
@@ -338,14 +339,14 @@ class Trade(Deal):
 
         timest = parse_time(json_document["date"], '%Y-%m-%d %H:%M:%S')
         price = json_document["rate"]
-        volume = float(json_document["startingAmount"])
+        volume = Decimal(json_document["startingAmount"])
 
         trade_type = DEAL_TYPE.BUY
         if "sell" in json_document["type"]:
             trade_type = DEAL_TYPE.SELL
 
         order_id = json_document["orderNumber"]
-        executed_volume = volume - float(json_document["amount"])
+        executed_volume = volume - Decimal(json_document["amount"])
         return Trade(trade_type, EXCHANGE.POLONIEX, pair_id, price, volume, timest, timest, execute_time=timest,
                      order_id=order_id, trade_id=order_id, executed_volume=executed_volume)
 
@@ -373,7 +374,7 @@ class Trade(Deal):
         trade_id = json_document["tradeID"]
         timest = parse_time(json_document["date"], '%Y-%m-%d %H:%M:%S')
         price = json_document["rate"]
-        volume = float(json_document["amount"])
+        volume = Decimal(json_document["amount"])
 
         return Trade(trade_type, EXCHANGE.POLONIEX, pair_id, price, volume, timest, timest, execute_time=timest,
                      order_id=order_id, trade_id=trade_id, executed_volume=volume)
@@ -415,8 +416,8 @@ class Trade(Deal):
         executed_timest = 0.001 * long(json_document["finished-at"])
 
         price = json_document["price"]
-        volume = float(json_document["amount"])
-        executed_volume = float(json_document["field-amount"])
+        volume = Decimal(json_document["amount"])
+        executed_volume = Decimal(json_document["field-amount"])
 
         return Trade(trade_type, EXCHANGE.HUOBI, pair_id, price, volume, create_timest, create_timest, execute_time=executed_timest,
                      order_id=order_id, trade_id=trade_id, executed_volume=executed_volume)
@@ -437,7 +438,7 @@ class Trade(Deal):
         trade_type = db_row[2]
         pair_id = db_row[3]
         price = db_row[4]
-        volume = float(db_row[5])
+        volume = Decimal(db_row[5])
         executed_volume = db_row[6]
         order_id = db_row[7]
         trade_id = db_row[8]
@@ -474,18 +475,18 @@ class Trade(Deal):
         if "SELL" in row[2]:
             trade_type = DEAL_TYPE.SELL
 
-        volume = float(row[3])
-        price = float(row[5])
+        volume = Decimal(row[3])
+        price = Decimal(row[5])
 
         arbitrage_id = -50
         exchange_id = EXCHANGE.BITTREX
 
-        executed_volume = db_row[6]
+        executed_volume = row[6]
 
-        trade_id = db_row[8]
-        order_book_time = db_row[9]
-        create_time = db_row[10]
-        execute_time = db_row[11]
+        trade_id = row[8]
+        order_book_time = row[9]
+        create_time = row[10]
+        execute_time = row[11]
 
         res = Trade(trade_type, exchange_id, pair_id, price, volume, order_book_time, create_time, execute_time,
                     order_id, trade_id, executed_volume, arbitrage_id)

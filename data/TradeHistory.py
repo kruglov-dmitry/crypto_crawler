@@ -1,5 +1,6 @@
 from datetime import datetime
 import re
+from decimal import Decimal
 
 from utils.currency_utils import get_pair_name_by_id
 
@@ -40,9 +41,9 @@ class TradeHistory(BaseData):
         self.pair = get_pair_name_by_id(self.pair_id)
         self.timest = long(timest)
         self.deal_type = deal_type
-        self.price = float(price)
-        self.amount = float(amount)
-        self.total = float(total)
+        self.price = Decimal(price)
+        self.amount = Decimal(amount)
+        self.total = Decimal(total)
         self.exchange_id = int(exchange_id)
         self.exchange = get_exchange_name_by_id(self.exchange_id)
 
@@ -106,8 +107,8 @@ class TradeHistory(BaseData):
         if "s" in json_document[3]:
             deal_type = DEAL_TYPE.SELL
 
-        price = float(json_document[0])
-        amount = float(json_document[1])
+        price = Decimal(json_document[0])
+        amount = Decimal(json_document[1])
         total = price * amount
 
         currency_pair = get_currency_pair_from_kraken(pair)
@@ -152,8 +153,8 @@ class TradeHistory(BaseData):
         if "SELL" in json_document["OrderType"]:
             deal_type = DEAL_TYPE.SELL
 
-        price = float(json_document["Price"])
-        amount = float(json_document["Quantity"])
+        price = Decimal(json_document["Price"])
+        amount = Decimal(json_document["Quantity"])
         total = json_document["Total"]
 
         currency_pair = get_currency_pair_from_bittrex(pair)
@@ -182,8 +183,8 @@ class TradeHistory(BaseData):
         if json_document["m"] is True:
             deal_type = DEAL_TYPE.SELL
 
-        price = float(json_document["p"])
-        amount = float(json_document["q"])
+        price = Decimal(json_document["p"])
+        amount = Decimal(json_document["q"])
         total = price * amount
 
         return TradeHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.BINANCE)
@@ -224,8 +225,8 @@ class TradeHistory(BaseData):
         if "buy" not in json_document["direction"]:
             deal_type = DEAL_TYPE.SELL
 
-        price = float(json_document["price"])
-        amount = float(json_document["amount"])
+        price = Decimal(json_document["price"])
+        amount = Decimal(json_document["amount"])
         total = price * amount
 
         return TradeHistory(currency_pair, deal_timest, deal_type, price, amount, total, EXCHANGE.BINANCE)
@@ -236,11 +237,11 @@ class TradeHistory(BaseData):
         results = regex.findall(some_string)
 
         # [('0.2288709', '2', 'POLONIEX', '1', 'BTC_TO_DASH', '1', '0.060019', '1502434895', '0 ')]
-        amount = float(results[0][0])
+        amount = Decimal(results[0][0])
         deal_type = results[0][1]
         exchange_id = results[0][3]
         currency_pair_id = results[0][5]
-        price = float(results[0][6])
+        price = Decimal(results[0][6])
         deal_timest = results[0][7]
         total = price * amount
 

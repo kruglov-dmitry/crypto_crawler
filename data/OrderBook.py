@@ -22,8 +22,6 @@ from utils.file_utils import log_to_file
 from constants import MAX_VOLUME_ORDER_BOOK, FLOAT_POINT_PRECISION
 from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
 
-import bisect
-
 # FIXME NOTE - not the smartest idea to deal with
 regex_string = "\[exchange - (.*) exchange_id - (.*) pair - (.*) pair_id - (.*) timest - (.*) bids - (.*) asks - (.*)\]"
 regex = re.compile(regex_string)
