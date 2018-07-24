@@ -41,8 +41,8 @@ def default_on_receive(**kwargs):
     # if 'R' in kwargs and type(kwargs['R']) is not bool:
     #    msg = process_message(kwargs['R'])
 
+    # print kwargs
     pass
-
 
 def default_on_public(exchange_id, args):
     msg = process_message(args)
@@ -67,7 +67,6 @@ class SubscriptionBittrex:
         self.pair_id = pair_id
         self.pair_name = get_currency_pair_to_bittrex(self.pair_id)
 
-        # self.on_receive = on_receive
 
         self.on_update_impl = on_update
 
@@ -86,17 +85,12 @@ class SubscriptionBittrex:
             connection = Connection(self.url, session)
             self.hub = connection.register_hub(self.hub_name)
 
-            # connection.received += self.on_receive
-
             self.hub.client.on(BittrexParameters.MARKET_DELTA, self.on_update)
 
             connection.error += self.on_error
 
             connection.start()
 
-            self.hub.server.invoke(BittrexParameters.QUERY_EXCHANGE_STATE, self.pair_name)
-            # connection.wait(10)
-
-            # with connection:
             while connection.started:
                 self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)
+

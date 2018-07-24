@@ -13,6 +13,7 @@ from dao.ticker_utils import get_ticker_for_arbitrage
 from dao.deal_utils import init_deals_with_logging_speedy
 
 from data.ArbitrageConfig import ArbitrageConfig
+from data.OrderBook import OrderBook
 
 from data_access.classes.ConnectionPool import ConnectionPool
 from data_access.memory_cache import get_cache
@@ -83,19 +84,20 @@ class ArbitrageListener:
         self.init_balance_state()
 
         # moving to serious business
-        self.subscribe_cap_update()
         self.subscribe_balance_update()
 
         # tricky part started here
         self.init_order_books()
 
-        #
         self.subsribe_to_order_book_update()
+
+        self.sync_order_books()
+
 
     def init_deal_cap(self):
         self.deal_cap = MarketCap(cfg.pair_id, get_now_seconds_utc())
-        self.update_min_cap()
         self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
+        self.subscribe_cap_update()
 
     def update_min_cap(self):
         cur_timest_sec = get_now_seconds_utc()
@@ -126,6 +128,13 @@ class ArbitrageListener:
         self.balance_state = dummy_balance_init(timest=0, default_volume=0, default_available_volume=0)
 
     def init_order_books(self):
+        self.buy_exchange_id = cfg.buy_exchange_id
+        self.sell_exchange_id = cfg.sell_exchange_id
+        cur_timest_sec = get_now_seconds_utc()
+        self.order_book_sell = OrderBook(pair_id=self.pair_id, timest=cur_timest_sec, sell_bids=[], buy_bids=[], exchange_id=self.sell_exchange_id  )
+        self.order_book_buy = OrderBook(pair_id=self.pair_id, timest=cur_timest_sec, sell_bids=[], buy_bids=[], exchange_id=self.buy_exchange_id)
+
+    def sync_order_books(self):
         cur_timest_sec = get_now_seconds_utc()
         self.order_book_sell, self.order_book_buy = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec,
                                                                                        self.processor)

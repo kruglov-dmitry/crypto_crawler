@@ -507,8 +507,9 @@ class OrderBook(BaseData):
                 if is_present:
                     self.ask[item_insert_point].volume = new_deal.volume
                 else:
-                    msg = "Bittrex socket update - got sell UPDATE not found in local orderbook - {wtf}".format(wtf=new_sell)
-                    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+                    self.insert_new_ask_preserve_order(new_deal)
+                    # msg = "Bittrex socket update - got sell UPDATE not found in local orderbook - {wtf}".format(wtf=new_sell)
+                    # log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
             else:
                 msg = "Bittrex socket un-supported sells format? {wtf}".format(wtf=new_sell)
                 log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
@@ -546,9 +547,10 @@ class OrderBook(BaseData):
                 if is_present:
                     self.bid[item_insert_point].volume = new_deal.volume
                 else:
-                    msg = "Bittrex socket update we got order but cant find order price for it - {wtf}".format(
-                        wtf=new_deal)
-                    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+                    self.insert_new_bid_preserve_order(new_deal)
+                    # msg = "Bittrex socket update we got order but cant find order price for it - {wtf}".format(
+                    #     wtf=new_deal)
+                    # log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
             else:
                 msg = "Bittrex socket un-supported buys format? {wtf}".format(wtf=new_buy)
                 log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
