@@ -706,8 +706,13 @@ class OrderBook(BaseData):
     def update(self, exchange_id, order_book_delta):
         ts = str(get_now_seconds_utc_ms())
         e_name = get_exchange_name_by_id(exchange_id)
+        
+        file_name = e_name + "_" + ts + "_raw.txt" 
+        log_to_file(order_book_delta, file_name)
+        
         file_name = e_name + "_" + ts + "_before.txt"
         log_to_file(self, file_name)
+        
         method = {
             EXCHANGE.POLONIEX: self.update_for_poloniex,
             EXCHANGE.BITTREX: self.update_for_bittrex,
@@ -718,3 +723,4 @@ class OrderBook(BaseData):
 
         file_name = e_name + "_" + ts + "_after.txt"
         log_to_file(self, file_name)
+       
