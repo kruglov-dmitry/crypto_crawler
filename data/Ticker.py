@@ -1,4 +1,6 @@
 import re
+from decimal import Decimal
+
 from utils.currency_utils import get_pair_name_by_id
 
 from bittrex.currency_utils import get_currency_pair_from_bittrex
@@ -35,8 +37,8 @@ class Ticker(BaseData):
     def __init__(self, pair_id, lowest_ask, highest_bid, timest, exchange_id):
         self.pair_id = int(pair_id)
         self.pair = get_pair_name_by_id(self.pair_id)
-        self.ask = float(lowest_ask)
-        self.bid = float(highest_bid)
+        self.ask = Decimal(lowest_ask)
+        self.bid = Decimal(highest_bid)
         self.timest = long(timest)
         self.exchange_id = int(exchange_id)
         self.exchange = get_exchange_name_by_id(self.exchange_id)

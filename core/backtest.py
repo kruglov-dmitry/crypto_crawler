@@ -13,23 +13,6 @@ from utils.file_utils import log_to_file
 from dao.db import init_pg_connection, get_order_book_by_time, get_time_entries
 
 
-def dummy_balance_init(timest, default_volume, default_available_volume):
-    balance = {}
-
-    total_balance = {}
-    available_balance = {}
-
-    for currency_id in ARBITRAGE_CURRENCY:
-        total_balance[currency_id] = default_volume
-
-    for currency_id in ARBITRAGE_CURRENCY:
-        available_balance[currency_id] = default_available_volume
-
-    for exchange_id in EXCHANGE.values():
-        balance[exchange_id] = Balance(exchange_id, timest, available_balance, total_balance)
-
-    return BalanceState(balance)
-
 
 def dummy_order_state_init():
     order_state_by_exchange = {}

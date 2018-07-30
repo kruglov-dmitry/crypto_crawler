@@ -1,4 +1,6 @@
 # coding=utf-8
+from decimal import Decimal
+
 from BaseData import BaseData
 from constants import ARBITRAGE_CURRENCY, ZERO_BALANCE
 from enums.exchange import EXCHANGE
@@ -86,10 +88,10 @@ class Balance(BaseData):
 
             currency_name = get_currency_name_for_poloniex(currency_id)
             if currency_name in json_document:
-                volume = float(json_document[currency_name]["available"])
+                volume = Decimal(json_document[currency_name]["available"])
                 available_balance[currency_id] = volume
 
-                locked_volume = float(json_document[currency_name]["onOrders"])
+                locked_volume = Decimal(json_document[currency_name]["onOrders"])
                 total_balance[currency_id] = locked_volume + volume
 
         return Balance(EXCHANGE.POLONIEX, last_update, available_balance, total_balance)
@@ -111,7 +113,7 @@ class Balance(BaseData):
             try:
                 currency_name = get_currency_name_for_kraken(currency_id)
                 if currency_name in json_document:
-                    volume = float(json_document[currency_name])
+                    volume = Decimal(json_document[currency_name])
                     initial_balance[currency_id] = volume
             except Exception, e:
                 error_msg = "Can't find currency_id - {id}".format(id=currency_id)
@@ -144,9 +146,9 @@ class Balance(BaseData):
 
             for entry in json_document:
                 if currency_name == entry["Currency"]:
-                    volume = float(entry["Balance"])
+                    volume = Decimal(entry["Balance"])
                     total_balance[currency_id] = volume
-                    volume = float(entry["Available"])
+                    volume = Decimal(entry["Available"])
                     available_balance[currency_id] = volume
 
         return Balance(EXCHANGE.BITTREX, last_update, available_balance, total_balance)
@@ -181,13 +183,12 @@ class Balance(BaseData):
 
             for entry in json_document["balances"]:
                 if currency_name == entry["asset"]:
-                    volume = float(entry["free"])
+                    volume = Decimal(entry["free"])
                     available_balance[currency_id] = volume
-                    locked_volume = float(entry["locked"])
+                    locked_volume = Decimal(entry["locked"])
                     total_balance[currency_id] = locked_volume + volume
 
         return Balance(EXCHANGE.BINANCE, last_update, available_balance, total_balance)
-
 
     @classmethod
     def from_huobi(cls, last_update, json_document):
@@ -246,7 +247,7 @@ class Balance(BaseData):
 
             for entry in json_document["list"]:
                 if currency_name == entry["currency"]:
-                    volume = float(entry["balance"])
+                    volume = Decimal(entry["balance"])
                     if "frozen" in entry["type"]:
                         if currency_id in total_balance:
                             total_balance[currency_id] += volume

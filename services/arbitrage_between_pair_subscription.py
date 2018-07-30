@@ -5,7 +5,7 @@ from data_access.priority_queue import get_priority_queue
 
 from core.arbitrage_core import search_for_arbitrage, adjust_currency_balance, compute_new_min_cap_from_tickers
 from core.expired_order import add_orders_to_watch_list
-from core.backtest import dummy_balance_init
+from data.BalanceState import dummy_balance_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair

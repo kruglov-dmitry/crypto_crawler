@@ -1,6 +1,28 @@
+from constants import ARBITRAGE_CURRENCY
+from enums.exchange import EXCHANGE
+
 from BaseData import BaseData
+from data.Balance import Balance
 from utils.currency_utils import split_currency_pairs
 from core.base_analysis import get_change
+
+
+def dummy_balance_init(timest, default_volume, default_available_volume):
+    balance = {}
+
+    total_balance = {}
+    available_balance = {}
+
+    for currency_id in ARBITRAGE_CURRENCY:
+        total_balance[currency_id] = default_volume
+
+    for currency_id in ARBITRAGE_CURRENCY:
+        available_balance[currency_id] = default_available_volume
+
+    for exchange_id in EXCHANGE.values():
+        balance[exchange_id] = Balance(exchange_id, timest, available_balance, total_balance)
+
+    return BalanceState(balance)
 
 
 class BalanceState(BaseData):

@@ -1,5 +1,6 @@
 from datetime import datetime
 import re
+from decimal import Decimal
 
 from utils.currency_utils import get_pair_name_by_id
 
@@ -37,10 +38,10 @@ class Candle(BaseData):
         self.pair_id = int(pair_id)
         self.pair = get_pair_name_by_id(self.pair_id)
         self.timest = long(timest)
-        self.high = float(price_high)
-        self.low = float(price_low)
-        self.open = float(price_open)
-        self.close = float(price_close)
+        self.high = Decimal(price_high)
+        self.low = Decimal(price_low)
+        self.open = Decimal(price_open)
+        self.close = Decimal(price_close)
         self.exchange_id = int(exchange_id)
         self.exchange = get_exchange_name_by_id(self.exchange_id)
 
