@@ -18,14 +18,14 @@ class HuobiParameters:
     SUBSCRIPTION_STRING = """{{"sub": "market.{pair_name}.depth.step0","id": "{uuid_id}"}}"""
 
 
-def default_on_public(exchange_id, args):
+def default_on_public(exchange_id, args, updates_queue):
     print "on_public", args
     msg = process_message(args)
-    print exchange_id, msg
+    print exchange_id, msg, updates_queue
 
 
 class SubscriptionHuobi:
-    def __init__(self, pair_id, on_update=default_on_public, base_url=HuobiParameters.URL):
+    def __init__(self, pair_id, on_update=default_on_public, base_url=HuobiParameters.URL, updates_queue=None):
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points
@@ -44,10 +44,11 @@ class SubscriptionHuobi:
         self.subscription_url = HuobiParameters.SUBSCRIPTION_STRING.format(pair_name=self.pair_name, uuid_id=uuid.uuid4())
 
         self.on_update = on_update
+        self.updates_queue = updates_queue
 
     def on_public(self, ws, args):
         msg = process_message(args)
-        self.on_update(EXCHANGE.HUOBI, msg)
+        self.on_update(EXCHANGE.HUOBI, msg, self.updates_queue)
 
     def on_error(self, ws, error):
         print "Error:", error

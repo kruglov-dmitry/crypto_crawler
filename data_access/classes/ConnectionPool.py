@@ -22,9 +22,9 @@ def log_responce_cant_be_parsed(work_unit, file_name=None):
 
     responce_code = ""
     try:
-	responce_code = work_unit.future_result.value.status_code
+        responce_code = work_unit.future_result.value.status_code
     except:
-	pass
+        pass
 
     msg = """   ERROR
     For url {url} Response {resp} can't be parsed.
@@ -89,7 +89,7 @@ class ConnectionPool:
                     pass
 
                 if result is not None:
-                    if type(result) is list:
+                    if type(result) is list:    # DK FIXME: terrible!
                         res += result
                     else:
                         res.append(result)

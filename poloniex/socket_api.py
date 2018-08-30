@@ -21,9 +21,9 @@ class PoloniexParameters:
     SUBSCRIBE_HEARTBEAT = 1010
 
 
-def default_on_public(exchange_id, args):
+def default_on_public(exchange_id, args, updates_queue):
     msg = process_message(args)
-    print exchange_id, msg
+    print exchange_id, msg, updates_queue
 
 
 def on_error(ws, error):
@@ -35,7 +35,7 @@ def on_close(ws):
 
 
 class SubscriptionPoloniex:
-    def __init__(self, pair_id, on_update=default_on_public, base_url=PoloniexParameters.URL):
+    def __init__(self, pair_id, on_update=default_on_public, base_url=PoloniexParameters.URL, updates_queue=None):
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points
@@ -50,6 +50,7 @@ class SubscriptionPoloniex:
         self.pair_name = get_currency_pair_to_poloniex(self.pair_id)
 
         self.on_update = on_update
+        self.updates_queue = updates_queue
 
     def on_open(self, ws):
 
@@ -68,7 +69,7 @@ class SubscriptionPoloniex:
 
     def on_public(self, ws, args):
         msg = process_message(args)
-        self.on_update(EXCHANGE.POLONIEX, msg)
+        self.on_update(EXCHANGE.POLONIEX, msg, self.updates_queue)
 
     def on_close(self, ws, args):
         print("Connection closed, Reconnecting...")

@@ -1,4 +1,7 @@
 import argparse
+import thread
+import threading
+from Queue import Queue as queue
 
 from data_access.message_queue import get_message_queue
 from data_access.priority_queue import get_priority_queue
@@ -42,9 +45,6 @@ from bittrex.socket_api import SubscriptionBittrex
 from binance.socket_api import SubscriptionBinance
 from poloniex.socket_api import SubscriptionPoloniex
 
-import thread
-import threading
-
 
 def get_subcribtion_by_exchange(exchange_id):
     return {
@@ -57,6 +57,16 @@ def get_subcribtion_by_exchange(exchange_id):
 
 class ArbitrageListener:
     def __init__(self, cfg, app_settings):
+
+        self._init_settings(cfg)
+        self._init_infrastructure(app_settings)
+        self._init_arbitrage_state()
+
+        self.subsribe_to_order_book_update()
+
+        self.sync_order_books()
+
+    def _init_settings(self, cfg):
         self.buy_exchange_id = cfg.buy_exchange_id
         self.sell_exchange_id = cfg.sell_exchange_id
         self.pair_id = cfg.pair_id
@@ -69,33 +79,22 @@ class ArbitrageListener:
         self.cap_update_timeout = cfg.cap_update_timeout
         self.balance_update_timeout = cfg.balance_update_timeout
 
+    def _init_infrastructure(self, app_settings):
         self.priority_queue = get_priority_queue(host=app_settings.cache_host, port=app_settings.cache_port)
         self.msg_queue = get_message_queue(host=app_settings.cache_host, port=app_settings.cache_port)
         self.local_cache = get_cache(host=app_settings.cache_host, port=app_settings.cache_port)
-
         self.processor = ConnectionPool(pool_size=2)
 
-        # Should be updated by method below
-        self.deal_cap = None
-        self.balance_state = None
-        self.order_book_buy, self.order_book_sell = None, None
+        self.sell_exchange_updates = queue()
+        self.buy_exchange_updates = queue()
 
+    def _init_arbitrage_state(self):
         self.init_deal_cap()
         self.init_balance_state()
-
-        # moving to serious business
-        self.subscribe_balance_update()
-
-        # tricky part started here
         self.init_order_books()
 
-        self.subsribe_to_order_book_update()
-
-        self.sync_order_books()
-
-
     def init_deal_cap(self):
-        self.deal_cap = MarketCap(cfg.pair_id, get_now_seconds_utc())
+        self.deal_cap = MarketCap(self.pair_id, get_now_seconds_utc())
         self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
         self.subscribe_cap_update()
 
@@ -126,18 +125,22 @@ class ArbitrageListener:
 
     def init_balance_state(self):
         self.balance_state = dummy_balance_init(timest=0, default_volume=0, default_available_volume=0)
+        self.subscribe_balance_update()
 
     def init_order_books(self):
-        self.buy_exchange_id = cfg.buy_exchange_id
-        self.sell_exchange_id = cfg.sell_exchange_id
         cur_timest_sec = get_now_seconds_utc()
-        self.order_book_sell = OrderBook(pair_id=self.pair_id, timest=cur_timest_sec, sell_bids=[], buy_bids=[], exchange_id=self.sell_exchange_id  )
+        self.order_book_sell = OrderBook(pair_id=self.pair_id, timest=cur_timest_sec, sell_bids=[], buy_bids=[], exchange_id=self.sell_exchange_id)
         self.order_book_buy = OrderBook(pair_id=self.pair_id, timest=cur_timest_sec, sell_bids=[], buy_bids=[], exchange_id=self.buy_exchange_id)
 
     def sync_order_books(self):
         cur_timest_sec = get_now_seconds_utc()
+
+        # Q: what if any of it will failed?
+        # A: it is happen only initially we can just quit here
         self.order_book_sell, self.order_book_buy = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec,
                                                                                        self.processor)
+
+        # TODO read from queue => after read - update order book state
 
         self.order_book_buy.sort_by_price()
         self.order_book_sell.sort_by_price()
@@ -166,13 +169,13 @@ class ArbitrageListener:
         buy_subscription_constructor = get_subcribtion_by_exchange(self.buy_exchange_id)
         sell_subscription_constructor = get_subcribtion_by_exchange(self.sell_exchange_id)
 
-        # buy_subscription = buy_subscription_constructor(self.pair_id, self.on_order_book_update)
-        # thread.start_new_thread(buy_subscription.subscribe, ())
+        buy_subscription = buy_subscription_constructor(self.pair_id, self.on_order_book_update, self.buy_exchange_updates)
+        thread.start_new_thread(buy_subscription.subscribe, ())
 
-        sell_subscription = sell_subscription_constructor(self.pair_id, self.on_order_book_update)
+        sell_subscription = sell_subscription_constructor(self.pair_id, self.on_order_book_update, self.sell_exchange_updates)
         thread.start_new_thread(sell_subscription.subscribe, ())
 
-    def on_order_book_update(self, exchange_id, order_book_delta):
+    def on_order_book_update(self, exchange_id, order_book_delta, exchange_updates):
         # print "on_order_book_update for",  get_exchange_name_by_id(exchange_id), " thread_id: ",  thread.get_ident()
         # print exchange_id, order_book_delta
         if exchange_id == self.buy_exchange_id:

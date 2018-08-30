@@ -44,14 +44,15 @@ def default_on_receive(**kwargs):
     # print kwargs
     pass
 
-def default_on_public(exchange_id, args):
+
+def default_on_public(exchange_id, args, updates_queue):
     msg = process_message(args)
-    print exchange_id, msg
+    print exchange_id, msg, updates_queue
 
 
 class SubscriptionBittrex:
     def __init__(self, pair_id, on_update=default_on_public, base_url=BittrexParameters.URL,
-                 hub_name=BittrexParameters.HUB):
+                 hub_name=BittrexParameters.HUB, updates_queue=None):
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points
@@ -67,8 +68,8 @@ class SubscriptionBittrex:
         self.pair_id = pair_id
         self.pair_name = get_currency_pair_to_bittrex(self.pair_id)
 
-
-        self.on_update_impl = on_update
+        self.on_update = on_update
+        self.updates_queue = updates_queue
 
         self.hub = None
 
@@ -78,7 +79,7 @@ class SubscriptionBittrex:
 
     def on_update(self, args):
         msg = process_message(args)
-        self.on_update_impl(EXCHANGE.BITTREX, msg)
+        self.on_update(EXCHANGE.BITTREX, msg, self.updates_queue)
 
     def subscribe(self):
         with Session() as session:
