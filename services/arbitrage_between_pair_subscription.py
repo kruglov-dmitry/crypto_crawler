@@ -148,10 +148,14 @@ class ArbitrageListener:
         self.order_book_sell.sort_by_price()
         self.update_from_queue(self.order_book_sell, self.sell_exchange_updates)
 
+        print "Finishing syncing sell order book!"
+
         self.order_book_buy = get_order_book(self.buy_exchange_id, self.pair_id)
         assert self.order_book_buy is not None
         self.order_book_buy.sort_by_price()
         self.update_from_queue(self.order_book_buy, self.buy_exchange_updates)
+
+        print "Finishing syncing buy order book!"
 
         self.stage = ORDER_BOOK_SYNC_STAGES.AFTER_SYNC
 
@@ -218,9 +222,9 @@ class ArbitrageListener:
 
         elif stage == ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
             if exchange_id == self.buy_exchange_id:
-                self.order_book_buy.update(order_book_updates)
+                self.order_book_buy.update(exchange_id, order_book_updates)
             else:
-                self.order_book_sell.update(order_book_updates)
+                self.order_book_sell.update(exchange_id, order_book_updates)
 
             self._print_top10_bids_asks()
 

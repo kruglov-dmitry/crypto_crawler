@@ -8,9 +8,30 @@ from data.Deal import Deal
 
 
 def parse_socket_update_binance(order_book_delta):
+    """
+        How to manage a local order book correctly
+        Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth
+        Buffer the events you receive from the stream
+        Get a depth snapshot from **https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000"
+        Drop any event where u is <= lastUpdateId in the snapshot
+        The first processed should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
+        While listening to the stream, each new event's U should be equal to the previous event's u+1
+        The data in each event is the absolute quantity for a price level
+        If the quantity is 0, remove the price level
+        Receiving an event that removes a price level that is not in your local order book can happen and is normal.
 
-    # "U": 157,           // First update ID in event
-    # "u": 160,           // Final update ID in event
+        4
+
+        "U": 157,           // First update ID in event
+        "u": 160,           // Final update ID in event
+
+        {"e": "depthUpdate", "E": 1527861613915, "s": "DASHBTC", "U": 45790140, "u": 45790142,
+        "b": [["0.04073500", "2.02000000", []], ["0.04073200", "0.00000000", []]],
+        "a": [["0.04085300", "0.00000000", []]]}
+
+        :param order_book_delta:
+        :return:
+    """
 
     sequence_id = long(order_book_delta["U"])
 

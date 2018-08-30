@@ -5,7 +5,7 @@ from bittrex.currency_utils import get_currency_pair_from_bittrex
 from kraken.currency_utils import get_currency_pair_from_kraken
 from poloniex.currency_utils import get_currency_pair_from_poloniex
 from binance.currency_utils import get_currency_pair_from_binance
-from huobi.currency_utils import get_currency_pair_to_huobi, get_currency_pair_from_huobi
+from huobi.currency_utils import get_currency_pair_from_huobi
 
 from analysis.binary_search import binary_search
 
@@ -227,32 +227,6 @@ class OrderBook(BaseData):
         return OrderBook(pair_id, timest, sell_bids, buy_bids, EXCHANGE.HUOBI, sequence_id)
 
     @classmethod
-    def from_string(cls, some_string):
-        # [exchange - KRAKEN exchange_id - 2 pair - BTC_TO_XRP pair_id - 4 timest - 1502466918
-        # bids - [[price - 5.055e-05 volume - 2595.354 ][price - 5.054e-05 volume - 70162.004 ]] asks - [[]]
-        results = regex.findall(some_string)
-
-        exchange_id = results[0][1]
-        currency_pair_id = results[0][3]
-        timest = results[0][4]
-
-        ask_bids = cls.parse_array_deals(results[0][6])
-        sell_bids = cls.parse_array_deals(results[0][5])
-
-        return OrderBook(currency_pair_id, timest, ask_bids, sell_bids, exchange_id)
-
-    @classmethod
-    def parse_array_deals(cls, some_string):
-        res = []
-
-        deals = deal_array_regex.findall(some_string)
-
-        for pair in deals:
-            res.append(Deal(pair[0], pair[1]))
-
-        return res
-
-    @classmethod
     def from_row(cls, db_row, asks_rows, sell_rows):
         # id, pair_id, exchange_id, timest, date_time
         # id, order_book_id, price, volume
@@ -271,39 +245,48 @@ class OrderBook(BaseData):
 
         return OrderBook(currency_pair_id, timest, ask_bids, sell_bids, exchange_id)
 
-    def insert_new_bid_preserve_order(self, bid):
+    def insert_new_bid_preserve_order(self, new_bid, overwrite_volume=True, err_msg=None):
+        """
+            Bids array are sorted in reversed order i.e. highest - first
+            NOTE: consider new value volume as overwrite in case flag overwrite_volume is equal to be True
+
+            Order of condition check is very IMPORTANT!
+
         """
 
-        Bids array are sorted in reversed order i.e. highest - first
-        NOTE: consider new value volume as overwrite
-
-        :param bid:
-        :return:
-        """
-
-        almost_zero = bid.volume <= MAX_VOLUME_ORDER_BOOK
-        item_insert_point = binary_search(self.bid, bid, cmp_method_bid)
+        almost_zero = new_bid.volume <= MAX_VOLUME_ORDER_BOOK
+        item_insert_point = binary_search(self.bid, new_bid, cmp_method_bid)
         is_present = False
         if item_insert_point < len(self.bid):
-            is_present = self.bid[item_insert_point] == bid
+            is_present = self.bid[item_insert_point] == new_bid
+        should_overwrite = is_present and overwrite_volume
+        should_update_volume = is_present and not overwrite_volume
+        update_volume_error = not is_present and not overwrite_volume
         should_delete = almost_zero and is_present
 
         if should_delete:
             del self.bid[item_insert_point]
         elif is_present:
-            self.bid[item_insert_point].volume = bid.volume
+            self.bid[item_insert_point].volume = new_bid.volume
+        elif should_overwrite:
+            self.bid[item_insert_point].volume = new_bid.volume
+        elif should_update_volume:
+            self.bid[item_insert_point].volume -= new_bid.volume
+        elif update_volume_error:
+            log_to_file(err_msg, SOCKET_ERRORS_LOG_FILE_NAME)
         elif not almost_zero:
             # FIXME NOTE O(n) - slow by python implementation
-            self.bid.insert(item_insert_point, bid)
+            self.bid.insert(item_insert_point, new_bid)
 
-    def insert_new_ask_preserve_order(self, new_ask):
+    def insert_new_ask_preserve_order(self, new_ask, overwrite_volume=True, err_msg=None):
         """
-        Ask array are sorted in reversed order i.e. lowest - first
+            Ask array are sorted in reversed order i.e. lowest - first
 
-        self.ask = sorted(self.ask, key = lambda x: x.price, reverse=False)
+            self.ask = sorted(self.ask, key = lambda x: x.price, reverse=False)
 
-        :param new_ask:
-        :return:
+            NOTE: consider new value volume as overwrite in case flag overwrite_volume is equal to be True
+
+            Order of condition check is very IMPORTANT!
         """
 
         almost_zero = new_ask.volume <= MAX_VOLUME_ORDER_BOOK
@@ -311,368 +294,88 @@ class OrderBook(BaseData):
         is_present = False
         if item_insert_point < len(self.ask):
             is_present = self.ask[item_insert_point] == new_ask
+        should_overwrite = is_present and overwrite_volume
+        should_update_volume = is_present and not overwrite_volume
+        update_volume_error = not is_present and not overwrite_volume
         should_delete = almost_zero and is_present
 
         if should_delete:
             del self.ask[item_insert_point]
-        elif is_present:
+        elif should_overwrite:
             self.ask[item_insert_point].volume = new_ask.volume
+        elif should_update_volume:
+            self.ask[item_insert_point].volume -= new_ask.volume
+        elif update_volume_error:
+            log_to_file(err_msg, SOCKET_ERRORS_LOG_FILE_NAME)
         elif not almost_zero:
             # FIXME NOTE O(n) - slow by python implementation
             self.ask.insert(item_insert_point, new_ask)
 
-    def update_for_poloniex(self, order_book_delta):
+    def update_for_poloniex(self, order_book_update):
         """
-        Message format for ticker
-        [
-            1002,                             Channel
-            null,                             Unknown
-            [
-                121,                          CurrencyPairID
-                "10777.56054438",             Last
-                "10800.00000000",             lowestAsk
-                "10789.20000001",             highestBid
-                "-0.00860373",                percentChange
-                "72542984.79776118",          baseVolume
-                "6792.60163706",              quoteVolume
-                0,                            isForzen
-                "11400.00000000",             high24hr
-                "9880.00000009"               low24hr
-            ]
-        ]
 
-        [1002,null,[158,"0.00052808","0.00053854","0.00052926","0.05571659","4.07923480","7302.01523251",0,"0.00061600","0.00049471"]]
-
-        So the columns for orders are
-            messageType -> t/trade, o/order
-            tradeID -> only for trades, just a number
-            orderType -> 1/bid,0/ask
-            rate
-            amount
-            time
-            sequence
-        148 is code for BTCETH, yeah there is no documentation.. but when trades occur You can figure out.
-        Bid is always 1, cause You add something new..
-
-        PairId, Nonce, orders\trades deltas:
-        [24,219199090,[["o",1,"0.04122908","0.01636493"],["t","10026908",0,"0.04122908","0.00105314",1527880700]]]
-        [24,219201009,[["o",0,"0.04111587","0.00000000"],["o",0,"0.04111174","1.52701255"]]]
-        [24,219164304,[["o",1,"0.04064791","0.01435233"],["o",1,"0.04068034","0.16858384"]]]
-        :param order_book_delta:
+        :param order_book_update:
         :return:
         """
 
-        # FIXME NOTE sequence number
-
-        POLONIEX_ORDER = "o"
-        POLONIEX_TRADE = "t"
-
-        POLONIEX_ORDER_BID = 1
-        POLONIEX_ORDER_ASK = 0
-
-        # We suppose that bid and ask are sorted in particular order:
-        # for bids - highest - first
-        # for asks - lowest - first
-        if len(order_book_delta) < 3:
-            return
-
-        delta = order_book_delta[2]
-        for entry in delta:
-            if entry[0] == POLONIEX_ORDER:
-                new_deal = Deal(entry[2], entry[3])
-
-                # If it is just orders - we insert in a way to keep sorted order
-                if entry[1] == POLONIEX_ORDER_ASK:
-                    self.insert_new_ask_preserve_order(new_deal)
-                elif entry[1] == POLONIEX_ORDER_BID:
-                    self.insert_new_bid_preserve_order(new_deal)
-                else:
-                    msg = "Poloniex socket update parsing - {wtf} total: {ttt}".format(wtf=entry, ttt=order_book_delta)
-                    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-            elif entry[0] == POLONIEX_TRADE:
-
-                # FIXME NOTE:   this is ugly hack to avoid creation of custom objects
-                #               and at the same Deal object contains lt method that
-                #               used by bisect for efficient binary search in sorted list
-                new_deal = Deal(entry[3], entry[4])
-
-                # For trade - vice-versa we should update opposite arrays:
-                # in case we have trade with type bid -> we will update orders at ask
-                # in case we have trade with type ask -> we will update orders at bid
-
-                if entry[2] == POLONIEX_ORDER_BID:
-
-                    item_insert_point = binary_search(self.ask, new_deal, cmp_method_ask)
-                    is_present = self.ask[item_insert_point] == new_deal
-
-                    if is_present:
-                        self.ask[item_insert_point].volume -= new_deal.volume
-                        if self.ask[item_insert_point].volume <= MAX_VOLUME_ORDER_BOOK:
-                            del self.ask[item_insert_point]
-                    else:
-                        msg = "Poloniex socket update we got trade but cant find order price for it: {wtf}".format(
-                            wtf=new_deal)
-                        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-
-                elif entry[2] == POLONIEX_ORDER_ASK:
-
-                    item_insert_point = binary_search(self.bid, new_deal, cmp_method_bid)
-                    is_present = self.bid[item_insert_point] == new_deal
-                    if is_present:
-                        self.bid[item_insert_point].volume -= new_deal.volume
-                        if self.bid[item_insert_point].volume <= MAX_VOLUME_ORDER_BOOK:
-                            del self.bid[item_insert_point]
-                    else:
-                        msg = "Poloniex socket update we got trade but cant find order price for it: {wtf}".format(
-                            wtf=new_deal)
-                        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                else:
-                    msg = "Poloniex socket update parsing - {wtf}".format(wtf=entry)
-                    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-            else:
-                msg = "Poloniex socket update parsing - UNKNOWN TYPE - {wtf}".format(wtf=entry)
-                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-
-    def update_for_bittrex(self, order_book_delta):
-        """
-        https://bittrex.github.io/#callback-for-1
-        "S" = "Sells"
-        "Z" = "Buys"
-
-        "Q" = "Quantity"
-        "R" = "Rate"
-        "TY" = "Type"
-        The Type key can be one of the following values: 0 = ADD, 1 = REMOVE, 2 = UPDATE
-
-        "M" = "MarketName"
-        "N" = "Nonce"
-
-        "f" = "Fills"
-
-        3 {u'S': [],
-        u'Z': [{u'Q': 0.0, u'R': 0.04040231, u'TY': 1}, {u'Q': 0.78946119, u'R': 0.00126352, u'TY': 0}],
-        u'M': u'BTC-DASH',
-        u'f': [],
-        u'N': 15692}
-
-        3 {u'S': [],
-        u'Z': [{u'Q': 1.59914865, u'R': 0.040436, u'TY': 0}, {u'Q': 0.0, u'R': 0.04040232, u'TY': 1}],
-        u'M': u'BTC-DASH',
-        u'f': [],
-        u'N': 15691}
-
-
-        u'f': [
-            {u'Q': 0.11299437,
-            u'R': 0.042135,
-            u'OT': u'BUY',
-            u'T': 1527961548500},
-            {u'Q': 0.39487459, u'R': 0.04213499, u'OT': u'BUY', u'T': 1527961548500}],
-
-        :param order_book_delta:
-        :return:
-        """
-
-        sells = order_book_delta["S"]
-        buys = order_book_delta["Z"]
-        fills = order_book_delta["f"]
-
-        BITTREX_ORDER_ADD = 0
-        BITTREX_ORDER_REMOVE = 1
-        BITTREX_ORDER_UPDATE = 2
-
-        for new_sell in sells:
-
-            new_deal = Deal(new_sell["R"], new_sell["Q"])
-
-            if "TY" not in new_sell:
-                msg = "Bittrex socket update - within SELL array some weird format - no TY - {wtf}".format(
-                    wtf=new_sell)
-                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                continue
-
-            type_update = int(new_sell["TY"])
-
-            item_insert_point = binary_search(self.ask, new_deal, cmp_method_ask)
-            is_present = False
-
-            if item_insert_point < len(self.ask):
-                is_present = self.ask[item_insert_point] == new_deal
-            else:
-                msg = "for item {wtf} SELL - ASK found index is {idx}".format(wtf=new_deal, idx=item_insert_point)
-                log_to_file(msg, "fuck.log")
-                log_to_file(self, "fuck.log")
-
-            if type_update == BITTREX_ORDER_ADD:
-                self.insert_new_ask_preserve_order(new_deal)
-            elif type_update == BITTREX_ORDER_REMOVE:
-                if is_present:
-                    del self.ask[item_insert_point]
-                else:
-                    msg = "Bittrex socket update - got sell REMOVE not found in local orderbook - {wtf}".format(wtf=new_sell)
-                    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-            elif type_update == BITTREX_ORDER_UPDATE:
-                if is_present:
-                    self.ask[item_insert_point].volume = new_deal.volume
-                else:
-                    self.insert_new_ask_preserve_order(new_deal)
-            else:
-                msg = "Bittrex socket un-supported sells format? {wtf}".format(wtf=new_sell)
-                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-
-        for new_buy in buys:
-
-            new_deal = Deal(new_buy["R"], new_buy["Q"])
-
-            if "TY" not in new_buy:
-                msg = "Bittrex socket update - within BUYS array some weird format - no TY - {wtf}".format(wtf=new_buy)
-                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                continue
-
-            type_update = int(new_buy["TY"])
-
-            item_insert_point = binary_search(self.bid, new_deal, cmp_method_bid)
-
-            is_present = False
-
-            if item_insert_point < len(self.bid):
-                is_present = self.bid[item_insert_point] == new_deal
-            else:
-                msg = "for {wtf} BUY - BID we found index {idx}".format(wtf=new_deal, idx=item_insert_point)
-                log_to_file(msg, "fuck.log")
-                log_to_file(self, "fuck.log")
-
-            if type_update == BITTREX_ORDER_ADD:
-                self.insert_new_bid_preserve_order(new_deal)
-            elif type_update == BITTREX_ORDER_REMOVE:
-                if is_present:
-                    del self.bid[item_insert_point]
-                else:
-                    msg = "Bittrex socket update - got buy REMOVE not found in local orderbook - {wtf}".format(
-                        wtf=new_buy)
-                    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-            elif type_update == BITTREX_ORDER_UPDATE:
-                if is_present:
-                    self.bid[item_insert_point].volume = new_deal.volume
-                else:
-                    self.insert_new_bid_preserve_order(new_deal)
-            else:
-                msg = "Bittrex socket un-supported buys format? {wtf}".format(wtf=new_buy)
-                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-
-        for new_fill in fills:
-            new_deal = Deal(new_fill["R"], new_fill["Q"])
-
-            if "TY" in new_fill:
-                msg = "Bittrex socket update - within FILLS array some weird format - no TY - {wtf}".format(wtf=new_fill)
-                log_to_file(msg, "should_not_see_you.log")
-                continue
-
-            deal_direction = DEAL_TYPE.BUY if "BUY" in new_fill["OT"] else DEAL_TYPE.SELL
-
-            if deal_direction == DEAL_TYPE.BUY:
-
-                item_insert_point = binary_search(self.bid, new_deal, cmp_method_bid)
-                is_present = self.bid[item_insert_point] == new_deal
-
-                if is_present:
-                    self.bid[item_insert_point].volume -= new_deal.volume
-                    if self.bid[item_insert_point].volume <= FLOAT_POINT_PRECISION:
-                        del self.bid[item_insert_point]
-                else:
-                    msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE - BUY??? {wtf}".format(wtf=new_deal)
-                    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-            else:
-                item_insert_point = binary_search(self.ask, new_deal, cmp_method_ask)
-                is_present = self.bid[item_insert_point] == new_deal
-
-                if is_present:
-                    self.ask[item_insert_point].volume -= new_deal.volume
-                    if self.ask[item_insert_point].volume <= FLOAT_POINT_PRECISION:
-                        del self.ask[item_insert_point]
-                    else:
-                        msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE - SELL??? {wtf}".format(wtf=new_deal)
-                        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-
-    def update_for_binance(self, order_book_delta):
-        """
-
-        How to manage a local order book correctly
-        Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth
-        Buffer the events you receive from the stream
-        Get a depth snapshot from **https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000"
-        Drop any event where u is <= lastUpdateId in the snapshot
-        The first processed should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-        While listening to the stream, each new event's U should be equal to the previous event's u+1
-        The data in each event is the absolute quantity for a price level
-        If the quantity is 0, remove the price level
-        Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-
-        4
-
-        "U": 157,           // First update ID in event
-        "u": 160,           // Final update ID in event
-
-        {"e": "depthUpdate", "E": 1527861613915, "s": "DASHBTC", "U": 45790140, "u": 45790142,
-         "b": [["0.04073500", "2.02000000", []], ["0.04073200", "0.00000000", []]],
-         "a": [["0.04085300", "0.00000000", []]]}
-
-        :param order_book_delta:
-        :return:
-        """
-
-        # FIXME NOTE - id ???
-
-        asks = order_book_delta["a"]
-        bids = order_book_delta["b"]
-
-        for a in asks:
-            new_deal = Deal(a[0], a[1])
-            if new_deal.volume > 0:
-                self.insert_new_ask_preserve_order(new_deal)
-            else:
-
-                item_insert_point = binary_search(self.ask, new_deal, cmp_method_ask)
-                is_present = self.ask[item_insert_point] == new_deal
-
-                if is_present:
-                    del self.ask[item_insert_point]
-                else:
-                    msg = "BINANCE socket CANT FIND IN ASK update {wtf}".format(wtf=new_deal)
-                    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-
-        for a in bids:
-            new_deal = Deal(a[0], a[1])
-
-            if new_deal.volume > 0:
-                self.insert_new_bid_preserve_order(new_deal)
-            else:
-
-                item_insert_point = binary_search(self.bid, new_deal, cmp_method_bid)
-                is_present = self.bid[item_insert_point] == new_deal
-
-                if is_present:
-                    del self.bid[item_insert_point]
-                else:
-                    msg = "BINANCE socket CANT FIND IN BID update {wtf}".format(wtf=new_deal)
-                    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-
-    def update_for_huobi(self, order_book_delta):
-        if "tick" in order_book_delta:
-
-            pair_name = get_currency_pair_to_huobi(self.pair_id)
-
-            order_book2 = OrderBook.from_huobi(order_book_delta["tick"], pair_name, get_now_seconds_utc())
-
-            # FIXME NOTE - anything else except bid\ask ???
-
-            self.ask = copy.deepcopy(order_book2.ask)
-            self.bid = copy.deepcopy(order_book2.bid)
-
-            self.sort_by_price()
-
-        else:
-            print "update for huobi: ", order_book_delta
+        # FIXME TODO: checks for self.sequence_id = sequence_id
+
+        for ask in order_book_update.asks:
+            self.insert_new_ask_preserve_order(ask)
+
+        for bid in order_book_update.bids:
+            self.insert_new_bid_preserve_order(bid)
+
+        # For trade - vice-versa we should update opposite arrays:
+        # in case we have trade with type bid -> we will update orders at ask
+        # in case we have trade with type ask -> we will update orders at bid
+
+        for trade_sell in order_book_update.trades_sell:
+            err_msg = "Poloniex socket update we got trade but cant find order price for it: {wtf}".format(
+                    wtf=trade_sell)
+            self.insert_new_ask_preserve_order(trade_sell, overwrite_volume=False, err_msg=err_msg)
+
+        for trade_buy in order_book_update.trades_buy:
+            err_msg = "Poloniex socket update we got trade but cant find order price for it: {wtf}".format(
+                wtf=trade_buy)
+            self.insert_new_bid_preserve_order(trade_buy, overwrite_volume=False, err_msg=err_msg)
+
+    def update_for_bittrex(self, order_book_update):
+
+        # FIXME TODO: checks for self.sequence_id = sequence_id
+
+        for ask in order_book_update.asks:
+            self.insert_new_ask_preserve_order(ask)
+
+        for bid in order_book_update.bids:
+            self.insert_new_bid_preserve_order(bid)
+
+        for trade_sell in order_book_update.trades_sell:
+            err_msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE - SELL??? {wtf}".format(wtf=trade_sell)
+            self.insert_new_ask_preserve_order(trade_sell, overwrite_volume=False, err_msg=err_msg)
+
+        for trade_buy in order_book_update.trades_buy:
+            err_msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE - BUY??? {wtf}".format(wtf=trade_buy)
+            self.insert_new_bid_preserve_order(trade_buy, overwrite_volume=False, err_msg=err_msg)
+
+    def update_for_binance(self, order_book_update):
+
+        # FIXME TODO: checks for self.sequence_id = sequence_id
+
+        for ask in order_book_update.asks:
+            self.insert_new_ask_preserve_order(ask)
+
+        for bid in order_book_update.bids:
+            self.insert_new_bid_preserve_order(bid)
+
+    def update_for_huobi(self, order_book_update):
+
+        # FIXME TODO: checks for self.sequence_id = sequence_id
+
+        self.ask = copy.deepcopy(order_book_update.asks)
+        self.bid = copy.deepcopy(order_book_update.bids)
+
+        self.sort_by_price()
 
     def update(self, exchange_id, order_book_delta):
 
@@ -688,6 +391,7 @@ class OrderBook(BaseData):
             EXCHANGE.BINANCE: self.update_for_binance,
             EXCHANGE.HUOBI: self.update_for_huobi
         }[exchange_id]
+
         method(order_book_delta)
 
         # DK FIXME - performance wise - remove logging!

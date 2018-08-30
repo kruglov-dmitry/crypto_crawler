@@ -37,6 +37,45 @@ class BittrexParameters:
 
 
 def parse_socket_update_bittrex(order_book_delta):
+    """
+        https://bittrex.github.io/#callback-for-1
+
+        "S" = "Sells"
+        "Z" = "Buys"
+
+        "Q" = "Quantity"
+        "R" = "Rate"
+        "TY" = "Type"
+        The Type key can be one of the following values: 0 = ADD, 1 = REMOVE, 2 = UPDATE
+
+        "M" = "MarketName"
+        "N" = "Nonce"
+
+        "f" = "Fills"
+
+        3 {u'S': [],
+            u'Z': [{u'Q': 0.0, u'R': 0.04040231, u'TY': 1}, {u'Q': 0.78946119, u'R': 0.00126352, u'TY': 0}],
+            u'M': u'BTC-DASH',
+            u'f': [],
+            u'N': 15692}
+
+        3 {u'S': [],
+            u'Z': [{u'Q': 1.59914865, u'R': 0.040436, u'TY': 0}, {u'Q': 0.0, u'R': 0.04040232, u'TY': 1}],
+            u'M': u'BTC-DASH',
+            u'f': [],
+            u'N': 15691}
+
+
+        u'f': [
+            {u'Q': 0.11299437,
+                u'R': 0.042135,
+                u'OT': u'BUY',
+                u'T': 1527961548500},
+                {u'Q': 0.39487459, u'R': 0.04213499, u'OT': u'BUY', u'T': 1527961548500}],
+
+        :param order_book_delta:
+        :return:
+    """
 
     sequence_id = long(order_book_delta["N"])
 
@@ -99,9 +138,7 @@ def parse_socket_update_bittrex(order_book_delta):
         deal_direction = DEAL_TYPE.BUY if "BUY" in new_fill["OT"] else DEAL_TYPE.SELL
 
         if deal_direction == DEAL_TYPE.BUY:
-
             trades_buy.append(new_deal)
-
         else:
             trades_sell.append(new_deal)
 

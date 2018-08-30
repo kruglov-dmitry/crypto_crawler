@@ -30,6 +30,46 @@ class PoloniexParameters:
 
 
 def parse_socket_update_poloniex(order_book_delta):
+    """
+        Message format for ticker
+        [
+            1002,                             Channel
+            null,                             Unknown
+            [
+                121,                          CurrencyPairID
+                "10777.56054438",             Last
+                "10800.00000000",             lowestAsk
+                "10789.20000001",             highestBid
+                "-0.00860373",                percentChange
+                "72542984.79776118",          baseVolume
+                "6792.60163706",              quoteVolume
+                0,                            isForzen
+                "11400.00000000",             high24hr
+                "9880.00000009"               low24hr
+            ]
+        ]
+
+        [1002,null,[158,"0.00052808","0.00053854","0.00052926","0.05571659","4.07923480","7302.01523251",0,"0.00061600","0.00049471"]]
+
+        So the columns for orders are
+            messageType -> t/trade, o/order
+            tradeID -> only for trades, just a number
+            orderType -> 1/bid,0/ask
+            rate
+            amount
+            time
+            sequence
+        148 is code for BTCETH, yeah there is no documentation.. but when trades occur You can figure out.
+        Bid is always 1, cause You add something new..
+
+        PairId, Nonce, orders\trades deltas:
+        [24,219199090,[["o",1,"0.04122908","0.01636493"],["t","10026908",0,"0.04122908","0.00105314",1527880700]]]
+        [24,219201009,[["o",0,"0.04111587","0.00000000"],["o",0,"0.04111174","1.52701255"]]]
+        [24,219164304,[["o",1,"0.04064791","0.01435233"],["o",1,"0.04068034","0.16858384"]]]
+
+        :param order_book_delta:
+        :return:
+    """
 
     asks = []
     bids = []
