@@ -3,6 +3,29 @@ import websocket
 
 from binance.currency_utils import get_currency_pair_to_binance
 from enums.exchange import EXCHANGE
+from data.OrderBookUpdate import OrderBookUpdate
+from data.Deal import Deal
+
+
+def parse_socket_update_binance(order_book_delta):
+
+    # "U": 157,           // First update ID in event
+    # "u": 160,           // Final update ID in event
+
+    sequence_id = long(order_book_delta["U"])
+
+    asks = []
+    bids = []
+    trades_sell = []
+    trades_buy = []
+
+    for a in order_book_delta["a"]:
+        asks.append(Deal(a[0], a[1]))
+
+    for a in order_book_delta["b"]:
+        bids.append(Deal(a[0], a[1]))
+
+    return OrderBookUpdate(sequence_id, bids, asks, trades_sell, trades_buy)
 
 
 def process_message(compressData):

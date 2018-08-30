@@ -8,6 +8,31 @@ import uuid
 from huobi.currency_utils import get_currency_pair_to_huobi
 from enums.exchange import EXCHANGE
 
+from data.OrderBookUpdate import OrderBookUpdate
+from data.Deal import Deal
+
+
+def parse_socket_update_huobi(order_book_delta):
+    if "tick" in order_book_delta:
+
+        sequence_id = long(order_book_delta["version"])
+        asks = []
+        bids = []
+        trades_sell = []
+        trades_buy = []
+
+        if "asks" in order_book_delta:
+            for b in order_book_delta["asks"]:
+                asks.append(Deal(price=b[0], volume=b[1]))
+
+        if "bids" in order_book_delta:
+            for b in order_book_delta["bids"]:
+                bids.append(Deal(price=b[0], volume=b[1]))
+
+        return OrderBookUpdate(sequence_id, bids, asks, trades_sell, trades_buy)
+    else:
+        return None
+
 
 def process_message(compressData):
     return loads(zlib.decompress(compressData, 16 + zlib.MAX_WBITS))

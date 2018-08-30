@@ -609,6 +609,10 @@ class OrderBook(BaseData):
         Receiving an event that removes a price level that is not in your local order book can happen and is normal.
 
         4
+
+        "U": 157,           // First update ID in event
+        "u": 160,           // Final update ID in event
+
         {"e": "depthUpdate", "E": 1527861613915, "s": "DASHBTC", "U": 45790140, "u": 45790142,
          "b": [["0.04073500", "2.02000000", []], ["0.04073200", "0.00000000", []]],
          "a": [["0.04085300", "0.00000000", []]]}

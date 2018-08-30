@@ -11,9 +11,10 @@ from core.expired_order import add_orders_to_watch_list
 from data.BalanceState import dummy_balance_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
-from dao.order_book_utils import get_order_books_for_arbitrage_pair
+from dao.order_book_utils import get_order_book
 from dao.ticker_utils import get_ticker_for_arbitrage
 from dao.deal_utils import init_deals_with_logging_speedy
+from dao.socket_utils import get_subcribtion_by_exchange, parse_update_by_exchanges, push_updates_to_queue
 
 from data.ArbitrageConfig import ArbitrageConfig
 from data.OrderBook import OrderBook
@@ -40,19 +41,10 @@ from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD
 
 from deploy.classes.CommonSettings import CommonSettings
 
-from huobi.socket_api import SubscriptionHuobi
-from bittrex.socket_api import SubscriptionBittrex
-from binance.socket_api import SubscriptionBinance
-from poloniex.socket_api import SubscriptionPoloniex
 
-
-def get_subcribtion_by_exchange(exchange_id):
-    return {
-        EXCHANGE.POLONIEX: SubscriptionPoloniex,
-        EXCHANGE.HUOBI: SubscriptionHuobi,
-        EXCHANGE.BINANCE: SubscriptionBinance,
-        EXCHANGE.BITTREX: SubscriptionBittrex
-    }[exchange_id]
+class ORDER_BOOK_SYNC_STAGES:
+    BEFORE_SYNC = 1
+    AFTER_SYNC = 2
 
 
 class ArbitrageListener:
@@ -93,6 +85,8 @@ class ArbitrageListener:
         self.init_balance_state()
         self.init_order_books()
 
+        self.stage = ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC
+
     def init_deal_cap(self):
         self.deal_cap = MarketCap(self.pair_id, get_now_seconds_utc())
         self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
@@ -132,18 +126,34 @@ class ArbitrageListener:
         self.order_book_sell = OrderBook(pair_id=self.pair_id, timest=cur_timest_sec, sell_bids=[], buy_bids=[], exchange_id=self.sell_exchange_id)
         self.order_book_buy = OrderBook(pair_id=self.pair_id, timest=cur_timest_sec, sell_bids=[], buy_bids=[], exchange_id=self.buy_exchange_id)
 
+    def update_from_queue(self, order_book, queue):
+        while True:
+
+            try:
+                order_book_update = queue.get(block=False)
+            except:
+                order_book_update = None
+
+            if order_book_update is None:
+                break
+
+            order_book.update(order_book_update)
+
+            queue.task_done()
+
     def sync_order_books(self):
-        cur_timest_sec = get_now_seconds_utc()
 
-        # Q: what if any of it will failed?
-        # A: it is happen only initially we can just quit here
-        self.order_book_sell, self.order_book_buy = get_order_books_for_arbitrage_pair(cfg, cur_timest_sec,
-                                                                                       self.processor)
-
-        # TODO read from queue => after read - update order book state
-
-        self.order_book_buy.sort_by_price()
+        self.order_book_sell = get_order_book(self.sell_exchange_id, self.pair_id)
+        assert self.order_book_sell is not None
         self.order_book_sell.sort_by_price()
+        self.update_from_queue(self.order_book_sell, self.sell_exchange_updates)
+
+        self.order_book_buy = get_order_book(self.buy_exchange_id, self.pair_id)
+        assert self.order_book_buy is not None
+        self.order_book_buy.sort_by_price()
+        self.update_from_queue(self.order_book_buy, self.buy_exchange_updates)
+
+        self.stage = ORDER_BOOK_SYNC_STAGES.AFTER_SYNC
 
     def subscribe_cap_update(self):
         self.update_min_cap()
@@ -175,14 +185,7 @@ class ArbitrageListener:
         sell_subscription = sell_subscription_constructor(self.pair_id, self.on_order_book_update, self.sell_exchange_updates)
         thread.start_new_thread(sell_subscription.subscribe, ())
 
-    def on_order_book_update(self, exchange_id, order_book_delta, exchange_updates):
-        # print "on_order_book_update for",  get_exchange_name_by_id(exchange_id), " thread_id: ",  thread.get_ident()
-        # print exchange_id, order_book_delta
-        if exchange_id == self.buy_exchange_id:
-            self.order_book_buy.update(exchange_id, order_book_delta)
-        else:
-            self.order_book_sell.update(exchange_id, order_book_delta)
-
+    def _print_top10_bids_asks(self):
         bids = self.order_book_sell.bid[:10]
         asks = self.order_book_sell.ask[:10]
 
@@ -197,6 +200,32 @@ class ArbitrageListener:
         print "ASKS"
         for a in asks:
             print a
+
+    def on_order_book_update(self, exchange_id, order_book_delta, exchange_updates, stage):
+        # print "on_order_book_update for",  get_exchange_name_by_id(exchange_id), " thread_id: ",  thread.get_ident()
+        # print exchange_id, order_book_delta
+
+        order_book_updates = parse_update_by_exchanges(exchange_id, order_book_delta)
+
+        if self.stage == ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC:
+
+            if exchange_id == self.buy_exchange_id:
+                self.buy_exchange_updates.put(order_book_updates)
+            else:
+                self.sell_exchange_updates.put(order_book_updates)
+
+            print "Syncing in progress ..."
+
+        elif stage == ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
+            if exchange_id == self.buy_exchange_id:
+                self.order_book_buy.update(order_book_updates)
+            else:
+                self.order_book_sell.update(order_book_updates)
+
+            self._print_top10_bids_asks()
+
+        else:
+            print "on_order_book_update: Unknown stage :("
 
         """
         for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
