@@ -103,12 +103,12 @@ def parse_socket_order_book_poloniex(order_book_snapshot, pair_id):
     sequence_id = long(order_book_snapshot[1])
 
     asks = []
-    for entry in order_book_snapshot[2][0][1]["orderBook"][0]:
-        asks.append(entry)
+    for k, v in order_book_snapshot[2][0][1]["orderBook"][0].iteritems():
+        asks.append(Deal(k, v))
 
     bids = []
-    for entry in order_book_snapshot[2][0][1]["orderBook"][1]:
-        bids.append(entry)
+    for k, v in order_book_snapshot[2][0][1]["orderBook"][1].iteritems():
+        bids.append(Deal(k, v))
 
     return OrderBook(pair_id, timest_ms, asks, bids, EXCHANGE.POLONIEX, sequence_id)
 
@@ -266,7 +266,8 @@ class SubscriptionPoloniex:
             order_book_delta = parse_socket_order_book_poloniex(msg, self.pair_id)
         else:
             order_book_delta = parse_socket_update_poloniex(msg)
-        self.on_update(EXCHANGE.POLONIEX, order_book_delta)
+        if order_book_delta is not None:
+            self.on_update(EXCHANGE.POLONIEX, order_book_delta)
 
     def on_close(self, ws, args):
         print("Connection closed, Reconnecting...")

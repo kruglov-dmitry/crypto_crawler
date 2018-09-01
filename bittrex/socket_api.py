@@ -290,12 +290,12 @@ class SubscriptionBittrex:
     def on_error(self, error):
         print "Error:", error
         time.sleep(5)
-        # self.subscribe()
+        self.subscribe()
 
     def on_public(self, args):
         msg = process_message(args)
         order_book_update = parse_socket_update_bittrex(msg)
-        self.on_update(EXCHANGE.BITTREX, msg)
+        self.on_update(EXCHANGE.BITTREX, order_book_update)
 
     def on_receive(self, **kwargs):
         """
@@ -340,7 +340,8 @@ class SubscriptionBittrex:
 
             while self.order_book_is_received is not True:
                 self.hub.server.invoke(BittrexParameters.QUERY_EXCHANGE_STATE, self.pair_name)
-
+                connection.wait(5)  # otherwise it shoot thousands of query and we will be banned :(
+            
             while connection.started:
                 self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)
 

@@ -58,6 +58,9 @@ class ArbitrageListener:
 
         self.sync_order_books()
 
+        while True:
+            sleep_for(1)
+
     def _init_settings(self, cfg):
         self.buy_exchange_id = cfg.buy_exchange_id
         self.sell_exchange_id = cfg.sell_exchange_id
@@ -81,8 +84,8 @@ class ArbitrageListener:
         self.buy_exchange_updates = queue()
 
     def _init_arbitrage_state(self):
-        # self.init_deal_cap()
-        # self.init_balance_state()
+        self.init_deal_cap()
+        self.init_balance_state()
         self.init_order_books()
 
         self.stage = ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC
@@ -184,7 +187,7 @@ class ArbitrageListener:
 
         buy_subscription_constructor = get_subcribtion_by_exchange(self.buy_exchange_id)
         sell_subscription_constructor = get_subcribtion_by_exchange(self.sell_exchange_id)
-        # buy_subscription = buy_subscription_constructor(pair_id=self.pair_id)
+        buy_subscription = buy_subscription_constructor(pair_id=self.pair_id)
 
         buy_subscription = buy_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update, updates_queue=self.buy_exchange_updates)
         thread.start_new_thread(buy_subscription.subscribe, ())
@@ -199,11 +202,11 @@ class ArbitrageListener:
         # thread.start_new_thread(sell_subscription.subscribe, ())
 
     def _print_top10_bids_asks(self, exchange_id):
-        bids = self.order_book_sell.bid[:10]
-        asks = self.order_book_sell.ask[:10]
+        bids = self.order_book_buy.bid[:10]
+        asks = self.order_book_buy.ask[:10]
 
         import os
-        # os.system('clear')
+        os.system('clear')
 
         print get_exchange_name_by_id(exchange_id)
         print "BIDS:"
@@ -232,6 +235,8 @@ class ArbitrageListener:
             print "Syncing in progress ..."
 
         elif self.stage == ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
+            
+            print "Update after syncing..."
 
             if exchange_id == self.buy_exchange_id:
                 self.order_book_buy.update(exchange_id, order_book_updates)
