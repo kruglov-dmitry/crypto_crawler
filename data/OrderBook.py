@@ -312,50 +312,83 @@ class OrderBook(BaseData):
 
     def update_for_poloniex(self, order_book_update):
         """
-
         :param order_book_update:
+        Can be two cases:
+            1. Initial order book to init
+            2. order book update
         :return:
         """
 
-        # FIXME TODO: checks for self.sequence_id = sequence_id
+        if type(order_book_update) is OrderBook:
+            # FIXME TODO: checks for self.sequence_id = sequence_id
+            self._copy_order_book(order_book_update)
 
-        for ask in order_book_update.asks:
-            self.insert_new_ask_preserve_order(ask)
+            self.sort_by_price()
+        else:
+            # FIXME TODO: checks for self.sequence_id = sequence_id
 
-        for bid in order_book_update.bids:
-            self.insert_new_bid_preserve_order(bid)
+            for ask in order_book_update.asks:
+                self.insert_new_ask_preserve_order(ask)
 
-        # For trade - vice-versa we should update opposite arrays:
-        # in case we have trade with type bid -> we will update orders at ask
-        # in case we have trade with type ask -> we will update orders at bid
+            for bid in order_book_update.bids:
+                self.insert_new_bid_preserve_order(bid)
 
-        for trade_sell in order_book_update.trades_sell:
-            err_msg = "Poloniex socket update we got trade but cant find order price for it: {wtf}".format(
-                    wtf=trade_sell)
-            self.insert_new_ask_preserve_order(trade_sell, overwrite_volume=False, err_msg=err_msg)
+            # For trade - vice-versa we should update opposite arrays:
+            # in case we have trade with type bid -> we will update orders at ask
+            # in case we have trade with type ask -> we will update orders at bid
 
-        for trade_buy in order_book_update.trades_buy:
-            err_msg = "Poloniex socket update we got trade but cant find order price for it: {wtf}".format(
-                wtf=trade_buy)
-            self.insert_new_bid_preserve_order(trade_buy, overwrite_volume=False, err_msg=err_msg)
+            for trade_sell in order_book_update.trades_sell:
+                err_msg = "Poloniex socket update we got trade but cant find order price for it: {wtf}".format(
+                        wtf=trade_sell)
+                self.insert_new_ask_preserve_order(trade_sell, overwrite_volume=False, err_msg=err_msg)
+
+            for trade_buy in order_book_update.trades_buy:
+                err_msg = "Poloniex socket update we got trade but cant find order price for it: {wtf}".format(
+                    wtf=trade_buy)
+                self.insert_new_bid_preserve_order(trade_buy, overwrite_volume=False, err_msg=err_msg)
+
+    def _copy_order_book(self, other_order_book):
+
+        self.timest = other_order_book.timest
+        self.exchange_id = other_order_book.exchange_id
+        self.exchange = other_order_book.exchange_id
+        self.pair_id = other_order_book.pair_id
+        self.pair_name = other_order_book.pair_id
+
+        self.ask = copy.deepcopy(other_order_book.asks)
+        self.bid = copy.deepcopy(other_order_book.bids)
+        self.sequence_id = other_order_book.sequence_id
 
     def update_for_bittrex(self, order_book_update):
+        """
+        :param order_book_update:
+        Can be two cases:
+            1. Initial order book to init
+            2. order book update
+        :return:
+        """
 
-        # FIXME TODO: checks for self.sequence_id = sequence_id
+        if type(order_book_update) is OrderBook:
+            # FIXME TODO: checks for self.sequence_id = sequence_id
+            self._copy_order_book(order_book_update)
 
-        for ask in order_book_update.asks:
-            self.insert_new_ask_preserve_order(ask)
+            self.sort_by_price()
+        else:
+            # FIXME TODO: checks for self.sequence_id = sequence_id
 
-        for bid in order_book_update.bids:
-            self.insert_new_bid_preserve_order(bid)
+            for ask in order_book_update.asks:
+                self.insert_new_ask_preserve_order(ask)
 
-        for trade_sell in order_book_update.trades_sell:
-            err_msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE - SELL??? {wtf}".format(wtf=trade_sell)
-            self.insert_new_ask_preserve_order(trade_sell, overwrite_volume=False, err_msg=err_msg)
+            for bid in order_book_update.bids:
+                self.insert_new_bid_preserve_order(bid)
 
-        for trade_buy in order_book_update.trades_buy:
-            err_msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE - BUY??? {wtf}".format(wtf=trade_buy)
-            self.insert_new_bid_preserve_order(trade_buy, overwrite_volume=False, err_msg=err_msg)
+            for trade_sell in order_book_update.trades_sell:
+                err_msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE - SELL??? {wtf}".format(wtf=trade_sell)
+                self.insert_new_ask_preserve_order(trade_sell, overwrite_volume=False, err_msg=err_msg)
+
+            for trade_buy in order_book_update.trades_buy:
+                err_msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE - BUY??? {wtf}".format(wtf=trade_buy)
+                self.insert_new_bid_preserve_order(trade_buy, overwrite_volume=False, err_msg=err_msg)
 
     def update_for_binance(self, order_book_update):
 
@@ -368,11 +401,15 @@ class OrderBook(BaseData):
             self.insert_new_bid_preserve_order(bid)
 
     def update_for_huobi(self, order_book_update):
+        """
+        NOTE: always get full order book
+        :param order_book_update:
+        :return:
+        """
 
         # FIXME TODO: checks for self.sequence_id = sequence_id
 
-        self.ask = copy.deepcopy(order_book_update.asks)
-        self.bid = copy.deepcopy(order_book_update.bids)
+        self._copy_order_book(order_book_update)
 
         self.sort_by_price()
 

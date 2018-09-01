@@ -5,6 +5,7 @@ from binance.currency_utils import get_currency_pair_to_binance
 from enums.exchange import EXCHANGE
 from data.OrderBookUpdate import OrderBookUpdate
 from data.Deal import Deal
+from utils.time_utils import get_now_seconds_utc_ms
 
 
 def parse_socket_update_binance(order_book_delta):
@@ -33,6 +34,8 @@ def parse_socket_update_binance(order_book_delta):
         :return:
     """
 
+    timest_ms = get_now_seconds_utc_ms()
+
     sequence_id = long(order_book_delta["U"])
 
     asks = []
@@ -46,7 +49,7 @@ def parse_socket_update_binance(order_book_delta):
     for a in order_book_delta["b"]:
         bids.append(Deal(a[0], a[1]))
 
-    return OrderBookUpdate(sequence_id, bids, asks, trades_sell, trades_buy)
+    return OrderBookUpdate(sequence_id, bids, asks, timest_ms, trades_sell, trades_buy)
 
 
 def process_message(compressData):
@@ -94,7 +97,8 @@ class SubscriptionBinance:
 
     def on_public(self, ws, args):
         msg = process_message(args)
-        self.on_update(EXCHANGE.BINANCE, msg, self.updates_queue)
+        order_book_delta = parse_socket_update_binance(msg)
+        self.on_update(EXCHANGE.BINANCE, order_book_delta, self.updates_queue)
 
     def on_error(self, ws, error):
         print "Error: ", error

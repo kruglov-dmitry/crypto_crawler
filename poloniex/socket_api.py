@@ -1,3 +1,4 @@
+# coding=utf-8
 from json import loads
 import websocket
 import json
@@ -5,13 +6,18 @@ import time
 import thread
 
 from utils.file_utils import log_to_file
+from utils.time_utils import get_now_seconds_utc_ms
 
 from poloniex.currency_utils import get_currency_pair_to_poloniex
 from enums.exchange import EXCHANGE
+
 from data.OrderBookUpdate import OrderBookUpdate
 from data.Deal import Deal
+from data.OrderBook import OrderBook
 
 from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
+
+
 
 
 class PoloniexParameters:
@@ -29,47 +35,128 @@ class PoloniexParameters:
     POLONIEX_ORDER_ASK = 0
 
 
-def parse_socket_update_poloniex(order_book_delta):
+def parse_socket_order_book_poloniex(order_book_snapshot, pair_id):
     """
-        Message format for ticker
+
+    :param order_book_snapshot:
+
+    [
+        <channel id>,
+        <sequence number>,
         [
-            1002,                             Channel
-            null,                             Unknown
             [
-                121,                          CurrencyPairID
-                "10777.56054438",             Last
-                "10800.00000000",             lowestAsk
-                "10789.20000001",             highestBid
-                "-0.00860373",                percentChange
-                "72542984.79776118",          baseVolume
-                "6792.60163706",              quoteVolume
-                0,                            isForzen
-                "11400.00000000",             high24hr
-                "9880.00000009"               low24hr
+                "i",
+                    {
+                        "currencyPair": "<currency pair name>",
+                        "orderBook": [
+                        {
+                            "<lowest ask price>": "<lowest ask size>",
+                            "<next ask price>": "<next ask size>",
+                            …
+                        },
+                        {
+                            "<highest bid price>": "<highest bid size>",
+                            "<next bid price>": "<next bid size>",
+                            …
+                        }
+                        ]
+                    }
             ]
         ]
+    ]
 
-        [1002,null,[158,"0.00052808","0.00053854","0.00052926","0.05571659","4.07923480","7302.01523251",0,"0.00061600","0.00049471"]]
 
-        So the columns for orders are
-            messageType -> t/trade, o/order
-            tradeID -> only for trades, just a number
-            orderType -> 1/bid,0/ask
-            rate
-            amount
-            time
-            sequence
-        148 is code for BTCETH, yeah there is no documentation.. but when trades occur You can figure out.
-        Bid is always 1, cause You add something new..
+    order_book_snapshot[2][0][1]["orderBook"][0]
 
-        PairId, Nonce, orders\trades deltas:
-        [24,219199090,[["o",1,"0.04122908","0.01636493"],["t","10026908",0,"0.04122908","0.00105314",1527880700]]]
-        [24,219201009,[["o",0,"0.04111587","0.00000000"],["o",0,"0.04111174","1.52701255"]]]
-        [24,219164304,[["o",1,"0.04064791","0.01435233"],["o",1,"0.04068034","0.16858384"]]]
+    Example:
+    [
+        148,
+        573963482,
+        [
+            [
+                "i",
+                {
+                    "currencyPair": "BTC_ETH",
+                    "orderBook": [
+                    {
+                        "0.08964203": "0.00225904",
+                        "0.04069708": "15.37598559",
+                        ...
+                    },
+                     {
+                        "0.03496358": "0.32591524",
+                        "0.02020000": "0.50000000",
+                        ...
+                    }
+                    ]
+                }
+            ]
+        ]
+    ]
 
-        :param order_book_delta:
-        :return:
+    :param pair_id:
+    :return:
     """
+
+    timest_ms = get_now_seconds_utc_ms()
+
+    sequence_id = long(order_book_snapshot[1])
+
+    asks = []
+    for entry in order_book_snapshot[2][0][1]["orderBook"][0]:
+        asks.append(entry)
+
+    bids = []
+    for entry in order_book_snapshot[2][0][1]["orderBook"][1]:
+        bids.append(entry)
+
+    global order_book_received
+    order_book_received = True
+
+    return OrderBook(pair_id, timest_ms, asks, bids, EXCHANGE.POLONIEX, sequence_id)
+
+
+def parse_socket_update_poloniex(order_book_delta):
+    """
+                Message format for ticker
+                [
+                    1002,                             Channel
+                    null,                             Unknown
+                    [
+                        121,                          CurrencyPairID
+                        "10777.56054438",             Last
+                        "10800.00000000",             lowestAsk
+                        "10789.20000001",             highestBid
+                        "-0.00860373",                percentChange
+                        "72542984.79776118",          baseVolume
+                        "6792.60163706",              quoteVolume
+                        0,                            isForzen
+                        "11400.00000000",             high24hr
+                        "9880.00000009"               low24hr
+                    ]
+                ]
+
+                [1002,null,[158,"0.00052808","0.00053854","0.00052926","0.05571659","4.07923480","7302.01523251",0,"0.00061600","0.00049471"]]
+
+                So the columns for orders are
+                    messageType -> t/trade, o/order
+                    tradeID -> only for trades, just a number
+                    orderType -> 1/bid,0/ask
+                    rate
+                    amount
+                    time
+                    sequence
+                148 is code for BTCETH, yeah there is no documentation.. but when trades occur You can figure out.
+                Bid is always 1, cause You add something new..
+
+                PairId, Nonce, orders\trades deltas:
+                [24,219199090,[["o",1,"0.04122908","0.01636493"],["t","10026908",0,"0.04122908","0.00105314",1527880700]]]
+                [24,219201009,[["o",0,"0.04111587","0.00000000"],["o",0,"0.04111174","1.52701255"]]]
+                [24,219164304,[["o",1,"0.04064791","0.01435233"],["o",1,"0.04068034","0.16858384"]]]
+
+                :param order_book_delta:
+                :return:
+            """
 
     asks = []
     bids = []
@@ -81,6 +168,8 @@ def parse_socket_update_poloniex(order_book_delta):
     # for asks - lowest - first
     if len(order_book_delta) < 3:
         return None
+
+    timest_ms = get_now_seconds_utc_ms()
 
     sequence_id = long(order_book_delta[1])
 
@@ -119,7 +208,7 @@ def parse_socket_update_poloniex(order_book_delta):
             msg = "Poloniex socket update parsing - UNKNOWN TYPE - {wtf}".format(wtf=entry)
             log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
-    return OrderBookUpdate(sequence_id, bids, asks, trades_sell, trades_buy)
+    return OrderBookUpdate(sequence_id, bids, asks, timest_ms, trades_sell, trades_buy)
 
 
 def process_message(compressData):
@@ -157,13 +246,14 @@ class SubscriptionPoloniex:
         self.on_update = on_update
         self.updates_queue = updates_queue
 
+        self.is_not_get_order_book_yet = True
+
     def on_open(self, ws):
 
         print "Opening connection..."
 
         def run(ws):
             ws.send(json.dumps({'command': 'subscribe', 'channel': PoloniexParameters.SUBSCRIBE_HEARTBEAT}))
-            # ws.send(json.dumps({'command': 'subscribe', 'channel': PoloniexParameters.SUBSCRIBE_TICKER}))
             ws.send(json.dumps({'command': 'subscribe', 'channel': self.pair_name}))
             while True:
                 time.sleep(1)
@@ -174,7 +264,12 @@ class SubscriptionPoloniex:
 
     def on_public(self, ws, args):
         msg = process_message(args)
-        self.on_update(EXCHANGE.POLONIEX, msg, self.updates_queue)
+        if self.is_not_get_order_book_yet and "orderBook" in args:      # FIXME Howdy DK - is this check promissing FAST?
+            self.is_not_get_order_book_yet = False
+            order_book_delta = parse_socket_order_book_poloniex(msg, self.pair_id)
+        else:
+            order_book_delta = parse_socket_update_poloniex(msg)
+        self.on_update(EXCHANGE.POLONIEX, order_book_delta, self.updates_queue)
 
     def on_close(self, ws, args):
         print("Connection closed, Reconnecting...")

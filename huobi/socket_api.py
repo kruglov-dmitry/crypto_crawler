@@ -11,6 +11,8 @@ from enums.exchange import EXCHANGE
 from data.OrderBookUpdate import OrderBookUpdate
 from data.Deal import Deal
 
+from utils.time_utils import get_now_seconds_utc_ms
+
 
 def parse_socket_update_huobi(order_book_delta):
     if "tick" in order_book_delta:
@@ -29,7 +31,9 @@ def parse_socket_update_huobi(order_book_delta):
             for b in order_book_delta["bids"]:
                 bids.append(Deal(price=b[0], volume=b[1]))
 
-        return OrderBookUpdate(sequence_id, bids, asks, trades_sell, trades_buy)
+        timest_ms = get_now_seconds_utc_ms()
+
+        return OrderBookUpdate(sequence_id, bids, asks, timest_ms, trades_sell, trades_buy)
     else:
         return None
 
@@ -73,7 +77,8 @@ class SubscriptionHuobi:
 
     def on_public(self, ws, args):
         msg = process_message(args)
-        self.on_update(EXCHANGE.HUOBI, msg, self.updates_queue)
+        updated_order_book = parse_socket_update_huobi(msg)
+        self.on_update(EXCHANGE.HUOBI, updated_order_book, self.updates_queue)
 
     def on_error(self, ws, error):
         print "Error:", error

@@ -143,19 +143,21 @@ class ArbitrageListener:
 
     def sync_order_books(self):
 
-        self.order_book_sell = get_order_book(self.sell_exchange_id, self.pair_id)
-        assert self.order_book_sell is not None
-        self.order_book_sell.sort_by_price()
-        self.update_from_queue(self.order_book_sell, self.sell_exchange_updates)
+        if self.sell_exchange_id not in [EXCHANGE.POLONIEX, EXCHANGE.BITTREX]:
+            self.order_book_sell = get_order_book(self.sell_exchange_id, self.pair_id)
+            assert self.order_book_sell is not None
+            self.order_book_sell.sort_by_price()
+            self.update_from_queue(self.order_book_sell, self.sell_exchange_updates)
 
-        print "Finishing syncing sell order book!"
+            print "Finishing syncing sell order book!"
 
-        self.order_book_buy = get_order_book(self.buy_exchange_id, self.pair_id)
-        assert self.order_book_buy is not None
-        self.order_book_buy.sort_by_price()
-        self.update_from_queue(self.order_book_buy, self.buy_exchange_updates)
+        if self.buy_exchange_id not in [EXCHANGE.POLONIEX, EXCHANGE.BITTREX]:
+            self.order_book_buy = get_order_book(self.buy_exchange_id, self.pair_id)
+            assert self.order_book_buy is not None
+            self.order_book_buy.sort_by_price()
+            self.update_from_queue(self.order_book_buy, self.buy_exchange_updates)
 
-        print "Finishing syncing buy order book!"
+            print "Finishing syncing buy order book!"
 
         self.stage = ORDER_BOOK_SYNC_STAGES.AFTER_SYNC
 
@@ -205,11 +207,13 @@ class ArbitrageListener:
         for a in asks:
             print a
 
-    def on_order_book_update(self, exchange_id, order_book_delta, exchange_updates, stage):
-        # print "on_order_book_update for",  get_exchange_name_by_id(exchange_id), " thread_id: ",  thread.get_ident()
-        # print exchange_id, order_book_delta
-
-        order_book_updates = parse_update_by_exchanges(exchange_id, order_book_delta)
+    def on_order_book_update(self, exchange_id, order_book_updates, stage):
+        """
+        :param exchange_id:
+        :param order_book_updates:  parsed OrderBook or OrderBookUpdates according to exchange specs
+        :param stage:               whether BOTH orderbook synced or NOT
+        :return:
+        """
 
         if self.stage == ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC:
 
@@ -221,6 +225,7 @@ class ArbitrageListener:
             print "Syncing in progress ..."
 
         elif stage == ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
+
             if exchange_id == self.buy_exchange_id:
                 self.order_book_buy.update(exchange_id, order_book_updates)
             else:

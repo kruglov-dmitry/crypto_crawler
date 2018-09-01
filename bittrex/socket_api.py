@@ -4,15 +4,19 @@ from signalr import Connection
 from zlib import decompress, MAX_WBITS
 from json import loads
 from base64 import b64decode
+import time
 
 from bittrex.currency_utils import get_currency_pair_to_bittrex
 
 from utils.file_utils import log_to_file
 from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
+from utils.time_utils import get_now_seconds_utc_ms
+
 from enums.exchange import EXCHANGE
 from enums.deal_type import DEAL_TYPE
 from data.OrderBookUpdate import OrderBookUpdate
 from data.Deal import Deal
+from data.OrderBook import OrderBook
 
 
 class BittrexParameters:
@@ -36,13 +40,97 @@ class BittrexParameters:
     BITTREX_ORDER_UPDATE = 2
 
 
+def parse_socket_order_book_bittrex(order_book_snapshot, pair_id):
+    """
+    :param order_book_snapshot stringified json of following format:
+        Bittrex order book format:
+        "S" = "Sells"
+        "Z" = "Buys"
+        "M" = "MarketName"
+        "f" = "Fills"
+        "N" = "Nonce"
+
+        For fills:
+        "F" = "FillType": FILL | PARTIAL_FILL
+        "I" = "Id"
+        "Q" = "Quantity"
+        "P" = "Price"
+        "t" = "Total"
+        "OT" = "OrderType": BUY | SELL
+        "T" = "TimeStamp"
+
+        {
+            "S": [
+                {
+                    "Q": 4.29981987,
+                    "R": 0.04083123
+                },
+                {
+                    "Q": 0.59844883,
+                    "R": 0.04083824
+                }],
+            "Z": [
+                {
+                    "Q": 10.8408461,
+                    "R": 0.04069406
+                },
+                {
+                    "Q": 0.9,
+                    "R": 0.04069405
+                }],
+            "M": null,
+            "f": [
+                {
+                    "F": "FILL",
+                    "I": 274260522,
+                    "Q": 0.37714445,
+                    "P": 0.04083123,
+                    "t": 0.01539927,
+                    "OT": "BUY",
+                    "T": 1535772645920
+                },
+                {
+                    "F": "PARTIAL_FILL",
+                    "I": 274260519,
+                    "Q": 1.75676,
+                    "P": 0.04069406,
+                    "t": 0.07148969,
+                    "OT": "SELL",
+                    "T": 1535772645157
+                }],
+            "N": 28964
+        }
+
+    :return: newly assembled OrderBook object
+    """
+
+    timest_ms = get_now_seconds_utc_ms()
+
+    sequence_id = long(order_book_snapshot["N"])
+
+    sells = order_book_snapshot["S"]
+    asks = []
+    for new_sell in sells:
+        asks.append(Deal(new_sell["R"], new_sell["Q"]))
+
+    buys = order_book_snapshot["Z"]
+    bids = []
+    for new_buy in buys:
+        asks.append(Deal(new_buy["R"], new_buy["Q"]))
+
+    # DK WTF NOTE: ignore for now
+    # fills = order_book_snapshot["f"]
+
+    return OrderBook(pair_id, timest_ms, asks, bids, EXCHANGE.BITTREX, sequence_id)
+
+
 def parse_socket_update_bittrex(order_book_delta):
     """
-        https://bittrex.github.io/#callback-for-1
+
+    https://bittrex.github.io/#callback-for-1
 
         "S" = "Sells"
         "Z" = "Buys"
-
         "Q" = "Quantity"
         "R" = "Rate"
         "TY" = "Type"
@@ -73,9 +161,11 @@ def parse_socket_update_bittrex(order_book_delta):
                 u'T': 1527961548500},
                 {u'Q': 0.39487459, u'R': 0.04213499, u'OT': u'BUY', u'T': 1527961548500}],
 
-        :param order_book_delta:
+        :param order_book_delta
         :return:
     """
+
+    timest_ms = get_now_seconds_utc_ms()
 
     sequence_id = long(order_book_delta["N"])
 
@@ -142,11 +232,13 @@ def parse_socket_update_bittrex(order_book_delta):
         else:
             trades_sell.append(new_deal)
 
-    return OrderBookUpdate(sequence_id, bids, asks, trades_sell, trades_buy)
+    return OrderBookUpdate(sequence_id, bids, asks, timest_ms, trades_sell, trades_buy)
+
 
 #
 #           Default methods to be used as callbacks
 #
+
 
 def process_message(message):
     deflated_msg = decompress(b64decode(message), -MAX_WBITS)
@@ -190,6 +282,8 @@ class SubscriptionBittrex:
 
         self.hub = None
 
+        self.order_book_is_received = False
+
     def on_error(self, error):
         print "Error:", error
         self.subscribe()
@@ -198,9 +292,35 @@ class SubscriptionBittrex:
         msg = process_message(args)
         self.on_update(EXCHANGE.BITTREX, msg, self.updates_queue)
 
+    def on_receive(self, **kwargs):
+        """
+            heart beat and other stuff
+        :param kwargs:
+        :return:
+        """
+
+        if self.order_book_is_received:
+            return
+
+        # print "on_receive", kwargs
+        if 'R' in kwargs and type(kwargs['R']) is not bool:
+            msg = process_message(kwargs['R'])
+            if msg is not None:
+                self.order_book_is_received = True
+                initial_order_book = parse_socket_order_book_bittrex(msg, self.pair_id)
+                self.on_update(EXCHANGE.BITTREX, initial_order_book, self.updates_queue)
+
+                # with open('data.json', 'w') as outfile:
+                #    json.dump(msg, outfile)
+        else:
+            time.sleep(1)
+
     def subscribe(self):
         with Session() as session:
             connection = Connection(self.url, session)
+
+            connection.received += self.on_receive
+
             self.hub = connection.register_hub(self.hub_name)
 
             self.hub.client.on(BittrexParameters.MARKET_DELTA, self.on_update)
@@ -208,6 +328,11 @@ class SubscriptionBittrex:
             connection.error += self.on_error
 
             connection.start()
+
+            while not self.order_book_is_received:
+                self.hub.server.invoke(BittrexParameters.QUERY_EXCHANGE_STATE, self.pair_name)
+
+            print "Done"
 
             while connection.started:
                 self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)

@@ -20,22 +20,8 @@ from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc_ms 
 
 
-def sketch():
-
-    from enums.exchange import EXCHANGE
-
-    def my_print(w):
-        print w
-
-    ws1 = WebSocket("https://socket.bittrex.com/signalr", EXCHANGE.BITTREX, my_print)
-    ws2 = WebSocket("wss://api2.poloniex.com/", EXCHANGE.POLONIEX, my_print)
-
-    pair_id = None
-
-    ws1.subscribe(pair_id)
-    ws2.subscribe(pair_id)
-
 order_book_is_received = True
+
 
 def test_bittrex():
     def process_message(message):
@@ -76,10 +62,6 @@ def test_bittrex():
         connection.received += on_receive
 
         hub.client.on(BittrexParameters.MARKET_DELTA, on_public)
-        #hub.client.on(BittrexParameters.SUMMARY_DELTA, on_public)
-        #hub.client.on(BittrexParameters.SUMMARY_DELTA_LITE, on_public)
-        # hub.client.on(BittrexParameters.BALANCE_DELTA, on_private)
-        # hub.client.on(BittrexParameters.ORDER_DELTA, on_private)
         
         connection.error += print_error
 
@@ -88,9 +70,8 @@ def test_bittrex():
         while order_book_is_received:
             hub.server.invoke("QueryExchangeState", "BTC-ETH")
 
-        print "Done"
+        print "Order book should be received at this stage"
 
-        # with connection:
         while connection.started:
             hub.server.invoke("SubscribeToExchangeDeltas", "BTC-ETH")
 
