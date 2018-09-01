@@ -8,20 +8,20 @@ import uuid
 from huobi.currency_utils import get_currency_pair_to_huobi
 from enums.exchange import EXCHANGE
 
-from data.OrderBookUpdate import OrderBookUpdate
+from data.OrderBook import OrderBook
 from data.Deal import Deal
 
 from utils.time_utils import get_now_seconds_utc_ms
 
 
-def parse_socket_update_huobi(order_book_delta):
+def parse_socket_update_huobi(order_book_delta, pair_id):
     if "tick" in order_book_delta:
+
+        order_book_delta = order_book_delta["tick"]
 
         sequence_id = long(order_book_delta["version"])
         asks = []
         bids = []
-        trades_sell = []
-        trades_buy = []
 
         if "asks" in order_book_delta:
             for b in order_book_delta["asks"]:
@@ -32,8 +32,9 @@ def parse_socket_update_huobi(order_book_delta):
                 bids.append(Deal(price=b[0], volume=b[1]))
 
         timest_ms = get_now_seconds_utc_ms()
+        
+        return OrderBook(pair_id, timest_ms, asks, bids, EXCHANGE.HUOBI, sequence_id)
 
-        return OrderBookUpdate(sequence_id, bids, asks, timest_ms, trades_sell, trades_buy)
     else:
         return None
 
@@ -76,7 +77,9 @@ class SubscriptionHuobi:
 
     def on_public(self, ws, args):
         msg = process_message(args)
-        updated_order_book = parse_socket_update_huobi(msg)
+        updated_order_book = parse_socket_update_huobi(msg, self.pair_id)
+        if updated_order_book is None:
+            print msg
         self.on_update(EXCHANGE.HUOBI, updated_order_book)
 
     def on_error(self, ws, error):
@@ -98,7 +101,7 @@ class SubscriptionHuobi:
 
     def subscribe(self):
 
-        # websocket.enableTrace(True)
+        websocket.enableTrace(True)
 
         ws = websocket.WebSocketApp(HuobiParameters.URL,
                                     on_message=self.on_public,

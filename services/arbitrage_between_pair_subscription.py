@@ -146,7 +146,7 @@ class ArbitrageListener:
 
     def sync_order_books(self):
 
-        if self.sell_exchange_id not in [EXCHANGE.POLONIEX, EXCHANGE.BITTREX]:
+        if self.sell_exchange_id in [EXCHANGE.BINANCE]:
             self.order_book_sell = get_order_book(self.sell_exchange_id, self.pair_id)
             assert self.order_book_sell is not None
             self.order_book_sell.sort_by_price()
@@ -154,7 +154,7 @@ class ArbitrageListener:
 
             print "Finishing syncing sell order book!"
 
-        if self.buy_exchange_id not in [EXCHANGE.POLONIEX, EXCHANGE.BITTREX]:
+        if self.buy_exchange_id in [EXCHANGE.BINANCE]:
             self.order_book_buy = get_order_book(self.buy_exchange_id, self.pair_id)
             assert self.order_book_buy is not None
             self.order_book_buy.sort_by_price()
@@ -224,6 +224,9 @@ class ArbitrageListener:
         :param stage:               whether BOTH orderbook synced or NOT
         :return:
         """
+
+        if order_book_updates is None:
+            return
 
         if self.stage == ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC:
 
