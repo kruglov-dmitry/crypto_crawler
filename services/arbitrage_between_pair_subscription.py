@@ -165,15 +165,15 @@ class ArbitrageListener:
 
     def subscribe_balance_update(self):
         cur_timest_sec = get_now_seconds_utc()
-        self.balance_state = get_updated_balance_arbitrage(cfg, self.balance_state, self.local_cache)
+        # self.balance_state = get_updated_balance_arbitrage(cfg, self.balance_state, self.local_cache)
 
-        if self.balance_state.expired(cur_timest_sec, self.buy_exchange_id, self.sell_exchange_id,
-                                      BALANCE_EXPIRED_THRESHOLD):
-            log_balance_expired_errors(cfg, self.msg_queue, self.balance_state)
+        # if self.balance_state.expired(cur_timest_sec, self.buy_exchange_id, self.sell_exchange_id,
+        #                               BALANCE_EXPIRED_THRESHOLD):
+        #     log_balance_expired_errors(cfg, self.msg_queue, self.balance_state)
 
-            assert False
+        #     assert False
 
-        threading.Timer(self.balance_update_timeout, self.subscribe_balance_update).start()
+        # threading.Timer(self.balance_update_timeout, self.subscribe_balance_update).start()
 
     def subsribe_to_order_book_update(self):
         # for both exchanges
@@ -189,7 +189,7 @@ class ArbitrageListener:
         sell_subscription = sell_subscription_constructor(self.pair_id, self.on_order_book_update, self.sell_exchange_updates)
         thread.start_new_thread(sell_subscription.subscribe, ())
 
-    def _print_top10_bids_asks(self):
+    def _print_top10_bids_asks(self, exchange_id):
         bids = self.order_book_sell.bid[:10]
         asks = self.order_book_sell.ask[:10]
 
@@ -226,7 +226,7 @@ class ArbitrageListener:
             else:
                 self.order_book_sell.update(exchange_id, order_book_updates)
 
-            self._print_top10_bids_asks()
+            self._print_top10_bids_asks(exchange_id)
 
         else:
             print "on_order_book_update: Unknown stage :("

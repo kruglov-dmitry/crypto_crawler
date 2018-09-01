@@ -13,14 +13,13 @@ from BaseData import BaseData
 from Deal import Deal
 
 from enums.exchange import EXCHANGE
-from enums.deal_type import DEAL_TYPE
 
 from utils.exchange_utils import get_exchange_name_by_id
-from utils.time_utils import get_now_seconds_utc, get_now_seconds_utc_ms, get_date_time_from_epoch
+from utils.time_utils import get_now_seconds_utc_ms, get_date_time_from_epoch
 from utils.file_utils import log_to_file
 from utils.currency_utils import get_pair_name_by_id
 
-from constants import MAX_VOLUME_ORDER_BOOK, FLOAT_POINT_PRECISION
+from constants import MAX_VOLUME_ORDER_BOOK
 from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
 
 # FIXME NOTE - not the smartest idea to deal with
@@ -382,7 +381,12 @@ class OrderBook(BaseData):
         # DK FIXME - performance wise - remove logging!
         ts_ms = str(get_now_seconds_utc_ms())
         exchange_name = get_exchange_name_by_id(exchange_id)
+
+        file_name = exchange_name + "_" + ts_ms + "_raw.txt"
+        log_to_file(order_book_delta, file_name)
+        
         file_name = exchange_name + "_" + ts_ms + "_before.txt"
+
         log_to_file(self, file_name)
 
         method = {

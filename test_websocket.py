@@ -14,8 +14,10 @@ from zlib import decompress, MAX_WBITS
 from json import loads
 from base64 import b64decode
 
+from bittrex.socket_api import BittrexParameters
+from utils.file_utils import log_to_file
 
-
+from utils.time_utils import get_now_seconds_utc_ms 
 
 
 def sketch():
@@ -33,6 +35,7 @@ def sketch():
     ws1.subscribe(pair_id)
     ws2.subscribe(pair_id)
 
+order_book_is_received = True
 
 def test_bittrex():
     def process_message(message):
@@ -40,14 +43,20 @@ def test_bittrex():
         return loads(deflated_msg.decode())
 
     def on_receive(**kwargs):
-        print "on_receive", kwargs
+        global order_book_is_received 
+        # print "on_receive", kwargs
         if 'R' in kwargs and type(kwargs['R']) is not bool:
             msg = process_message(kwargs['R'])
             if msg is not None:
-                print msg
+                order_book_is_received = False
+                with open('data.json', 'w') as outfile:
+                    json.dump(msg, outfile)
+        else:
+            if order_book_is_received:
+                time.sleep(5)
 
     def on_public(args):
-        print "on_public", args
+        # print "on_public", args
         msg = process_message(args)
         if msg is not None:
             print msg
@@ -60,29 +69,30 @@ def test_bittrex():
     def print_error(error):
         print('error: ', error)
 
-    def main():
-        with Session() as session:
-            connection = Connection("https://socket.bittrex.com/signalr", session)
-            hub = connection.register_hub('c2')
+    with Session() as session:
+        connection = Connection("https://socket.bittrex.com/signalr", session)
+        hub = connection.register_hub('c2')
 
-            connection.received += on_receive
+        connection.received += on_receive
 
-            hub.client.on(BittrexParameters.MARKET_DELTA, on_public)
-            hub.client.on(BittrexParameters.SUMMARY_DELTA, on_public)
-            hub.client.on(BittrexParameters.SUMMARY_DELTA_LITE, on_public)
-            hub.client.on(BittrexParameters.BALANCE_DELTA, on_private)
-            hub.client.on(BittrexParameters.ORDER_DELTA, on_private)
+        hub.client.on(BittrexParameters.MARKET_DELTA, on_public)
+        #hub.client.on(BittrexParameters.SUMMARY_DELTA, on_public)
+        #hub.client.on(BittrexParameters.SUMMARY_DELTA_LITE, on_public)
+        # hub.client.on(BittrexParameters.BALANCE_DELTA, on_private)
+        # hub.client.on(BittrexParameters.ORDER_DELTA, on_private)
+        
+        connection.error += print_error
 
-            connection.error += print_error
+        connection.start()
 
-            connection.start()
-
+        while order_book_is_received:
             hub.server.invoke("QueryExchangeState", "BTC-ETH")
-            connection.wait(10)
 
-            # with connection:
-            while connection.started:
-                hub.server.invoke("SubscribeToExchangeDeltas", "BTC-ETH")
+        print "Done"
+
+        # with connection:
+        while connection.started:
+            hub.server.invoke("SubscribeToExchangeDeltas", "BTC-ETH")
 
 
 def test_huobi():
@@ -147,9 +157,21 @@ def test_binance():
     ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
 
-def test_poloinex():
-    def on_message(ws, message):
-        print(message)
+first_responce = False
+
+def test_poloniex():
+    def on_message(ws, msg):
+        global first_responce
+        name = "poloniex-" + str(get_now_seconds_utc_ms()) + ".json"
+    
+        with open(name, 'w') as outfile:
+            j = json.loads(msg)
+            json.dump(j, outfile)
+
+        if "orderBook" in msg and not first_responce:
+            first_responce = True
+        else:
+            print(msg)
 
     def on_error(ws, error):
         print(error)
@@ -159,14 +181,18 @@ def test_poloinex():
 
     def on_open(ws):
         print("ONOPEN")
+        # global first_responce
 
         def run(*args):
             ws.send(json.dumps({'command': 'subscribe', 'channel': 1001}))
-            ws.send(json.dumps({'command': 'subscribe', 'channel': 1002}))
-            ws.send(json.dumps({'command': 'subscribe', 'channel': 1003}))
+            # ws.send(json.dumps({'command': 'subscribe', 'channel': 1002}))
+            # ws.send(json.dumps({'command': 'subscribe', 'channel': 1003}))
             ws.send(json.dumps({'command': 'subscribe', 'channel': 'BTC_ETH'}))
+            
+            # while not first_responce:
             while True:
                 time.sleep(1)
+
             ws.close()
             print("thread terminating...")
 
@@ -181,4 +207,4 @@ def test_poloinex():
     ws.run_forever()
 
 if __name__ == "__main__":
-    pass
+    test_poloniex()
