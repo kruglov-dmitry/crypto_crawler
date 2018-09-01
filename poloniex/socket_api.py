@@ -212,9 +212,9 @@ def process_message(compressData):
     return loads(compressData)
 
 
-def default_on_public(exchange_id, args, updates_queue):
+def default_on_public(exchange_id, args):
     print "on_public:"
-    print exchange_id, args, updates_queue
+    print exchange_id, args
 
 
 def on_error(ws, error):
@@ -266,7 +266,7 @@ class SubscriptionPoloniex:
             order_book_delta = parse_socket_order_book_poloniex(msg, self.pair_id)
         else:
             order_book_delta = parse_socket_update_poloniex(msg)
-        self.on_update(EXCHANGE.POLONIEX, order_book_delta, self.updates_queue)
+        self.on_update(EXCHANGE.POLONIEX, order_book_delta)
 
     def on_close(self, ws, args):
         print("Connection closed, Reconnecting...")

@@ -327,10 +327,10 @@ class OrderBook(BaseData):
         else:
             # FIXME TODO: checks for self.sequence_id = sequence_id
 
-            for ask in order_book_update.asks:
+            for ask in order_book_update.ask:
                 self.insert_new_ask_preserve_order(ask)
 
-            for bid in order_book_update.bids:
+            for bid in order_book_update.bid:
                 self.insert_new_bid_preserve_order(bid)
 
             # For trade - vice-versa we should update opposite arrays:
@@ -355,8 +355,8 @@ class OrderBook(BaseData):
         self.pair_id = other_order_book.pair_id
         self.pair_name = other_order_book.pair_id
 
-        self.ask = copy.deepcopy(other_order_book.asks)
-        self.bid = copy.deepcopy(other_order_book.bids)
+        self.ask = copy.deepcopy(other_order_book.ask)
+        self.bid = copy.deepcopy(other_order_book.bid)
         self.sequence_id = other_order_book.sequence_id
 
     def update_for_bittrex(self, order_book_update):
@@ -376,10 +376,10 @@ class OrderBook(BaseData):
         else:
             # FIXME TODO: checks for self.sequence_id = sequence_id
 
-            for ask in order_book_update.asks:
+            for ask in order_book_update.ask:
                 self.insert_new_ask_preserve_order(ask)
 
-            for bid in order_book_update.bids:
+            for bid in order_book_update.bid:
                 self.insert_new_bid_preserve_order(bid)
 
             for trade_sell in order_book_update.trades_sell:
@@ -394,10 +394,10 @@ class OrderBook(BaseData):
 
         # FIXME TODO: checks for self.sequence_id = sequence_id
 
-        for ask in order_book_update.asks:
+        for ask in order_book_update.ask:
             self.insert_new_ask_preserve_order(ask)
 
-        for bid in order_book_update.bids:
+        for bid in order_book_update.bid:
             self.insert_new_bid_preserve_order(bid)
 
     def update_for_huobi(self, order_book_update):

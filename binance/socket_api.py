@@ -62,9 +62,9 @@ class BinanceParameters:
     SUBSCRIBE_UPDATE = "{pair_name}@depth"
 
 
-def default_on_public(exchange_id, args, updates_queue):
+def default_on_public(exchange_id, args):
     print "on_public:"
-    print exchange_id, msg, updates_queue
+    print exchange_id, msg
 
 
 class SubscriptionBinance:
@@ -98,7 +98,7 @@ class SubscriptionBinance:
     def on_public(self, ws, args):
         msg = process_message(args)
         order_book_delta = parse_socket_update_binance(msg)
-        self.on_update(EXCHANGE.BINANCE, order_book_delta, self.updates_queue)
+        self.on_update(EXCHANGE.BINANCE, order_book_delta)
 
     def on_error(self, ws, error):
         print "Error: ", error

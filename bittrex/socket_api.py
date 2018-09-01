@@ -1,8 +1,10 @@
 from requests import Session
 from signalr import Connection
 
+import websocket
+
 from zlib import decompress, MAX_WBITS
-from json import loads
+from json import dump, loads
 from base64 import b64decode
 import time
 
@@ -116,7 +118,7 @@ def parse_socket_order_book_bittrex(order_book_snapshot, pair_id):
     buys = order_book_snapshot["Z"]
     bids = []
     for new_buy in buys:
-        asks.append(Deal(new_buy["R"], new_buy["Q"]))
+        bids.append(Deal(new_buy["R"], new_buy["Q"]))
 
     # DK WTF NOTE: ignore for now
     # fills = order_book_snapshot["f"]
@@ -254,9 +256,9 @@ def default_on_receive(**kwargs):
     pass
 
 
-def default_on_public(exchange_id, args, updates_queue):
-    print "on_public:"
-    print exchange_id, args, updates_queue
+def default_on_public(exchange_id, args):
+    print "default_on_public:"
+    print exchange_id, args
 
 
 class SubscriptionBittrex:
@@ -283,14 +285,17 @@ class SubscriptionBittrex:
         self.hub = None
 
         self.order_book_is_received = False
+        websocket.enableTrace(True)
 
     def on_error(self, error):
         print "Error:", error
-        self.subscribe()
+        time.sleep(5)
+        # self.subscribe()
 
     def on_public(self, args):
         msg = process_message(args)
-        self.on_update(EXCHANGE.BITTREX, msg, self.updates_queue)
+        order_book_update = parse_socket_update_bittrex(msg)
+        self.on_update(EXCHANGE.BITTREX, msg)
 
     def on_receive(self, **kwargs):
         """
@@ -299,29 +304,33 @@ class SubscriptionBittrex:
         :return:
         """
 
-        if self.order_book_is_received:
-            return
+        # if self.order_book_is_received:
+        #     return
 
-        # print "on_receive", kwargs
+        # print "on_receive!", kwargs
+
         if 'R' in kwargs and type(kwargs['R']) is not bool:
             msg = process_message(kwargs['R'])
+            # print msg
             if msg is not None:
+                with open('data.json', 'w') as outfile:
+                    dump(msg, outfile)
                 self.order_book_is_received = True
                 initial_order_book = parse_socket_order_book_bittrex(msg, self.pair_id)
-                self.on_update(EXCHANGE.BITTREX, initial_order_book, self.updates_queue)
+                log_to_file(initial_order_book, "wtf.log")
+                self.on_update(EXCHANGE.BITTREX, initial_order_book)
 
-                # with open('data.json', 'w') as outfile:
-                #    json.dump(msg, outfile)
         else:
-            time.sleep(1)
+            if not self.order_book_is_received:
+                time.sleep(5)
 
     def subscribe(self):
+        print "Subscribe!"
         with Session() as session:
             connection = Connection(self.url, session)
+            self.hub = connection.register_hub(self.hub_name)
 
             connection.received += self.on_receive
-
-            self.hub = connection.register_hub(self.hub_name)
 
             self.hub.client.on(BittrexParameters.MARKET_DELTA, self.on_public)
 
@@ -329,10 +338,8 @@ class SubscriptionBittrex:
 
             connection.start()
 
-            while not self.order_book_is_received:
+            while self.order_book_is_received is not True:
                 self.hub.server.invoke(BittrexParameters.QUERY_EXCHANGE_STATE, self.pair_name)
-
-            print "Done"
 
             while connection.started:
                 self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)
