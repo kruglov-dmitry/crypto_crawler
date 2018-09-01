@@ -70,7 +70,7 @@ class OrderBook(BaseData):
 
     def sort_by_price(self):
         self.bid = sorted(self.bid, key=lambda x: x.price, reverse=True)        # highest - first
-        self.ask = sorted(self.ask, key = lambda x: x.price, reverse=False)     # lowest - first
+        self.ask = sorted(self.ask, key=lambda x: x.price, reverse=False)       # lowest - first
 
     def get_pg_arg_list(self):
         return (self.pair_id,
@@ -450,7 +450,11 @@ class OrderBook(BaseData):
         u'f': [],
         u'N': 15692}
 
-        3 {u'S': [], u'Z': [{u'Q': 1.59914865, u'R': 0.040436, u'TY': 0}, {u'Q': 0.0, u'R': 0.04040232, u'TY': 1}], u'M': u'BTC-DASH', u'f': [], u'N': 15691}
+        3 {u'S': [],
+        u'Z': [{u'Q': 1.59914865, u'R': 0.040436, u'TY': 0}, {u'Q': 0.0, u'R': 0.04040232, u'TY': 1}],
+        u'M': u'BTC-DASH',
+        u'f': [],
+        u'N': 15691}
 
 
         u'f': [
@@ -485,13 +489,14 @@ class OrderBook(BaseData):
             type_update = int(new_sell["TY"])
 
             item_insert_point = binary_search(self.ask, new_deal, cmp_method_ask)
-            try:
+            is_present = False
+
+            if item_insert_point < len(self.ask):
                 is_present = self.ask[item_insert_point] == new_deal
-            except:
+            else:
                 msg = "for item {wtf} SELL - ASK found index is {idx}".format(wtf=new_deal, idx=item_insert_point)
                 log_to_file(msg, "fuck.log")
                 log_to_file(self, "fuck.log")
-                is_present = False
 
             if type_update == BITTREX_ORDER_ADD:
                 self.insert_new_ask_preserve_order(new_deal)
@@ -506,8 +511,6 @@ class OrderBook(BaseData):
                     self.ask[item_insert_point].volume = new_deal.volume
                 else:
                     self.insert_new_ask_preserve_order(new_deal)
-                    # msg = "Bittrex socket update - got sell UPDATE not found in local orderbook - {wtf}".format(wtf=new_sell)
-                    # log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
             else:
                 msg = "Bittrex socket un-supported sells format? {wtf}".format(wtf=new_sell)
                 log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
@@ -524,13 +527,15 @@ class OrderBook(BaseData):
             type_update = int(new_buy["TY"])
 
             item_insert_point = binary_search(self.bid, new_deal, cmp_method_bid)
-            try:
+
+            is_present = False
+
+            if item_insert_point < len(self.bid):
                 is_present = self.bid[item_insert_point] == new_deal
-            except:
+            else:
                 msg = "for {wtf} BUY - BID we found index {idx}".format(wtf=new_deal, idx=item_insert_point)
                 log_to_file(msg, "fuck.log")
                 log_to_file(self, "fuck.log")
-                is_present = False
 
             if type_update == BITTREX_ORDER_ADD:
                 self.insert_new_bid_preserve_order(new_deal)
@@ -546,9 +551,6 @@ class OrderBook(BaseData):
                     self.bid[item_insert_point].volume = new_deal.volume
                 else:
                     self.insert_new_bid_preserve_order(new_deal)
-                    # msg = "Bittrex socket update we got order but cant find order price for it - {wtf}".format(
-                    #     wtf=new_deal)
-                    # log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
             else:
                 msg = "Bittrex socket un-supported buys format? {wtf}".format(wtf=new_buy)
                 log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
@@ -556,12 +558,10 @@ class OrderBook(BaseData):
         for new_fill in fills:
             new_deal = Deal(new_fill["R"], new_fill["Q"])
 
-            if "TY" not in new_fill:
+            if "TY" in new_fill:
                 msg = "Bittrex socket update - within FILLS array some weird format - no TY - {wtf}".format(wtf=new_fill)
-                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+                log_to_file(msg, "should_not_see_you.log")
                 continue
-
-            type_update = int(new_fill["TY"])
 
             deal_direction = DEAL_TYPE.BUY if "BUY" in new_fill["OT"] else DEAL_TYPE.SELL
 
@@ -570,58 +570,24 @@ class OrderBook(BaseData):
                 item_insert_point = binary_search(self.bid, new_deal, cmp_method_bid)
                 is_present = self.bid[item_insert_point] == new_deal
 
-                if type_update == BITTREX_ORDER_ADD:
-                    if is_present:
-                        self.bid[item_insert_point].volume -= new_deal.volume
-                        if self.bid[item_insert_point].volume <= FLOAT_POINT_PRECISION:
-                            del self.bid[item_insert_point]
-                    else:
-                        msg = "Bittrex socket un-supported fill request FILL AND ADD??? {wtf}".format(wtf=new_deal)
-                        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                elif type_update == BITTREX_ORDER_REMOVE:
-                    if is_present:
+                if is_present:
+                    self.bid[item_insert_point].volume -= new_deal.volume
+                    if self.bid[item_insert_point].volume <= FLOAT_POINT_PRECISION:
                         del self.bid[item_insert_point]
-                    else:
-                        msg = "Bittrex socket CANT FIND fill request FILL AND REMOVE??? {wtf}".format(wtf=new_deal)
-                        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                elif type_update == BITTREX_ORDER_UPDATE:
-                    if is_present:
-                        self.bid[item_insert_point].volume -= new_deal.volume
-                        if self.bid[item_insert_point].volume <= FLOAT_POINT_PRECISION:
-                            del self.bid[item_insert_point]
-                    else:
-                        msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE??? {wtf}".format(wtf=new_deal)
-                        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
                 else:
-                    msg = "Bittrex socket UNKNOWN fill request for BUY {wtf}".format(wtf=new_deal)
+                    msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE - BUY??? {wtf}".format(wtf=new_deal)
                     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
             else:
                 item_insert_point = binary_search(self.ask, new_deal, cmp_method_ask)
                 is_present = self.bid[item_insert_point] == new_deal
 
-                if type_update == BITTREX_ORDER_ADD:
-                    if is_present:
-                        self.ask[item_insert_point].volume -= new_deal.volume
-                        if self.ask[item_insert_point].volume <= FLOAT_POINT_PRECISION:
-                            del self.ask[item_insert_point]
-                    else:
-                        msg = "Bittrex socket CANT FIND fill request FILL AND ADD??? {wtf}".format(wtf=new_deal)
-                        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                elif type_update == BITTREX_ORDER_REMOVE:
-                    if is_present:
+                if is_present:
+                    self.ask[item_insert_point].volume -= new_deal.volume
+                    if self.ask[item_insert_point].volume <= FLOAT_POINT_PRECISION:
                         del self.ask[item_insert_point]
                     else:
-                        msg = "Bittrex socket un-supported fill request FILL AND REMOVE??? {wtf}".format(wtf=new_deal)
+                        msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE - SELL??? {wtf}".format(wtf=new_deal)
                         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                elif type_update == BITTREX_ORDER_UPDATE:
-                    if is_present:
-                        self.ask[item_insert_point].volume -= new_deal.volume
-                    else:
-                        msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE??? {wtf}".format(wtf=new_deal)
-                        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                else:
-                    msg = "Bittrex socket UNKNOWN fill request for SELL {wtf}".format(wtf=new_deal)
-                    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
     def update_for_binance(self, order_book_delta):
         """
@@ -702,6 +668,7 @@ class OrderBook(BaseData):
             print "update for huobi: ", order_book_delta
 
     def update(self, exchange_id, order_book_delta):
+
         ts = str(get_now_seconds_utc_ms())
         e_name = get_exchange_name_by_id(exchange_id)
         
@@ -710,7 +677,7 @@ class OrderBook(BaseData):
         
         file_name = e_name + "_" + ts + "_before.txt"
         log_to_file(self, file_name)
-        
+
         method = {
             EXCHANGE.POLONIEX: self.update_for_poloniex,
             EXCHANGE.BITTREX: self.update_for_bittrex,
