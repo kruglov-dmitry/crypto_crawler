@@ -48,9 +48,8 @@ class HuobiParameters:
 
 
 def default_on_public(exchange_id, args, updates_queue):
-    print "on_public", args
-    msg = process_message(args)
-    print exchange_id, msg, updates_queue
+    print "on_public"
+    print exchange_id, args, updates_queue
 
 
 class SubscriptionHuobi:

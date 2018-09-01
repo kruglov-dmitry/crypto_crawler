@@ -255,8 +255,8 @@ def default_on_receive(**kwargs):
 
 
 def default_on_public(exchange_id, args, updates_queue):
-    msg = process_message(args)
-    print exchange_id, msg, updates_queue
+    print "on_public:"
+    print exchange_id, args, updates_queue
 
 
 class SubscriptionBittrex:
@@ -288,7 +288,7 @@ class SubscriptionBittrex:
         print "Error:", error
         self.subscribe()
 
-    def on_update(self, args):
+    def on_public(self, args):
         msg = process_message(args)
         self.on_update(EXCHANGE.BITTREX, msg, self.updates_queue)
 
@@ -323,7 +323,7 @@ class SubscriptionBittrex:
 
             self.hub = connection.register_hub(self.hub_name)
 
-            self.hub.client.on(BittrexParameters.MARKET_DELTA, self.on_update)
+            self.hub.client.on(BittrexParameters.MARKET_DELTA, self.on_public)
 
             connection.error += self.on_error
 

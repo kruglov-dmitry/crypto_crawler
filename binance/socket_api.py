@@ -63,7 +63,7 @@ class BinanceParameters:
 
 
 def default_on_public(exchange_id, args, updates_queue):
-    msg = process_message(args)
+    print "on_public:"
     print exchange_id, msg, updates_queue
 
 

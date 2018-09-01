@@ -187,5 +187,18 @@ def test_poloniex():
     ws.on_open = on_open
     ws.run_forever()
 
+def test_poloniex_advanced():
+    from enums.currency_pair import CURRENCY_PAIR
+    from poloniex.socket_api import SubscriptionPoloniex
+    t1 = SubscriptionPoloniex(CURRENCY_PAIR.BTC_TO_ETC)
+    t1.subscribe()
+
+def test_bittrex_advanced():
+    from enums.currency_pair import CURRENCY_PAIR
+    from bittrex.socket_api import SubscriptionBittrex
+    t1 = SubscriptionBittrex(CURRENCY_PAIR.BTC_TO_ETC)
+    t1.subscribe()
+
+
 if __name__ == "__main__":
-    test_poloniex()
+    test_bittrex_advanced()

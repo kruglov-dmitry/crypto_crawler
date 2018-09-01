@@ -110,9 +110,6 @@ def parse_socket_order_book_poloniex(order_book_snapshot, pair_id):
     for entry in order_book_snapshot[2][0][1]["orderBook"][1]:
         bids.append(entry)
 
-    global order_book_received
-    order_book_received = True
-
     return OrderBook(pair_id, timest_ms, asks, bids, EXCHANGE.POLONIEX, sequence_id)
 
 
@@ -216,8 +213,8 @@ def process_message(compressData):
 
 
 def default_on_public(exchange_id, args, updates_queue):
-    msg = process_message(args)
-    print exchange_id, msg, updates_queue
+    print "on_public:"
+    print exchange_id, args, updates_queue
 
 
 def on_error(ws, error):
@@ -276,7 +273,7 @@ class SubscriptionPoloniex:
         self.subscribe()
 
     def subscribe(self):
-        # websocket.enableTrace(True)
+        websocket.enableTrace(True)
         ws = websocket.WebSocketApp(PoloniexParameters.URL,
                                     on_message=self.on_public,
                                     on_error=self.subscribe,
