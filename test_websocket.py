@@ -17,7 +17,7 @@ from base64 import b64decode
 from bittrex.socket_api import BittrexParameters
 from utils.file_utils import log_to_file
 
-
+from utils.time_utils import get_now_seconds_utc_ms 
 
 
 def sketch():
@@ -157,9 +157,21 @@ def test_binance():
     ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
 
+first_responce = False
+
 def test_poloniex():
-    def on_message(ws, message):
-        print(message)
+    def on_message(ws, msg):
+        global first_responce
+        name = "poloniex-" + str(get_now_seconds_utc_ms()) + ".json"
+    
+        with open(name, 'w') as outfile:
+            j = json.loads(msg)
+            json.dump(j, outfile)
+
+        if "orderBook" in msg and not first_responce:
+            first_responce = True
+        else:
+            print(msg)
 
     def on_error(ws, error):
         print(error)
@@ -169,14 +181,18 @@ def test_poloniex():
 
     def on_open(ws):
         print("ONOPEN")
+        # global first_responce
 
         def run(*args):
             ws.send(json.dumps({'command': 'subscribe', 'channel': 1001}))
             # ws.send(json.dumps({'command': 'subscribe', 'channel': 1002}))
             # ws.send(json.dumps({'command': 'subscribe', 'channel': 1003}))
             ws.send(json.dumps({'command': 'subscribe', 'channel': 'BTC_ETH'}))
+            
+            # while not first_responce:
             while True:
                 time.sleep(1)
+
             ws.close()
             print("thread terminating...")
 
@@ -191,4 +207,4 @@ def test_poloniex():
     ws.run_forever()
 
 if __name__ == "__main__":
-    test_bittrex()
+    test_poloniex()
