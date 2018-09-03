@@ -7,6 +7,7 @@ from binance.order_book_utils import get_order_book_binance, get_order_book_bina
 from bittrex.constants import BITTREX_CURRENCY_PAIRS
 from bittrex.order_book_utils import get_order_book_bittrex, get_order_book_bittrex_url, \
     get_order_book_bittrex_result_processor
+from bittrex.socket_api import get_order_book_bittrex_through_socket
 
 from kraken.constants import KRAKEN_CURRENCY_PAIRS
 from kraken.order_book_utils import get_order_book_kraken, get_order_book_kraken_url, \
@@ -122,7 +123,7 @@ def get_order_book_sync_and_slow():
 
 def get_order_book_method_by_echange_id(exchange_id):
     return {
-        EXCHANGE.BITTREX: get_order_book_bittrex,
+        EXCHANGE.BITTREX: get_order_book_bittrex_through_socket,
         EXCHANGE.KRAKEN: get_order_book_kraken,
         EXCHANGE.POLONIEX: get_order_book_poloniex,
         EXCHANGE.BINANCE: get_order_book_binance,

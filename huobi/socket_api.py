@@ -54,7 +54,7 @@ def default_on_public(exchange_id, args):
 
 
 class SubscriptionHuobi:
-    def __init__(self, pair_id, on_update=default_on_public, base_url=HuobiParameters.URL, updates_queue=None):
+    def __init__(self, pair_id, on_update=default_on_public, base_url=HuobiParameters.URL):
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points
@@ -73,7 +73,6 @@ class SubscriptionHuobi:
         self.subscription_url = HuobiParameters.SUBSCRIPTION_STRING.format(pair_name=self.pair_name, uuid_id=uuid.uuid4())
 
         self.on_update = on_update
-        self.updates_queue = updates_queue
 
     def on_public(self, ws, args):
         msg = process_message(args)

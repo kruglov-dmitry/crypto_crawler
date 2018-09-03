@@ -1,18 +1,17 @@
 from requests import Session
 from signalr import Connection
 
-import websocket
-
 from zlib import decompress, MAX_WBITS
 from json import dump, loads
 from base64 import b64decode
 import time
+import thread
 
-from bittrex.currency_utils import get_currency_pair_to_bittrex
+from bittrex.currency_utils import get_currency_pair_to_bittrex, get_currency_pair_from_bittrex
 
 from utils.file_utils import log_to_file
 from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
-from utils.time_utils import get_now_seconds_utc_ms
+from utils.time_utils import get_now_seconds_utc_ms, sleep_for
 
 from enums.exchange import EXCHANGE
 from enums.deal_type import DEAL_TYPE
@@ -237,6 +236,28 @@ def parse_socket_update_bittrex(order_book_delta):
     return OrderBookUpdate(sequence_id, bids, asks, timest_ms, trades_sell, trades_buy)
 
 
+def get_order_book_bittrex_through_socket(pair_name, timest):
+    """
+        We run in separate thread polling of order book via socket api
+        as soon as we got responce - return it from main thread.
+
+    :param pair_name:
+    :param timest:  ignored, for backword compatibility with other api method
+    :return:
+
+    """
+
+    pair_id = get_currency_pair_from_bittrex(pair_name)
+
+    bittrex_subscription = SubscriptionBittrex(pair_id, on_update=default_on_public)
+
+    thread.start_new_thread(bittrex_subscription.request_order_book, ())
+
+    while not bittrex_subscription.order_book_is_received:
+        sleep_for(1)
+
+    return bittrex_subscription.initial_order_book
+
 #
 #           Default methods to be used as callbacks
 #
@@ -263,7 +284,7 @@ def default_on_public(exchange_id, args):
 
 class SubscriptionBittrex:
     def __init__(self, pair_id, on_update=default_on_public, base_url=BittrexParameters.URL,
-                 hub_name=BittrexParameters.HUB, updates_queue=None):
+                 hub_name=BittrexParameters.HUB):
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points
@@ -280,12 +301,12 @@ class SubscriptionBittrex:
         self.pair_name = get_currency_pair_to_bittrex(self.pair_id)
 
         self.on_update = on_update
-        self.updates_queue = updates_queue
 
         self.hub = None
 
         self.order_book_is_received = False
-        websocket.enableTrace(True)
+
+        self.initial_order_book = None
 
     def on_error(self, error):
         print "Error:", error
@@ -304,28 +325,41 @@ class SubscriptionBittrex:
         :return:
         """
 
-        # if self.order_book_is_received:
-        #     return
-
         # print "on_receive!", kwargs
 
         if 'R' in kwargs and type(kwargs['R']) is not bool:
             msg = process_message(kwargs['R'])
             # print msg
             if msg is not None:
-                with open('data.json', 'w') as outfile:
-                    dump(msg, outfile)
-                self.order_book_is_received = True
-                initial_order_book = parse_socket_order_book_bittrex(msg, self.pair_id)
-                log_to_file(initial_order_book, "wtf.log")
-                self.on_update(EXCHANGE.BITTREX, initial_order_book)
+                # with open('data.json', 'w') as outfile:
+                #    dump(msg, outfile)
 
+                self.order_book_is_received = True
+                self.initial_order_book = parse_socket_order_book_bittrex(msg, self.pair_id)
+
+                log_to_file(self.initial_order_book, "bittrex_initial_order_book.log")
+
+                # self.on_update(EXCHANGE.BITTREX, self.initial_order_book)
         else:
             if not self.order_book_is_received:
                 time.sleep(5)
 
+    def request_order_book(self):
+        with Session() as session:
+            connection = Connection(self.url, session)
+            self.hub = connection.register_hub(self.hub_name)
+
+            connection.received += self.on_receive
+
+            connection.error += self.on_error
+
+            connection.start()
+
+            while self.order_book_is_received is not True:
+                self.hub.server.invoke(BittrexParameters.QUERY_EXCHANGE_STATE, self.pair_name)
+                connection.wait(5)  # otherwise it shoot thousands of query and we will be banned :(
+
     def subscribe(self):
-        print "Subscribe!"
         with Session() as session:
             connection = Connection(self.url, session)
             self.hub = connection.register_hub(self.hub_name)

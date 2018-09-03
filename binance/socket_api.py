@@ -68,7 +68,7 @@ def default_on_public(exchange_id, args):
 
 
 class SubscriptionBinance:
-    def __init__(self, pair_id, on_update=default_on_public, base_url=BinanceParameters.URL, updates_queue=None):
+    def __init__(self, pair_id, on_update=default_on_public, base_url=BinanceParameters.URL):
         """
         :param pair_id:         - currency pair to be used for trading
         :param on_update:       - idea is the following:
@@ -86,7 +86,6 @@ class SubscriptionBinance:
         self.subscription_url = BinanceParameters.SUBSCRIBE_UPDATE.format(pair_name=self.pair_name)
 
         self.on_update = on_update
-        self.updates_queue = updates_queue
 
     def on_open(self, ws):
         print "Opening connection..."

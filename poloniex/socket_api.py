@@ -226,7 +226,7 @@ def on_close(ws):
 
 
 class SubscriptionPoloniex:
-    def __init__(self, pair_id, on_update=default_on_public, base_url=PoloniexParameters.URL, updates_queue=None):
+    def __init__(self, pair_id, on_update=default_on_public, base_url=PoloniexParameters.URL):
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points
@@ -241,9 +241,8 @@ class SubscriptionPoloniex:
         self.pair_name = get_currency_pair_to_poloniex(self.pair_id)
 
         self.on_update = on_update
-        self.updates_queue = updates_queue
 
-        self.is_not_get_order_book_yet = True
+        self.order_book_is_received = False
 
     def on_open(self, ws):
 
@@ -261,8 +260,8 @@ class SubscriptionPoloniex:
 
     def on_public(self, ws, args):
         msg = process_message(args)
-        if self.is_not_get_order_book_yet and "orderBook" in args:      # FIXME Howdy DK - is this check promissing FAST?
-            self.is_not_get_order_book_yet = False
+        if not self.order_book_is_received and "orderBook" in args:      # FIXME Howdy DK - is this check promissing FAST?
+            self.order_book_is_received = True
             order_book_delta = parse_socket_order_book_poloniex(msg, self.pair_id)
         else:
             order_book_delta = parse_socket_update_poloniex(msg)
