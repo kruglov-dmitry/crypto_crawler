@@ -1,6 +1,7 @@
 import argparse
 import thread
 import threading
+import os
 from Queue import Queue as queue
 
 from data_access.message_queue import get_message_queue
@@ -58,8 +59,8 @@ class ArbitrageListener:
 
         self.sync_order_books()
 
-        while True:
-            sleep_for(1)
+        # while True:
+        #     sleep_for(1)
 
     def _init_settings(self, cfg):
         self.buy_exchange_id = cfg.buy_exchange_id
@@ -129,7 +130,7 @@ class ArbitrageListener:
         self.order_book_sell = OrderBook(pair_id=self.pair_id, timest=cur_timest_sec, sell_bids=[], buy_bids=[], exchange_id=self.sell_exchange_id)
         self.order_book_buy = OrderBook(pair_id=self.pair_id, timest=cur_timest_sec, sell_bids=[], buy_bids=[], exchange_id=self.buy_exchange_id)
 
-    def update_from_queue(self, order_book, queue):
+    def update_from_queue(self, exchange_id, order_book, queue):
         while True:
 
             try:
@@ -139,8 +140,10 @@ class ArbitrageListener:
 
             if order_book_update is None:
                 break
+    
+            log_to_file(order_book_update, "bittrex_from_queue.log")
 
-            order_book.update(order_book_update)
+            order_book.update(exchange_id, order_book_update)
 
             queue.task_done()
 
@@ -150,7 +153,7 @@ class ArbitrageListener:
             self.order_book_sell = get_order_book(self.sell_exchange_id, self.pair_id)
             assert self.order_book_sell is not None
             self.order_book_sell.sort_by_price()
-            self.update_from_queue(self.order_book_sell, self.sell_exchange_updates)
+            self.update_from_queue(self.sell_exchange_id, self.order_book_sell, self.sell_exchange_updates)
 
             print "Finishing syncing sell order book!"
 
@@ -158,11 +161,13 @@ class ArbitrageListener:
             self.order_book_buy = get_order_book(self.buy_exchange_id, self.pair_id)
             assert self.order_book_buy is not None
             self.order_book_buy.sort_by_price()
-            self.update_from_queue(self.order_book_buy, self.buy_exchange_updates)
+            self.update_from_queue(self.buy_exchange_id, self.order_book_buy, self.buy_exchange_updates)
 
             print "Finishing syncing buy order book!"
 
         self.stage = ORDER_BOOK_SYNC_STAGES.AFTER_SYNC
+
+        # os._exit(1)
 
     def subscribe_cap_update(self):
         self.update_min_cap()
@@ -189,7 +194,7 @@ class ArbitrageListener:
         sell_subscription_constructor = get_subcribtion_by_exchange(self.sell_exchange_id)
         buy_subscription = buy_subscription_constructor(pair_id=self.pair_id)
 
-        buy_subscription = buy_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update, updates_queue=self.buy_exchange_updates)
+        buy_subscription = buy_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update)
         thread.start_new_thread(buy_subscription.subscribe, ())
         # buy_subscription.subscribe()
 
@@ -198,7 +203,7 @@ class ArbitrageListener:
         # t1 = SubscriptionBittrex(CURRENCY_PAIR.BTC_TO_ETC)
         # t1.subscribe()
 
-        # sell_subscription = sell_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update, updates_queue=self.sell_exchange_updates)
+        # sell_subscription = sell_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update)
         # thread.start_new_thread(sell_subscription.subscribe, ())
 
     def _print_top10_bids_asks(self, exchange_id):

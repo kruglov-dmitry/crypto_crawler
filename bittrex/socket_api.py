@@ -105,6 +105,8 @@ def parse_socket_order_book_bittrex(order_book_snapshot, pair_id):
     :return: newly assembled OrderBook object
     """
 
+    log_to_file(order_book_snapshot, "bittrex.log")
+
     timest_ms = get_now_seconds_utc_ms()
 
     sequence_id = long(order_book_snapshot["N"])
@@ -165,6 +167,8 @@ def parse_socket_update_bittrex(order_book_delta):
         :param order_book_delta
         :return:
     """
+    
+    log_to_file(order_book_delta, "bittrex.log")
 
     timest_ms = get_now_seconds_utc_ms()
 
@@ -337,9 +341,8 @@ class SubscriptionBittrex:
                 self.order_book_is_received = True
                 self.initial_order_book = parse_socket_order_book_bittrex(msg, self.pair_id)
 
-                log_to_file(self.initial_order_book, "bittrex_initial_order_book.log")
+                log_to_file(self.initial_order_book, "bittrex.log")
 
-                # self.on_update(EXCHANGE.BITTREX, self.initial_order_book)
         else:
             if not self.order_book_is_received:
                 time.sleep(5)
@@ -356,6 +359,7 @@ class SubscriptionBittrex:
             connection.start()
 
             while self.order_book_is_received is not True:
+                log_to_file("Requesting order book!", "bittrex.log")
                 self.hub.server.invoke(BittrexParameters.QUERY_EXCHANGE_STATE, self.pair_name)
                 connection.wait(5)  # otherwise it shoot thousands of query and we will be banned :(
 
@@ -364,7 +368,7 @@ class SubscriptionBittrex:
             connection = Connection(self.url, session)
             self.hub = connection.register_hub(self.hub_name)
 
-            connection.received += self.on_receive
+            # connection.received += self.on_receive
 
             self.hub.client.on(BittrexParameters.MARKET_DELTA, self.on_public)
 
@@ -372,10 +376,7 @@ class SubscriptionBittrex:
 
             connection.start()
 
-            while self.order_book_is_received is not True:
-                self.hub.server.invoke(BittrexParameters.QUERY_EXCHANGE_STATE, self.pair_name)
-                connection.wait(5)  # otherwise it shoot thousands of query and we will be banned :(
-            
             while connection.started:
                 self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)
+                # connection.wait(1)
 
