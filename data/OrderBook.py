@@ -1,5 +1,6 @@
 import re
 import copy
+import os
 
 from bittrex.currency_utils import get_currency_pair_from_bittrex
 from kraken.currency_utils import get_currency_pair_from_kraken
@@ -271,6 +272,11 @@ class OrderBook(BaseData):
             self.bid[item_insert_point].volume = new_bid.volume
         elif should_update_volume:
             self.bid[item_insert_point].volume -= new_bid.volume
+            
+            if self.bid[item_insert_point].volume < 0:
+                print "NEGATIVE"
+                os._exit(1)
+
         elif update_volume_error:
             log_to_file(err_msg, SOCKET_ERRORS_LOG_FILE_NAME)
         elif not almost_zero:
@@ -304,6 +310,11 @@ class OrderBook(BaseData):
             self.ask[item_insert_point].volume = new_ask.volume
         elif should_update_volume:
             self.ask[item_insert_point].volume -= new_ask.volume
+
+            if self.ask[item_insert_point].volume < 0: 
+                print "NEGATIVE ASK !"
+                os._exit(1)
+
         elif update_volume_error:
             log_to_file(err_msg, SOCKET_ERRORS_LOG_FILE_NAME)
         elif not almost_zero:
@@ -333,19 +344,23 @@ class OrderBook(BaseData):
             for bid in order_book_update.bid:
                 self.insert_new_bid_preserve_order(bid)
 
+
+            # FIXME NOTE: candidates for removal
+            # Q: do not parse them as well speed wise?
+
             # For trade - vice-versa we should update opposite arrays:
             # in case we have trade with type bid -> we will update orders at ask
             # in case we have trade with type ask -> we will update orders at bid
 
-            for trade_sell in order_book_update.trades_sell:
-                err_msg = "Poloniex socket update we got trade but cant find order price for it: {wtf}".format(
-                        wtf=trade_sell)
-                self.insert_new_ask_preserve_order(trade_sell, overwrite_volume=False, err_msg=err_msg)
+            # for trade_sell in order_book_update.trades_sell:
+            #     err_msg = "Poloniex socket update we got trade but cant find order price for it: {wtf}".format(
+            #             wtf=trade_sell)
+            #     self.insert_new_ask_preserve_order(trade_sell, overwrite_volume=False, err_msg=err_msg)
 
-            for trade_buy in order_book_update.trades_buy:
-                err_msg = "Poloniex socket update we got trade but cant find order price for it: {wtf}".format(
-                    wtf=trade_buy)
-                self.insert_new_bid_preserve_order(trade_buy, overwrite_volume=False, err_msg=err_msg)
+            # for trade_buy in order_book_update.trades_buy:
+            #     err_msg = "Poloniex socket update we got trade but cant find order price for it: {wtf}".format(
+            #         wtf=trade_buy)
+            #     self.insert_new_bid_preserve_order(trade_buy, overwrite_volume=False, err_msg=err_msg)
 
     def _copy_order_book(self, other_order_book):
 
