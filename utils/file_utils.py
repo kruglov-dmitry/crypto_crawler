@@ -1,6 +1,4 @@
-import sys
 import os
-import glob
 import csv
 
 from utils.time_utils import get_now_seconds_utc
@@ -22,6 +20,7 @@ def log_to_file(trade, file_name, log_dir=None):
         ts = get_now_seconds_utc()
         pid = os.getpid()
         the_file.write(str(ts) + " : " + " PID: " + str(pid) + " " + str(trade) + "\n")
+
 
 def save_to_csv_file(file_name, fields_list, array_list):
 

@@ -2,8 +2,10 @@ from data.BaseData import BaseData
 
 
 class OrderBookUpdate(BaseData):
-    def __init__(self, sequence_id, bid, ask, timest_ms, trades_sell, trades_buy):
+    def __init__(self, sequence_id, bid, ask, timest_ms, trades_sell, trades_buy, sequence_id_end=None):
         self.sequence_id = sequence_id
+        self.sequence_id_end = sequence_id_end
+
         self.bid = bid
         self.ask = ask
         self.timest_ms = timest_ms

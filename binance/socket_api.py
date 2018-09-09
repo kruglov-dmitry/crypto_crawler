@@ -37,6 +37,7 @@ def parse_socket_update_binance(order_book_delta):
     timest_ms = get_now_seconds_utc_ms()
 
     sequence_id = long(order_book_delta["U"])
+    sequence_id_end = long(order_book_delta["u"])
 
     asks = []
     bids = []
@@ -49,7 +50,7 @@ def parse_socket_update_binance(order_book_delta):
     for a in order_book_delta["b"]:
         bids.append(Deal(a[0], a[1]))
 
-    return OrderBookUpdate(sequence_id, bids, asks, timest_ms, trades_sell, trades_buy)
+    return OrderBookUpdate(sequence_id, bids, asks, timest_ms, trades_sell, trades_buy, sequence_id_end)
 
 
 def process_message(compressData):

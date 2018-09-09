@@ -2,7 +2,7 @@ from requests import Session
 from signalr import Connection
 
 from zlib import decompress, MAX_WBITS
-from json import dump, loads
+from json import loads
 from base64 import b64decode
 import time
 import thread
@@ -105,8 +105,6 @@ def parse_socket_order_book_bittrex(order_book_snapshot, pair_id):
     :return: newly assembled OrderBook object
     """
 
-    log_to_file(order_book_snapshot, "bittrex.log")
-
     timest_ms = get_now_seconds_utc_ms()
 
     sequence_id = long(order_book_snapshot["N"])
@@ -167,8 +165,6 @@ def parse_socket_update_bittrex(order_book_delta):
         :param order_book_delta
         :return:
     """
-    
-    log_to_file(order_book_delta, "bittrex.log")
 
     timest_ms = get_now_seconds_utc_ms()
 
@@ -329,19 +325,12 @@ class SubscriptionBittrex:
         :return:
         """
 
-        # print "on_receive!", kwargs
-
         if 'R' in kwargs and type(kwargs['R']) is not bool:
             msg = process_message(kwargs['R'])
-            # print msg
             if msg is not None:
-                # with open('data.json', 'w') as outfile:
-                #    dump(msg, outfile)
 
                 self.order_book_is_received = True
                 self.initial_order_book = parse_socket_order_book_bittrex(msg, self.pair_id)
-
-                log_to_file(self.initial_order_book, "bittrex.log")
 
         else:
             if not self.order_book_is_received:
@@ -359,7 +348,6 @@ class SubscriptionBittrex:
             connection.start()
 
             while self.order_book_is_received is not True:
-                log_to_file("Requesting order book!", "bittrex.log")
                 self.hub.server.invoke(BittrexParameters.QUERY_EXCHANGE_STATE, self.pair_name)
                 connection.wait(5)  # otherwise it shoot thousands of query and we will be banned :(
 
