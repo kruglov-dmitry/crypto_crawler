@@ -89,6 +89,8 @@ class ArbitrageListener:
         self.init_balance_state()
         self.init_order_books()
 
+        self.sell_order_book_synced = False
+        self.buy_order_book_synced = False
         self.stage = ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC
 
     def init_deal_cap(self):
@@ -140,32 +142,40 @@ class ArbitrageListener:
 
             if order_book_update is None:
                 break
-    
-            log_to_file(order_book_update, "bittrex_from_queue.log")
 
             order_book.update(exchange_id, order_book_update)
 
             queue.task_done()
 
-    def sync_order_books(self):
-
+    def sync_sell_order_book(self):
         if self.sell_exchange_id in [EXCHANGE.BINANCE, EXCHANGE.BITTREX]:
             self.order_book_sell = get_order_book(self.sell_exchange_id, self.pair_id)
             assert self.order_book_sell is not None
             self.order_book_sell.sort_by_price()
             self.update_from_queue(self.sell_exchange_id, self.order_book_sell, self.sell_exchange_updates)
 
-            print "Finishing syncing sell order book!"
+        print "Finishing syncing sell order book!"
+        self.sell_order_book_synced = True
 
+    def sync_buy_order_book(self):
         if self.buy_exchange_id in [EXCHANGE.BINANCE, EXCHANGE.BITTREX]:
             self.order_book_buy = get_order_book(self.buy_exchange_id, self.pair_id)
             assert self.order_book_buy is not None
             self.order_book_buy.sort_by_price()
             self.update_from_queue(self.buy_exchange_id, self.order_book_buy, self.buy_exchange_updates)
 
-            print "Finishing syncing buy order book!"
+        print "Finishing syncing buy order book!"
+        self.buy_order_book_synced = True
 
-        self.stage = ORDER_BOOK_SYNC_STAGES.AFTER_SYNC
+    def sync_order_books(self):
+
+        thread.start_new_thread(self.sync_sell_order_book, ())
+        thread.start_new_thread(self.sync_buy_order_book, ())
+
+        while self.stage != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
+            if self.sell_order_book_synced and self.buy_order_book_synced:
+                self.stage = ORDER_BOOK_SYNC_STAGES.AFTER_SYNC
+            sleep_for(1)
 
         # os._exit(1)
 
@@ -192,16 +202,9 @@ class ArbitrageListener:
 
         buy_subscription_constructor = get_subcribtion_by_exchange(self.buy_exchange_id)
         sell_subscription_constructor = get_subcribtion_by_exchange(self.sell_exchange_id)
-        buy_subscription = buy_subscription_constructor(pair_id=self.pair_id)
 
         buy_subscription = buy_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update)
         thread.start_new_thread(buy_subscription.subscribe, ())
-        # buy_subscription.subscribe()
-
-        # from enums.currency_pair import CURRENCY_PAIR
-        # from bittrex.socket_api import SubscriptionBittrex
-        # t1 = SubscriptionBittrex(CURRENCY_PAIR.BTC_TO_ETC)
-        # t1.subscribe()
 
         # sell_subscription = sell_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update)
         # thread.start_new_thread(sell_subscription.subscribe, ())
@@ -236,9 +239,15 @@ class ArbitrageListener:
         if self.stage == ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC:
 
             if exchange_id == self.buy_exchange_id:
-                self.buy_exchange_updates.put(order_book_updates)
+                if self.buy_order_book_synced:
+                    self.order_book_buy.update(exchange_id, order_book_updates)
+                else:
+                    self.buy_exchange_updates.put(order_book_updates)
             else:
-                self.sell_exchange_updates.put(order_book_updates)
+                if self.sell_order_book_synced:
+                    self.order_book_sell.update(exchange_id, order_book_updates)
+                else:
+                    self.sell_exchange_updates.put(order_book_updates)
 
             print "Syncing in progress ..."
 
@@ -252,6 +261,8 @@ class ArbitrageListener:
                 self.order_book_sell.update(exchange_id, order_book_updates)
 
             self._print_top10_bids_asks(exchange_id)
+
+            # DK NOTE: only at this stage we are ready for searching for arbitrage
 
         else:
             print "on_order_book_update: Unknown stage :("

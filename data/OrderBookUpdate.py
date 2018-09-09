@@ -1,4 +1,7 @@
-class OrderBookUpdate:
+from data.BaseData import BaseData
+
+
+class OrderBookUpdate(BaseData):
     def __init__(self, sequence_id, bid, ask, timest_ms, trades_sell, trades_buy):
         self.sequence_id = sequence_id
         self.bid = bid
