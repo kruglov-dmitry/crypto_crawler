@@ -12,6 +12,7 @@ from data.OrderBook import OrderBook
 from data.Deal import Deal
 
 from utils.time_utils import get_now_seconds_utc_ms
+from debug_utils import get_logging_level, LOG_ALL_TRACE
 
 
 def parse_socket_update_huobi(order_book_delta, pair_id):
@@ -82,10 +83,16 @@ class SubscriptionHuobi:
         self.on_update(EXCHANGE.HUOBI, updated_order_book)
 
     def on_error(self, ws, error):
+        # DK NOTE:  it is fine here - as Huobi sent the full order book
+        #           so no need to do synchronisation
+
         print "Error:", error
+
         self.subscribe()
 
     def on_close(self, ws):
+        # DK NOTE:  it is fine here - as Huobi sent the full order book
+        #           so no need to do synchronisation
         print("Connection closed, Reconnecting...")
         self.subscribe()
 
@@ -95,12 +102,10 @@ class SubscriptionHuobi:
 
         ws.send(self.subscription_url)
 
-        #  compressData=ws.recv()
-        #  print "CONFIRMATION OF SUBSCRIPTION:", process_message(compressData)
-
     def subscribe(self):
 
-        websocket.enableTrace(True)
+        if get_logging_level() == LOG_ALL_TRACE:
+            websocket.enableTrace(True)
 
         ws = websocket.WebSocketApp(HuobiParameters.URL,
                                     on_message=self.on_public,

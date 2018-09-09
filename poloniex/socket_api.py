@@ -15,9 +15,8 @@ from data.OrderBookUpdate import OrderBookUpdate
 from data.Deal import Deal
 from data.OrderBook import OrderBook
 
-from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
-
-
+from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME, get_logging_level, LOG_ALL_TRACE
+from utils.system_utils import die_hard
 
 
 class PoloniexParameters:
@@ -205,6 +204,9 @@ def parse_socket_update_poloniex(order_book_delta):
             msg = "Poloniex socket update parsing - UNKNOWN TYPE - {wtf}".format(wtf=entry)
             log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
+    # FIXME NOTE: during update we are not using trades_sell\trades_buy at all - so probably
+    # better not to use them at all
+
     return OrderBookUpdate(sequence_id, bids, asks, timest_ms, trades_sell, trades_buy)
 
 
@@ -269,14 +271,23 @@ class SubscriptionPoloniex:
             self.on_update(EXCHANGE.POLONIEX, order_book_delta)
 
     def on_close(self, ws, args):
-        print("Connection closed, Reconnecting...")
-        self.subscribe()
+        die_hard("Poloniex - triggered on_close. We have to re-init the whole state from the scratch - which is not implemented")
+        # FIXME NOTE self.subscribe()
+
+    def on_error(self, ws, error):
+        die_hard(
+            "Poloniex - triggered on_error - {err}. We have to re-init the whole state from the scratch - "
+            "which is not implemented".format(err=error))
+
+        # self.subscribe()
 
     def subscribe(self):
-        websocket.enableTrace(True)
+        if get_logging_level() == LOG_ALL_TRACE:
+            websocket.enableTrace(True)
+
         ws = websocket.WebSocketApp(PoloniexParameters.URL,
                                     on_message=self.on_public,
-                                    on_error=self.subscribe,
+                                    on_error=self.on_error,
                                     on_close=self.on_close)
         ws.on_open = self.on_open
         ws.run_forever()

@@ -5,7 +5,10 @@ from binance.currency_utils import get_currency_pair_to_binance
 from enums.exchange import EXCHANGE
 from data.OrderBookUpdate import OrderBookUpdate
 from data.Deal import Deal
+
 from utils.time_utils import get_now_seconds_utc_ms
+from debug_utils import get_logging_level, LOG_ALL_TRACE
+from utils.system_utils import die_hard
 
 
 def parse_socket_update_binance(order_book_delta):
@@ -65,7 +68,7 @@ class BinanceParameters:
 
 def default_on_public(exchange_id, args):
     print "on_public:"
-    print exchange_id, msg
+    print exchange_id, args
 
 
 class SubscriptionBinance:
@@ -92,8 +95,10 @@ class SubscriptionBinance:
         print "Opening connection..."
 
     def on_close(self, ws):
-        print("Connection closed, Reconnecting...")
-        self.subscribe()
+        die_hard("Binance - triggered on_close. We have to re-init the whole state from the scratch - "
+                 "which is not implemented")
+
+        # self.subscribe()
 
     def on_public(self, ws, args):
         msg = process_message(args)
@@ -101,16 +106,21 @@ class SubscriptionBinance:
         self.on_update(EXCHANGE.BINANCE, order_book_delta)
 
     def on_error(self, ws, error):
-        print "Error: ", error
-        self.subscribe()
+        die_hard("Binance - triggered on_error - {err}. We have to re-init the whole state from the scratch - "
+                 "which is not implemented".format(err=error))
+
+        # self.subscribe()
 
     def subscribe(self):
-        # websocket.enableTrace(True)
-        final_url = BinanceParameters.URL+self.subscription_url
+
+        if get_logging_level() == LOG_ALL_TRACE:
+            websocket.enableTrace(True)
+
+        final_url = BinanceParameters.URL + self.subscription_url
         print final_url
         ws = websocket.WebSocketApp(final_url,
                                     on_message=self.on_public,
-                                    on_error=self.subscribe,
+                                    on_error=self.on_error,
                                     on_close=self.on_close)
 
         ws.on_open = self.on_open

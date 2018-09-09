@@ -12,6 +12,7 @@ from bittrex.currency_utils import get_currency_pair_to_bittrex, get_currency_pa
 from utils.file_utils import log_to_file
 from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for
+from utils.system_utils import die_hard
 
 from enums.exchange import EXCHANGE
 from enums.deal_type import DEAL_TYPE
@@ -309,9 +310,12 @@ class SubscriptionBittrex:
         self.initial_order_book = None
 
     def on_error(self, error):
-        print "Error:", error
-        time.sleep(5)
-        self.subscribe()
+        die_hard("Bittrex - triggered on_error - {err}. We have to re-init the whole state from the scratch - "
+                 "which is not implemented".format(err=error))
+
+        # print "Error:", error
+        # time.sleep(5)
+        # self.subscribe()
 
     def on_public(self, args):
         msg = process_message(args)
@@ -356,8 +360,6 @@ class SubscriptionBittrex:
             connection = Connection(self.url, session)
             self.hub = connection.register_hub(self.hub_name)
 
-            # connection.received += self.on_receive
-
             self.hub.client.on(BittrexParameters.MARKET_DELTA, self.on_public)
 
             connection.error += self.on_error
@@ -366,5 +368,5 @@ class SubscriptionBittrex:
 
             while connection.started:
                 self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)
-                # connection.wait(1)
+                # FIXME NOTE - still not sure - connection.wait(1)
 
