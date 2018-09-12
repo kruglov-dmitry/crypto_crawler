@@ -371,11 +371,14 @@ class OrderBook(BaseData):
 
             self.sort_by_price()
         else:
-            if (self.sequence_id + 1) == order_book_update.sequence_id:
-                die_hard("Bittrex - sequence_id mismatch! Prev: {prev} New: {new}".format(
-                    prev=self.sequence_id, new=order_book_update.sequence_id))
-            else:
-                self.sequence_id = order_book_update.sequence_id
+            # if self.sequence_id > order_book_update.sequence_id:
+            #     # DK NOTE: we dont care about outdated updates
+            #     return
+            # elif (self.sequence_id + 1) != order_book_update.sequence_id:
+            #     die_hard("Bittrex - sequence_id mismatch! Prev: {prev} New: {new}".format(prev=self.sequence_id, new=order_book_update.sequence_id))
+            # else:
+            
+            self.sequence_id = order_book_update.sequence_id
 
             for ask in order_book_update.ask:
                 self.insert_new_ask_preserve_order(ask)
@@ -407,7 +410,10 @@ class OrderBook(BaseData):
         :return:
         """
 
-        if (self.sequence_id + 1) == order_book_update.sequence_id:
+        if self.sequence_id > order_book_update.sequence_id:
+            # DK NOTE: we dont care about outdated updates
+            return
+        if (self.sequence_id + 1) != order_book_update.sequence_id:
             die_hard("Binance - sequence_id mismatch! Prev: {prev} New: {new}".format(
                 prev=self.sequence_id, new=order_book_update.sequence_id))
         else:
