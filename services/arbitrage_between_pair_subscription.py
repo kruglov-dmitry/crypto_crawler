@@ -141,6 +141,8 @@ class ArbitrageListener:
                 break
 
             order_book.update(exchange_id, order_book_update)
+            log_to_file("QUEUE:", "bittrex.log")
+            log_to_file(order_book_update, "bittrex.log")
 
             queue.task_done()
 
@@ -157,6 +159,7 @@ class ArbitrageListener:
     def sync_buy_order_book(self):
         if self.buy_exchange_id in [EXCHANGE.BINANCE, EXCHANGE.BITTREX]:
             self.order_book_buy = get_order_book(self.buy_exchange_id, self.pair_id)
+            log_to_file(self.order_book_buy, "bittrex.log")
             assert self.order_book_buy is not None
             self.order_book_buy.sort_by_price()
             self.update_from_queue(self.buy_exchange_id, self.order_book_buy, self.buy_exchange_updates)
@@ -247,6 +250,8 @@ class ArbitrageListener:
                     self.order_book_sell.update(exchange_id, order_book_updates)
                 else:
                     self.sell_exchange_updates.put(order_book_updates)
+            
+            log_to_file(order_book_updates, "bittrex.log")
 
             print "Syncing in progress ..."
 
