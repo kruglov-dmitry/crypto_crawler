@@ -59,9 +59,6 @@ class ArbitrageListener:
 
         self.sync_order_books()
 
-        # while True:
-        #     sleep_for(1)
-
     def _init_settings(self, cfg):
         self.buy_exchange_id = cfg.buy_exchange_id
         self.sell_exchange_id = cfg.sell_exchange_id
@@ -185,15 +182,17 @@ class ArbitrageListener:
 
     def subscribe_balance_update(self):
         cur_timest_sec = get_now_seconds_utc()
-        # self.balance_state = get_updated_balance_arbitrage(cfg, self.balance_state, self.local_cache)
+        self.balance_state = get_updated_balance_arbitrage(cfg, self.balance_state, self.local_cache)
 
-        # if self.balance_state.expired(cur_timest_sec, self.buy_exchange_id, self.sell_exchange_id,
-        #                               BALANCE_EXPIRED_THRESHOLD):
-        #     log_balance_expired_errors(cfg, self.msg_queue, self.balance_state)
+        if self.balance_state.expired(cur_timest_sec,
+                                      self.buy_exchange_id,
+                                      self.sell_exchange_id,
+                                      BALANCE_EXPIRED_THRESHOLD):
+            log_balance_expired_errors(cfg, self.msg_queue, self.balance_state)
 
-        #     assert False
+            assert False
 
-        # threading.Timer(self.balance_update_timeout, self.subscribe_balance_update).start()
+        threading.Timer(self.balance_update_timeout, self.subscribe_balance_update).start()
 
     def subsribe_to_order_book_update(self):
         # for both exchanges
@@ -206,8 +205,8 @@ class ArbitrageListener:
         buy_subscription = buy_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update)
         thread.start_new_thread(buy_subscription.subscribe, ())
 
-        # sell_subscription = sell_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update)
-        # thread.start_new_thread(sell_subscription.subscribe, ())
+        sell_subscription = sell_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update)
+        thread.start_new_thread(sell_subscription.subscribe, ())
 
     def _print_top10_bids_asks(self, exchange_id):
         bids = self.order_book_buy.bid[:10]
@@ -260,33 +259,33 @@ class ArbitrageListener:
             else:
                 self.order_book_sell.update(exchange_id, order_book_updates)
 
-            self._print_top10_bids_asks(exchange_id)
+            # self._print_top10_bids_asks(exchange_id)
 
             # DK NOTE: only at this stage we are ready for searching for arbitrage
 
-        else:
-            print "on_order_book_update: Unknown stage :("
-
-        """
-        for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
-
-            method = search_for_arbitrage if mode_id == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
-            active_threshold = self.threshold if mode_id == DEAL_TYPE.ARBITRAGE else self.reverse_threshold
+            # for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
+            # method = search_for_arbitrage if mode_id == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
+            # active_threshold = self.threshold if mode_id == DEAL_TYPE.ARBITRAGE else self.reverse_threshold
 
             # FIXME NOTE: order book expiration check
 
             # init_deals_with_logging_speedy
             # FIXME NOTE: src dst vs buy sell
-            status_code, deal_pair = method(self.order_book_src, self.order_book_dst, active_threshold,
-                                            self.balance_threshold,
-                                            init_deals_with_logging_speedy,
-                                            self.balance_state, self.deal_cap,
-                                            type_of_deal=mode_id, worker_pool=self.processor, msg_queue=self.msg_queue)
+            status_code, deal_pair = search_for_arbitrage(self.order_book_sell, self.order_book_buy,
+                                                          self.threshold,
+                                                          self.balance_threshold,
+                                                          init_deals_with_logging_speedy,
+                                                          self.balance_state, self.deal_cap,
+                                                          type_of_deal=DEAL_TYPE.ARBITRAGE,
+                                                          worker_pool=self.processor,
+                                                          msg_queue=self.msg_queue)
 
             add_orders_to_watch_list(deal_pair, self.priority_queue)
 
-        self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
-        """
+            self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
+
+        else:
+            print "on_order_book_update: Unknown stage :("
 
 
 if __name__ == "__main__":
