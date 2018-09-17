@@ -439,15 +439,16 @@ class OrderBook(BaseData):
     def update(self, exchange_id, order_book_delta):
 
         # DK FIXME - performance wise - remove logging!
-        ts_ms = str(get_now_seconds_utc_ms())
-        exchange_name = get_exchange_name_by_id(exchange_id)
-
-        file_name = exchange_name + "_" + ts_ms + "_raw.txt"
-        log_to_file(order_book_delta, file_name)
+        # ts_ms = str(get_now_seconds_utc_ms())
+        # exchange_name = get_exchange_name_by_id(exchange_id)
+        # 
+        # file_name = exchange_name + "_" + ts_ms + "_raw.txt"
+        # log_to_file(order_book_delta, file_name)
+        #        
+        # file_name = exchange_name + "_" + ts_ms + "_before.txt"
+        # 
+        # log_to_file(self, file_name)
         
-        file_name = exchange_name + "_" + ts_ms + "_before.txt"
-
-        log_to_file(self, file_name)
 
         method = {
             EXCHANGE.POLONIEX: self.update_for_poloniex,
@@ -459,5 +460,5 @@ class OrderBook(BaseData):
         method(order_book_delta)
 
         # DK FIXME - performance wise - remove logging!
-        file_name = exchange_name + "_" + ts_ms + "_after.txt"
-        log_to_file(self, file_name)
+        # file_name = exchange_name + "_" + ts_ms + "_after.txt"
+        # log_to_file(self, file_name)
