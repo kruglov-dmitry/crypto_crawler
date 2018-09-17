@@ -219,20 +219,20 @@ def parse_socket_update_bittrex(order_book_delta):
             msg = "Bittrex socket un-supported buys format? {wtf}".format(wtf=new_buy)
             log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
-    for new_fill in fills:
-        new_deal = Deal(new_fill["R"], new_fill["Q"])
+    # for new_fill in fills:
+    #     new_deal = Deal(new_fill["R"], new_fill["Q"])
 
-        if "TY" in new_fill:
-            msg = "Bittrex socket update - within FILLS array some weird format - no TY - {wtf}".format(wtf=new_fill)
-            log_to_file(msg, "should_not_see_you.log")
-            continue
+    #     if "TY" in new_fill:
+    #         msg = "Bittrex socket update - within FILLS array some weird format - no TY - {wtf}".format(wtf=new_fill)
+    #         log_to_file(msg, "should_not_see_you.log")
+    #         continue
 
-        deal_direction = DEAL_TYPE.BUY if "BUY" in new_fill["OT"] else DEAL_TYPE.SELL
+    #     deal_direction = DEAL_TYPE.BUY if "BUY" in new_fill["OT"] else DEAL_TYPE.SELL
 
-        if deal_direction == DEAL_TYPE.BUY:
-            trades_buy.append(new_deal)
-        else:
-            trades_sell.append(new_deal)
+    #     if deal_direction == DEAL_TYPE.BUY:
+    #         trades_buy.append(new_deal)
+    #     else:
+    #         trades_sell.append(new_deal)
 
     return OrderBookUpdate(sequence_id, bids, asks, timest_ms, trades_sell, trades_buy)
 

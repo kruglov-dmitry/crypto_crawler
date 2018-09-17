@@ -3,6 +3,7 @@ from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_REL
 from utils.file_utils import log_to_file
 from core.base_math import get_all_permutation, get_all_permutation_list
 from collections import defaultdict
+from decimal import Decimal
 
 
 def get_matches(objs, key):
@@ -125,8 +126,8 @@ def get_change(current, previous, provide_abs=True):
     :return: difference in percentage between current & previous
     """
 
-    tot = 0.5 * (current + previous)
-    diff = 0.0
+    tot = Decimal(0.5) * (current + previous)
+    diff = Decimal(0.0)
     if provide_abs:
         diff = abs(current - previous)
     else:
