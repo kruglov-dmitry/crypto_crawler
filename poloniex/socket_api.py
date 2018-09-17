@@ -267,7 +267,11 @@ class SubscriptionPoloniex:
             order_book_delta = parse_socket_order_book_poloniex(msg, self.pair_id)
         else:
             order_book_delta = parse_socket_update_poloniex(msg)
-        if order_book_delta is not None:
+
+        if order_book_delta is None:
+            err_msg = "Poloniex - cant parse update from message: {msg}".format(msg=msg)
+            log_to_file(err_msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        else:
             self.on_update(EXCHANGE.POLONIEX, order_book_delta)
 
     def on_close(self, ws, args):

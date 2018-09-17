@@ -7,8 +7,9 @@ from data.OrderBookUpdate import OrderBookUpdate
 from data.Deal import Deal
 
 from utils.time_utils import get_now_seconds_utc_ms
-from debug_utils import get_logging_level, LOG_ALL_TRACE
+from debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
 from utils.system_utils import die_hard
+from utils.file_utils import log_to_file
 
 
 def parse_socket_update_binance(order_book_delta):
@@ -103,7 +104,12 @@ class SubscriptionBinance:
     def on_public(self, ws, args):
         msg = process_message(args)
         order_book_delta = parse_socket_update_binance(msg)
-        self.on_update(EXCHANGE.BINANCE, order_book_delta)
+
+        if order_book_delta is None:
+            err_msg = "Binance - cant parse update from message: {msg}".format(msg=msg)
+            log_to_file(err_msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        else:
+            self.on_update(EXCHANGE.BINANCE, order_book_delta)
 
     def on_error(self, ws, error):
         die_hard("Binance - triggered on_error - {err}. We have to re-init the whole state from the scratch - "

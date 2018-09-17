@@ -319,8 +319,13 @@ class SubscriptionBittrex:
 
     def on_public(self, args):
         msg = process_message(args)
-        order_book_update = parse_socket_update_bittrex(msg)
-        self.on_update(EXCHANGE.BITTREX, order_book_update)
+        order_book_delta = parse_socket_update_bittrex(msg)
+
+        if order_book_delta is None:
+            err_msg = "Bittrex - cant parse update from message: {msg}".format(msg=msg)
+            log_to_file(err_msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        else:
+            self.on_update(EXCHANGE.BITTREX, order_book_delta)
 
     def on_receive(self, **kwargs):
         """

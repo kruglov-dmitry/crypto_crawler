@@ -11,8 +11,9 @@ from enums.exchange import EXCHANGE
 from data.OrderBook import OrderBook
 from data.Deal import Deal
 
-from utils.time_utils import get_now_seconds_utc_ms
-from debug_utils import get_logging_level, LOG_ALL_TRACE
+from utils.time_utils import get_now_seconds_utc_ms, sleep_for
+from utils.file_utils import log_to_file
+from debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
 
 
 def parse_socket_update_huobi(order_book_delta, pair_id):
@@ -79,21 +80,32 @@ class SubscriptionHuobi:
         msg = process_message(args)
         updated_order_book = parse_socket_update_huobi(msg, self.pair_id)
         if updated_order_book is None:
-            print msg
-        self.on_update(EXCHANGE.HUOBI, updated_order_book)
+            err_msg = "Huobi - cant parse update from message: {msg}".format(msg=msg)
+            log_to_file(err_msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        else:
+            self.on_update(EXCHANGE.HUOBI, updated_order_book)
 
     def on_error(self, ws, error):
         # DK NOTE:  it is fine here - as Huobi sent the full order book
         #           so no need to do synchronisation
 
-        print "Error:", error
+        msg = "Huobi triggered on_error: {err}".format(err=error)
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        ws.close()
 
+        sleep_for(1)
         self.subscribe()
 
     def on_close(self, ws):
         # DK NOTE:  it is fine here - as Huobi sent the full order book
         #           so no need to do synchronisation
-        print("Connection closed, Reconnecting...")
+
+        msg = "Huobi - Connection closed, Reconnecting..."
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+
+        ws.close()
+
+        sleep_for(1)
         self.subscribe()
 
     def on_open(self, ws):
