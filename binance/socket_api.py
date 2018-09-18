@@ -67,13 +67,17 @@ class BinanceParameters:
     SUBSCRIBE_UPDATE = "{pair_name}@depth"
 
 
+def default_on_error():
+    print "Binance: default_on_error"
+
+
 def default_on_public(exchange_id, args):
-    print "on_public:"
+    print "Binance: odefault_on_public:"
     print exchange_id, args
 
 
 class SubscriptionBinance:
-    def __init__(self, pair_id, on_update=default_on_public, base_url=BinanceParameters.URL):
+    def __init__(self, pair_id, on_update=default_on_public, on_any_issue=default_on_error, base_url=BinanceParameters.URL):
         """
         :param pair_id:         - currency pair to be used for trading
         :param on_update:       - idea is the following:
@@ -91,15 +95,18 @@ class SubscriptionBinance:
         self.subscription_url = BinanceParameters.SUBSCRIBE_UPDATE.format(pair_name=self.pair_name)
 
         self.on_update = on_update
+        self.on_any_issue = on_any_issue
 
     def on_open(self, ws):
         print "Opening connection..."
 
     def on_close(self, ws):
-        die_hard("Binance - triggered on_close. We have to re-init the whole state from the scratch - "
-                 "which is not implemented")
+        ws.close()
 
-        # self.subscribe()
+        msg = "Binance - triggered on_close. We have to re-init the whole state from the scratch"
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+
+        self.on_any_issue()
 
     def on_public(self, ws, args):
         msg = process_message(args)
@@ -115,7 +122,7 @@ class SubscriptionBinance:
         die_hard("Binance - triggered on_error - {err}. We have to re-init the whole state from the scratch - "
                  "which is not implemented".format(err=error))
 
-        # self.subscribe()
+        self.on_any_issue()
 
     def subscribe(self):
 
@@ -123,12 +130,15 @@ class SubscriptionBinance:
             websocket.enableTrace(True)
 
         final_url = BinanceParameters.URL + self.subscription_url
-        print final_url
-        ws = websocket.WebSocketApp(final_url,
+
+        self.ws = websocket.WebSocketApp(final_url,
                                     on_message=self.on_public,
                                     on_error=self.on_error,
                                     on_close=self.on_close)
 
-        ws.on_open = self.on_open
+        self.ws.on_open = self.on_open
 
-        ws.run_forever()
+        self.ws.run_forever()
+
+    def disconnect(self):
+        self.ws.close()

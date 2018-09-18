@@ -1,7 +1,6 @@
 import argparse
 import thread
 import threading
-import os
 from Queue import Queue as queue
 
 from data_access.message_queue import get_message_queue
@@ -15,7 +14,7 @@ from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_book
 from dao.ticker_utils import get_ticker_for_arbitrage
 from dao.deal_utils import init_deals_with_logging_speedy
-from dao.socket_utils import get_subcribtion_by_exchange, parse_update_by_exchanges
+from dao.socket_utils import get_subcribtion_by_exchange
 
 from data.ArbitrageConfig import ArbitrageConfig
 from data.OrderBook import OrderBook
@@ -46,6 +45,7 @@ from deploy.classes.CommonSettings import CommonSettings
 class ORDER_BOOK_SYNC_STAGES:
     BEFORE_SYNC = 1
     AFTER_SYNC = 2
+    RESETTING = 3
 
 
 class ArbitrageListener:
@@ -53,10 +53,35 @@ class ArbitrageListener:
 
         self._init_settings(cfg)
         self._init_infrastructure(app_settings)
+        self.reset_arbitrage_state()
+
+    def reset_arbitrage_state(self):
+
+        # Q: why the hell you didnt use locks here
+        # A: GIL assumption
+
+        if self.stage and self.stage in [ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC, ORDER_BOOK_SYNC_STAGES.RESETTING]:
+            # Supposedly we will catch second firing for second callbacks
+            return
+
+        self.stage = ORDER_BOOK_SYNC_STAGES.RESETTING
+
+        # Reseting timer methods?
+        for b in self.threads:
+            b.cancel()
+        self.threads = []
+
+        # Stoping other websocket
+        self.buy_subscription.disconnect()
+        self.sell_subscription.disconnect()
+
+        sleep_for(3)
+
+        self.clear_queue(self.sell_exchange_updates)
+        self.clear_queue(self.buy_exchange_updates)
+
         self._init_arbitrage_state()
-
         self.subsribe_to_order_book_update()
-
         self.sync_order_books()
 
     def _init_settings(self, cfg):
@@ -80,6 +105,8 @@ class ArbitrageListener:
 
         self.sell_exchange_updates = queue()
         self.buy_exchange_updates = queue()
+
+        self.threads = []
 
     def _init_arbitrage_state(self):
         self.init_deal_cap()
@@ -141,10 +168,19 @@ class ArbitrageListener:
                 break
 
             order_book.update(exchange_id, order_book_update)
-            log_to_file("QUEUE:", "bittrex.log")
-            log_to_file(order_book_update, "bittrex.log")
 
             queue.task_done()
+
+    def clear_queue(self, queue):
+        while True:
+
+            try:
+                order_book_update = queue.get(block=False)
+            except:
+                order_book_update = None
+
+            if order_book_update is None:
+                break
 
     def sync_sell_order_book(self):
         if self.sell_exchange_id in [EXCHANGE.BINANCE, EXCHANGE.BITTREX]:
@@ -181,7 +217,12 @@ class ArbitrageListener:
 
     def subscribe_cap_update(self):
         self.update_min_cap()
-        threading.Timer(self.cap_update_timeout, self.subscribe_cap_update).start()
+
+        tid3 = threading.Timer(self.cap_update_timeout, self.subscribe_cap_update)
+
+        self.threads.append(tid3)
+
+        tid3.start()
 
     def subscribe_balance_update(self):
         cur_timest_sec = get_now_seconds_utc()
@@ -195,7 +236,11 @@ class ArbitrageListener:
 
             assert False
 
-        threading.Timer(self.balance_update_timeout, self.subscribe_balance_update).start()
+        tid4 = threading.Timer(self.balance_update_timeout, self.subscribe_balance_update)
+
+        self.threads.append(tid4)
+
+        tid4.start()
 
     def subsribe_to_order_book_update(self):
         # for both exchanges
@@ -205,11 +250,19 @@ class ArbitrageListener:
         buy_subscription_constructor = get_subcribtion_by_exchange(self.buy_exchange_id)
         sell_subscription_constructor = get_subcribtion_by_exchange(self.sell_exchange_id)
 
-        buy_subscription = buy_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update)
-        thread.start_new_thread(buy_subscription.subscribe, ())
+        self.buy_subscription = buy_subscription_constructor(pair_id=self.pair_id,
+                                                        on_update=self.on_order_book_update,
+                                                        on_any_issue=self.reset_arbitrage_state
+                                                        )
 
-        sell_subscription = sell_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update)
-        thread.start_new_thread(sell_subscription.subscribe, ())
+
+        self.sell_subscription = sell_subscription_constructor(pair_id=self.pair_id,
+                                                          on_update=self.on_order_book_update,
+                                                          on_any_issue=self.reset_arbitrage_state)
+
+
+        thread.start_new_thread(self.buy_subscription.subscribe, ())
+        thread.start_new_thread(self.sell_subscription.subscribe, ())
 
     def _print_top10_bids_asks(self, exchange_id):
         bids = self.order_book_buy.bid[:10]
@@ -250,8 +303,6 @@ class ArbitrageListener:
                     self.order_book_sell.update(exchange_id, order_book_updates)
                 else:
                     self.sell_exchange_updates.put(order_book_updates)
-            
-            log_to_file(order_book_updates, "bittrex.log")
 
             print "Syncing in progress ..."
 

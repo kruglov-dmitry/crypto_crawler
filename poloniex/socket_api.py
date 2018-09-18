@@ -215,20 +215,20 @@ def process_message(compressData):
 
 
 def default_on_public(exchange_id, args):
-    print "on_public:"
+    print("Poloniex: default_on_public")
     print exchange_id, args
 
 
-def on_error(ws, error):
-    print(error)
+def default_on_error():
+    print("Poloniex: default_on_error")
 
 
-def on_close(ws):
-    print("### closed ###")
+def default_on_close():
+    print("Poloniex: default_on_close")
 
 
 class SubscriptionPoloniex:
-    def __init__(self, pair_id, on_update=default_on_public, base_url=PoloniexParameters.URL):
+    def __init__(self, pair_id, on_update=default_on_public, on_any_issue=default_on_error, base_url=PoloniexParameters.URL):
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points
@@ -243,6 +243,8 @@ class SubscriptionPoloniex:
         self.pair_name = get_currency_pair_to_poloniex(self.pair_id)
 
         self.on_update = on_update
+
+        self.on_any_issue = on_any_issue
 
         self.order_book_is_received = False
 
@@ -269,29 +271,42 @@ class SubscriptionPoloniex:
             order_book_delta = parse_socket_update_poloniex(msg)
 
         if order_book_delta is None:
-            err_msg = "Poloniex - cant parse update from message: {msg}".format(msg=msg)
-            log_to_file(err_msg, SOCKET_ERRORS_LOG_FILE_NAME)
+            # Poloniex tend to send heartbeat messages: [1010]
+            if "1010" not in order_book_delta:
+                err_msg = "Poloniex - cant parse update from message: {msg}".format(msg=msg)
+                log_to_file(err_msg, SOCKET_ERRORS_LOG_FILE_NAME)
         else:
             self.on_update(EXCHANGE.POLONIEX, order_book_delta)
 
-    def on_close(self, ws, args):
-        die_hard("Poloniex - triggered on_close. We have to re-init the whole state from the scratch - which is not implemented")
-        # FIXME NOTE self.subscribe()
+    def on_close(self, ws):
+
+        ws.close()
+
+        msg = "Poloniex - triggered on_close. We have to re-init the whole state from the scratch"
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+
+        self.on_any_issue()
 
     def on_error(self, ws, error):
-        die_hard(
-            "Poloniex - triggered on_error - {err}. We have to re-init the whole state from the scratch - "
-            "which is not implemented".format(err=error))
 
-        # self.subscribe()
+        ws.close()
+
+        msg = "Poloniex - triggered on_error - {err}. We have to re-init the whole state from the scratch - which is " \
+              "not implemented".format(err=error)
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+
+        self.on_any_issue()
 
     def subscribe(self):
         if get_logging_level() == LOG_ALL_TRACE:
             websocket.enableTrace(True)
 
-        ws = websocket.WebSocketApp(PoloniexParameters.URL,
+        self.ws = websocket.WebSocketApp(PoloniexParameters.URL,
                                     on_message=self.on_public,
                                     on_error=self.on_error,
                                     on_close=self.on_close)
-        ws.on_open = self.on_open
-        ws.run_forever()
+        self.ws.on_open = self.on_open
+        self.ws.run_forever()
+
+    def disconnect(self):
+        self.ws.close()

@@ -15,7 +15,6 @@ from utils.time_utils import get_now_seconds_utc_ms, sleep_for
 from utils.system_utils import die_hard
 
 from enums.exchange import EXCHANGE
-from enums.deal_type import DEAL_TYPE
 from data.OrderBookUpdate import OrderBookUpdate
 from data.Deal import Deal
 from data.OrderBook import OrderBook
@@ -219,21 +218,6 @@ def parse_socket_update_bittrex(order_book_delta):
             msg = "Bittrex socket un-supported buys format? {wtf}".format(wtf=new_buy)
             log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
-    # for new_fill in fills:
-    #     new_deal = Deal(new_fill["R"], new_fill["Q"])
-
-    #     if "TY" in new_fill:
-    #         msg = "Bittrex socket update - within FILLS array some weird format - no TY - {wtf}".format(wtf=new_fill)
-    #         log_to_file(msg, "should_not_see_you.log")
-    #         continue
-
-    #     deal_direction = DEAL_TYPE.BUY if "BUY" in new_fill["OT"] else DEAL_TYPE.SELL
-
-    #     if deal_direction == DEAL_TYPE.BUY:
-    #         trades_buy.append(new_deal)
-    #     else:
-    #         trades_sell.append(new_deal)
-
     return OrderBookUpdate(sequence_id, bids, asks, timest_ms, trades_sell, trades_buy)
 
 
@@ -278,13 +262,18 @@ def default_on_receive(**kwargs):
     pass
 
 
+def default_on_error():
+    print "Bittrex: default_on_error"
+
+
 def default_on_public(exchange_id, args):
-    print "default_on_public:"
+    print "Bittrex: default_on_public:"
     print exchange_id, args
 
 
 class SubscriptionBittrex:
-    def __init__(self, pair_id, on_update=default_on_public, base_url=BittrexParameters.URL,
+    def __init__(self, pair_id, on_update=default_on_public, on_any_issue=default_on_error,
+                 base_url=BittrexParameters.URL,
                  hub_name=BittrexParameters.HUB):
         """
         :param pair_id:     - currency pair to be used for trading
@@ -302,6 +291,7 @@ class SubscriptionBittrex:
         self.pair_name = get_currency_pair_to_bittrex(self.pair_id)
 
         self.on_update = on_update
+        self.on_any_issue = on_any_issue
 
         self.hub = None
 
@@ -310,12 +300,22 @@ class SubscriptionBittrex:
         self.initial_order_book = None
 
     def on_error(self, error):
-        die_hard("Bittrex - triggered on_error - {err}. We have to re-init the whole state from the scratch - "
-                 "which is not implemented".format(err=error))
 
-        # print "Error:", error
-        # time.sleep(5)
-        # self.subscribe()
+        self.connection.close()
+
+        msg = "Bittrex - triggered on_error because of {err}. We have to re-init the whole state from the scratch".format(err=error)
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+
+        self.on_any_issue()
+
+    def on_close(self):
+
+        self.connection.close()
+
+        msg = "Bittrex - triggered on_close. We have to re-init the whole state from the scratch"
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+
+        self.on_any_issue()
 
     def on_public(self, args):
         msg = process_message(args)
@@ -360,18 +360,24 @@ class SubscriptionBittrex:
                 self.hub.server.invoke(BittrexParameters.QUERY_EXCHANGE_STATE, self.pair_name)
                 connection.wait(5)  # otherwise it shoot thousands of query and we will be banned :(
 
+            connection.close()
+
     def subscribe(self):
         with Session() as session:
-            connection = Connection(self.url, session)
-            self.hub = connection.register_hub(self.hub_name)
+            self.connection = Connection(self.url, session)
+            self.hub = self.connection.register_hub(self.hub_name)
 
             self.hub.client.on(BittrexParameters.MARKET_DELTA, self.on_public)
 
-            connection.error += self.on_error
+            self.connection.error += self.on_error
 
-            connection.start()
+            self.connection.start()
 
-            while connection.started:
+            while self.connection.started:
                 self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)
                 # FIXME NOTE - still not sure - connection.wait(1)
 
+            self.on_close()
+
+    def disconnect(self):
+        self.connection.close()

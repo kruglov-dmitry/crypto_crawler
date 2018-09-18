@@ -55,8 +55,13 @@ def default_on_public(exchange_id, args):
     print exchange_id, args
 
 
+def default_on_error(ws, error):
+    ws.close()
+    print(error)
+
+
 class SubscriptionHuobi:
-    def __init__(self, pair_id, on_update=default_on_public, base_url=HuobiParameters.URL):
+    def __init__(self, pair_id, on_update=default_on_public, on_any_issue=default_on_error, base_url=HuobiParameters.URL):
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points
@@ -75,11 +80,20 @@ class SubscriptionHuobi:
         self.subscription_url = HuobiParameters.SUBSCRIPTION_STRING.format(pair_name=self.pair_name, uuid_id=uuid.uuid4())
 
         self.on_update = on_update
+        self.on_any_issue = on_any_issue
 
     def on_public(self, ws, args):
         msg = process_message(args)
         updated_order_book = parse_socket_update_huobi(msg, self.pair_id)
         if updated_order_book is None:
+            # Huobi tend to send heartbeat or confirmation of subscription
+            # {u'ping': 1537212403003}
+            # {u'status': u'ok',
+            # u'id': u'fbeeaf31-f0bc-4fa0-b704-95134aae9b81',
+            # u'ts': 1537212402856,
+            # u'subbed': u'market.dashbtc.depth.step0'}
+            if "ping" in msg or ("status" in msg and "ok" == msg["status"]):
+                return
             err_msg = "Huobi - cant parse update from message: {msg}".format(msg=msg)
             log_to_file(err_msg, SOCKET_ERRORS_LOG_FILE_NAME)
         else:
@@ -119,10 +133,13 @@ class SubscriptionHuobi:
         if get_logging_level() == LOG_ALL_TRACE:
             websocket.enableTrace(True)
 
-        ws = websocket.WebSocketApp(HuobiParameters.URL,
+        self.ws = websocket.WebSocketApp(HuobiParameters.URL,
                                     on_message=self.on_public,
                                     on_error=self.on_error,
                                     on_close=self.on_close)
-        ws.on_open = self.on_open
+        self.ws.on_open = self.on_open
 
-        ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
+        self.ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
+
+    def disconnect(self):
+        self.ws.close()
