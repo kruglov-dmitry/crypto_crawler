@@ -102,6 +102,26 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
                                                       difference, final_difference,
                                                       sell_order_book.pair_id, msg_queue)
             return deal_status
+        else:
+            msg = "diff = {diff}".format(diff=final_difference)
+            log_to_file(msg, "diff.log")
+
+            from utils.string_utils import float_to_str
+            from utils.currency_utils import get_pair_name_by_id
+            from utils.exchange_utils import get_exchange_name_by_id
+            from debug_utils import DEBUG_LOG_FILE_NAME, LOG_ALL_MARKET_NETWORK_RELATED_CRAP
+            from data_access.message_queue import DEBUG_INFO_MSG
+
+            msg = """HELL YEAH WE FUCKING GOT IT {pair_name} diff <b>{diff}</b>
+            first_exchange: {first_exchange}
+            second_exchange: {second_exchange}""".format(
+                pair_name=get_pair_name_by_id(sell_order_book.pair_id),
+                first_exchange=get_exchange_name_by_id(sell_order_book.exchange_id),
+                second_exchange=get_exchange_name_by_id(buy_order_book.exchange_id),
+                diff=float_to_str(final_difference))
+            print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
+            log_to_file(msg, DEBUG_LOG_FILE_NAME)
+            msg_queue.add_message(DEBUG_INFO_MSG, msg)
 
         trade_pair = TradePair(trade_at_first_exchange, trade_at_second_exchange, sell_order_book.timest,
                                buy_order_book.timest, type_of_deal)
