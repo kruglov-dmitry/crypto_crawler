@@ -60,7 +60,7 @@ class ArbitrageListener:
         # Q: why the hell you didnt use locks here
         # A: GIL assumption
 
-        if self.stage and self.stage in [ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC, ORDER_BOOK_SYNC_STAGES.RESETTING]:
+        if hasattr(self, 'stage') and self.stage in [ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC, ORDER_BOOK_SYNC_STAGES.RESETTING]:
             # Supposedly we will catch second firing for second callbacks
             return
 
@@ -72,8 +72,11 @@ class ArbitrageListener:
         self.threads = []
 
         # Stoping other websocket
-        self.buy_subscription.disconnect()
-        self.sell_subscription.disconnect()
+        if hasattr(self, 'buy_subscription'):
+            self.buy_subscription.disconnect()
+
+        if hasattr(self, 'sell_subscription'):
+            self.sell_subscription.disconnect()
 
         sleep_for(3)
 
