@@ -13,6 +13,7 @@ from BaseData import BaseData
 from Deal import Deal
 
 from enums.exchange import EXCHANGE
+from enums.status import STATUS
 
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.time_utils import get_now_seconds_utc_ms, get_date_time_from_epoch
@@ -334,8 +335,10 @@ class OrderBook(BaseData):
             self.sort_by_price()
         else:
             if (self.sequence_id + 1) != order_book_update.sequence_id:
-                die_hard("Poloniex - sequence_id mismatch! Prev: {prev} New: {new}".format(
-                    prev=self.sequence_id, new=order_book_update.sequence_id))
+                log_to_file("Poloniex - sequence_id mismatch! Prev: {prev} New: {new}".format(
+                    prev=self.sequence_id, new=order_book_update.sequence_id), SOCKET_ERRORS_LOG_FILE_NAME)
+                return STATUS.FAILURE
+
             else:
                 self.sequence_id = order_book_update.sequence_id
 
@@ -344,6 +347,8 @@ class OrderBook(BaseData):
 
             for bid in order_book_update.bid:
                 self.insert_new_bid_preserve_order(bid)
+
+        return STATUS.SUCCESS
 
     def _copy_order_book(self, other_order_book):
 
@@ -394,6 +399,9 @@ class OrderBook(BaseData):
                 err_msg = "Bittrex socket CANT FIND fill request FILL AND UPDATE - BUY??? {wtf}".format(wtf=trade_buy)
                 self.insert_new_bid_preserve_order(trade_buy, overwrite_volume=False, err_msg=err_msg)
 
+        # FIXME case for sequence_id!
+        return STATUS.SUCCESS
+
     def update_for_binance(self, order_book_update):
         """
         For binance sequence_id is a range of number.
@@ -412,10 +420,12 @@ class OrderBook(BaseData):
 
         if self.sequence_id > order_book_update.sequence_id:
             # DK NOTE: we dont care about outdated updates
-            return
+            return STATUS.SUCCESS
+
         if (self.sequence_id + 1) != order_book_update.sequence_id:
-            die_hard("Binance - sequence_id mismatch! Prev: {prev} New: {new}".format(
-                prev=self.sequence_id, new=order_book_update.sequence_id))
+            log_to_file("Binance - sequence_id mismatch! Prev: {prev} New: {new}".format(
+                prev=self.sequence_id, new=order_book_update.sequence_id), SOCKET_ERRORS_LOG_FILE_NAME)
+            return STATUS.FAILURE
         else:
             self.sequence_id = order_book_update.sequence_id_end
 
@@ -424,6 +434,8 @@ class OrderBook(BaseData):
 
         for bid in order_book_update.bid:
             self.insert_new_bid_preserve_order(bid)
+
+        return STATUS.SUCCESS
 
     def update_for_huobi(self, order_book_update):
         """
@@ -435,6 +447,8 @@ class OrderBook(BaseData):
         self._copy_order_book(order_book_update)
 
         self.sort_by_price()
+
+        return STATUS.SUCCESS
 
     def update(self, exchange_id, order_book_delta):
 
@@ -448,7 +462,6 @@ class OrderBook(BaseData):
         # file_name = exchange_name + "_" + ts_ms + "_before.txt"
         # 
         # log_to_file(self, file_name)
-        
 
         method = {
             EXCHANGE.POLONIEX: self.update_for_poloniex,
@@ -457,7 +470,7 @@ class OrderBook(BaseData):
             EXCHANGE.HUOBI: self.update_for_huobi
         }[exchange_id]
 
-        method(order_book_delta)
+        return method(order_book_delta)
 
         # DK FIXME - performance wise - remove logging!
         # file_name = exchange_name + "_" + ts_ms + "_after.txt"

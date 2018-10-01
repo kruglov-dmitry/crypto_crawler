@@ -23,11 +23,12 @@ from data_access.classes.ConnectionPool import ConnectionPool
 from data_access.memory_cache import get_cache
 from data.MarketCap import MarketCap
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG, set_logging_level, \
-    CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME, set_log_folder
+from debug_utils import print_to_console, LOG_ALL_ERRORS, set_logging_level, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME, \
+    set_log_folder, SOCKET_ERRORS_LOG_FILE_NAME
 
 from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
+from enums.status import STATUS
 
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from utils.exchange_utils import get_exchange_name_by_id
@@ -86,6 +87,10 @@ class ArbitrageListener:
         self._init_arbitrage_state()
         self.subsribe_to_order_book_update()
         self.sync_order_books()
+
+        if self.stage != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
+            log_to_file("reset_arbitrage_state - cant sync order book, lets try one more time!", SOCKET_ERRORS_LOG_FILE_NAME)
+
 
     def _init_settings(self, cfg):
         self.buy_exchange_id = cfg.buy_exchange_id
@@ -170,9 +175,12 @@ class ArbitrageListener:
             if order_book_update is None:
                 break
 
-            order_book.update(exchange_id, order_book_update)
+            if STATUS.SUCCESS != order_book.update(exchange_id, order_book_update):
+                return STATUS.FAILURE
 
             queue.task_done()
+
+        return STATUS.SUCCESS
 
     def clear_queue(self, queue):
         while True:
@@ -188,9 +196,16 @@ class ArbitrageListener:
     def sync_sell_order_book(self):
         if self.sell_exchange_id in [EXCHANGE.BINANCE, EXCHANGE.BITTREX]:
             self.order_book_sell = get_order_book(self.sell_exchange_id, self.pair_id)
-            assert self.order_book_sell is not None
+
+            if self.order_book_sell is None:
+                raise
+
             self.order_book_sell.sort_by_price()
-            self.update_from_queue(self.sell_exchange_id, self.order_book_sell, self.sell_exchange_updates)
+
+            if STATUS.FAILURE == self.update_from_queue(self.sell_exchange_id, self.order_book_sell, self.sell_exchange_updates):
+                self.sell_order_book_synced = False
+                self.stage = ORDER_BOOK_SYNC_STAGES.RESETTING
+                return STATUS.FAILURE
 
         print "Finishing syncing sell order book!"
         self.sell_order_book_synced = True
@@ -198,10 +213,16 @@ class ArbitrageListener:
     def sync_buy_order_book(self):
         if self.buy_exchange_id in [EXCHANGE.BINANCE, EXCHANGE.BITTREX]:
             self.order_book_buy = get_order_book(self.buy_exchange_id, self.pair_id)
-            log_to_file(self.order_book_buy, "bittrex.log")
-            assert self.order_book_buy is not None
+
+            if self.order_book_buy is None:
+                raise
+
             self.order_book_buy.sort_by_price()
-            self.update_from_queue(self.buy_exchange_id, self.order_book_buy, self.buy_exchange_updates)
+
+            if STATUS.FAILURE == self.update_from_queue(self.buy_exchange_id, self.order_book_buy, self.buy_exchange_updates):
+                self.buy_order_book_synced = False
+                self.stage = ORDER_BOOK_SYNC_STAGES.RESETTING
+                return STATUS.FAILURE
 
         print "Finishing syncing buy order book!"
         self.buy_order_book_synced = True
@@ -214,9 +235,9 @@ class ArbitrageListener:
         while self.stage != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
             if self.sell_order_book_synced and self.buy_order_book_synced:
                 self.stage = ORDER_BOOK_SYNC_STAGES.AFTER_SYNC
+            elif self.stage == ORDER_BOOK_SYNC_STAGES.RESETTING:
+                return
             sleep_for(1)
-
-        # os._exit(1)
 
     def subscribe_cap_update(self):
         self.update_min_cap()
@@ -298,12 +319,16 @@ class ArbitrageListener:
 
             if exchange_id == self.buy_exchange_id:
                 if self.buy_order_book_synced:
-                    self.order_book_buy.update(exchange_id, order_book_updates)
+                    order_book_update_status = self.order_book_buy.update(exchange_id, order_book_updates)
+                    if order_book_update_status == STATUS.FAILURE:
+                        self.reset_arbitrage_state()
                 else:
                     self.buy_exchange_updates.put(order_book_updates)
             else:
                 if self.sell_order_book_synced:
-                    self.order_book_sell.update(exchange_id, order_book_updates)
+                    order_book_update_status = self.order_book_sell.update(exchange_id, order_book_updates)
+                    if order_book_update_status == STATUS.FAILURE:
+                        self.reset_arbitrage_state()
                 else:
                     self.sell_exchange_updates.put(order_book_updates)
 
@@ -314,9 +339,12 @@ class ArbitrageListener:
             print "Update after syncing..."
 
             if exchange_id == self.buy_exchange_id:
-                self.order_book_buy.update(exchange_id, order_book_updates)
+                order_book_update_status = self.order_book_buy.update(exchange_id, order_book_updates)
             else:
-                self.order_book_sell.update(exchange_id, order_book_updates)
+                order_book_update_status = self.order_book_sell.update(exchange_id, order_book_updates)
+
+            if order_book_update_status == STATUS.FAILURE:
+                self.reset_arbitrage_state()
 
             # self._print_top10_bids_asks(exchange_id)
 
