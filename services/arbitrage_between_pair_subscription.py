@@ -240,15 +240,14 @@ class ArbitrageListener:
             sleep_for(1)
 
     def subscribe_cap_update(self):
-        self.update_min_cap()
 
-        tid3 = threading.Timer(self.cap_update_timeout, self.subscribe_cap_update)
+        tid3 = threading.Timer(self.cap_update_timeout, self.update_min_cap)
 
         self.threads.append(tid3)
 
         tid3.start()
 
-    def subscribe_balance_update(self):
+    def update_balance(self):
         cur_timest_sec = get_now_seconds_utc()
         self.balance_state = get_updated_balance_arbitrage(cfg, self.balance_state, self.local_cache)
 
@@ -260,7 +259,9 @@ class ArbitrageListener:
 
             assert False
 
-        tid4 = threading.Timer(self.balance_update_timeout, self.subscribe_balance_update)
+    def subscribe_balance_update(self):
+
+        tid4 = threading.Timer(self.balance_update_timeout, self.update_balance)
 
         self.threads.append(tid4)
 

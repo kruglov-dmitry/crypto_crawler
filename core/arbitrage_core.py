@@ -325,7 +325,12 @@ def compute_new_min_cap_from_tickers(pair_id, tickers):
 
     for ticker in tickers:
         if ticker is not None:
-            min_price = max(min_price, ticker.ask)
+            try:
+                # FIXME NOTE:   in case of errors we may get string with error instead of Ticker object
+                #               need to fix process_async_to_list at ConnectionPool
+                min_price = max(min_price, ticker.ask)
+            except:
+                pass
 
     base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
 
