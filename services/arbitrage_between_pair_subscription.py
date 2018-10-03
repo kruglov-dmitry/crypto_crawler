@@ -58,11 +58,14 @@ class ArbitrageListener:
 
     def reset_arbitrage_state(self):
 
+        print("reset_arbitrage_state invoked")
+
         # Q: why the hell you didnt use locks here
         # A: GIL assumption
 
         if hasattr(self, 'stage') and self.stage in [ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC, ORDER_BOOK_SYNC_STAGES.RESETTING]:
             # Supposedly we will catch second firing for second callbacks
+            print("reset_arbitrage_state invoked - return")
             return
 
         self.stage = ORDER_BOOK_SYNC_STAGES.RESETTING
@@ -79,14 +82,20 @@ class ArbitrageListener:
         if hasattr(self, 'sell_subscription'):
             self.sell_subscription.disconnect()
 
+        print("reset_arbitrage_state invoked - before sleep")
+
         sleep_for(3)
 
         self.clear_queue(self.sell_exchange_updates)
         self.clear_queue(self.buy_exchange_updates)
 
+        print("reset_arbitrage_state invoked - queue are cleaned")
+
         self._init_arbitrage_state()
         self.subsribe_to_order_book_update()
         self.sync_order_books()
+
+        print("reset_arbitrage_state invoked - ready to take action?")
 
         if self.stage != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
             log_to_file("reset_arbitrage_state - cant sync order book, lets try one more time!", SOCKET_ERRORS_LOG_FILE_NAME)
