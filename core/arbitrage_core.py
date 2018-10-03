@@ -3,7 +3,7 @@ from decimal import Decimal
 
 sys.setrecursionlimit(10000)
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 
 from utils.time_utils import get_now_seconds_utc
 from utils.currency_utils import split_currency_pairs
@@ -71,9 +71,13 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
 
         min_volume = determine_minimum_volume(sell_order_book, buy_order_book, balance_state)
 
+        print_to_console("MinVolume - {mv}".format(mv=min_volume), LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
+
         min_volume = adjust_minimum_volume_by_trading_cap(deal_cap, min_volume)
 
         min_volume = adjust_maximum_volume_by_trading_cap(deal_cap, min_volume)
+
+        print_to_console("MinVolume - {mv} after adjustment".format(mv=min_volume), LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
 
         min_volume = round_volume_by_exchange_rules(sell_order_book.exchange_id, buy_order_book.exchange_id,
                                                     min_volume, sell_order_book.pair_id)
@@ -330,7 +334,9 @@ def compute_new_min_cap_from_tickers(pair_id, tickers):
                 #               need to fix process_async_to_list at ConnectionPool
                 min_price = max(min_price, ticker.ask)
             except:
-                pass
+                from debug_utils import ERROR_LOG_FILE_NAME
+                msg = "Msg bad ticker value = {}!".format(ticker)
+                log_to_file(msg, ERROR_LOG_FILE_NAME)
 
     base_currency_id, dst_currency_id = split_currency_pairs(pair_id)
 
