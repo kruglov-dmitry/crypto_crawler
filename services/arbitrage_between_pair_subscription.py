@@ -57,6 +57,7 @@ class ArbitrageListener:
 
     def reset_arbitrage_state(self):
 
+        log_to_file("reset_arbitrage_state invoked", SOCKET_ERRORS_LOG_FILE_NAME)
         print("reset_arbitrage_state invoked")
 
         # Q: why the hell you didnt use locks here
@@ -64,6 +65,7 @@ class ArbitrageListener:
 
         if hasattr(self, 'stage') and self.stage in [ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC, ORDER_BOOK_SYNC_STAGES.RESETTING]:
             # Supposedly we will catch second firing for second callbacks
+            log_to_file("reset_arbitrage_state invoked - return", SOCKET_ERRORS_LOG_FILE_NAME)
             print("reset_arbitrage_state invoked - return")
             return
 
@@ -79,6 +81,7 @@ class ArbitrageListener:
         if hasattr(self, 'sell_subscription'):
             self.sell_subscription.disconnect()
 
+        log_to_file("reset_arbitrage_state invoked - before sleep", SOCKET_ERRORS_LOG_FILE_NAME)
         print("reset_arbitrage_state invoked - before sleep")
 
         sleep_for(3)
@@ -86,16 +89,19 @@ class ArbitrageListener:
         self.clear_queue(self.sell_exchange_updates)
         self.clear_queue(self.buy_exchange_updates)
 
+        log_to_file("reset_arbitrage_state invoked - queue are cleaned", SOCKET_ERRORS_LOG_FILE_NAME)
         print("reset_arbitrage_state invoked - queue are cleaned")
 
         self._init_arbitrage_state()
         self.subsribe_to_order_book_update()
         self.sync_order_books()
 
+        log_to_file("reset_arbitrage_state invoked - ready to take action?", SOCKET_ERRORS_LOG_FILE_NAME)
         print("reset_arbitrage_state invoked - ready to take action?")
 
         if self.stage != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
             log_to_file("reset_arbitrage_state - cant sync order book, lets try one more time!", SOCKET_ERRORS_LOG_FILE_NAME)
+        print("reset_arbitrage_state invoked - yalla khalas!?")
 
 
     def _init_settings(self, cfg):
