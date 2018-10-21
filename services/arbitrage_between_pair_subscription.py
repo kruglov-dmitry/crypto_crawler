@@ -1,6 +1,5 @@
 import argparse
 import thread
-import threading
 from Queue import Queue as queue
 
 from data_access.message_queue import get_message_queue
@@ -72,10 +71,8 @@ class ArbitrageListener:
 
         self.stage = ORDER_BOOK_SYNC_STAGES.RESETTING
 
-        # Reseting timer methods?
-        for b in self.threads:
-            b.cancel()
-        self.threads = []
+        self.update_balance_run_flag = False
+        self.update_min_cap_run_flag = False
 
         # Stoping other websocket
         if hasattr(self, 'buy_subscription'):
@@ -129,8 +126,6 @@ class ArbitrageListener:
         self.sell_exchange_updates = queue()
         self.buy_exchange_updates = queue()
 
-        self.threads = []
-
     def _init_arbitrage_state(self):
         self.init_deal_cap()
         self.init_balance_state()
@@ -143,35 +138,42 @@ class ArbitrageListener:
     def init_deal_cap(self):
         self.deal_cap = MarketCap(self.pair_id, get_now_seconds_utc())
         self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
+        self.update_min_cap_run_flag = True
         self.subscribe_cap_update()
 
     def update_min_cap(self):
-        cur_timest_sec = get_now_seconds_utc()
-        tickers = get_ticker_for_arbitrage(self.pair_id, cur_timest_sec,
-                                           [self.buy_exchange_id, self.sell_exchange_id], self.processor)
-        new_cap = compute_new_min_cap_from_tickers(self.pair_id, tickers)
+        while True:
+            if self.update_min_cap_run_flag is True:
+                # FIXME - to method
+                cur_timest_sec = get_now_seconds_utc()
+                tickers = get_ticker_for_arbitrage(self.pair_id, cur_timest_sec,
+                                                   [self.buy_exchange_id, self.sell_exchange_id], self.processor)
+                new_cap = compute_new_min_cap_from_tickers(self.pair_id, tickers)
 
-        if new_cap > 0:
-            msg = "Updating old cap {op}".format(op=str(self.deal_cap))
-            log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
+                if new_cap > 0:
+                    msg = "Updating old cap {op}".format(op=str(self.deal_cap))
+                    log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
 
-            self.deal_cap.update_min_volume_cap(new_cap, cur_timest_sec)
+                    self.deal_cap.update_min_volume_cap(new_cap, cur_timest_sec)
 
-            msg = "New cap {op}".format(op=str(self.deal_cap))
-            log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
+                    msg = "New cap {op}".format(op=str(self.deal_cap))
+                    log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
 
-        else:
-            msg = """CAN'T update minimum_volume_cap for {pair_id} at following
-            exchanges: {exch1} {exch2}""".format(pair_id=self.pair_id,
-                                                 exch1=get_exchange_name_by_id(self.buy_exchange_id),
-                                                 exch2=get_exchange_name_by_id(self.sell_exchange_id))
-            print_to_console(msg, LOG_ALL_ERRORS)
-            log_to_file(msg, self.log_file_name)
+                else:
+                    msg = """CAN'T update minimum_volume_cap for {pair_id} at following
+                    exchanges: {exch1} {exch2}""".format(pair_id=self.pair_id,
+                                                         exch1=get_exchange_name_by_id(self.buy_exchange_id),
+                                                         exch2=get_exchange_name_by_id(self.sell_exchange_id))
+                    print_to_console(msg, LOG_ALL_ERRORS)
+                    log_to_file(msg, self.log_file_name)
 
-            log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
+                    log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
+
+            sleep_for(self.cap_update_timeout)
 
     def init_balance_state(self):
         self.balance_state = dummy_balance_init(timest=0, default_volume=0, default_available_volume=0)
+        self.update_balance_run_flag = True
         self.subscribe_balance_update()
 
     def init_order_books(self):
@@ -255,32 +257,28 @@ class ArbitrageListener:
             sleep_for(1)
 
     def subscribe_cap_update(self):
-
-        tid3 = threading.Timer(self.cap_update_timeout, self.update_min_cap)
-
-        self.threads.append(tid3)
-
-        tid3.start()
+        thread.start_new_thread(self.update_min_cap, (self))
 
     def update_balance(self):
-        cur_timest_sec = get_now_seconds_utc()
-        self.balance_state = get_updated_balance_arbitrage(cfg, self.balance_state, self.local_cache)
 
-        if self.balance_state.expired(cur_timest_sec,
-                                      self.buy_exchange_id,
-                                      self.sell_exchange_id,
-                                      BALANCE_EXPIRED_THRESHOLD):
-            log_balance_expired_errors(cfg, self.msg_queue, self.balance_state)
+        while True:
+            if self.update_balance_run_flag is True:
+                cur_timest_sec = get_now_seconds_utc()
+                self.balance_state = get_updated_balance_arbitrage(cfg, self.balance_state, self.local_cache)
 
-            assert False
+                if self.balance_state.expired(cur_timest_sec,
+                                              self.buy_exchange_id,
+                                              self.sell_exchange_id,
+                                              BALANCE_EXPIRED_THRESHOLD):
+                    log_balance_expired_errors(cfg, self.msg_queue, self.balance_state)
+
+                    assert False
+
+            sleep_for(self.balance_update_timeout)
 
     def subscribe_balance_update(self):
+        thread.start_new_thread(self.update_balance, (self,))
 
-        tid4 = threading.Timer(self.balance_update_timeout, self.update_balance)
-
-        self.threads.append(tid4)
-
-        tid4.start()
 
     def subsribe_to_order_book_update(self):
         # for both exchanges
