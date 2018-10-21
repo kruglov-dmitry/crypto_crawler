@@ -69,15 +69,16 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
 
     if difference >= threshold:
 
+        print("before determine_minimum_volume- {df}".format(df=difference))
         min_volume = determine_minimum_volume(sell_order_book, buy_order_book, balance_state)
 
-        print_to_console("MinVolume - {mv}".format(mv=min_volume), LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
+        print("MinVolume - {mv}".format(mv=min_volume))
 
         min_volume = adjust_minimum_volume_by_trading_cap(deal_cap, min_volume)
 
         min_volume = adjust_maximum_volume_by_trading_cap(deal_cap, min_volume)
 
-        print_to_console("MinVolume - {mv} after adjustment".format(mv=min_volume), LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
+        print("MinVolume - {mv} after adjustment".format(mv=min_volume))
 
         min_volume = round_volume_by_exchange_rules(sell_order_book.exchange_id, buy_order_book.exchange_id,
                                                     min_volume, sell_order_book.pair_id)
