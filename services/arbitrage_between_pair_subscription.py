@@ -251,7 +251,7 @@ class ArbitrageListener:
             sleep_for(1)
 
     def subscribe_cap_update(self):
-        thread.start_new_thread(self.update_min_cap, (self))
+        thread.start_new_thread(self.update_min_cap, (self,))
 
     def update_balance(self):
 
