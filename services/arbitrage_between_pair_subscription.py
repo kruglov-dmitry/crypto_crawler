@@ -55,6 +55,9 @@ class ArbitrageListener:
         self._init_infrastructure(app_settings)
         self.reset_arbitrage_state()
 
+        while True:
+            sleep_for(1)
+
     def reset_arbitrage_state(self):
 
         log_to_file("reset_arbitrage_state invoked", SOCKET_ERRORS_LOG_FILE_NAME)
@@ -248,11 +251,11 @@ class ArbitrageListener:
 
         # DK NOTE: Those guys will endup by themselves
 
-        sync_sell_order_book_thread = threading.Thread(target=self.sync_sell_order_book, args=(self,))
+        sync_sell_order_book_thread = threading.Thread(target=self.sync_sell_order_book, args=())
         sync_sell_order_book_thread.daemon = True
         sync_sell_order_book_thread.start()
 
-        sync_buy_order_book_thread = threading.Thread(target=self.sync_buy_order_book, args=(self,))
+        sync_buy_order_book_thread = threading.Thread(target=self.sync_buy_order_book, args=())
         sync_buy_order_book_thread.daemon = True
         sync_buy_order_book_thread.start()
 
@@ -265,7 +268,7 @@ class ArbitrageListener:
 
     def subscribe_cap_update(self):
 
-        cap_update_thread = threading.Thread(target=self.update_min_cap, args=(self,))
+        cap_update_thread = threading.Thread(target=self.update_min_cap, args=())
         cap_update_thread.daemon = True
         cap_update_thread.start()
 
@@ -287,7 +290,7 @@ class ArbitrageListener:
             sleep_for(self.balance_update_timeout)
 
     def subscribe_balance_update(self):
-        balance_update_thread = threading.Thread(target=self.update_balance, args=(self,))
+        balance_update_thread = threading.Thread(target=self.update_balance, args=())
         balance_update_thread.daemon = True
         balance_update_thread.start()
 
@@ -310,11 +313,11 @@ class ArbitrageListener:
                                                           on_update=self.on_order_book_update,
                                                           on_any_issue=self.reset_arbitrage_state)
 
-        buy_subscription_thread = threading.Thread(target=self.buy_subscription.subscribe, args=(self,))
+        buy_subscription_thread = threading.Thread(target=self.buy_subscription.subscribe, args=())
         buy_subscription_thread.daemon = True
         buy_subscription_thread.start()
 
-        sell_subscription_thread = threading.Thread(target=self.sell_subscription.subscribe, args=(self,))
+        sell_subscription_thread = threading.Thread(target=self.sell_subscription.subscribe, args=())
         sell_subscription_thread.daemon = True
         sell_subscription_thread.start()
 
