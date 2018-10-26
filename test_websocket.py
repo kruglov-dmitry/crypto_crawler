@@ -196,9 +196,18 @@ def test_poloniex_advanced():
 def test_bittrex_advanced():
     from enums.currency_pair import CURRENCY_PAIR
     from bittrex.socket_api import SubscriptionBittrex
+    import threading
+
     t1 = SubscriptionBittrex(CURRENCY_PAIR.BTC_TO_ETC)
-    t1.subscribe()
+    # t1.subscribe()
+
+    buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
+    buy_subscription_thread.daemon = True
+    buy_subscription_thread.start()
 
 
 if __name__ == "__main__":
+    from utils.time_utils import sleep_for
     test_bittrex_advanced()
+    while True:
+        sleep_for(1)

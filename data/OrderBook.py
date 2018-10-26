@@ -70,6 +70,9 @@ class OrderBook(BaseData):
         self.exchange = get_exchange_name_by_id(self.exchange_id)
         self.sequence_id = sequence_id
 
+    def is_valid(self):
+        return 0 < len(self.ask) and 0 < len(self.bid)
+
     def sort_by_price(self):
         self.bid = sorted(self.bid, key=lambda x: x.price, reverse=True)        # highest - first
         self.ask = sorted(self.ask, key=lambda x: x.price, reverse=False)       # lowest - first

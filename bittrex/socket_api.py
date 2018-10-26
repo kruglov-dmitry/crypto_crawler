@@ -255,11 +255,11 @@ def process_message(message):
 
 def default_on_receive(**kwargs):
     # FIXME NOTE: just ignore it!
-    # if 'R' in kwargs and type(kwargs['R']) is not bool:
-    #    msg = process_message(kwargs['R'])
-
-    # print kwargs
-    pass
+    if 'R' in kwargs and type(kwargs['R']) is not bool:
+        msg = process_message(kwargs['R'])
+        print "Case 1", msg
+    else:
+        print kwargs
 
 
 def default_on_error():
@@ -319,6 +319,7 @@ class SubscriptionBittrex:
 
     def on_public(self, args):
         msg = process_message(args)
+        log_to_file(msg, "bittrex.log")
         order_book_delta = parse_socket_update_bittrex(msg)
 
         if order_book_delta is None:
@@ -336,12 +337,18 @@ class SubscriptionBittrex:
 
         if 'R' in kwargs and type(kwargs['R']) is not bool:
             msg = process_message(kwargs['R'])
+            log_to_file(msg, "bittrex.log")
             if msg is not None:
 
                 self.order_book_is_received = True
                 self.initial_order_book = parse_socket_order_book_bittrex(msg, self.pair_id)
 
         else:
+            try:
+                msg = process_message(str(kwargs))
+            except:
+                msg = kwargs
+            log_to_file(msg, "bittrex.log")
             if not self.order_book_is_received:
                 time.sleep(5)
 
@@ -369,13 +376,24 @@ class SubscriptionBittrex:
 
             self.hub.client.on(BittrexParameters.MARKET_DELTA, self.on_public)
 
+            self.hub.client.on(BittrexParameters.SUMMARY_DELTA, default_on_receive)
+            self.hub.client.on(BittrexParameters.SUMMARY_DELTA_LITE, default_on_receive)
+            self.hub.client.on(BittrexParameters.BALANCE_DELTA, default_on_receive)
+            self.hub.client.on(BittrexParameters.ORDER_DELTA, default_on_receive)
+    
+            # self.connection.received += default_on_receive
             self.connection.error += self.on_error
 
             self.connection.start()
 
             while self.connection.started:
-                self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)
+                try:
+                    self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)
+                except Exception as e:
+                    self.on_error(e)
                 # FIXME NOTE - still not sure - connection.wait(1)
+            
+            log_to_file("bittrex subscribe - disconnection from site?", "you_should_not_see_it.log")
 
             self.on_close()
 
