@@ -266,7 +266,7 @@ class ArbitrageListener:
         while self.local_cache.get_value("SYNC_STAGE") != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
             if self.sell_order_book_synced and self.buy_order_book_synced:
                 self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.AFTER_SYNC)
-            elif self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING):
+            elif self.local_cache.get_value("SYNC_STAGE") == ORDER_BOOK_SYNC_STAGES.RESETTING:
                 print("sync_order_books - it mean that we have error during update for one of order book :(")
                 return
             sleep_for(1)
@@ -356,7 +356,7 @@ class ArbitrageListener:
             print "Order book update is NONE! for", get_exchange_name_by_id(exchange_id)
             return
 
-        stage = self.local_cache.get_value("SYNC_STAGE")
+        stage = int(self.local_cache.get_value("SYNC_STAGE"))
 
         if stage == ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC:
             
@@ -440,6 +440,7 @@ class ArbitrageListener:
         #             self.sell_exchange_updates.put(order_book_updates)
 
         else:
+            print "STAGE:", stage
             print "on_order_book_update: Unknown stage :(", get_exchange_name_by_id(exchange_id)
 
 
