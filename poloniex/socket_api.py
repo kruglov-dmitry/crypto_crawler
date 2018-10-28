@@ -7,7 +7,7 @@ import time
 import thread
 
 from utils.file_utils import log_to_file
-from utils.time_utils import get_now_seconds_utc_ms
+from utils.time_utils import get_now_seconds_utc_ms, sleep_for
 
 from poloniex.currency_utils import get_currency_pair_to_poloniex
 from enums.exchange import EXCHANGE
@@ -312,7 +312,7 @@ class SubscriptionPoloniex:
                 self.ws.settimeout(15)
                 break
             except Exception as e:
-                print('Huobi - connect ws error - {}, retry...'.format(str(e)))
+                print('Poloniex - connect ws error - {}, retry...'.format(str(e)))
                 sleep_for(5)
 
         # actual subscription
