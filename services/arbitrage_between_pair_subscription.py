@@ -28,6 +28,7 @@ from debug_utils import print_to_console, LOG_ALL_ERRORS, set_logging_level, CAP
 from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
+from enums.sync_stages import ORDER_BOOK_SYNC_STAGES
 
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from utils.exchange_utils import get_exchange_name_by_id
@@ -40,16 +41,6 @@ from logging_tools.arbitrage_between_pair_logging import log_dont_supported_curr
 from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD
 
 from deploy.classes.CommonSettings import CommonSettings
-
-import code
-import signal
-signal.signal(signal.SIGUSR2, lambda sig, frame: code.interact())
-
-
-class ORDER_BOOK_SYNC_STAGES:
-    BEFORE_SYNC = 1
-    AFTER_SYNC = 2
-    RESETTING = 3
 
 
 class ArbitrageListener:
@@ -77,7 +68,8 @@ class ArbitrageListener:
             return
 
         # self.stage = ORDER_BOOK_SYNC_STAGES.RESETTING
-        self.stage = ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC
+        # self.stage = ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC
+        self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
 
         self.update_balance_run_flag = False
         self.update_min_cap_run_flag = False
@@ -107,7 +99,7 @@ class ArbitrageListener:
         log_to_file("reset_arbitrage_state invoked - ready to take action?", SOCKET_ERRORS_LOG_FILE_NAME)
         print("reset_arbitrage_state invoked - ready to take action?")
 
-        if self.stage != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
+        if self.local_cache.get_value("SYNC_STAGE") != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
             log_to_file("reset_arbitrage_state - cant sync order book, lets try one more time!", SOCKET_ERRORS_LOG_FILE_NAME)
         print("reset_arbitrage_state invoked - yalla khalas!?")
 
@@ -141,7 +133,8 @@ class ArbitrageListener:
 
         self.sell_order_book_synced = False
         self.buy_order_book_synced = False
-        self.stage = ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC
+
+        self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC)
 
     def init_deal_cap(self):
         self.deal_cap = MarketCap(self.pair_id, get_now_seconds_utc())
@@ -229,7 +222,7 @@ class ArbitrageListener:
 
             if STATUS.FAILURE == self.update_from_queue(self.sell_exchange_id, self.order_book_sell, self.sell_exchange_updates):
                 self.sell_order_book_synced = False
-                self.stage = ORDER_BOOK_SYNC_STAGES.RESETTING
+                self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
                 return STATUS.FAILURE
 
         print "Finishing syncing sell order book!"
@@ -246,7 +239,7 @@ class ArbitrageListener:
 
             if STATUS.FAILURE == self.update_from_queue(self.buy_exchange_id, self.order_book_buy, self.buy_exchange_updates):
                 self.buy_order_book_synced = False
-                self.stage = ORDER_BOOK_SYNC_STAGES.RESETTING
+                self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
                 return STATUS.FAILURE
 
         print "Finishing syncing buy order book!"
@@ -264,10 +257,11 @@ class ArbitrageListener:
         sync_buy_order_book_thread.daemon = True
         sync_buy_order_book_thread.start()
 
-        while self.stage != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
+        while self.local_cache.get_value("SYNC_STAGE") != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
             if self.sell_order_book_synced and self.buy_order_book_synced:
-                self.stage = ORDER_BOOK_SYNC_STAGES.AFTER_SYNC
-            elif self.stage == ORDER_BOOK_SYNC_STAGES.RESETTING:
+                self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.AFTER_SYNC)
+            elif self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING):
+                print("sync_order_books - it mean that we have error during update for one of order book :(")
                 return
             sleep_for(1)
 
@@ -353,10 +347,12 @@ class ArbitrageListener:
         """
 
         if order_book_updates is None:
-            print "Order book update is NONE! for", get_exchange_name_by_id(exhcnage_id)
+            print "Order book update is NONE! for", get_exchange_name_by_id(exchange_id)
             return
 
-        if self.stage == ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC:
+        stage = self.local_cache.get_value("SYNC_STAGE")
+
+        if stage == ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC:
             
             print "Syncing in progress ..."
 
@@ -377,7 +373,7 @@ class ArbitrageListener:
                 else:
                     self.sell_exchange_updates.put(order_book_updates)
 
-        elif self.stage == ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
+        elif stage == ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
             
             print "Update after syncing..."
 
@@ -387,7 +383,7 @@ class ArbitrageListener:
                 order_book_update_status = self.order_book_sell.update(exchange_id, order_book_updates)
 
             if order_book_update_status == STATUS.FAILURE:
-                print "Order book update is FAILED! for", get_exchange_name_by_id(exhcnage_id)
+                print "Order book update is FAILED! for", get_exchange_name_by_id(exchange_id)
                 self.reset_arbitrage_state()
 
             assert(self.order_book_sell.is_valid())

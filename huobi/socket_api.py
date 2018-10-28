@@ -1,5 +1,6 @@
 from json import loads
 import websocket
+from websocket import create_connection
 import ssl
 
 import zlib
@@ -7,6 +8,7 @@ import uuid
 
 from huobi.currency_utils import get_currency_pair_to_huobi
 from enums.exchange import EXCHANGE
+from enums.sync_stages import ORDER_BOOK_SYNC_STAGES
 
 from data.OrderBook import OrderBook
 from data.Deal import Deal
@@ -61,7 +63,7 @@ def default_on_error(ws, error):
 
 
 class SubscriptionHuobi:
-    def __init__(self, pair_id, on_update=default_on_public, on_any_issue=default_on_error, base_url=HuobiParameters.URL):
+    def __init__(self, pair_id, local_cache, on_update=default_on_public, on_any_issue=default_on_error, base_url=HuobiParameters.URL):
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points
@@ -76,6 +78,8 @@ class SubscriptionHuobi:
 
         self.pair_id = pair_id
         self.pair_name = get_currency_pair_to_huobi(self.pair_id)
+
+        self.local_cache = local_cache
 
         self.subscription_url = HuobiParameters.SUBSCRIPTION_STRING.format(pair_name=self.pair_name, uuid_id=uuid.uuid4())
 
@@ -133,13 +137,47 @@ class SubscriptionHuobi:
         if get_logging_level() == LOG_ALL_TRACE:
             websocket.enableTrace(True)
 
+        # Create connection
+        while True:
+            try:
+                self.ws = create_connection(HuobiParameters.URL, sslopt={"cert_reqs": ssl.CERT_NONE})
+                self.ws.settimeout(15)
+                break
+            except Exception as e:
+                print('Huobi - connect ws error - {}, retry...'.format(str(e)))
+                sleep_for(5)
+
+        # actual subscription
+        self.on_open(self.ws)
+
+        # event loop
+        while self.local_cache.get_value("SYNC_STAGE") != ORDER_BOOK_SYNC_STAGES.RESETTING:
+            try:
+                compressData = self.ws.recv()
+                self.on_public(self.ws, compressData)
+            except Exception as e:  # Supposedly timeout big enough to not trigger re-syncing
+                msg = "Huobi - triggered exception during reading from socket = {}. Reseting stage!".format(str(e))
+                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+                print msg
+
+                self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
+
+                break
+
+        msg = "Huobi - exit from main loop. Current thread will be finished."
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+
+    def subscribe_app(self):
+        if get_logging_level() == LOG_ALL_TRACE:
+            websocket.enableTrace(True)
+
         self.ws = websocket.WebSocketApp(HuobiParameters.URL,
                                     on_message=self.on_public,
                                     on_error=self.on_error,
                                     on_close=self.on_close)
         self.ws.on_open = self.on_open
 
-        self.ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
+        self.ws.run_forever(ping_interval=10, sslopt={"cert_reqs": ssl.CERT_NONE})
 
     def disconnect(self):
         self.ws.close()

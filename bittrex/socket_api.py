@@ -12,9 +12,10 @@ from bittrex.currency_utils import get_currency_pair_to_bittrex, get_currency_pa
 from utils.file_utils import log_to_file
 from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for
-from utils.system_utils import die_hard
 
 from enums.exchange import EXCHANGE
+from enums.sync_stages import ORDER_BOOK_SYNC_STAGES
+
 from data.OrderBookUpdate import OrderBookUpdate
 from data.Deal import Deal
 from data.OrderBook import OrderBook
@@ -272,7 +273,8 @@ def default_on_public(exchange_id, args):
 
 
 class SubscriptionBittrex:
-    def __init__(self, pair_id, on_update=default_on_public, on_any_issue=default_on_error,
+    def __init__(self, pair_id, local_cache,
+                 on_update=default_on_public, on_any_issue=default_on_error,
                  base_url=BittrexParameters.URL,
                  hub_name=BittrexParameters.HUB):
         """
@@ -289,6 +291,8 @@ class SubscriptionBittrex:
 
         self.pair_id = pair_id
         self.pair_name = get_currency_pair_to_bittrex(self.pair_id)
+
+        self.local_cache = local_cache
 
         self.on_update = on_update
         self.on_any_issue = on_any_issue
@@ -381,18 +385,21 @@ class SubscriptionBittrex:
 
             self.connection.start()
 
-
-            msg = None
-            while self.connection.started:
+            while self.connection.started and self.local_cache.get_value("SYNC_STAGE") != ORDER_BOOK_SYNC_STAGES.RESETTING:
                 try:
                     self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)
                 except Exception as e:
                     msg = str(e)
-                # FIXME NOTE - still not sure - connection.wait(1)
-            
-            log_to_file("bittrex subscribe - disconnection from site? {}".format(msg), "you_should_not_see_it.log")
+                    log_to_file("bittrex subscribe - disconnection from site? {}. Reseting stage!".format(msg),
+                                SOCKET_ERRORS_LOG_FILE_NAME)
+                    # FIXME NOTE - still not sure - connection.wait(1)
 
-            self.on_error(msg)
+                    self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
+
+                    break
+
+            msg = "Bittrex - exit from main loop. Current thread will be finished."
+            log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
     def disconnect(self):
         self.connection.close()

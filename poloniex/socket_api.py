@@ -1,6 +1,7 @@
 # coding=utf-8
 from json import loads
 import websocket
+from websocket import create_connection
 import json
 import time
 import thread
@@ -10,6 +11,7 @@ from utils.time_utils import get_now_seconds_utc_ms
 
 from poloniex.currency_utils import get_currency_pair_to_poloniex
 from enums.exchange import EXCHANGE
+from enums.sync_stages import ORDER_BOOK_SYNC_STAGES
 
 from data.OrderBookUpdate import OrderBookUpdate
 from data.Deal import Deal
@@ -228,7 +230,7 @@ def default_on_close():
 
 
 class SubscriptionPoloniex:
-    def __init__(self, pair_id, on_update=default_on_public, on_any_issue=default_on_error, base_url=PoloniexParameters.URL):
+    def __init__(self, pair_id, local_cache, on_update=default_on_public, on_any_issue=default_on_error, base_url=PoloniexParameters.URL):
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points
@@ -241,6 +243,8 @@ class SubscriptionPoloniex:
 
         self.pair_id = pair_id
         self.pair_name = get_currency_pair_to_poloniex(self.pair_id)
+
+        self.local_cache = local_cache
 
         self.on_update = on_update
 
@@ -301,12 +305,47 @@ class SubscriptionPoloniex:
         if get_logging_level() == LOG_ALL_TRACE:
             websocket.enableTrace(True)
 
+        # Create connection
+        while True:
+            try:
+                self.ws = create_connection(PoloniexParameters.URL)
+                self.ws.settimeout(15)
+                break
+            except Exception as e:
+                print('Huobi - connect ws error - {}, retry...'.format(str(e)))
+                sleep_for(5)
+
+        # actual subscription
+        self.on_open(self.ws)
+
+        # event loop
+        while self.local_cache.get_value("SYNC_STAGE") != ORDER_BOOK_SYNC_STAGES.RESETTING:
+            try:
+                compressData = self.ws.recv()
+                self.on_public(self.ws, compressData)
+            except Exception as e:  # Supposedly timeout big enough to not trigger re-syncing
+                msg = "Poloniex - triggered exception during reading from socket = {}. Reseting stage!".format(str(e))
+                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+                print msg
+
+                self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
+
+                break
+
+        msg = "Poloniex - exit from main loop. Current thread will be finished."
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+
+    def subscribe_app(self):
+
+        if get_logging_level() == LOG_ALL_TRACE:
+            websocket.enableTrace(True)
+
         self.ws = websocket.WebSocketApp(PoloniexParameters.URL,
                                     on_message=self.on_public,
                                     on_error=self.on_error,
                                     on_close=self.on_close)
         self.ws.on_open = self.on_open
-        self.ws.run_forever()
+        self.ws.run_forever(ping_interval=10)
 
     def disconnect(self):
         self.ws.close()

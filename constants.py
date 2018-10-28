@@ -69,3 +69,6 @@ API_KEY_PATH = "./secret_keys"
 DB_HOST = "orders.cervsj06c8zw.us-west-1.rds.amazonaws.com"
 DB_PORT = 5432
 DB_NAME = "crypto"
+
+
+ARBITRAGE_UPDATE_TIMEOUT = 15
