@@ -89,6 +89,7 @@ def test_huobi():
     while(1):
         try:
             ws = create_connection("wss://api.huobipro.com/ws")
+            ws.settimeout(1)
             break
         except:
             print('connect ws error,retry...')
@@ -101,8 +102,12 @@ def test_huobi():
     print "CONFIRMATION OF SUBSCRIPTION:", process_result(compressData)
 
     while(1):
-        compressData=ws.recv()
-        print "DELTA?", process_result(compressData)
+        try:
+            compressData=ws.recv()
+            print "DELTA?", process_result(compressData)
+        except Exception as e:
+            print "EXCEPTION:", e 
+            break
 
 
 def test_binance():
@@ -208,6 +213,7 @@ def test_bittrex_advanced():
 
 if __name__ == "__main__":
     from utils.time_utils import sleep_for
-    test_bittrex_advanced()
-    while True:
-        sleep_for(1)
+    test_huobi()
+    # test_bittrex_advanced()
+    # while True:
+    #     sleep_for(1)

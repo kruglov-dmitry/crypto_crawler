@@ -376,26 +376,23 @@ class SubscriptionBittrex:
 
             self.hub.client.on(BittrexParameters.MARKET_DELTA, self.on_public)
 
-            self.hub.client.on(BittrexParameters.SUMMARY_DELTA, default_on_receive)
-            self.hub.client.on(BittrexParameters.SUMMARY_DELTA_LITE, default_on_receive)
-            self.hub.client.on(BittrexParameters.BALANCE_DELTA, default_on_receive)
-            self.hub.client.on(BittrexParameters.ORDER_DELTA, default_on_receive)
-    
             # self.connection.received += default_on_receive
             self.connection.error += self.on_error
 
             self.connection.start()
 
+
+            msg = None
             while self.connection.started:
                 try:
                     self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)
                 except Exception as e:
-                    self.on_error(e)
+                    msg = str(e)
                 # FIXME NOTE - still not sure - connection.wait(1)
             
-            log_to_file("bittrex subscribe - disconnection from site?", "you_should_not_see_it.log")
+            log_to_file("bittrex subscribe - disconnection from site? {}".format(msg), "you_should_not_see_it.log")
 
-            self.on_close()
+            self.on_error(msg)
 
     def disconnect(self):
         self.connection.close()
