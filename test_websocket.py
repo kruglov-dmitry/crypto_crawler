@@ -100,6 +100,7 @@ def test_huobi():
     ws.send(tradeStr)
     compressData=ws.recv()
     print "CONFIRMATION OF SUBSCRIPTION:", process_result(compressData)
+    raise
 
     while(1):
         try:
@@ -130,17 +131,44 @@ def test_binance():
         #     print("thread terminating...")
         # thread.start_new_thread(run, ())
 
-    websocket.enableTrace(True)
-    # ws = websocket.WebSocketApp(sslopt={"cert_reqs": ssl.CERT_NONE})
-    ws = websocket.WebSocketApp("wss://stream.binance.com:9443/ws/ethbtc@depth")
-    # ws = websocket.WebSocket(sslopt={"cert_reqs": ssl.CERT_NONE})
-    ws.on_message = on_message
-    ws.on_error = on_error
-    ws.on_close = on_close
-    ws.on_open = on_open
-    # ws.connect("wss://stream.binance.com:9443/ws/ethbtc@depth")
-    # ws.run_forever()
-    ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
+    # websocket.enableTrace(True)
+    # # ws = websocket.WebSocketApp(sslopt={"cert_reqs": ssl.CERT_NONE})
+    # ws = websocket.WebSocketApp("wss://stream.binance.com:9443/ws/ethbtc@depth")
+    # # ws = websocket.WebSocket(sslopt={"cert_reqs": ssl.CERT_NONE})
+    # ws.on_message = on_message
+    # ws.on_error = on_error
+    # ws.on_close = on_close
+    # ws.on_open = on_open
+    # # ws.connect("wss://stream.binance.com:9443/ws/ethbtc@depth")
+    # # ws.run_forever()
+    # ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
+
+
+    # Create connection
+    while True:
+        try:
+            ws = create_connection("wss://stream.binance.com:9443/ws/ethbtc@depth", sslopt={"cert_reqs": ssl.CERT_NONE})
+            ws.settimeout(15)
+            break
+        except:
+            print('connect ws error,retry...')
+            sleep_for(5)
+
+    # actual subscription
+    # ws.send()
+
+    # event loop
+    while True:
+        try:
+            compressData = ws.recv()
+            on_message(ws, compressData)
+        except Exception as e:      # Supposedly timeout big enough to not trigger re-syncing
+            msg = "Binance - triggered exception during reading from socket = {}".format(str(e))
+            print msg
+            break
+
+    msg = "Binance - triggered on_close. We have to re-init the whole state from the scratch. Current thread will be finished."
+    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
 
 first_responce = False
@@ -214,6 +242,7 @@ def test_bittrex_advanced():
 if __name__ == "__main__":
     from utils.time_utils import sleep_for
     test_huobi()
+    # test_binance()
     # test_bittrex_advanced()
     # while True:
     #     sleep_for(1)
