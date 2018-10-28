@@ -235,7 +235,7 @@ def get_order_book_bittrex_through_socket(pair_name, timest):
 
     pair_id = get_currency_pair_from_bittrex(pair_name)
 
-    bittrex_subscription = SubscriptionBittrex(pair_id, on_update=default_on_public)
+    bittrex_subscription = SubscriptionBittrex(pair_id, local_cache=None, on_update=default_on_public)
 
     thread.start_new_thread(bittrex_subscription.request_order_book, ())
 
