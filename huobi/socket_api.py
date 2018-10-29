@@ -140,7 +140,7 @@ class SubscriptionHuobi:
         # Create connection
         while True:
             try:
-                self.ws = create_connection(HuobiParameters.URL, sslopt={"cert_reqs": ssl.CERT_NONE})
+                self.ws = create_connection(HuobiParameters.URL, enable_multithread=True, sslopt={"cert_reqs": ssl.CERT_NONE})
                 self.ws.settimeout(15)
                 break
             except Exception as e:
