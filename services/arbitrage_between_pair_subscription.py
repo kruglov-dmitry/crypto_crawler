@@ -68,7 +68,7 @@ class ArbitrageListener:
         #     log_to_file("reset_arbitrage_state invoked - return", SOCKET_ERRORS_LOG_FILE_NAME)
         #     print("reset_arbitrage_state invoked - return")
         #     return
-        stage = self.local_cache.get_value("SYNC_STAGE")
+        stage = int(self.local_cache.get_value("SYNC_STAGE"))
         if stage is None or stage in [ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC, ORDER_BOOK_SYNC_STAGES.RESETTING]:
             # Supposedly we will catch second firing for second callbacks
             log_to_file("reset_arbitrage_state invoked - return", SOCKET_ERRORS_LOG_FILE_NAME)
@@ -107,9 +107,10 @@ class ArbitrageListener:
         log_to_file("reset_arbitrage_state invoked - ready to take action?", SOCKET_ERRORS_LOG_FILE_NAME)
         print("reset_arbitrage_state invoked - ready to take action?")
 
-        if self.local_cache.get_value("SYNC_STAGE") != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
+        if int(self.local_cache.get_value("SYNC_STAGE")) != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
             log_to_file("reset_arbitrage_state - cant sync order book, lets try one more time!", SOCKET_ERRORS_LOG_FILE_NAME)
         print("reset_arbitrage_state invoked - yalla khalas!?")
+        log_to_file("reset_arbitrage_state invoked - yalla khalas!?", SOCKET_ERRORS_LOG_FILE_NAME)
 
 
     def _init_settings(self, cfg):
@@ -233,7 +234,9 @@ class ArbitrageListener:
                 self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
                 return STATUS.FAILURE
 
-        print "Finishing syncing sell order book!"
+        msg = "Finishing syncing sell order book!"
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        print msg
         self.sell_order_book_synced = True
 
     def sync_buy_order_book(self):
@@ -250,13 +253,18 @@ class ArbitrageListener:
                 self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
                 return STATUS.FAILURE
 
-        print "Finishing syncing buy order book!"
+        msg = "Finishing syncing buy order book!"
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        print msg
         self.buy_order_book_synced = True
 
     def sync_order_books(self):
 
         # DK NOTE: Those guys will endup by themselves
 
+        msg = "sync_order_books - stage status is {}".format(self.local_cache.get_value("SYNC_STAGE"))
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        
         sync_sell_order_book_thread = threading.Thread(target=self.sync_sell_order_book, args=())
         sync_sell_order_book_thread.daemon = True
         sync_sell_order_book_thread.start()
@@ -265,14 +273,19 @@ class ArbitrageListener:
         sync_buy_order_book_thread.daemon = True
         sync_buy_order_book_thread.start()
 
-        while self.local_cache.get_value("SYNC_STAGE") != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
+        while True:
+            stage = int(self.local_cache.get_value("SYNC_STAGE"))
+            # if stage != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
             if self.sell_order_book_synced and self.buy_order_book_synced:
                 self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.AFTER_SYNC)
                 break
-            elif self.local_cache.get_value("SYNC_STAGE") == ORDER_BOOK_SYNC_STAGES.RESETTING:
+            elif stage == ORDER_BOOK_SYNC_STAGES.RESETTING:
                 print("sync_order_books - it mean that we have error during update for one of order book :(")
                 return
             sleep_for(1)
+
+        msg = "sync_order_books - AFTER MAIN LOOP - stage status is {}".format(self.local_cache.get_value("SYNC_STAGE"))
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
     def subscribe_cap_update(self):
 
@@ -461,7 +474,7 @@ class ArbitrageListener:
         else:
             print "STAGE:", stage
             print "on_order_book_update: Unknown stage :(", get_exchange_name_by_id(exchange_id)
-            os._exit(1)
+            # os._exit(1)
 
 
 if __name__ == "__main__":
@@ -503,5 +516,10 @@ if __name__ == "__main__":
     ttt = ArbitrageListener(cfg, app_settings)
     sleep_for(25)
     ttt.reset_arbitrage_state()
-
+    
     sleep_for(25)
+    ttt.reset_arbitrage_state()
+
+    print "INFINTE CYCLE!!!!1111"
+    while True:
+        sleep_for(1)

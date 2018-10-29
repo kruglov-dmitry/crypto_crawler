@@ -385,7 +385,7 @@ class SubscriptionBittrex:
 
             self.connection.start()
 
-            while self.connection.started and self.local_cache.get_value("SYNC_STAGE") != ORDER_BOOK_SYNC_STAGES.RESETTING:
+            while self.connection.started and int(self.local_cache.get_value("SYNC_STAGE")) != ORDER_BOOK_SYNC_STAGES.RESETTING:
                 try:
                     self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)
                 except Exception as e:

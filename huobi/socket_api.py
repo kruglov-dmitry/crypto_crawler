@@ -151,7 +151,7 @@ class SubscriptionHuobi:
         self.on_open(self.ws)
 
         # event loop
-        while self.local_cache.get_value("SYNC_STAGE") != ORDER_BOOK_SYNC_STAGES.RESETTING:
+        while int(self.local_cache.get_value("SYNC_STAGE")) != ORDER_BOOK_SYNC_STAGES.RESETTING:
             try:
                 compressData = self.ws.recv()
                 self.on_public(self.ws, compressData)

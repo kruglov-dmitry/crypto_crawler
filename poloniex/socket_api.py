@@ -319,18 +319,18 @@ class SubscriptionPoloniex:
         self.on_open(self.ws)
 
         # event loop
-        while self.local_cache.get_value("SYNC_STAGE") != ORDER_BOOK_SYNC_STAGES.RESETTING:
-            # try:
+        while int(self.local_cache.get_value("SYNC_STAGE")) != ORDER_BOOK_SYNC_STAGES.RESETTING:
+            try:
                 compressData = self.ws.recv()
                 self.on_public(self.ws, compressData)
-            # except Exception as e:  # Supposedly timeout big enough to not trigger re-syncing
-            #     msg = "Poloniex - triggered exception during reading from socket = {}. Reseting stage!".format(str(e))
-            #     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-            #     print msg
+            except Exception as e:  # Supposedly timeout big enough to not trigger re-syncing
+                msg = "Poloniex - triggered exception during reading from socket = {}. Reseting stage!".format(str(e))
+                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+                print msg
 
-            #     self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
+                self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
 
-            #     break
+                break
 
         msg = "Poloniex - exit from main loop. Current thread will be finished."
         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
