@@ -42,6 +42,8 @@ from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD
 
 from deploy.classes.CommonSettings import CommonSettings
 
+import os
+
 
 class ArbitrageListener:
     def __init__(self, cfg, app_settings):
@@ -260,6 +262,7 @@ class ArbitrageListener:
         while self.local_cache.get_value("SYNC_STAGE") != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
             if self.sell_order_book_synced and self.buy_order_book_synced:
                 self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.AFTER_SYNC)
+                break
             elif self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING):
                 print("sync_order_books - it mean that we have error during update for one of order book :(")
                 return
@@ -360,7 +363,12 @@ class ArbitrageListener:
                 if self.buy_order_book_synced:
                     order_book_update_status = self.order_book_buy.update(exchange_id, order_book_updates)
                     if order_book_update_status == STATUS.FAILURE:
-                        print "Reset of state in pre-SYNC stage - BUY"
+
+                        msg = "Update Reset of state in pre-SYNC stage - BUY - for {exch_name} Update itself: {upd}".format(
+                            exch_name=get_exchange_name_by_id(exchange_id), upd=order_book_updates)
+                        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+                        print msg
+
                         self.reset_arbitrage_state()
                 else:
                     self.buy_exchange_updates.put(order_book_updates)
@@ -368,7 +376,12 @@ class ArbitrageListener:
                 if self.sell_order_book_synced:
                     order_book_update_status = self.order_book_sell.update(exchange_id, order_book_updates)
                     if order_book_update_status == STATUS.FAILURE:
-                        print "Reset of state in pre-SYNC stage - SELL"
+
+                        msg = "Update Reset of state in pre-SYNC stage - SELL - for {exch_name} Update itself: {upd}".format(
+                            exch_name=get_exchange_name_by_id(exchange_id), upd=order_book_updates)
+                        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+                        print msg
+
                         self.reset_arbitrage_state()
                 else:
                     self.sell_exchange_updates.put(order_book_updates)
@@ -383,7 +396,13 @@ class ArbitrageListener:
                 order_book_update_status = self.order_book_sell.update(exchange_id, order_book_updates)
 
             if order_book_update_status == STATUS.FAILURE:
-                print "Order book update is FAILED! for", get_exchange_name_by_id(exchange_id)
+
+                msg = "Update after syncing FAILED = Order book update is FAILED! for {exch_name} Update itself: {upd}".format(
+                    exch_name=get_exchange_name_by_id(exchange_id), upd=order_book_updates)
+                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+
+                print msg
+
                 self.reset_arbitrage_state()
 
             assert(self.order_book_sell.is_valid())
@@ -435,6 +454,7 @@ class ArbitrageListener:
 
         else:
             print "on_order_book_update: Unknown stage :(", get_exchange_name_by_id(exchange_id)
+            os._exit(1)
 
 
 if __name__ == "__main__":
