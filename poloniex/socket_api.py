@@ -308,7 +308,7 @@ class SubscriptionPoloniex:
         # Create connection
         while True:
             try:
-                self.ws = create_connection(PoloniexParameters.URL)
+                self.ws = create_connection(PoloniexParameters.URL, enable_multithread=True)
                 self.ws.settimeout(15)
                 break
             except Exception as e:

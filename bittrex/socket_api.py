@@ -374,32 +374,37 @@ class SubscriptionBittrex:
             connection.close()
 
     def subscribe(self):
-        with Session() as session:
-            self.connection = Connection(self.url, session)
-            self.hub = self.connection.register_hub(self.hub_name)
+        try:
+            with Session() as session:
+                self.connection = Connection(self.url, session)
+                self.hub = self.connection.register_hub(self.hub_name)
 
-            self.hub.client.on(BittrexParameters.MARKET_DELTA, self.on_public)
+                self.hub.client.on(BittrexParameters.MARKET_DELTA, self.on_public)
 
-            # self.connection.received += default_on_receive
-            self.connection.error += self.on_error
+                # self.connection.received += default_on_receive
+                self.connection.error += self.on_error
 
-            self.connection.start()
+                self.connection.start()
 
-            while self.connection.started and self.local_cache.get_value("SYNC_STAGE") != ORDER_BOOK_SYNC_STAGES.RESETTING:
-                try:
-                    self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)
-                except Exception as e:
-                    msg = str(e)
-                    log_to_file("bittrex subscribe - disconnection from site? {}. Reseting stage!".format(msg),
-                                SOCKET_ERRORS_LOG_FILE_NAME)
-                    # FIXME NOTE - still not sure - connection.wait(1)
+                while self.connection.started and self.local_cache.get_value("SYNC_STAGE") != ORDER_BOOK_SYNC_STAGES.RESETTING:
+                    try:
+                        self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)
+                    except Exception as e:
+                        msg = str(e)
+                        log_to_file("bittrex subscribe - disconnection from site? {}. Reseting stage!".format(msg),
+                                    SOCKET_ERRORS_LOG_FILE_NAME)
+                        # FIXME NOTE - still not sure - connection.wait(1)
 
-                    self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
+                        self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
 
-                    break
+                        break
+        except Exception as e:
+            msg = str(e)
+            log_to_file("bittrex subscribe - FUCKING INTERNALS OF SIGNALR FAILED???? {}. Reseting stage!".format(msg),SOCKET_ERRORS_LOG_FILE_NAME)
+            self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
 
-            msg = "Bittrex - exit from main loop. Current thread will be finished."
-            log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        msg = "Bittrex - exit from main loop. Current thread will be finished."
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
     def disconnect(self):
         self.connection.close()
