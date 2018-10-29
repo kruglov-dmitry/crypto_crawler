@@ -63,7 +63,13 @@ class ArbitrageListener:
         # Q: why the hell you didnt use locks here
         # A: GIL assumption
 
-        if hasattr(self, 'stage') and self.stage in [ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC, ORDER_BOOK_SYNC_STAGES.RESETTING]:
+        # if hasattr(self, 'stage') and self.stage in [ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC, ORDER_BOOK_SYNC_STAGES.RESETTING]:
+        #     # Supposedly we will catch second firing for second callbacks
+        #     log_to_file("reset_arbitrage_state invoked - return", SOCKET_ERRORS_LOG_FILE_NAME)
+        #     print("reset_arbitrage_state invoked - return")
+        #     return
+        stage = self.local_cache.get_value("SYNC_STAGE")
+        if stage is None or stage in [ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC, ORDER_BOOK_SYNC_STAGES.RESETTING]:
             # Supposedly we will catch second firing for second callbacks
             log_to_file("reset_arbitrage_state invoked - return", SOCKET_ERRORS_LOG_FILE_NAME)
             print("reset_arbitrage_state invoked - return")
@@ -263,7 +269,7 @@ class ArbitrageListener:
             if self.sell_order_book_synced and self.buy_order_book_synced:
                 self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.AFTER_SYNC)
                 break
-            elif self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING):
+            elif self.local_cache.get_value("SYNC_STAGE") == ORDER_BOOK_SYNC_STAGES.RESETTING:
                 print("sync_order_books - it mean that we have error during update for one of order book :(")
                 return
             sleep_for(1)
@@ -305,13 +311,13 @@ class ArbitrageListener:
         buy_subscription_constructor = get_subcribtion_by_exchange(self.buy_exchange_id)
         sell_subscription_constructor = get_subcribtion_by_exchange(self.sell_exchange_id)
 
-        self.buy_subscription = buy_subscription_constructor(pair_id=self.pair_id,
+        self.buy_subscription = buy_subscription_constructor(pair_id=self.pair_id, local_cache=self.local_cache,
                                                         on_update=self.on_order_book_update,
                                                         on_any_issue=self.reset_arbitrage_state
                                                         )
 
 
-        self.sell_subscription = sell_subscription_constructor(pair_id=self.pair_id,
+        self.sell_subscription = sell_subscription_constructor(pair_id=self.pair_id, local_cache=self.local_cache,
                                                           on_update=self.on_order_book_update,
                                                           on_any_issue=self.reset_arbitrage_state)
 
@@ -353,7 +359,7 @@ class ArbitrageListener:
             print "Order book update is NONE! for", get_exchange_name_by_id(exchange_id)
             return
 
-        stage = self.local_cache.get_value("SYNC_STAGE")
+        stage = int(self.local_cache.get_value("SYNC_STAGE"))
 
         if stage == ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC:
             
@@ -453,6 +459,7 @@ class ArbitrageListener:
         #             self.sell_exchange_updates.put(order_book_updates)
 
         else:
+            print "STAGE:", stage
             print "on_order_book_update: Unknown stage :(", get_exchange_name_by_id(exchange_id)
             os._exit(1)
 
