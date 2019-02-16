@@ -1,6 +1,5 @@
 from json import loads
 import websocket
-import ssl
 from websocket import create_connection
 
 from binance.currency_utils import get_currency_pair_to_binance
@@ -10,10 +9,10 @@ from data.Deal import Deal
 
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for
 from debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
-from utils.system_utils import die_hard
 from utils.file_utils import log_to_file
 
 from enums.sync_stages import ORDER_BOOK_SYNC_STAGES
+from services.sync_stage import set_stage
 
 
 def parse_socket_update_binance(order_book_delta):
@@ -81,7 +80,7 @@ def default_on_public(exchange_id, args):
 
 
 class SubscriptionBinance:
-    def __init__(self, pair_id, local_cache, on_update=default_on_public, on_any_issue=default_on_error, base_url=BinanceParameters.URL):
+    def __init__(self, pair_id, on_update=default_on_public, base_url=BinanceParameters.URL):
         """
         :param pair_id:         - currency pair to be used for trading
         :param on_update:       - idea is the following:
@@ -96,23 +95,11 @@ class SubscriptionBinance:
         self.pair_id = pair_id
         self.pair_name = get_currency_pair_to_binance(self.pair_id).lower()
 
-        self.local_cache = local_cache
-
         self.subscription_url = BinanceParameters.SUBSCRIBE_UPDATE.format(pair_name=self.pair_name)
 
         self.on_update = on_update
-        self.on_any_issue = on_any_issue
 
-    def on_open(self, ws):
-        print "Opening connection..."
-
-    def on_close(self, ws):
-        ws.close()
-
-        msg = "Binance - triggered on_close. We have to re-init the whole state from the scratch"
-        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-
-        self.on_any_issue()
+        self.should_run = True
 
     def on_public(self, ws, args):
         msg = process_message(args)
@@ -124,13 +111,9 @@ class SubscriptionBinance:
         else:
             self.on_update(EXCHANGE.BINANCE, order_book_delta)
 
-    def on_error(self, ws, error):
-        die_hard("Binance - triggered on_error - {err}. We have to re-init the whole state from the scratch - "
-                 "which is not implemented".format(err=error))
-
-        self.on_any_issue()
-
     def subscribe(self):
+
+        self.should_run = True
 
         if get_logging_level() == LOG_ALL_TRACE:
             websocket.enableTrace(True)
@@ -150,37 +133,40 @@ class SubscriptionBinance:
         # actual subscription - for binance can be embedded within url
         # self.ws.send(self.subscription_url)
 
+        msg = "Binance - before main loop..."
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
         # event loop
-        while int(self.local_cache.get_value("SYNC_STAGE")) != ORDER_BOOK_SYNC_STAGES.RESETTING:
+        while self.should_run:
             try:
                 compressData = self.ws.recv()
                 self.on_public(self.ws, compressData)
             except Exception as e:      # Supposedly timeout big enough to not trigger re-syncing
                 msg = "Binance - triggered exception during reading from socket = {}. Reseting stage!".format(str(e))
                 log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                print msg
+                print(msg)
 
-                self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
+                self.should_run = False
+
+                set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
                 break
 
         msg = "Binance - exit from main loop. Current thread will be finished."
         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
-    def subscribe_app(self):
-        if get_logging_level() == LOG_ALL_TRACE:
-            websocket.enableTrace(True)
-
-        final_url = BinanceParameters.URL + self.subscription_url
-
-        self.ws = websocket.WebSocketApp(final_url,
-                                    on_message=self.on_public,
-                                    on_error=self.on_error,
-                                    on_close=self.on_close)
-
-        self.ws.on_open = self.on_open
-
-        self.ws.run_forever(ping_interval=10)
+        self.disconnect()
 
     def disconnect(self):
-        self.ws.close()
+        self.should_run = False
+
+        sleep_for(3)  # To wait till all processing be ended
+
+        try:
+            self.ws.close()
+        except Exception as e:
+            msg = "Binance - triggered exception during closing socket = {} at disconnect!".format(str(e))
+            log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+            print(msg)
+
+    def is_running(self):
+        return self.should_run

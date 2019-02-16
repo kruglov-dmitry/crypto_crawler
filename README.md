@@ -221,7 +221,7 @@ sudo service dynuiuc start
 
 
 ###
-python -m services.arbitrage_between_pair_subscription --threshold 1.2 --reverse_threshold 0.71 --balance_threshold 15 --sell_exchange_id 4 --buy_exchange_id 3 --pair_id 1 --deal_expire_timeout 15 --cfg deploy/deploy.cfg
+python -m services.arbitrage_between_pair_subscription --threshold 1.2 --reverse_threshold 0.71 --balance_threshold 15 --sell_exchange_id 4 --buy_exchange_id 4 --pair_id 1 --deal_expire_timeout 15 --cfg deploy/deploy.cfg
 
 ### Postgres various
 ```sql

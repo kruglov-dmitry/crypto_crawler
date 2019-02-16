@@ -235,7 +235,7 @@ def get_order_book_bittrex_through_socket(pair_name, timest):
 
     pair_id = get_currency_pair_from_bittrex(pair_name)
 
-    bittrex_subscription = SubscriptionBittrex(pair_id, local_cache=None, on_update=default_on_public)
+    bittrex_subscription = SubscriptionBittrex(pair_id, on_update=default_on_public)
 
     thread.start_new_thread(bittrex_subscription.request_order_book, ())
 
@@ -273,8 +273,8 @@ def default_on_public(exchange_id, args):
 
 
 class SubscriptionBittrex:
-    def __init__(self, pair_id, local_cache,
-                 on_update=default_on_public, on_any_issue=default_on_error,
+    def __init__(self, pair_id,
+                 on_update=default_on_public,
                  base_url=BittrexParameters.URL,
                  hub_name=BittrexParameters.HUB):
         """
@@ -292,10 +292,7 @@ class SubscriptionBittrex:
         self.pair_id = pair_id
         self.pair_name = get_currency_pair_to_bittrex(self.pair_id)
 
-        self.local_cache = local_cache
-
         self.on_update = on_update
-        self.on_any_issue = on_any_issue
 
         self.hub = None
 
@@ -303,23 +300,7 @@ class SubscriptionBittrex:
 
         self.initial_order_book = None
 
-    def on_error(self, error):
-
-        self.connection.close()
-
-        msg = "Bittrex - triggered on_error because of {err}. We have to re-init the whole state from the scratch".format(err=error)
-        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-
-        self.on_any_issue()
-
-    def on_close(self):
-
-        self.connection.close()
-
-        msg = "Bittrex - triggered on_close. We have to re-init the whole state from the scratch"
-        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-
-        self.on_any_issue()
+        self.should_run = True
 
     def on_public(self, args):
         msg = process_message(args)
@@ -363,8 +344,6 @@ class SubscriptionBittrex:
 
             connection.received += self.on_receive
 
-            connection.error += self.on_error
-
             connection.start()
 
             while self.order_book_is_received is not True:
@@ -374,6 +353,7 @@ class SubscriptionBittrex:
             connection.close()
 
     def subscribe(self):
+        self.should_run = True
         try:
             with Session() as session:
                 self.connection = Connection(self.url, session)
@@ -381,12 +361,9 @@ class SubscriptionBittrex:
 
                 self.hub.client.on(BittrexParameters.MARKET_DELTA, self.on_public)
 
-                # self.connection.received += default_on_receive
-                self.connection.error += self.on_error
-
                 self.connection.start()
 
-                while self.connection.started and self.local_cache.get_value("SYNC_STAGE") != ORDER_BOOK_SYNC_STAGES.RESETTING:
+                while self.connection.started and self.should_run:
                     try:
                         self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)
                     except Exception as e:
@@ -394,17 +371,32 @@ class SubscriptionBittrex:
                         log_to_file("bittrex subscribe - disconnection from site? {}. Reseting stage!".format(msg),
                                     SOCKET_ERRORS_LOG_FILE_NAME)
                         # FIXME NOTE - still not sure - connection.wait(1)
-
-                        self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
+                        self.should_run = False
 
                         break
+                    sleep_for(1)
         except Exception as e:
             msg = str(e)
             log_to_file("bittrex subscribe - FUCKING INTERNALS OF SIGNALR FAILED???? {}. Reseting stage!".format(msg),SOCKET_ERRORS_LOG_FILE_NAME)
-            self.local_cache.set_value("SYNC_STAGE", ORDER_BOOK_SYNC_STAGES.RESETTING)
+
+            self.should_run = False
 
         msg = "Bittrex - exit from main loop. Current thread will be finished."
         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
+        self.disconnect()
+
     def disconnect(self):
-        self.connection.close()
+        self.should_run = False
+
+        sleep_for(3)  # To wait till all processing be ended
+
+        try:
+            self.connection.close()
+        except Exception as e:
+            msg = "Binance - triggered exception during closing socket = {} at disconnect!".format(str(e))
+            log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+            print(msg)
+
+    def is_running(self):
+        return self.should_run

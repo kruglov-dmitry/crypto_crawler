@@ -221,12 +221,19 @@ def test_poloniex():
     ws.run_forever()
 
 def test_poloniex_advanced():
+    import threading
     from enums.currency_pair import CURRENCY_PAIR
     from poloniex.socket_api import SubscriptionPoloniex
     from data_access.memory_cache import get_cache
     cache = get_cache()
     t1 = SubscriptionPoloniex(CURRENCY_PAIR.BTC_TO_ETC, cache)
-    t1.subscribe()
+    #t1.subscribe()
+
+    buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
+    buy_subscription_thread.daemon = True
+    buy_subscription_thread.start()
+
+    return t1
 
 def test_bittrex_advanced():
     from enums.currency_pair import CURRENCY_PAIR
@@ -243,11 +250,67 @@ def test_bittrex_advanced():
     buy_subscription_thread.start()
 
 
+def test_huobi_advanced():
+    import threading
+    from enums.currency_pair import CURRENCY_PAIR
+    from huobi.socket_api import SubscriptionHuobi
+    from data_access.memory_cache import get_cache
+    cache = get_cache()
+    t1 = SubscriptionHuobi(CURRENCY_PAIR.BTC_TO_ETC, cache)
+    # t1.subscribe()
+
+    buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
+    buy_subscription_thread.daemon = True
+    buy_subscription_thread.start()
+
+    return t1
+
+
+def test_binance_advanced():
+    import threading
+    from enums.currency_pair import CURRENCY_PAIR
+    from binance.socket_api import SubscriptionBinance
+    from data_access.memory_cache import get_cache
+    cache = get_cache()
+    t1 = SubscriptionBinance(CURRENCY_PAIR.BTC_TO_ETC, cache)
+    # t1.subscribe()
+    buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
+    buy_subscription_thread.daemon = True
+    buy_subscription_thread.start()
+
+    return t1
+
+
 if __name__ == "__main__":
     from utils.time_utils import sleep_for
     # test_huobi()
-    # test_poloniex_advanced()
+    w = test_huobi_advanced()
+    sleep_for(10)
+    w.disconnect()
+    print(w.should_run)
+
+    # test_poloniex()
+    # w = test_poloniex_advanced()
+    # sleep_for(10)
+    # w.disconnect()
+    # print(w.should_run)
+
     # test_binance()
-    test_bittrex_advanced()
-    while True:
-        sleep_for(10)
+    # w = test_binance_advanced()
+    # sleep_for(10)
+    # w.disconnect()
+    # print(w.should_run)
+
+    # test_bittrex_advanced()
+
+
+    # while 1:
+    #     print "WTF"
+    #     sleep_for(10)
+
+    # cnt = 0
+    # while True:
+    #     sleep_for(10)
+    #     cnt += 1
+    #     if cnt == 5:
+    #         w.disconnect()

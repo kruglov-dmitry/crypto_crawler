@@ -37,7 +37,7 @@ MIN_VOLUME_COEFFICIENT = {
 
 MAX_VOLUME_COEFFICIENT = Decimal(0.9)
 
-CACHE_HOST = "54.193.19.230"
+CACHE_HOST = "0.0.0.0"
 CACHE_PORT = 6379
 
 CORE_NUM = multiprocessing.cpu_count()

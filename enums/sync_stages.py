@@ -1,4 +1,5 @@
 class ORDER_BOOK_SYNC_STAGES:
+    UNKNOWN = -1
     BEFORE_SYNC = 1
     AFTER_SYNC = 2
     RESETTING = 3
