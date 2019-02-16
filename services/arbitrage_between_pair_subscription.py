@@ -68,8 +68,8 @@ class ArbitrageListener:
         #     log_to_file("reset_arbitrage_state invoked - return", SOCKET_ERRORS_LOG_FILE_NAME)
         #     print("reset_arbitrage_state invoked - return")
         #     return
-        stage = int(self.local_cache.get_value("SYNC_STAGE"))
-        if stage is None or stage in [ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC, ORDER_BOOK_SYNC_STAGES.RESETTING]:
+        stage = self.local_cache.get_value("SYNC_STAGE")
+        if stage is not None and int(stage) in [ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC, ORDER_BOOK_SYNC_STAGES.RESETTING]:
             # Supposedly we will catch second firing for second callbacks
             log_to_file("reset_arbitrage_state invoked - return", SOCKET_ERRORS_LOG_FILE_NAME)
             print("reset_arbitrage_state invoked - return")
@@ -101,7 +101,7 @@ class ArbitrageListener:
         print("reset_arbitrage_state invoked - queue are cleaned")
 
         self._init_arbitrage_state()
-        self.subsribe_to_order_book_update()
+        self.subscribe_to_order_book_update()
         self.sync_order_books()
 
         log_to_file("reset_arbitrage_state invoked - ready to take action?", SOCKET_ERRORS_LOG_FILE_NAME)
@@ -316,7 +316,7 @@ class ArbitrageListener:
         balance_update_thread.start()
 
 
-    def subsribe_to_order_book_update(self):
+    def subscribe_to_order_book_update(self):
         # for both exchanges
         # Question 1 - selection of method for subscriptions
         # Question 2 - synchronisation of order book <<?>>

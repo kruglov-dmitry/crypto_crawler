@@ -9,6 +9,9 @@ sudo /usr/local/bin/docker-compose -f docker_compose.yml up
 /home/ec2-user/crypto_crawler/deploy
 python update_nonce_redis.py
 
+yum groupinstall "Development Tools"
+pip install -r requirements.txt
+
 
 ## Deploying data retrieval services: order_book, history, tickers and notification
 python deploy_data_retrieval
