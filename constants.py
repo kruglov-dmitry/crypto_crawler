@@ -1,4 +1,6 @@
 import multiprocessing
+
+from decimal import Decimal
 from enums.currency import CURRENCY
 from enums.currency_pair import CURRENCY_PAIR
 
@@ -28,15 +30,14 @@ BASE_CURRENCIES_BALANCE_THRESHOLD = {
 }
 
 MIN_VOLUME_COEFFICIENT = {
-    CURRENCY.BITCOIN: 0.004,
-    CURRENCY.ETH: 0.04,
-    CURRENCY.USDT: 40
+    CURRENCY.BITCOIN: Decimal(0.004),
+    CURRENCY.ETH: Decimal(0.04),
+    CURRENCY.USDT: Decimal(40)
 }
 
-MAX_VOLUME_COEFFICIENT = 0.9
+MAX_VOLUME_COEFFICIENT = Decimal(0.9)
 
 CACHE_HOST = "54.193.19.230"
-#CACHE_HOST = "192.168.1.106"
 CACHE_PORT = 6379
 
 CORE_NUM = multiprocessing.cpu_count()
@@ -50,13 +51,16 @@ LAST = 0
 
 BALANCE_EXPIRED_THRESHOLD = 60
 MIN_CAP_UPDATE_TIMEOUT = 900
+BALANCE_UPDATE_TIMEOUT = 1
 NO_MAX_CAP_LIMIT = 0
 NO_MIN_CAP_LIMIT = 0
 
+DECIMAL_ZERO = Decimal(0.0)
+
 START_OF_TIME = -1
 
-
-FLOAT_POINT_PRECISION = 0.00000001
+FLOAT_POINT_PRECISION = Decimal("0.00000001")
+MAX_VOLUME_ORDER_BOOK = 0.00001
 
 HEARTBEAT_TIMEOUT = 60
 
@@ -65,3 +69,6 @@ API_KEY_PATH = "./secret_keys"
 DB_HOST = "orders.cervsj06c8zw.us-west-1.rds.amazonaws.com"
 DB_PORT = 5432
 DB_NAME = "crypto"
+
+
+ARBITRAGE_UPDATE_TIMEOUT = 15

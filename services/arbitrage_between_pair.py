@@ -1,11 +1,13 @@
 import argparse
 
+from decimal import Decimal
+
 from data_access.message_queue import get_message_queue
 from data_access.priority_queue import get_priority_queue
 
 from core.arbitrage_core import search_for_arbitrage, adjust_currency_balance, compute_new_min_cap_from_tickers
 from core.expired_order import add_orders_to_watch_list
-from core.backtest import dummy_balance_init
+from data.BalanceState import dummy_balance_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
@@ -131,9 +133,7 @@ if __name__ == "__main__":
     update_min_cap(cfg, deal_cap, processor)
     deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
 
-    balance_state = dummy_balance_init(timest=0, default_volume=0, default_available_volume=0)
-
-    last_order_book = {}
+    balance_state = dummy_balance_init(timest=0, default_volume=Decimal("0"), default_available_volume=Decimal("0"))
 
     while True:
 
@@ -174,9 +174,6 @@ if __name__ == "__main__":
                                             msg_queue=msg_queue)
 
             add_orders_to_watch_list(deal_pair, priority_queue)
-
-            last_order_book[order_book_src.exchange_id] = order_book_src
-            last_order_book[order_book_dst.exchange_id] = order_book_dst
 
             print_to_console("I am still allive! ", LOG_ALL_DEBUG)
             sleep_for(2)

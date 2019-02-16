@@ -1,26 +1,9 @@
-import sys
 import os
-import glob
 import csv
 
-from data.Candle import Candle, CANDLE_TYPE_NAME
-from data.OrderBook import OrderBook, ORDER_BOOK_TYPE_NAME
-from data.TradeHistory import TradeHistory, TRADE_HISTORY_TYPE_NAME
-from data.Ticker import Ticker, TICKER_TYPE_NAME
 from utils.time_utils import get_now_seconds_utc
 
 from debug_utils import get_log_folder
-
-
-def constructor_selector(class_name, string_repr):
-    if class_name == TICKER_TYPE_NAME:
-        return Ticker.from_string(string_repr)
-    elif class_name == CANDLE_TYPE_NAME:
-        return Candle.from_string(string_repr)
-    elif class_name == ORDER_BOOK_TYPE_NAME:
-        return OrderBook.from_string(string_repr)
-    elif class_name == TRADE_HISTORY_TYPE_NAME:
-        return TradeHistory.from_string(string_repr)
 
 
 def save_list_to_file(some_data, file_name):
@@ -39,29 +22,6 @@ def log_to_file(trade, file_name, log_dir=None):
         the_file.write(str(ts) + " : " + " PID: " + str(pid) + " " + str(trade) + "\n")
 
 
-def load_crap_from_folder(folder_name, pattern_name, pg_conn):
-    file_list = glob.glob(folder_name + pattern_name + '*.txt')
-    for every_file in file_list:
-        print "Processing file ", every_file
-        array = load_data_from_file(every_file, pattern_name, pg_conn)
-        # load_to_postgres(array, pattern_name, pg_conn)
-
-
-def load_data_from_file(every_file, pattern_name, pg_conn):
-    array = []
-    dummy_flag = (pattern_name == ORDER_BOOK_TYPE_NAME)
-    with open(every_file, "r") as ins:
-        for line in ins:
-            obj = constructor_selector(pattern_name, line)
-            # insert_data(obj, pg_conn, dummy_flag)
-            pg_conn.commit()
-        #     array.append(constructor_selector(pattern_name, line))
-        #     if len(array) >= 100000:
-        #    	load_to_postgres(array, pattern_name, pg_conn)
-        # 	array = []
-    return array
-
-
 def save_to_csv_file(file_name, fields_list, array_list):
 
     with open(file_name, 'w') as f:
@@ -69,18 +29,4 @@ def save_to_csv_file(file_name, fields_list, array_list):
         writer.writerow(fields_list)
         for entry in array_list:
             writer.writerow(list(entry))
-
-
-if __name__ == "__main__":
-    folder_name = sys.argv[1]
-
-    pg_conn = None # init_pg_connection()
-
-    file_name_patterns = [TICKER_TYPE_NAME, CANDLE_TYPE_NAME, TRADE_HISTORY_TYPE_NAME]
-    # file_name_patterns = [ORDER_BOOK_TYPE_NAME]
-
-    for every_pattern in file_name_patterns:
-        load_crap_from_folder(folder_name, every_pattern, pg_conn)
-
-
 

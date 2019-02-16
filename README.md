@@ -115,6 +115,25 @@ https://poloniex.com/public?command=returnTicker
 http://api.huobi.pro/v1/common/symbols
 
 
+### Socket subscriptions endpoints:
+wraping out websocket into class with callbacks:
+https://github.com/websocket-client/websocket-client
+
+exchanges API:
+https://bittrex.github.io/#ws-api-overview
+https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md
+https://github.com/huobiapi/API_Docs_en/wiki/Huobi-API
+https://poloniex.com/support/api/ - not too much info
+kraken - na
+
+Examples of implementation:
+https://github.com/s4w3d0ff/python-poloniex
+https://github.com/absortium/poloniex-api
+https://github.com/czheo/huobi-client-python
+https://github.com/sammchardy/python-binance
+https://github.com/slazarov/python-bittrex-websocket
+
+
 ### Rounding rules
 
 https://support.binance.com/hc/en-us/articles/115000594711-Trading-Rule
@@ -196,3 +215,15 @@ WantedBy=multi-user.target
 ```
 sudo systemctl enable dynuiuc.service
 sudo service dynuiuc start
+
+
+###
+python -m services.arbitrage_between_pair_subscription --threshold 1.2 --reverse_threshold 0.71 --balance_threshold 15 --sell_exchange_id 4 --buy_exchange_id 3 --pair_id 1 --deal_expire_timeout 15 --cfg deploy/deploy.cfg
+
+### Postgres various
+```sql
+-- avg amount of records per table
+SELECT schemaname,relname,n_live_tup 
+  FROM pg_stat_user_tables 
+  ORDER BY n_live_tup DESC;
+```

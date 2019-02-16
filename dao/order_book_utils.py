@@ -7,6 +7,7 @@ from binance.order_book_utils import get_order_book_binance, get_order_book_bina
 from bittrex.constants import BITTREX_CURRENCY_PAIRS
 from bittrex.order_book_utils import get_order_book_bittrex, get_order_book_bittrex_url, \
     get_order_book_bittrex_result_processor
+from bittrex.socket_api import get_order_book_bittrex_through_socket
 
 from kraken.constants import KRAKEN_CURRENCY_PAIRS
 from kraken.order_book_utils import get_order_book_kraken, get_order_book_kraken_url, \
@@ -58,7 +59,7 @@ def get_order_book_speedup(date_start, date_end, processor):
             if pair_name is None:
                 continue
 
-            method_for_url = get_order_book_url_by_echange_id(exchange_id)
+            method_for_url = get_order_book_url_by_exchange_id(exchange_id)
             request_url = method_for_url(pair_name, date_end)
             constructor = get_order_book_constructor_by_exchange_id(exchange_id)
 
@@ -77,7 +78,7 @@ def get_order_books_for_arbitrage_pair(cfg, date_end, processor):
             print "UNSUPPORTED COMBINATION OF PAIR ID AND EXCHANGE", cfg.pair_id, exchange_id
             assert pair_name is None
 
-        method_for_url = get_order_book_url_by_echange_id(exchange_id)
+        method_for_url = get_order_book_url_by_exchange_id(exchange_id)
         request_url = method_for_url(pair_name, date_end)
         constructor = get_order_book_constructor_by_exchange_id(exchange_id)
 
@@ -120,9 +121,9 @@ def get_order_book_sync_and_slow():
     return all_order_book
 
 
-def get_order_book_method_by_echange_id(exchange_id):
+def get_order_book_method_by_exchange_id(exchange_id):
     return {
-        EXCHANGE.BITTREX: get_order_book_bittrex,
+        EXCHANGE.BITTREX: get_order_book_bittrex_through_socket,
         EXCHANGE.KRAKEN: get_order_book_kraken,
         EXCHANGE.POLONIEX: get_order_book_poloniex,
         EXCHANGE.BINANCE: get_order_book_binance,
@@ -130,7 +131,7 @@ def get_order_book_method_by_echange_id(exchange_id):
     }[exchange_id]
 
 
-def get_order_book_url_by_echange_id(exchange_id):
+def get_order_book_url_by_exchange_id(exchange_id):
     return {
         EXCHANGE.BITTREX: get_order_book_bittrex_url,
         EXCHANGE.KRAKEN: get_order_book_kraken_url,
@@ -148,7 +149,7 @@ def get_order_book(exchange_id, pair_id):
         print "UNSUPPORTED COMBINATION OF PAIR ID AND EXCHANGE", pair_id, exchange_id
         assert pair_name is None
 
-    method = get_order_book_method_by_echange_id(exchange_id)
+    method = get_order_book_method_by_exchange_id(exchange_id)
 
     return method(pair_name, timest)
 

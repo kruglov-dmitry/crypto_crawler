@@ -1,7 +1,11 @@
 
 
 def float_to_str(f):
-    float_string = repr(f)
+    """
+    :param f:   Float of Decimal number
+    :return: to be represented within EXACT precision as string
+    """
+    float_string = str(f).lower()   # For Decimal class that represent within capitalized notation: 1E-10 1e-10
     if 'e' in float_string:  # detect scientific notation
         digits, exp = float_string.split('e')
         digits = digits.replace('.', '').replace('-', '')

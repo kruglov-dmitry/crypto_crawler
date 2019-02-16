@@ -72,6 +72,8 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
     msg_queue.add_message(DEAL_INFO_MSG, msg)
     log_to_file(msg, file_name)
 
+    return None
+
     parallel_deals = []
 
     for order in [trade_pairs.deal_1, trade_pairs.deal_2]:
@@ -87,7 +89,7 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
 
         parallel_deals.append(wu)
 
-    res = processor.process_async_post(parallel_deals, DEAL_MAX_TIMEOUT)
+    # res = processor.process_async_post(parallel_deals, DEAL_MAX_TIMEOUT)
 
     if res is None:
         log_to_file("For TradePair - {tp} result is {res}".format(tp=trade_pairs, res=res), file_name)
