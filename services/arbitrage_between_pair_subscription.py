@@ -5,7 +5,11 @@ from Queue import Queue as queue
 from data_access.message_queue import get_message_queue
 from data_access.priority_queue import get_priority_queue
 
-from core.arbitrage_core import compute_new_min_cap_from_tickers
+from core.arbitrage_core import compute_new_min_cap_from_tickers, search_for_arbitrage
+from core.expired_order import add_orders_to_watch_list
+from dao.deal_utils import init_deals_with_logging_speedy
+from enums.deal_type import DEAL_TYPE
+
 from data.BalanceState import dummy_balance_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
@@ -349,12 +353,8 @@ class ArbitrageListener:
             print "Order book update is NONE! for", get_exchange_name_by_id(exchange_id)
             return
 
-        # if get_stage() == ORDER_BOOK_SYNC_STAGES.RESETTING:
-        #     print("Got update while resseting - will ignore it!")
-        #     return
         print "Got update for", get_exchange_name_by_id(exchange_id)
 
-        #if self.buy_subscription.is_running() and self.sell_subscription.is_running():
         if get_stage() == ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC:
 
             print "Syncing in progress ..."
@@ -416,63 +416,38 @@ class ArbitrageListener:
             assert(self.order_book_sell.is_valid())
             assert(self.order_book_buy.is_valid())
 
-            self._print_top10_buy_bids_asks()
+            # self._print_top10_buy_bids_asks()
 
             # DK NOTE: only at this stage we are ready for searching for arbitrage
 
             # for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
-            # method = search_for_arbitrage if mode_id == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
-            # active_threshold = self.threshold if mode_id == DEAL_TYPE.ARBITRAGE else self.reverse_threshold
+            #   method = search_for_arbitrage if mode_id == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
+            #   active_threshold = self.threshold if mode_id == DEAL_TYPE.ARBITRAGE else self.reverse_threshold
 
             # FIXME NOTE: order book expiration check
 
             # init_deals_with_logging_speedy
             # FIXME NOTE: src dst vs buy sell
-            # status_code, deal_pair = search_for_arbitrage(self.order_book_sell, self.order_book_buy,
-            #                                               self.threshold,
-            #                                               self.balance_threshold,
-            #                                               init_deals_with_logging_speedy,
-            #                                               self.balance_state, self.deal_cap,
-            #                                               type_of_deal=DEAL_TYPE.ARBITRAGE,
-            #                                               worker_pool=self.processor,
-            #                                               msg_queue=self.msg_queue)
-            #
-            # add_orders_to_watch_list(deal_pair, self.priority_queue)
-            #
-            # self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
-            # elif self.stage == ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
-            #     print "Syncing in progress ..."
+            status_code, deal_pair = search_for_arbitrage(self.order_book_sell, self.order_book_buy,
+                                                          self.threshold,
+                                                          self.balance_threshold,
+                                                          init_deals_with_logging_speedy,
+                                                          self.balance_state, self.deal_cap,
+                                                          type_of_deal=DEAL_TYPE.ARBITRAGE,
+                                                          worker_pool=self.processor,
+                                                          msg_queue=self.msg_queue)
 
-            #     if exchange_id == self.buy_exchange_id:
-            #         if self.buy_order_book_synced:
-            #             order_book_update_status = self.order_book_buy.update(exchange_id, order_book_updates)
-            #             if order_book_update_status == STATUS.FAILURE:
-            #                 print "Reset of state in pre-SYNC stage - BUY"
-            #                 self.reset_arbitrage_state()
-            #         else:
-            #             self.buy_exchange_updates.put(order_book_updates)
-            #     else:
-            #         if self.sell_order_book_synced:
-            #             order_book_update_status = self.order_book_sell.update(exchange_id, order_book_updates)
-            #             if order_book_update_status == STATUS.FAILURE:
-            #                 print "Reset of state in pre-SYNC stage - SELL"
-            #                 self.reset_arbitrage_state()
-            #         else:
-            #             self.sell_exchange_updates.put(order_book_updates)
-            # else:
-            #     print "on_order_book_update: Unknown stage :(", get_exchange_name_by_id(exchange_id)
+            add_orders_to_watch_list(deal_pair, self.priority_queue)
+
+            self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
+
         else:
             msg = "One of processes stopped: buy: {b_s} sell: {s_s}".format(b_s=self.buy_subscription.is_running(),
                                                                             s_s=self.sell_subscription.is_running())
             print(msg)
             log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-            # Stopping both just in case and resseting!
-            # print "on_order_book_update: Unknown stage :(", get_exchange_name_by_id(exchange_id)
-            # os._exit(1)
             self.sell_subscription.disconnect()
             self.buy_subscription.disconnect()
-
-            # self.reset_arbitrage_state()
 
 
 if __name__ == "__main__":
