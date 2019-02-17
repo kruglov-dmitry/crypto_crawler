@@ -413,8 +413,8 @@ class ArbitrageListener:
                     self.sell_subscription.disconnect()
                     set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
-            assert(self.order_book_sell.is_valid())
-            assert(self.order_book_buy.is_valid())
+            # assert(self.order_book_sell.is_valid())
+            # assert(self.order_book_buy.is_valid())
 
             # self._print_top10_buy_bids_asks()
 
