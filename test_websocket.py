@@ -224,25 +224,23 @@ def test_poloniex_advanced():
     import threading
     from enums.currency_pair import CURRENCY_PAIR
     from poloniex.socket_api import SubscriptionPoloniex
-    from data_access.memory_cache import get_cache
-    cache = get_cache()
-    t1 = SubscriptionPoloniex(CURRENCY_PAIR.BTC_TO_ETC, cache)
-    #t1.subscribe()
 
-    buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
-    buy_subscription_thread.daemon = True
-    buy_subscription_thread.start()
+    t1 = SubscriptionPoloniex(CURRENCY_PAIR.BTC_TO_ETC)
+    t1.subscribe()
 
-    return t1
+    # buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
+    # buy_subscription_thread.daemon = True
+    # buy_subscription_thread.start()
+    #
+    # return t1
 
 def test_bittrex_advanced():
     from enums.currency_pair import CURRENCY_PAIR
     from bittrex.socket_api import SubscriptionBittrex
     import threading
     from data_access.memory_cache import get_cache
-    cache = get_cache()
 
-    t1 = SubscriptionBittrex(CURRENCY_PAIR.BTC_TO_ETC, cache)
+    t1 = SubscriptionBittrex(CURRENCY_PAIR.BTC_TO_ETC)
     # t1.subscribe()
 
     buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
@@ -254,9 +252,7 @@ def test_huobi_advanced():
     import threading
     from enums.currency_pair import CURRENCY_PAIR
     from huobi.socket_api import SubscriptionHuobi
-    from data_access.memory_cache import get_cache
-    cache = get_cache()
-    t1 = SubscriptionHuobi(CURRENCY_PAIR.BTC_TO_ETC, cache)
+    t1 = SubscriptionHuobi(CURRENCY_PAIR.BTC_TO_ETC)
     # t1.subscribe()
 
     buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
@@ -270,9 +266,7 @@ def test_binance_advanced():
     import threading
     from enums.currency_pair import CURRENCY_PAIR
     from binance.socket_api import SubscriptionBinance
-    from data_access.memory_cache import get_cache
-    cache = get_cache()
-    t1 = SubscriptionBinance(CURRENCY_PAIR.BTC_TO_ETC, cache)
+    t1 = SubscriptionBinance(CURRENCY_PAIR.BTC_TO_ETC)
     # t1.subscribe()
     buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
     buy_subscription_thread.daemon = True
@@ -284,13 +278,13 @@ def test_binance_advanced():
 if __name__ == "__main__":
     from utils.time_utils import sleep_for
     # test_huobi()
-    w = test_huobi_advanced()
-    sleep_for(10)
-    w.disconnect()
-    print(w.should_run)
+    # w = test_huobi_advanced()
+    # sleep_for(10)
+    # w.disconnect()
+    # print(w.should_run)
 
     # test_poloniex()
-    # w = test_poloniex_advanced()
+    w = test_poloniex_advanced()
     # sleep_for(10)
     # w.disconnect()
     # print(w.should_run)

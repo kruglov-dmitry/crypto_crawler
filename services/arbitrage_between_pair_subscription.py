@@ -251,7 +251,7 @@ class ArbitrageListener:
 
         msg = "sync_order_books - stage status is {}".format(get_stage())
         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-        
+
         sync_sell_order_book_thread = threading.Thread(target=self.sync_sell_order_book, args=())
         sync_sell_order_book_thread.daemon = True
         sync_sell_order_book_thread.start()
