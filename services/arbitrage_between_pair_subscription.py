@@ -251,7 +251,7 @@ class ArbitrageListener:
 
         msg = "sync_order_books - stage status is {}".format(get_stage())
         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-        
+
         sync_sell_order_book_thread = threading.Thread(target=self.sync_sell_order_book, args=())
         sync_sell_order_book_thread.daemon = True
         sync_sell_order_book_thread.start()
@@ -416,7 +416,7 @@ class ArbitrageListener:
             # assert(self.order_book_sell.is_valid())
             # assert(self.order_book_buy.is_valid())
 
-            # self._print_top10_buy_bids_asks()
+            self._print_top10_buy_bids_asks()
 
             # DK NOTE: only at this stage we are ready for searching for arbitrage
 
@@ -428,18 +428,18 @@ class ArbitrageListener:
 
             # init_deals_with_logging_speedy
             # FIXME NOTE: src dst vs buy sell
-            status_code, deal_pair = search_for_arbitrage(self.order_book_sell, self.order_book_buy,
-                                                          self.threshold,
-                                                          self.balance_threshold,
-                                                          init_deals_with_logging_speedy,
-                                                          self.balance_state, self.deal_cap,
-                                                          type_of_deal=DEAL_TYPE.ARBITRAGE,
-                                                          worker_pool=self.processor,
-                                                          msg_queue=self.msg_queue)
+            # status_code, deal_pair = search_for_arbitrage(self.order_book_sell, self.order_book_buy,
+            #                                               self.threshold,
+            #                                               self.balance_threshold,
+            #                                               init_deals_with_logging_speedy,
+            #                                               self.balance_state, self.deal_cap,
+            #                                               type_of_deal=DEAL_TYPE.ARBITRAGE,
+            #                                               worker_pool=self.processor,
+            #                                               msg_queue=self.msg_queue)
 
-            add_orders_to_watch_list(deal_pair, self.priority_queue)
+            # add_orders_to_watch_list(deal_pair, self.priority_queue)
 
-            self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
+            # self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
 
         else:
             msg = "One of processes stopped: buy: {b_s} sell: {s_s}".format(b_s=self.buy_subscription.is_running(),

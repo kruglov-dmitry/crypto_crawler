@@ -7,7 +7,7 @@ import time
 import thread
 
 from utils.file_utils import log_to_file
-from utils.time_utils import get_now_seconds_utc_ms, sleep_for
+from utils.time_utils import get_now_seconds_utc_ms, sleep_for, get_now_seconds_utc
 
 from poloniex.currency_utils import get_currency_pair_to_poloniex
 from enums.exchange import EXCHANGE
@@ -34,6 +34,8 @@ class PoloniexParameters:
 
     POLONIEX_ORDER_BID = 1
     POLONIEX_ORDER_ASK = 0
+
+    POLONIEX_TIMEOUT = 5
 
 
 def parse_socket_order_book_poloniex(order_book_snapshot, pair_id):
@@ -250,6 +252,8 @@ class SubscriptionPoloniex:
 
         self.should_run = True
 
+        self.last_heartbeat_ts = None
+
     def on_open(self):
 
         print "Opening connection..."
@@ -266,20 +270,30 @@ class SubscriptionPoloniex:
 
         thread.start_new_thread(run, ())
 
-    def on_public(self, ws, args):
-        msg = process_message(args)
-        if not self.order_book_is_received and "orderBook" in args:      # FIXME Howdy DK - is this check promissing FAST?
+    def on_public(self, compressed_data):
+        msg = process_message(compressed_data)
+        if not self.order_book_is_received and "orderBook" in compressed_data:      # FIXME Howdy DK - is this check promissing FAST?
             self.order_book_is_received = True
             order_book_delta = parse_socket_order_book_poloniex(msg, self.pair_id)
         else:
             order_book_delta = parse_socket_update_poloniex(msg)
 
         if order_book_delta is None:
+            #
             # Poloniex tend to send heartbeat messages: [1010]
-            if "1010" not in str(msg):
-                err_msg = "Poloniex - cant parse update from message: {msg}".format(msg=msg)
+            # When no messages have been sent out for one second, the server will send a heartbeat message as follows.
+            # Absence of heartbeats indicates a protocol or networking issue and the client application is expected
+            # to close the socket and try again.
+            #
+            str_msg = str(msg)
+
+            if "1010" in str_msg:
+                self.last_heartbeat_ts = get_now_seconds_utc()
+            else:
+                err_msg = "Poloniex - cant parse update from message: {msg}".format(msg=str_msg)
                 log_to_file(err_msg, SOCKET_ERRORS_LOG_FILE_NAME)
         else:
+            self.last_heartbeat_ts = get_now_seconds_utc()
             self.on_update(EXCHANGE.POLONIEX, order_book_delta)
 
     def subscribe(self):
@@ -301,11 +315,15 @@ class SubscriptionPoloniex:
         # actual subscription in dedicated thread
         self.on_open()
 
+        msg = "Poloniex - before main loop"
+        print(msg)
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+
         # event loop for processing responce
         while self.should_run:
             try:
-                compressData = self.ws.recv()
-                self.on_public(self.ws, compressData)
+                compressed_data = self.ws.recv()
+                self.on_public(compressed_data)
             except Exception as e:  # Supposedly timeout big enough to not trigger re-syncing
                 msg = "Poloniex - triggered exception during reading from socket = {}. Reseting stage!".format(str(e))
                 log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
@@ -315,9 +333,24 @@ class SubscriptionPoloniex:
 
                 break
 
+            if self.last_heartbeat_ts:
+                # During last 5 seconds - no heartbeats no any updates
+                ts_now = get_now_seconds_utc()
+                if ts_now - self.last_heartbeat_ts > PoloniexParameters.POLONIEX_TIMEOUT:
+                    msg = "Poloniex - Havent heard from exchange more than {timeout}. Last update - {l_update} but " \
+                          "now - {n_time}. Reseting stage!".format(timeout=PoloniexParameters.POLONIEX_TIMEOUT,
+                                                                   l_update=self.last_heartbeat_ts,
+                                                                   n_time=ts_now)
+                    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+                    print(msg)
+
+                    set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
+
+                    break
+
         msg = "Poloniex - exit from main loop. Current thread will be finished."
-        print(msg)
         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        print(msg)
 
         self.disconnect()
 
