@@ -1,4 +1,5 @@
-from debug_utils import LOG_ALL_ERRORS, print_to_console
+from debug_utils import LOG_ALL_ERRORS, print_to_console, SOCKET_ERRORS_LOG_FILE_NAME, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME
+
 from utils.file_utils import log_to_file
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
@@ -6,6 +7,8 @@ from utils.time_utils import ts_to_string_utc
 
 from data_access.message_queue import DEAL_INFO_MSG
 from constants import BALANCE_EXPIRED_THRESHOLD
+
+from services.sync_stage import get_stage
 
 
 def log_balance_expired_errors(cfg, msg_queue, balance_state):
@@ -58,3 +61,64 @@ def log_dublicative_order_book(log_file_name, msg_queue, order_book, prev_order_
     {oo}
     """.format(o=str(prev_order_book), oo=str(order_book))
     log_to_file(msg, log_file_name)
+
+
+#
+#   08.03.2019 simplification of websocket based subscription code
+#
+
+
+def log_init_reset():
+    msg = "reset_arbitrage_state: started"
+    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+    print_to_console(msg, LOG_ALL_ERRORS)
+
+
+def log_reset_final_stage():
+    msg = "reset_arbitrage_state invoked: before final stage check"
+    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+    print_to_console(msg, LOG_ALL_ERRORS)
+
+
+def log_reset_stage_successfully():
+    msg = "reset_arbitrage_state - success!"
+    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+    print_to_console(msg, LOG_ALL_ERRORS)
+
+
+def log_cant_update_volume_cap(pair_id, buy_exchange_id, sell_exchange_id, log_file_name):
+    msg = """CAN'T update minimum_volume_cap for {pair_id} at following exchanges: {exch1} {exch2}""".format(
+        pair_id=pair_id, exch1=get_exchange_name_by_id(buy_exchange_id),
+        exch2=get_exchange_name_by_id(sell_exchange_id))
+
+    log_to_file(msg, log_file_name)
+    log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
+
+    print_to_console(msg, LOG_ALL_ERRORS)
+
+
+def log_finishing_syncing_order_book(kind):
+    msg = "Finishing syncing {kind} order book!".format(kind=kind)
+    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+    print_to_console(msg, LOG_ALL_ERRORS)
+
+
+def log_all_order_book_synced():
+    msg = "sync_order_books - AFTER MAIN LOOP - stage status is {}".format(get_stage())
+    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+    print_to_console(msg, LOG_ALL_ERRORS)
+
+
+def log_order_book_update_failed_pre_sync(kind, exchange_id, order_book_updates):
+    msg = "Reset stage will be initiated becase Orderbook update FAILED during pre-SYNC stage - {kind} - for {exch_name} Update itself: {upd}".format(
+        kind=kind, exch_name=get_exchange_name_by_id(exchange_id), upd=order_book_updates)
+    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+    print_to_console(msg, LOG_ALL_ERRORS)
+
+
+def log_order_book_update_failed_post_sync(exchange_id, order_book_updates):
+    msg = "Update after syncing FAILED = Order book update is FAILED! for {exch_name} Update itself: {upd}".format(
+        exch_name=get_exchange_name_by_id(exchange_id), upd=order_book_updates)
+    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+
+    print_to_console(msg, LOG_ALL_ERRORS)

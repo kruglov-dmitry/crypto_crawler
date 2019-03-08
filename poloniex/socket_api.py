@@ -10,6 +10,10 @@ from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for, get_now_seconds_utc
 
 from poloniex.currency_utils import get_currency_pair_to_poloniex
+
+from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_receive_from_socket, \
+    log_heartbeat_is_missing, log_subscription_cancelled, log_websocket_disconnect, log_send_heart_beat_failed
+
 from enums.exchange import EXCHANGE
 from enums.sync_stages import ORDER_BOOK_SYNC_STAGES
 
@@ -256,16 +260,22 @@ class SubscriptionPoloniex:
 
     def on_open(self):
 
-        print "Opening connection..."
+        print("Poloniex: Opening connection...")
 
         def run():
             self.ws.send(json.dumps({'command': 'subscribe', 'channel': self.pair_name}))
-            while True:
-                if get_stage() == ORDER_BOOK_SYNC_STAGES.RESETTING:
-                    break
-                self.ws.send(json.dumps({'command': 'subscribe', 'channel': PoloniexParameters.SUBSCRIBE_HEARTBEAT}))
-                time.sleep(1)
-            self.ws.close()
+            try:
+                while True:
+                    if get_stage() == ORDER_BOOK_SYNC_STAGES.RESETTING:
+                        break
+                    self.ws.send(json.dumps({'command': 'subscribe', 'channel': PoloniexParameters.SUBSCRIBE_HEARTBEAT}))
+                    time.sleep(1)
+                self.ws.close()
+            except Exception as e:
+                log_send_heart_beat_failed("Poloniex", e)
+
+            set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
+
             print("thread terminating...")
 
         thread.start_new_thread(run, ())
@@ -303,7 +313,7 @@ class SubscriptionPoloniex:
             websocket.enableTrace(True)
 
         # Create connection
-        while True:
+        while self.should_run:
             try:
                 self.ws = create_connection(PoloniexParameters.URL, enable_multithread=True)
                 self.ws.settimeout(15)
@@ -315,9 +325,7 @@ class SubscriptionPoloniex:
         # actual subscription in dedicated thread
         self.on_open()
 
-        msg = "Poloniex - before main loop"
-        print(msg)
-        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        log_conect_to_websocket("Poloniex")
 
         # event loop for processing responce
         while self.should_run:
@@ -325,9 +333,8 @@ class SubscriptionPoloniex:
                 compressed_data = self.ws.recv()
                 self.on_public(compressed_data)
             except Exception as e:  # Supposedly timeout big enough to not trigger re-syncing
-                msg = "Poloniex - triggered exception during reading from socket = {}. Reseting stage!".format(str(e))
-                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                print(msg)
+
+                log_error_on_receive_from_socket("Poloniex", e)
 
                 set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
@@ -337,20 +344,13 @@ class SubscriptionPoloniex:
                 # During last 5 seconds - no heartbeats no any updates
                 ts_now = get_now_seconds_utc()
                 if ts_now - self.last_heartbeat_ts > PoloniexParameters.POLONIEX_TIMEOUT:
-                    msg = "Poloniex - Havent heard from exchange more than {timeout}. Last update - {l_update} but " \
-                          "now - {n_time}. Reseting stage!".format(timeout=PoloniexParameters.POLONIEX_TIMEOUT,
-                                                                   l_update=self.last_heartbeat_ts,
-                                                                   n_time=ts_now)
-                    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                    print(msg)
+                    log_heartbeat_is_missing("Poloniex", PoloniexParameters.POLONIEX_TIMEOUT, self.last_heartbeat_ts, ts_now)
 
                     set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
                     break
 
-        msg = "Poloniex - exit from main loop. Current thread will be finished."
-        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-        print(msg)
+        log_subscription_cancelled("Poloniex")
 
         self.disconnect()
 
@@ -362,9 +362,7 @@ class SubscriptionPoloniex:
         try:
             self.ws.close()
         except Exception as e:
-            msg = "Poloniex - triggered exception during closing socket = {} at disconnect!".format(str(e))
-            log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-            print msg
+            log_websocket_disconnect("Poloniex", e)
 
     def is_running(self):
         return self.should_run

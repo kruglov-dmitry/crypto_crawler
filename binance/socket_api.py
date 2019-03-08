@@ -11,6 +11,9 @@ from utils.time_utils import get_now_seconds_utc_ms, sleep_for
 from debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
 from utils.file_utils import log_to_file
 
+from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_receive_from_socket, \
+    log_subscription_cancelled, log_websocket_disconnect
+
 from enums.sync_stages import ORDER_BOOK_SYNC_STAGES
 from services.sync_stage import set_stage
 
@@ -121,7 +124,7 @@ class SubscriptionBinance:
         final_url = BinanceParameters.URL + self.subscription_url
 
         # Create connection
-        while True:
+        while self.should_run:
             try:
                 self.ws = create_connection(final_url, enable_multithread=True)
                 self.ws.settimeout(15)
@@ -133,17 +136,15 @@ class SubscriptionBinance:
         # actual subscription - for binance can be embedded within url
         # self.ws.send(self.subscription_url)
 
-        msg = "Binance - before main loop..."
-        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        log_conect_to_websocket("Binance")
+
         # event loop
         while self.should_run:
             try:
                 compressData = self.ws.recv()
                 self.on_public(self.ws, compressData)
             except Exception as e:      # Supposedly timeout big enough to not trigger re-syncing
-                msg = "Binance - triggered exception during reading from socket = {}. Reseting stage!".format(str(e))
-                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                print(msg)
+                log_error_on_receive_from_socket("Binance", e)
 
                 self.should_run = False
 
@@ -151,8 +152,7 @@ class SubscriptionBinance:
 
                 break
 
-        msg = "Binance - exit from main loop. Current thread will be finished."
-        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        log_subscription_cancelled("Binance")
 
         self.disconnect()
 
@@ -164,9 +164,7 @@ class SubscriptionBinance:
         try:
             self.ws.close()
         except Exception as e:
-            msg = "Binance - triggered exception during closing socket = {} at disconnect!".format(str(e))
-            log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-            print(msg)
+            log_websocket_disconnect("Binance", e)
 
     def is_running(self):
         return self.should_run

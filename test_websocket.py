@@ -238,14 +238,15 @@ def test_bittrex_advanced():
     from enums.currency_pair import CURRENCY_PAIR
     from bittrex.socket_api import SubscriptionBittrex
     import threading
-    from data_access.memory_cache import get_cache
 
     t1 = SubscriptionBittrex(CURRENCY_PAIR.BTC_TO_ETC)
-    # t1.subscribe()
+    t1.subscribe()
 
-    buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
-    buy_subscription_thread.daemon = True
-    buy_subscription_thread.start()
+    # buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
+    # buy_subscription_thread.daemon = True
+    # buy_subscription_thread.start()
+
+    # return t1
 
 
 def test_huobi_advanced():
@@ -284,7 +285,7 @@ if __name__ == "__main__":
     # print(w.should_run)
 
     # test_poloniex()
-    w = test_poloniex_advanced()
+    # w = test_poloniex_advanced()
     # sleep_for(10)
     # w.disconnect()
     # print(w.should_run)
@@ -295,7 +296,7 @@ if __name__ == "__main__":
     # w.disconnect()
     # print(w.should_run)
 
-    # test_bittrex_advanced()
+    w = test_bittrex_advanced()
 
 
     # while 1:

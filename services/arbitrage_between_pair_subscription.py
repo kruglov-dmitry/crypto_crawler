@@ -37,7 +37,10 @@ from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for
 
-from logging_tools.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors
+from logging_tools.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors, \
+    log_reset_stage_successfully, log_init_reset, log_reset_final_stage, log_cant_update_volume_cap, \
+    log_finishing_syncing_order_book, log_all_order_book_synced, log_order_book_update_failed_pre_sync, \
+    log_order_book_update_failed_post_sync
 
 from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD
 
@@ -63,9 +66,7 @@ class ArbitrageListener:
     def reset_arbitrage_state(self):
 
         while True:
-            msg = "reset_arbitrage_state: started"
-            log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-            print(msg)
+            log_init_reset()
 
             set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
@@ -75,26 +76,18 @@ class ArbitrageListener:
             self.clear_queue(self.sell_exchange_updates)
             self.clear_queue(self.buy_exchange_updates)
 
-            msg = "reset_arbitrage_state: queue are cleaned"
-            log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-            print(msg)
-
             self._init_arbitrage_state()
             self.subscribe_to_order_book_update()
             self.sync_order_books()
 
-            msg = "reset_arbitrage_state invoked: ready to take action?"
-            log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-            print(msg)
+            log_reset_final_stage()
 
             if get_stage() != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
                 log_to_file("reset_arbitrage_state - cant sync order book, lets try one more time!", SOCKET_ERRORS_LOG_FILE_NAME)
             else:
                 break
 
-        msg = "reset_arbitrage_state invoked - yalla khalas!?"
-        print(msg)
-        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        log_reset_stage_successfully()
 
 
     def _init_settings(self, cfg):
@@ -154,21 +147,15 @@ class ArbitrageListener:
                     log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
 
                 else:
-                    msg = """CAN'T update minimum_volume_cap for {pair_id} at following
-                    exchanges: {exch1} {exch2}""".format(pair_id=self.pair_id,
-                                                         exch1=get_exchange_name_by_id(self.buy_exchange_id),
-                                                         exch2=get_exchange_name_by_id(self.sell_exchange_id))
-                    print_to_console(msg, LOG_ALL_ERRORS)
-                    log_to_file(msg, self.log_file_name)
-
-                    log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
+                    log_cant_update_volume_cap(self.pair_id, self.buy_exchange_id, self.sell_exchange_id,
+                                               self.log_file_name)
 
             sleep_for(self.cap_update_timeout)
 
     def init_balance_state(self):
         self.balance_state = dummy_balance_init(timest=0, default_volume=100500, default_available_volume=100500)
         self.update_balance_run_flag = False
-        # self.subscribe_balance_update()
+        # TODO FIXME UNCOMMENT self.subscribe_balance_update()
 
     def init_order_books(self):
         cur_timest_sec = get_now_seconds_utc()
@@ -221,9 +208,8 @@ class ArbitrageListener:
                 set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
                 return STATUS.FAILURE
 
-        msg = "Finishing syncing sell order book!"
-        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-        print msg
+        log_finishing_syncing_order_book("SELL")
+
         self.sell_order_book_synced = True
 
     def sync_buy_order_book(self):
@@ -240,9 +226,8 @@ class ArbitrageListener:
                 set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
                 return STATUS.FAILURE
 
-        msg = "Finishing syncing buy order book!"
-        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-        print(msg)
+        log_finishing_syncing_order_book("BUY")
+
         self.buy_order_book_synced = True
 
     def sync_order_books(self):
@@ -269,9 +254,7 @@ class ArbitrageListener:
                 return
             sleep_for(1)
 
-        msg = "sync_order_books - AFTER MAIN LOOP - stage status is {}".format(get_stage())
-        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-        print(msg)
+        log_all_order_book_synced()
 
     def subscribe_cap_update(self):
 
@@ -325,7 +308,6 @@ class ArbitrageListener:
         sell_subscription_thread.start()
 
 
-
     def _print_top10_buy_bids_asks(self):
         bids = self.order_book_buy.bid[:10]
         asks = self.order_book_buy.ask[:10]
@@ -364,12 +346,10 @@ class ArbitrageListener:
                     order_book_update_status = self.order_book_buy.update(exchange_id, order_book_updates)
                     if order_book_update_status == STATUS.FAILURE:
 
-                        msg = "Update Reset of state in pre-SYNC stage - BUY - for {exch_name} Update itself: {upd}".format(
-                            exch_name=get_exchange_name_by_id(exchange_id), upd=order_book_updates)
-                        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                        print(msg)
+                        log_order_book_update_failed_pre_sync("BUY", exchange_id, order_book_updates)
 
                         self.buy_subscription.disconnect()
+                        set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
                     else:
                         self.buy_exchange_updates.put(order_book_updates)
@@ -378,12 +358,10 @@ class ArbitrageListener:
                     order_book_update_status = self.order_book_sell.update(exchange_id, order_book_updates)
                     if order_book_update_status == STATUS.FAILURE:
 
-                        msg = "Update Reset of state in pre-SYNC stage - SELL - for {exch_name} Update itself: {upd}".format(
-                            exch_name=get_exchange_name_by_id(exchange_id), upd=order_book_updates)
-                        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                        print(msg)
+                        log_order_book_update_failed_pre_sync("SELL", exchange_id, order_book_updates)
 
                         self.sell_subscription.disconnect()
+                        set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
                 else:
                     self.sell_exchange_updates.put(order_book_updates)
@@ -395,21 +373,17 @@ class ArbitrageListener:
             if exchange_id == self.buy_exchange_id:
                 order_book_update_status = self.order_book_buy.update(exchange_id, order_book_updates)
                 if order_book_update_status == STATUS.FAILURE:
-                    msg = "Update after syncing FAILED = Order book update is FAILED! for {exch_name} Update itself: {upd}".format(
-                        exch_name=get_exchange_name_by_id(exchange_id), upd=order_book_updates)
-                    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
-                    print msg
+                    log_order_book_update_failed_post_sync(exchange_id, order_book_updates)
+
                     self.buy_subscription.disconnect()
                     set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
             else:
                 order_book_update_status = self.order_book_sell.update(exchange_id, order_book_updates)
                 if order_book_update_status == STATUS.FAILURE:
-                    msg = "Update after syncing FAILED = Order book update is FAILED! for {exch_name} Update itself: {upd}".format(
-                        exch_name=get_exchange_name_by_id(exchange_id), upd=order_book_updates)
-                    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
-                    print msg
+                    log_order_book_update_failed_post_sync(exchange_id, order_book_updates)
+
                     self.sell_subscription.disconnect()
                     set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
@@ -486,13 +460,4 @@ if __name__ == "__main__":
             log_dont_supported_currency(cfg, exchange_id, cfg.pair_id)
             exit()
 
-    ttt = ArbitrageListener(cfg, app_settings)
-    # sleep_for(25)
-    # ttt.reset_arbitrage_state()
-    #
-    # sleep_for(25)
-    # ttt.reset_arbitrage_state()
-
-    print "INFINTE CYCLE!!!!1111"
-    while True:
-        sleep_for(1)
+    ArbitrageListener(cfg, app_settings)

@@ -9,9 +9,13 @@ import thread
 
 from bittrex.currency_utils import get_currency_pair_to_bittrex, get_currency_pair_from_bittrex
 
+from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_receive_from_socket, \
+    log_subscription_cancelled, log_websocket_disconnect, log_send_heart_beat_failed
+
 from utils.file_utils import log_to_file
 from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for
+from services.sync_stage import set_stage
 
 from enums.exchange import EXCHANGE
 from enums.sync_stages import ORDER_BOOK_SYNC_STAGES
@@ -363,26 +367,29 @@ class SubscriptionBittrex:
 
                 self.connection.start()
 
+                log_conect_to_websocket("Bittrex")
+
                 while self.connection.started and self.should_run:
                     try:
                         self.hub.server.invoke(BittrexParameters.SUBSCRIBE_EXCHANGE_DELTA, self.pair_name)
                     except Exception as e:
-                        msg = str(e)
-                        log_to_file("bittrex subscribe - disconnection from site? {}. Reseting stage!".format(msg),
-                                    SOCKET_ERRORS_LOG_FILE_NAME)
+                        log_send_heart_beat_failed("Bittrex", e)
+
+                        set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
+
                         # FIXME NOTE - still not sure - connection.wait(1)
                         self.should_run = False
 
                         break
                     sleep_for(1)
         except Exception as e:
-            msg = str(e)
-            log_to_file("bittrex subscribe - FUCKING INTERNALS OF SIGNALR FAILED???? {}. Reseting stage!".format(msg),SOCKET_ERRORS_LOG_FILE_NAME)
+            log_error_on_receive_from_socket("Bittrex", e)
+
+            set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
             self.should_run = False
 
-        msg = "Bittrex - exit from main loop. Current thread will be finished."
-        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        log_subscription_cancelled("Bittrex")
 
         self.disconnect()
 
@@ -394,9 +401,7 @@ class SubscriptionBittrex:
         try:
             self.connection.close()
         except Exception as e:
-            msg = "Binance - triggered exception during closing socket = {} at disconnect!".format(str(e))
-            log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-            print(msg)
+            log_websocket_disconnect("Bittrex", e)
 
     def is_running(self):
         return self.should_run

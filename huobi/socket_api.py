@@ -1,8 +1,10 @@
 from json import loads
 import websocket
 from websocket import create_connection
+import json
+import time
+import thread
 import ssl
-
 import zlib
 import uuid
 
@@ -18,8 +20,8 @@ from utils.file_utils import log_to_file
 from debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
 from services.sync_stage import set_stage, get_stage
 
-import time
-import thread
+from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_receive_from_socket, \
+    log_subscription_cancelled, log_websocket_disconnect, log_send_heart_beat_failed
 
 
 def parse_socket_update_huobi(order_book_delta, pair_id):
@@ -110,13 +112,11 @@ class SubscriptionHuobi:
             self.on_update(EXCHANGE.HUOBI, updated_order_book)
 
     def on_open(self):
-        import json
 
         print("Huobi: Opening connection...")
 
-        self.ws.send(self.subscription_url)
-
         def run():
+            self.ws.send(self.subscription_url)
             try:
                 while True:
                     if get_stage() == ORDER_BOOK_SYNC_STAGES.RESETTING:
@@ -125,9 +125,7 @@ class SubscriptionHuobi:
                     time.sleep(1)
                 self.ws.close()
             except Exception as e:
-                msg = "Huobi: connection terminated with error: {er}".format(er=str(e))
-                print(msg)
-                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+                log_send_heart_beat_failed("Huobi", e)
             set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
         thread.start_new_thread(run, ())
@@ -140,7 +138,7 @@ class SubscriptionHuobi:
             websocket.enableTrace(True)
 
         # Create connection
-        while True:
+        while self.should_run:
             try:
                 self.ws = create_connection(HuobiParameters.URL, enable_multithread=True, sslopt={"cert_reqs": ssl.CERT_NONE})
                 self.ws.settimeout(15)
@@ -152,8 +150,8 @@ class SubscriptionHuobi:
         # actual subscription in dedicated thread
         self.on_open()
 
-        msg = "Huobi - before main loop..."
-        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        log_conect_to_websocket("Huobi")
+
         # event loop
         while self.should_run:
             try:
@@ -161,17 +159,16 @@ class SubscriptionHuobi:
                 if compressData:
                     self.on_public(compressData)
             except Exception as e:  # Supposedly timeout big enough to not trigger re-syncing
-                msg = "Huobi - triggered exception during reading from socket = {}. Reseting stage!".format(str(e))
-                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-                print msg
+
+                log_error_on_receive_from_socket("Huobi", e)
+
                 self.should_run = False
 
                 set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
                 break
 
-        msg = "Huobi - exit from main loop. Current thread will be finished."
-        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        log_subscription_cancelled("Huobi")
 
         self.disconnect()
 
@@ -183,9 +180,7 @@ class SubscriptionHuobi:
         try:
             self.ws.close()
         except Exception as e:
-            msg = "Binance - triggered exception during closing socket = {} at disconnect!".format(str(e))
-            log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-            print msg
+            log_websocket_disconnect("Huobi", e)
 
     def is_running(self):
         return self.should_run
