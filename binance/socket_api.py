@@ -148,7 +148,7 @@ class SubscriptionBinance:
 
                 self.should_run = False
 
-                set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
+                # set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
                 break
 
@@ -159,7 +159,7 @@ class SubscriptionBinance:
     def disconnect(self):
         self.should_run = False
 
-        sleep_for(3)  # To wait till all processing be ended
+        # sleep_for(3)  # To wait till all processing be ended
 
         try:
             self.ws.close()

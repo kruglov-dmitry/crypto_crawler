@@ -22,7 +22,8 @@ from utils.currency_utils import get_pair_name_by_id
 from utils.system_utils import die_hard
 
 from constants import MAX_VOLUME_ORDER_BOOK
-from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
+from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME, print_to_console, LOG_ALL_ERRORS
+from logging_tools.socket_logging import log_sequence_id_mismatch
 
 # FIXME NOTE - not the smartest idea to deal with
 regex_string = "\[exchange - (.*) exchange_id - (.*) pair - (.*) pair_id - (.*) timest - (.*) bids - (.*) asks - (.*)\]"
@@ -166,7 +167,7 @@ class OrderBook(BaseData):
 
         pair_id = get_currency_pair_from_bittrex(currency)
 
-        # DK FIXME! not exactly but API doesnt offer any viable options :/
+        # DK FIXME! not exactly but Rest API doesnt offer any viable options :/
         sequence_id = get_now_seconds_utc_ms()
 
         return OrderBook(pair_id, timest, sell_bids, buy_bids, EXCHANGE.BITTREX, sequence_id)
@@ -337,13 +338,14 @@ class OrderBook(BaseData):
 
             self.sort_by_price()
         else:
+            if self.sequence_id >= order_book_update.sequence_id:
+                # DK NOTE: we dont care about outdated updates
+                return STATUS.SUCCESS
             if (self.sequence_id + 1) != order_book_update.sequence_id:
-                log_to_file("Poloniex - sequence_id mismatch! Prev: {prev} New: {new}".format(
-                    prev=self.sequence_id, new=order_book_update.sequence_id), SOCKET_ERRORS_LOG_FILE_NAME)
+                log_sequence_id_mismatch("Poloniex", self.sequence_id, order_book_update.sequence_id)
                 return STATUS.FAILURE
 
-            else:
-                self.sequence_id = order_book_update.sequence_id
+            self.sequence_id = order_book_update.sequence_id
 
             for ask in order_book_update.ask:
                 self.insert_new_ask_preserve_order(ask)
@@ -379,12 +381,13 @@ class OrderBook(BaseData):
 
             self.sort_by_price()
         else:
-            # if self.sequence_id > order_book_update.sequence_id:
-            #     # DK NOTE: we dont care about outdated updates
-            #     return
-            # elif (self.sequence_id + 1) != order_book_update.sequence_id:
-            #     die_hard("Bittrex - sequence_id mismatch! Prev: {prev} New: {new}".format(prev=self.sequence_id, new=order_book_update.sequence_id))
-            # else:
+            if self.sequence_id >= order_book_update.sequence_id:
+                # DK NOTE: we dont care about outdated updates
+                return STATUS.SUCCESS
+            elif (self.sequence_id + 1) != order_book_update.sequence_id:
+                log_sequence_id_mismatch("Bittrex", self.sequence_id, order_book_update.sequence_id)
+                die_hard("Bittrex")
+                return STATUS.FAILURE
             
             self.sequence_id = order_book_update.sequence_id
 
@@ -421,16 +424,15 @@ class OrderBook(BaseData):
         :return:
         """
 
-        if self.sequence_id > order_book_update.sequence_id:
+        if self.sequence_id >= order_book_update.sequence_id:
             # DK NOTE: we dont care about outdated updates
             return STATUS.SUCCESS
 
         if (self.sequence_id + 1) != order_book_update.sequence_id:
-            log_to_file("Binance - sequence_id mismatch! Prev: {prev} New: {new}".format(
-                prev=self.sequence_id, new=order_book_update.sequence_id), SOCKET_ERRORS_LOG_FILE_NAME)
+            log_sequence_id_mismatch("Binance", self.sequence_id, order_book_update.sequence_id)
             return STATUS.FAILURE
-        else:
-            self.sequence_id = order_book_update.sequence_id_end
+
+        self.sequence_id = order_book_update.sequence_id_end
 
         for ask in order_book_update.ask:
             self.insert_new_ask_preserve_order(ask)

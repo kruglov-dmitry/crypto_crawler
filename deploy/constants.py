@@ -5,7 +5,7 @@ from deploy.classes.DeployUnit import DeployUnit
 PYTHON_INTERPETATOR = "python"
 COMMON_CFG = "common.cfg"
 
-FULL_COMMAND = PYTHON_INTERPETATOR + " -m services.arbitrage_between_pair"
+FULL_COMMAND = PYTHON_INTERPETATOR + " -m services.arbitrage_between_pair_subscription"
 
 BALANCE_SCREEN_NAME = "Balance_Retrieval"
 BALANCE_WINDOW_NAME = "balance_update"

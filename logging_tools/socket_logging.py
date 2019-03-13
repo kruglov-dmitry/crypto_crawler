@@ -43,3 +43,10 @@ def log_send_heart_beat_failed(exch_name, e):
     msg = "{exch_name}: connection terminated with error: {er}".format(exch_name=exch_name, er=str(e))
     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
     print_to_console(msg, LOG_ALL_ERRORS)
+
+
+def log_sequence_id_mismatch(exch_name, prev_sequence_id, new_sequence_id):
+    msg = "{exch_name} - sequence_id mismatch! Prev: {prev} New: {new}".format(
+        exch_name=exch_name, prev=prev_sequence_id, new=new_sequence_id)
+    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+    print_to_console(msg, LOG_ALL_ERRORS)

@@ -59,9 +59,15 @@ class ArbitrageListener:
         self.reset_arbitrage_state()
 
         while True:
-            sleep_for(5)
-            if not self.buy_subscription.is_running() and not self.sell_subscription.is_running():
+            if self.buy_subscription.is_running() and self.sell_subscription.is_running():
+                sleep_for(1)
+            else:
+                # We will NOT issue a reset till any pending process still running
+                set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
+                while self.buy_subscription.is_running() or self.sell_subscription.is_running():
+                    sleep_for(1)
                 self.reset_arbitrage_state()
+
 
     def reset_arbitrage_state(self):
 
@@ -253,6 +259,7 @@ class ArbitrageListener:
                 print("sync_order_books - it mean that we have error during update for one of order book :(")
                 return
             sleep_for(1)
+            print ("Still syncing")
 
         log_all_order_book_synced()
 
@@ -314,7 +321,7 @@ class ArbitrageListener:
 
         os.system('clear')
 
-        print get_exchange_name_by_id(self.buy_exchange_id)
+        print get_exchange_name_by_id(self.buy_exchange_id), "Current number of threads: ", threading.active_count()
         print "BIDS:"
         for b in bids:
             print b
@@ -335,9 +342,10 @@ class ArbitrageListener:
             print "Order book update is NONE! for", get_exchange_name_by_id(exchange_id)
             return
 
-        print "Got update for", get_exchange_name_by_id(exchange_id)
+        print "Got update for", get_exchange_name_by_id(exchange_id), "Current number of threads: ", threading.active_count()
+        curent_stage = get_stage()
 
-        if get_stage() == ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC:
+        if curent_stage == ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC:
 
             print "Syncing in progress ..."
 
@@ -351,8 +359,8 @@ class ArbitrageListener:
                         self.buy_subscription.disconnect()
                         set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
-                    else:
-                        self.buy_exchange_updates.put(order_book_updates)
+                else:
+                    self.buy_exchange_updates.put(order_book_updates)
             else:
                 if self.sell_order_book_synced:
                     order_book_update_status = self.order_book_sell.update(exchange_id, order_book_updates)
@@ -366,7 +374,7 @@ class ArbitrageListener:
                 else:
                     self.sell_exchange_updates.put(order_book_updates)
 
-        elif get_stage() == ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
+        elif curent_stage == ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
 
             print "Update after syncing...", get_exchange_name_by_id(exchange_id)
 
@@ -416,8 +424,8 @@ class ArbitrageListener:
             # self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
 
         else:
-            msg = "One of processes stopped: buy: {b_s} sell: {s_s}".format(b_s=self.buy_subscription.is_running(),
-                                                                            s_s=self.sell_subscription.is_running())
+            msg = "One of processes stopped: buy: {b_s} sell: {s_s} current stage is {st}".format(b_s=self.buy_subscription.is_running(),
+                                                                            s_s=self.sell_subscription.is_running(), st=curent_stage)
             print(msg)
             log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
             self.sell_subscription.disconnect()

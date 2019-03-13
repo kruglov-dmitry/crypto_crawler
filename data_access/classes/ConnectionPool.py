@@ -112,6 +112,9 @@ class ConnectionPool:
                 some_future = self.network_pool.spawn(self.session.get, work_unit.url, timeout=timeout)
                 work_unit.add_future(some_future)
                 futures.append(some_future)
+
+                # FIXME: error handling
+
             gevent.joinall(futures)
 
             res += self._process_futures(work_units_batch)

@@ -268,10 +268,10 @@ def test_binance_advanced():
     from enums.currency_pair import CURRENCY_PAIR
     from binance.socket_api import SubscriptionBinance
     t1 = SubscriptionBinance(CURRENCY_PAIR.BTC_TO_ETC)
-    # t1.subscribe()
-    buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
-    buy_subscription_thread.daemon = True
-    buy_subscription_thread.start()
+    t1.subscribe()
+    # buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
+    # buy_subscription_thread.daemon = True
+    # buy_subscription_thread.start()
 
     return t1
 
@@ -291,13 +291,12 @@ if __name__ == "__main__":
     # print(w.should_run)
 
     # test_binance()
-    # w = test_binance_advanced()
+    w = test_binance_advanced()
     # sleep_for(10)
     # w.disconnect()
     # print(w.should_run)
 
-    w = test_bittrex_advanced()
-
+    # w = test_bittrex_advanced()
 
     # while 1:
     #     print "WTF"

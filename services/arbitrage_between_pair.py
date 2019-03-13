@@ -167,16 +167,19 @@ if __name__ == "__main__":
             local_cache.cache_order_book(order_book_src)
             local_cache.cache_order_book(order_book_dst)
 
+            print("FIXME: SHOULD NOT BE RUN - LIVE TRADING!")
+            raise
+
             # init_deals_with_logging_speedy
-            status_code, deal_pair = method(order_book_src, order_book_dst, active_threshold, cfg.balance_threshold,
-                                            init_deals_with_logging_speedy,
-                                            balance_state, deal_cap, type_of_deal=mode_id, worker_pool=processor,
-                                            msg_queue=msg_queue)
-
-            add_orders_to_watch_list(deal_pair, priority_queue)
-
-            print_to_console("I am still allive! ", LOG_ALL_DEBUG)
-            sleep_for(2)
+            # status_code, deal_pair = method(order_book_src, order_book_dst, active_threshold, cfg.balance_threshold,
+            #                                 init_deals_with_logging_speedy,
+            #                                 balance_state, deal_cap, type_of_deal=mode_id, worker_pool=processor,
+            #                                 msg_queue=msg_queue)
+            #
+            # add_orders_to_watch_list(deal_pair, priority_queue)
+            #
+            # print_to_console("I am still allive! ", LOG_ALL_DEBUG)
+            # sleep_for(2)
 
         sleep_for(3)
 

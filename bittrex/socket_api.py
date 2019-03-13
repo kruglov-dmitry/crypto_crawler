@@ -375,7 +375,7 @@ class SubscriptionBittrex:
                     except Exception as e:
                         log_send_heart_beat_failed("Bittrex", e)
 
-                        set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
+                        # set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
                         # FIXME NOTE - still not sure - connection.wait(1)
                         self.should_run = False
@@ -385,7 +385,7 @@ class SubscriptionBittrex:
         except Exception as e:
             log_error_on_receive_from_socket("Bittrex", e)
 
-            set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
+            # set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
             self.should_run = False
 
@@ -396,7 +396,7 @@ class SubscriptionBittrex:
     def disconnect(self):
         self.should_run = False
 
-        sleep_for(3)  # To wait till all processing be ended
+        # sleep_for(3)  # To wait till all processing be ended
 
         try:
             self.connection.close()
