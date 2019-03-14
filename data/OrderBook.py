@@ -386,7 +386,7 @@ class OrderBook(BaseData):
                 return STATUS.SUCCESS
             elif (self.sequence_id + 1) != order_book_update.sequence_id:
                 log_sequence_id_mismatch("Bittrex", self.sequence_id, order_book_update.sequence_id)
-                die_hard("Bittrex")
+                # die_hard("Bittrex")
                 return STATUS.FAILURE
             
             self.sequence_id = order_book_update.sequence_id

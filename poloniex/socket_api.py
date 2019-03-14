@@ -1,9 +1,7 @@
 # coding=utf-8
-from json import loads
 import websocket
 from websocket import create_connection
 import json
-import time
 import thread
 
 from utils.file_utils import log_to_file
@@ -15,14 +13,12 @@ from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_r
     log_heartbeat_is_missing, log_subscription_cancelled, log_websocket_disconnect, log_send_heart_beat_failed
 
 from enums.exchange import EXCHANGE
-from enums.sync_stages import ORDER_BOOK_SYNC_STAGES
 
 from data.OrderBookUpdate import OrderBookUpdate
 from data.Deal import Deal
 from data.OrderBook import OrderBook
 
 from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME, get_logging_level, LOG_ALL_TRACE
-from services.sync_stage import set_stage, get_stage
 
 
 class PoloniexParameters:
@@ -218,8 +214,11 @@ def parse_socket_update_poloniex(order_book_delta):
     return OrderBookUpdate(sequence_id, bids, asks, timest_ms, trades_sell, trades_buy)
 
 
-def process_message(compressData):
-    return loads(compressData)
+def process_message(compress_data):
+    try:
+        return json.loads(compress_data)
+    except:
+        log_to_file(compress_data, "poloniex.log")
 
 
 def default_on_public(exchange_id, args):
@@ -254,7 +253,7 @@ class SubscriptionPoloniex:
 
         self.order_book_is_received = False
 
-        self.should_run = True
+        self.should_run = False
 
         self.last_heartbeat_ts = None
 
@@ -265,18 +264,12 @@ class SubscriptionPoloniex:
         def run():
             self.ws.send(json.dumps({'command': 'subscribe', 'channel': self.pair_name}))
             try:
-                while True:
-                    if get_stage() == ORDER_BOOK_SYNC_STAGES.RESETTING:
-                        break
+                while self.should_run:
                     self.ws.send(json.dumps({'command': 'subscribe', 'channel': PoloniexParameters.SUBSCRIBE_HEARTBEAT}))
-                    time.sleep(1)
+                    sleep_for(1)
                 self.ws.close()
             except Exception as e:
                 log_send_heart_beat_failed("Poloniex", e)
-
-            set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
-
-            print("thread terminating...")
 
         thread.start_new_thread(run, ())
 
@@ -313,14 +306,15 @@ class SubscriptionPoloniex:
             websocket.enableTrace(True)
 
         # Create connection
-        while self.should_run:
-            try:
-                self.ws = create_connection(PoloniexParameters.URL, enable_multithread=True)
-                self.ws.settimeout(15)
-                break
-            except Exception as e:
-                print('Poloniex - connect ws error - {}, retry...'.format(str(e)))
-                sleep_for(5)
+        try:
+            self.ws = create_connection(PoloniexParameters.URL, enable_multithread=True)
+            self.ws.settimeout(15)
+        except Exception as e:
+            print('Poloniex - connect ws error - {}, retry...'.format(str(e)))
+
+            self.disconnect()
+
+            return
 
         # actual subscription in dedicated thread
         self.on_open()
@@ -332,11 +326,9 @@ class SubscriptionPoloniex:
             try:
                 compressed_data = self.ws.recv()
                 self.on_public(compressed_data)
-            except Exception as e:  # Supposedly timeout big enough to not trigger re-syncing
+            except Exception as e:
 
                 log_error_on_receive_from_socket("Poloniex", e)
-
-                set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
                 break
 
@@ -346,8 +338,6 @@ class SubscriptionPoloniex:
                 if ts_now - self.last_heartbeat_ts > PoloniexParameters.POLONIEX_TIMEOUT:
                     log_heartbeat_is_missing("Poloniex", PoloniexParameters.POLONIEX_TIMEOUT, self.last_heartbeat_ts, ts_now)
 
-                    set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
-
                     break
 
         log_subscription_cancelled("Poloniex")
@@ -356,8 +346,6 @@ class SubscriptionPoloniex:
 
     def disconnect(self):
         self.should_run = False
-
-        sleep_for(3)    # To wait till all processing be ended
 
         try:
             self.ws.close()

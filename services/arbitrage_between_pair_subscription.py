@@ -63,15 +63,18 @@ class ArbitrageListener:
                 sleep_for(1)
             else:
                 # We will NOT issue a reset till any pending process still running
-                set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
                 while self.buy_subscription.is_running() or self.sell_subscription.is_running():
                     sleep_for(1)
                 self.reset_arbitrage_state()
 
-
     def reset_arbitrage_state(self):
 
+        from utils.system_utils import die_hard
+
         while True:
+            if threading.active_count() > 6:
+                die_hard("WTF?")
+
             log_init_reset()
 
             set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
@@ -82,19 +85,25 @@ class ArbitrageListener:
             self.clear_queue(self.sell_exchange_updates)
             self.clear_queue(self.buy_exchange_updates)
 
-            self._init_arbitrage_state()
-            self.subscribe_to_order_book_update()
-            self.sync_order_books()
+            self._init_arbitrage_state()            # Spawn balance & cap threads, no blocking
+            self.subscribe_to_order_book_update()   # Spawn order book subscription threads, no blocking
+            self.sync_order_books()                 # Spawn order book sync threads, BLOCKING till they finished
 
             log_reset_final_stage()
 
             if get_stage() != ORDER_BOOK_SYNC_STAGES.AFTER_SYNC:
+
+                self.sell_subscription.disconnect()
+                self.buy_subscription.disconnect()
+
                 log_to_file("reset_arbitrage_state - cant sync order book, lets try one more time!", SOCKET_ERRORS_LOG_FILE_NAME)
+
+                while self.buy_subscription.is_running() or self.sell_subscription.is_running():
+                    sleep_for(1)
             else:
                 break
 
         log_reset_stage_successfully()
-
 
     def _init_settings(self, cfg):
         self.buy_exchange_id = cfg.buy_exchange_id
@@ -118,6 +127,12 @@ class ArbitrageListener:
         self.sell_exchange_updates = queue()
         self.buy_exchange_updates = queue()
 
+        buy_subscription_constructor = get_subcribtion_by_exchange(self.buy_exchange_id)
+        sell_subscription_constructor = get_subcribtion_by_exchange(self.sell_exchange_id)
+
+        self.buy_subscription = buy_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update)
+        self.sell_subscription = sell_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update)
+
     def _init_arbitrage_state(self):
         self.init_deal_cap()
         self.init_balance_state()
@@ -132,31 +147,35 @@ class ArbitrageListener:
         self.deal_cap = MarketCap(self.pair_id, get_now_seconds_utc())
         self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
         self.update_min_cap_run_flag = True
-        self.subscribe_cap_update()
+        # TODO FIXME UNCOMMENT self.subscribe_cap_update()
 
     def update_min_cap(self):
-        while True:
-            if self.update_min_cap_run_flag is True:
-                # FIXME - to method
-                cur_timest_sec = get_now_seconds_utc()
-                tickers = get_ticker_for_arbitrage(self.pair_id, cur_timest_sec,
-                                                   [self.buy_exchange_id, self.sell_exchange_id], self.processor)
-                new_cap = compute_new_min_cap_from_tickers(self.pair_id, tickers)
+        log_to_file("Subscribing for updating cap updates", SOCKET_ERRORS_LOG_FILE_NAME)
+        while self.update_min_cap_run_flag:
+            # FIXME - to method
+            cur_timest_sec = get_now_seconds_utc()
+            tickers = get_ticker_for_arbitrage(self.pair_id, cur_timest_sec,
+                                               [self.buy_exchange_id, self.sell_exchange_id], self.processor)
+            new_cap = compute_new_min_cap_from_tickers(self.pair_id, tickers)
 
-                if new_cap > 0:
-                    msg = "Updating old cap {op}".format(op=str(self.deal_cap))
-                    log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
+            if new_cap > 0:
+                msg = "Updating old cap {op}".format(op=str(self.deal_cap))
+                log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
 
-                    self.deal_cap.update_min_volume_cap(new_cap, cur_timest_sec)
+                self.deal_cap.update_min_volume_cap(new_cap, cur_timest_sec)
 
-                    msg = "New cap {op}".format(op=str(self.deal_cap))
-                    log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
+                msg = "New cap {op}".format(op=str(self.deal_cap))
+                log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
 
-                else:
-                    log_cant_update_volume_cap(self.pair_id, self.buy_exchange_id, self.sell_exchange_id,
-                                               self.log_file_name)
+            else:
+                log_cant_update_volume_cap(self.pair_id, self.buy_exchange_id, self.sell_exchange_id, self.log_file_name)
 
-            sleep_for(self.cap_update_timeout)
+            tt = self.cap_update_timeout
+            while tt:
+                sleep_for(1)
+                tt -= 1
+
+        log_to_file("Exit from updating cap updates", SOCKET_ERRORS_LOG_FILE_NAME)
 
     def init_balance_state(self):
         self.balance_state = dummy_balance_init(timest=0, default_volume=100500, default_available_volume=100500)
@@ -170,6 +189,9 @@ class ArbitrageListener:
 
     def update_from_queue(self, exchange_id, order_book, queue):
         while True:
+
+            if not self.buy_subscription.is_running() or not self.sell_subscription.is_running():
+                return STATUS.FAILURE
 
             try:
                 order_book_update = queue.get(block=False)
@@ -204,14 +226,13 @@ class ArbitrageListener:
             self.order_book_sell = get_order_book(self.sell_exchange_id, self.pair_id)
 
             if self.order_book_sell is None:
-                raise
+                return STATUS.FAILURE
 
             self.order_book_sell.sort_by_price()
 
             if STATUS.FAILURE == self.update_from_queue(self.sell_exchange_id, self.order_book_sell, self.sell_exchange_updates):
                 self.sell_order_book_synced = False
 
-                set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
                 return STATUS.FAILURE
 
         log_finishing_syncing_order_book("SELL")
@@ -223,13 +244,12 @@ class ArbitrageListener:
             self.order_book_buy = get_order_book(self.buy_exchange_id, self.pair_id)
 
             if self.order_book_buy is None:
-                raise
+                return STATUS.FAILURE
 
             self.order_book_buy.sort_by_price()
 
             if STATUS.FAILURE == self.update_from_queue(self.buy_exchange_id, self.order_book_buy, self.buy_exchange_updates):
                 self.buy_order_book_synced = False
-                set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
                 return STATUS.FAILURE
 
         log_finishing_syncing_order_book("BUY")
@@ -251,15 +271,12 @@ class ArbitrageListener:
         sync_buy_order_book_thread.daemon = True
         sync_buy_order_book_thread.start()
 
-        while True:
-            if self.sell_order_book_synced and self.buy_order_book_synced:
-                set_stage(ORDER_BOOK_SYNC_STAGES.AFTER_SYNC)
-                break
-            elif get_stage() == ORDER_BOOK_SYNC_STAGES.RESETTING:
-                print("sync_order_books - it mean that we have error during update for one of order book :(")
-                return
-            sleep_for(1)
-            print ("Still syncing")
+        # Wait for both thread be finished
+        sync_sell_order_book_thread.join()
+        sync_buy_order_book_thread.join()
+
+        if self.sell_order_book_synced and self.buy_order_book_synced:
+            set_stage(ORDER_BOOK_SYNC_STAGES.AFTER_SYNC)
 
         log_all_order_book_synced()
 
@@ -271,18 +288,15 @@ class ArbitrageListener:
 
     def update_balance(self):
 
-        while True:
-            if self.update_balance_run_flag is True:
-                cur_timest_sec = get_now_seconds_utc()
-                self.balance_state = get_updated_balance_arbitrage(cfg, self.balance_state, self.local_cache)
+        while self.update_balance_run_flag:
+            cur_timest_sec = get_now_seconds_utc()
+            self.balance_state = get_updated_balance_arbitrage(cfg, self.balance_state, self.local_cache)
 
-                if self.balance_state.expired(cur_timest_sec,
-                                              self.buy_exchange_id,
-                                              self.sell_exchange_id,
-                                              BALANCE_EXPIRED_THRESHOLD):
-                    log_balance_expired_errors(cfg, self.msg_queue, self.balance_state)
+            if self.balance_state.expired(cur_timest_sec, self.buy_exchange_id, self.sell_exchange_id,
+                                          BALANCE_EXPIRED_THRESHOLD):
+                log_balance_expired_errors(cfg, self.msg_queue, self.balance_state)
 
-                    assert False
+                assert False
 
             sleep_for(self.balance_update_timeout)
 
@@ -291,20 +305,7 @@ class ArbitrageListener:
         balance_update_thread.daemon = True
         balance_update_thread.start()
 
-
     def subscribe_to_order_book_update(self):
-        # for both exchanges
-        # Question 1 - selection of method for subscriptions
-        # Question 2 - synchronisation of order book <<?>>
-
-        buy_subscription_constructor = get_subcribtion_by_exchange(self.buy_exchange_id)
-        sell_subscription_constructor = get_subcribtion_by_exchange(self.sell_exchange_id)
-
-        self.buy_subscription = buy_subscription_constructor(pair_id=self.pair_id,
-                                                             on_update=self.on_order_book_update)
-
-        self.sell_subscription = sell_subscription_constructor(pair_id=self.pair_id,
-                                                               on_update=self.on_order_book_update)
 
         buy_subscription_thread = threading.Thread(target=self.buy_subscription.subscribe, args=())
         buy_subscription_thread.daemon = True
@@ -313,7 +314,6 @@ class ArbitrageListener:
         sell_subscription_thread = threading.Thread(target=self.sell_subscription.subscribe, args=())
         sell_subscription_thread.daemon = True
         sell_subscription_thread.start()
-
 
     def _print_top10_buy_bids_asks(self):
         bids = self.order_book_buy.bid[:10]
@@ -356,8 +356,8 @@ class ArbitrageListener:
 
                         log_order_book_update_failed_pre_sync("BUY", exchange_id, order_book_updates)
 
+                        self.sell_subscription.disconnect()
                         self.buy_subscription.disconnect()
-                        set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
                 else:
                     self.buy_exchange_updates.put(order_book_updates)
@@ -368,8 +368,8 @@ class ArbitrageListener:
 
                         log_order_book_update_failed_pre_sync("SELL", exchange_id, order_book_updates)
 
+                        self.buy_subscription.disconnect()
                         self.sell_subscription.disconnect()
-                        set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
                 else:
                     self.sell_exchange_updates.put(order_book_updates)
@@ -385,7 +385,7 @@ class ArbitrageListener:
                     log_order_book_update_failed_post_sync(exchange_id, order_book_updates)
 
                     self.buy_subscription.disconnect()
-                    set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
+                    self.sell_subscription.disconnect()
             else:
                 order_book_update_status = self.order_book_sell.update(exchange_id, order_book_updates)
                 if order_book_update_status == STATUS.FAILURE:
@@ -393,7 +393,7 @@ class ArbitrageListener:
                     log_order_book_update_failed_post_sync(exchange_id, order_book_updates)
 
                     self.sell_subscription.disconnect()
-                    set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
+                    self.buy_subscription.disconnect()
 
             # assert(self.order_book_sell.is_valid())
             # assert(self.order_book_buy.is_valid())
@@ -428,6 +428,7 @@ class ArbitrageListener:
                                                                             s_s=self.sell_subscription.is_running(), st=curent_stage)
             print(msg)
             log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+
             self.sell_subscription.disconnect()
             self.buy_subscription.disconnect()
 

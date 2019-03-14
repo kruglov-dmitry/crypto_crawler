@@ -5,7 +5,6 @@ from zlib import decompress, MAX_WBITS
 from json import loads
 from base64 import b64decode
 import time
-import thread
 
 from bittrex.currency_utils import get_currency_pair_to_bittrex, get_currency_pair_from_bittrex
 
@@ -15,10 +14,10 @@ from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_r
 from utils.file_utils import log_to_file
 from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for
-from services.sync_stage import set_stage
+from utils.system_utils import die_hard
 
 from enums.exchange import EXCHANGE
-from enums.sync_stages import ORDER_BOOK_SYNC_STAGES
+from enums.status import STATUS
 
 from data.OrderBookUpdate import OrderBookUpdate
 from data.Deal import Deal
@@ -241,12 +240,11 @@ def get_order_book_bittrex_through_socket(pair_name, timest):
 
     bittrex_subscription = SubscriptionBittrex(pair_id, on_update=default_on_public)
 
-    thread.start_new_thread(bittrex_subscription.request_order_book, ())
+    if bittrex_subscription.request_order_book() == STATUS.SUCCESS:
+        return bittrex_subscription.initial_order_book
 
-    while not bittrex_subscription.order_book_is_received:
-        sleep_for(1)
+    return None
 
-    return bittrex_subscription.initial_order_book
 
 #
 #           Default methods to be used as callbacks
@@ -304,7 +302,7 @@ class SubscriptionBittrex:
 
         self.initial_order_book = None
 
-        self.should_run = True
+        self.should_run = False
 
     def on_public(self, args):
         msg = process_message(args)
@@ -326,7 +324,9 @@ class SubscriptionBittrex:
 
         if 'R' in kwargs and type(kwargs['R']) is not bool:
             msg = process_message(kwargs['R'])
+
             log_to_file(msg, "bittrex.log")
+
             if msg is not None:
 
                 self.order_book_is_received = True
@@ -337,29 +337,60 @@ class SubscriptionBittrex:
                 msg = process_message(str(kwargs))
             except:
                 msg = kwargs
+
             log_to_file(msg, "bittrex.log")
+
             if not self.order_book_is_received:
                 time.sleep(5)
 
     def request_order_book(self):
-        with Session() as session:
-            connection = Connection(self.url, session)
-            self.hub = connection.register_hub(self.hub_name)
-
-            connection.received += self.on_receive
-
-            connection.start()
-
-            while self.order_book_is_received is not True:
-                self.hub.server.invoke(BittrexParameters.QUERY_EXCHANGE_STATE, self.pair_name)
-                connection.wait(5)  # otherwise it shoot thousands of query and we will be banned :(
-
-            connection.close()
-
-    def subscribe(self):
-        self.should_run = True
         try:
             with Session() as session:
+                connection = Connection(self.url, session)
+                self.hub = connection.register_hub(self.hub_name)
+
+                connection.received += self.on_receive
+
+                connection.start()
+
+                while self.order_book_is_received is not True:
+                    self.hub.server.invoke(BittrexParameters.QUERY_EXCHANGE_STATE, self.pair_name)
+                    connection.wait(5)  # otherwise it shoot thousands of query and we will be banned :(
+
+                connection.close()
+
+                msg = "Got orderbook for Bittrex!"
+                log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+                print(msg)
+
+                return STATUS.SUCCESS
+
+        except Exception as e:
+            # log_error_on_receive_from_socket("Bittrex", e)
+            msg = "Error during order book retrieval for Bittrex {}".format(str(e))
+            log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+            print(msg)
+
+        return STATUS.FAILURE
+
+    def subscribe(self):
+
+        #
+        #       FIXME DBG PART - REMOVE AFTER TESTS
+        #
+
+        if self.should_run:
+            die_hard("Bittrex another running?")
+
+        msg = "Bittrex - call subscribe!"
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        print msg
+
+        self.should_run = True
+
+        try:
+            with Session() as session:
+
                 self.connection = Connection(self.url, session)
                 self.hub = self.connection.register_hub(self.hub_name)
 
@@ -375,8 +406,6 @@ class SubscriptionBittrex:
                     except Exception as e:
                         log_send_heart_beat_failed("Bittrex", e)
 
-                        # set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
-
                         # FIXME NOTE - still not sure - connection.wait(1)
                         self.should_run = False
 
@@ -385,18 +414,12 @@ class SubscriptionBittrex:
         except Exception as e:
             log_error_on_receive_from_socket("Bittrex", e)
 
-            # set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
-
-            self.should_run = False
-
         log_subscription_cancelled("Bittrex")
 
         self.disconnect()
 
     def disconnect(self):
         self.should_run = False
-
-        # sleep_for(3)  # To wait till all processing be ended
 
         try:
             self.connection.close()

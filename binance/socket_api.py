@@ -7,15 +7,13 @@ from enums.exchange import EXCHANGE
 from data.OrderBookUpdate import OrderBookUpdate
 from data.Deal import Deal
 
-from utils.time_utils import get_now_seconds_utc_ms, sleep_for
+from utils.time_utils import get_now_seconds_utc_ms
 from debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
 from utils.file_utils import log_to_file
+from utils.system_utils import die_hard
 
 from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_receive_from_socket, \
     log_subscription_cancelled, log_websocket_disconnect
-
-from enums.sync_stages import ORDER_BOOK_SYNC_STAGES
-from services.sync_stage import set_stage
 
 
 def parse_socket_update_binance(order_book_delta):
@@ -98,11 +96,11 @@ class SubscriptionBinance:
         self.pair_id = pair_id
         self.pair_name = get_currency_pair_to_binance(self.pair_id).lower()
 
-        self.subscription_url = BinanceParameters.SUBSCRIBE_UPDATE.format(pair_name=self.pair_name)
+        self.subscription_url = BinanceParameters.URL + BinanceParameters.SUBSCRIBE_UPDATE.format(pair_name=self.pair_name)
 
         self.on_update = on_update
 
-        self.should_run = True
+        self.should_run = False
 
     def on_public(self, ws, args):
         msg = process_message(args)
@@ -116,22 +114,32 @@ class SubscriptionBinance:
 
     def subscribe(self):
 
+        #
+        #       FIXME DBG PART - REMOVE AFTER TESTS
+        #
+
+        if self.should_run:
+            die_hard("Binance another running?")
+
+        msg = "Binance - call subscribe!"
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        print msg
+
         self.should_run = True
 
         if get_logging_level() == LOG_ALL_TRACE:
             websocket.enableTrace(True)
 
-        final_url = BinanceParameters.URL + self.subscription_url
-
         # Create connection
-        while self.should_run:
-            try:
-                self.ws = create_connection(final_url, enable_multithread=True)
-                self.ws.settimeout(15)
-                break
-            except Exception as e:
-                print('Binance - connect ws error - {}, retry...'.format(str(e)))
-                sleep_for(5)
+        try:
+            self.ws = create_connection(self.subscription_url, enable_multithread=True)
+            self.ws.settimeout(15)
+        except Exception as e:
+            print('Binance - connect ws error - {}, retry...'.format(str(e)))
+
+            self.disconnect()
+
+            return
 
         # actual subscription - for binance can be embedded within url
         # self.ws.send(self.subscription_url)
@@ -141,14 +149,11 @@ class SubscriptionBinance:
         # event loop
         while self.should_run:
             try:
-                compressData = self.ws.recv()
-                self.on_public(self.ws, compressData)
-            except Exception as e:      # Supposedly timeout big enough to not trigger re-syncing
+                compressed_data = self.ws.recv()
+                self.on_public(self.ws, compressed_data)
+            except Exception as e:
+
                 log_error_on_receive_from_socket("Binance", e)
-
-                self.should_run = False
-
-                # set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
                 break
 
@@ -158,8 +163,6 @@ class SubscriptionBinance:
 
     def disconnect(self):
         self.should_run = False
-
-        # sleep_for(3)  # To wait till all processing be ended
 
         try:
             self.ws.close()

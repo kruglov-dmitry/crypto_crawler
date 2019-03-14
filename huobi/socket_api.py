@@ -1,8 +1,6 @@
-from json import loads
 import websocket
 from websocket import create_connection
 import json
-import time
 import thread
 import ssl
 import zlib
@@ -10,7 +8,6 @@ import uuid
 
 from huobi.currency_utils import get_currency_pair_to_huobi
 from enums.exchange import EXCHANGE
-from enums.sync_stages import ORDER_BOOK_SYNC_STAGES
 
 from data.OrderBook import OrderBook
 from data.Deal import Deal
@@ -18,7 +15,6 @@ from data.Deal import Deal
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for
 from utils.file_utils import log_to_file
 from debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
-from services.sync_stage import set_stage, get_stage
 
 from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_receive_from_socket, \
     log_subscription_cancelled, log_websocket_disconnect, log_send_heart_beat_failed
@@ -49,11 +45,11 @@ def parse_socket_update_huobi(order_book_delta, pair_id):
         return None
 
 
-def process_message(compressData):
+def process_message(compress_data):
     try:
-        return loads(zlib.decompress(compressData, 16 + zlib.MAX_WBITS))
+        return json.loads(zlib.decompress(compress_data, 16 + zlib.MAX_WBITS))
     except:
-        log_to_file(compressData, "U.log")
+        log_to_file(compress_data, "huobi.log")
 
 
 class HuobiParameters:
@@ -92,7 +88,7 @@ class SubscriptionHuobi:
 
         self.on_update = on_update
 
-        self.should_run = True
+        self.should_run = False
 
     def on_public(self, args):
         msg = process_message(args)
@@ -118,15 +114,12 @@ class SubscriptionHuobi:
         def run():
             self.ws.send(self.subscription_url)
             try:
-                while True:
-                    if get_stage() == ORDER_BOOK_SYNC_STAGES.RESETTING:
-                        break
+                while self.should_run:
                     self.ws.send(json.dumps({'ping': 18212558000}))
-                    time.sleep(1)
+                    sleep_for(1)
                 self.ws.close()
             except Exception as e:
                 log_send_heart_beat_failed("Huobi", e)
-            set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
         thread.start_new_thread(run, ())
 
@@ -138,14 +131,15 @@ class SubscriptionHuobi:
             websocket.enableTrace(True)
 
         # Create connection
-        while self.should_run:
-            try:
-                self.ws = create_connection(HuobiParameters.URL, enable_multithread=True, sslopt={"cert_reqs": ssl.CERT_NONE})
-                self.ws.settimeout(15)
-                break
-            except Exception as e:
-                print('Huobi - connect ws error - {}, retry...'.format(str(e)))
-                sleep_for(5)
+        try:
+            self.ws = create_connection(HuobiParameters.URL, enable_multithread=True, sslopt={"cert_reqs": ssl.CERT_NONE})
+            self.ws.settimeout(15)
+        except Exception as e:
+            print('Huobi - connect ws error - {}, retry...'.format(str(e)))
+
+            self.disconnect()
+
+            return
 
         # actual subscription in dedicated thread
         self.on_open()
@@ -155,16 +149,12 @@ class SubscriptionHuobi:
         # event loop
         while self.should_run:
             try:
-                compressData = self.ws.recv()
-                if compressData:
-                    self.on_public(compressData)
-            except Exception as e:  # Supposedly timeout big enough to not trigger re-syncing
+                compress_data = self.ws.recv()
+                if compress_data:
+                    self.on_public(compress_data)
+            except Exception as e:
 
                 log_error_on_receive_from_socket("Huobi", e)
-
-                self.should_run = False
-
-                set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)
 
                 break
 
@@ -174,8 +164,6 @@ class SubscriptionHuobi:
 
     def disconnect(self):
         self.should_run = False
-
-        sleep_for(3)  # To wait till all processing be ended
 
         try:
             self.ws.close()
