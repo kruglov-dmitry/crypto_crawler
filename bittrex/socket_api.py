@@ -340,9 +340,6 @@ class SubscriptionBittrex:
 
             log_to_file(msg, "bittrex.log")
 
-            if not self.order_book_is_received:
-                time.sleep(5)
-
     def request_order_book(self):
         try:
             with Session() as session:
@@ -420,6 +417,11 @@ class SubscriptionBittrex:
 
     def disconnect(self):
         self.should_run = False
+
+        # FIXME NOTE:   due to implementation of bittrex order book retrieval
+        #               dedicated method that create and destroy new instance of bittrex subscription
+        #               we are not really relying on this flag anywhere
+        # self.order_book_is_received = False
 
         try:
             self.connection.close()

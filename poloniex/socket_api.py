@@ -270,6 +270,7 @@ class SubscriptionPoloniex:
                 self.ws.close()
             except Exception as e:
                 log_send_heart_beat_failed("Poloniex", e)
+                self.should_run = False
 
         thread.start_new_thread(run, ())
 
@@ -346,6 +347,8 @@ class SubscriptionPoloniex:
 
     def disconnect(self):
         self.should_run = False
+        self.order_book_is_received = False
+        self.last_heartbeat_ts = None
 
         try:
             self.ws.close()

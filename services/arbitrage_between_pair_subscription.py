@@ -69,11 +69,7 @@ class ArbitrageListener:
 
     def reset_arbitrage_state(self):
 
-        from utils.system_utils import die_hard
-
         while True:
-            if threading.active_count() > 6:
-                die_hard("WTF?")
 
             log_init_reset()
 
@@ -343,6 +339,7 @@ class ArbitrageListener:
             return
 
         print "Got update for", get_exchange_name_by_id(exchange_id), "Current number of threads: ", threading.active_count()
+
         curent_stage = get_stage()
 
         if curent_stage == ORDER_BOOK_SYNC_STAGES.BEFORE_SYNC:
