@@ -178,6 +178,11 @@ How to find last modified files recursively:
 find $1 -type f -print0 | xargs -0 stat --format '%Y :%y %n' | sort -nr | cut -d: -f2- | head
 ```
 
+How to merge all files in single file sorted by numerical indexes:
+```bash
+ls socket_errors.log* | sort -Vr | xargs cat > history.log
+```
+
 
 ### Anaconda profit report How-TO Windows
 1. Install https://www.anaconda.com/download/ for 2.7 Python
