@@ -122,3 +122,10 @@ def log_order_book_update_failed_post_sync(exchange_id, order_book_updates):
     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
     print_to_console(msg, LOG_ALL_ERRORS)
+
+
+def log_one_of_subscriptions_failed(buy_subscription, sell_subscription, curent_stage):
+    msg = "One of processes stopped: buy: {b_s} sell: {s_s} current stage is {st}".format(
+        b_s=buy_subscription, s_s=sell_subscription, st=curent_stage)
+    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+    print_to_console(msg, LOG_ALL_ERRORS)

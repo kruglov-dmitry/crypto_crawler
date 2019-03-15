@@ -6,6 +6,7 @@ import thread
 
 from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for, get_now_seconds_utc
+from utils.system_utils import die_hard
 
 from poloniex.currency_utils import get_currency_pair_to_poloniex
 
@@ -325,7 +326,9 @@ class SubscriptionPoloniex:
             return
 
         # actual subscription in dedicated thread
-        self.on_open()
+        # self.on_open()
+
+        self.ws.send(json.dumps({'command': 'subscribe', 'channel': self.pair_name}))
 
         log_conect_to_websocket("Poloniex")
 
