@@ -327,9 +327,7 @@ class SubscriptionPoloniex:
 
         # actual subscription in dedicated thread
         # self.on_open()
-
         self.ws.send(json.dumps({'command': 'subscribe', 'channel': self.pair_name}))
-
         log_conect_to_websocket("Poloniex")
 
         # event loop for processing responce

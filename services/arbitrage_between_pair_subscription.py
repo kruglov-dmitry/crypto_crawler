@@ -72,6 +72,7 @@ class ArbitrageListener:
         local_timeout = 1
 
         while True:
+            sleep_for(local_timeout)
 
             sleep_for(local_timeout)
 
@@ -99,7 +100,9 @@ class ArbitrageListener:
 
                 while self.buy_subscription.is_running() or self.sell_subscription.is_running():
                     sleep_for(1)
+
                 local_timeout += 1
+
             else:
                 break
 
@@ -319,13 +322,15 @@ class ArbitrageListener:
         self.sell_subscription.disconnect()
         self.buy_subscription.disconnect()
 
-    def _print_top10_buy_bids_asks(self):
+    def _print_top10_buy_bids_asks(self, exchange_id):
+
         bids = self.order_book_buy.bid[:10]
         asks = self.order_book_buy.ask[:10]
 
         os.system('clear')
 
-        print get_exchange_name_by_id(self.buy_exchange_id), "Current number of threads: ", threading.active_count()
+        print get_exchange_name_by_id(self.buy_exchange_id), "Current number of threads: ", threading.active_count(), \
+            "Last update from: ", get_exchange_name_by_id(exchange_id), "at", get_now_seconds_utc()
         print "BIDS:"
         for b in bids:
             print b
@@ -396,6 +401,9 @@ class ArbitrageListener:
                     log_order_book_update_failed_post_sync(exchange_id, order_book_updates)
 
                     self.shutdown_subscriptions()
+
+                    return
+
             else:
                 order_book_update_status = self.order_book_sell.update(exchange_id, order_book_updates)
                 if order_book_update_status == STATUS.FAILURE:
@@ -404,10 +412,12 @@ class ArbitrageListener:
 
                     self.shutdown_subscriptions()
 
+                    return
+
             # assert(self.order_book_sell.is_valid())
             # assert(self.order_book_buy.is_valid())
 
-            self._print_top10_buy_bids_asks()
+            self._print_top10_buy_bids_asks(exchange_id)
 
             # DK NOTE: only at this stage we are ready for searching for arbitrage
 
