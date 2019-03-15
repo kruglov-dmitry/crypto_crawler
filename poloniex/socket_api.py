@@ -10,7 +10,7 @@ from utils.time_utils import get_now_seconds_utc_ms, sleep_for, get_now_seconds_
 from poloniex.currency_utils import get_currency_pair_to_poloniex
 
 from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_receive_from_socket, \
-    log_heartbeat_is_missing, log_subscription_cancelled, log_websocket_disconnect, log_send_heart_beat_failed
+    log_heartbeat_is_missing, log_subscription_cancelled, log_websocket_disconnect, log_send_heart_beat_failed, log_subscribe_to_exchange_heartbeat, log_unsubscribe_to_exchange_heartbeat
 
 from enums.exchange import EXCHANGE
 
@@ -259,18 +259,17 @@ class SubscriptionPoloniex:
 
     def on_open(self):
 
-        print("Poloniex: Opening connection...")
-
         def run():
+            log_subscribe_to_exchange_heartbeat("Poloniex")
             self.ws.send(json.dumps({'command': 'subscribe', 'channel': self.pair_name}))
             try:
                 while self.should_run:
                     self.ws.send(json.dumps({'command': 'subscribe', 'channel': PoloniexParameters.SUBSCRIBE_HEARTBEAT}))
                     sleep_for(1)
-                self.ws.close()
             except Exception as e:
                 log_send_heart_beat_failed("Poloniex", e)
-                self.should_run = False
+            
+            log_unsubscribe_to_exchange_heartbeat("Poloniex")
 
         thread.start_new_thread(run, ())
 
@@ -301,6 +300,14 @@ class SubscriptionPoloniex:
             self.on_update(EXCHANGE.POLONIEX, order_book_delta)
 
     def subscribe(self):
+
+        if self.should_run:
+            die_hard("Poloniex another running?")
+
+        msg = "Poloniex - call subscribe!"
+        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+        print msg        
+
         self.should_run = True
 
         if get_logging_level() == LOG_ALL_TRACE:

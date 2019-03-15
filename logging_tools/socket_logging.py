@@ -50,3 +50,15 @@ def log_sequence_id_mismatch(exch_name, prev_sequence_id, new_sequence_id):
         exch_name=exch_name, prev=prev_sequence_id, new=new_sequence_id)
     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
     print_to_console(msg, LOG_ALL_ERRORS)
+
+
+def log_subscribe_to_exchange_heartbeat(exch_name):
+    msg = "{exch_name} - subscribing to exchange heartbeat".format(exch_name=exch_name)
+    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+    print_to_console(msg, LOG_ALL_ERRORS)
+
+def log_unsubscribe_to_exchange_heartbeat(exch_name):
+    msg = "{exch_name} - DISCONNECT FROM exchange heartbeat".format(exch_name=exch_name)
+    log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+    print_to_console(msg, LOG_ALL_ERRORS)
+

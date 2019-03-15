@@ -285,13 +285,13 @@ if __name__ == "__main__":
     # print(w.should_run)
 
     # test_poloniex()
-    # w = test_poloniex_advanced()
+    w = test_poloniex_advanced()
     # sleep_for(10)
     # w.disconnect()
     # print(w.should_run)
 
     # test_binance()
-    w = test_binance_advanced()
+    # w = test_binance_advanced()
     # sleep_for(10)
     # w.disconnect()
     # print(w.should_run)
