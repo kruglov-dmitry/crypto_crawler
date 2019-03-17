@@ -49,11 +49,11 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
     :param threshold:               difference in price in percent that MAY trigger MUTUAL deal placement
     :param balance_threshold:       for interface compatibility with balance_adjustment method
     :param action_to_perform:       method that will be called in case threshold condition are met
-    :param balance_state:           balance accross all active exchange for all supported currencies
+    :param balance_state:           balance across all active exchange for all supported currencies
     :param deal_cap:                dynamically updated minimum volume per currency
     :param type_of_deal:            ARBITRAGE\REVERSE. EXPIRED will not be processed here
     :param worker_pool:             gevent based connection pool for speedy deal placement
-    :param msg_queue:               redis backed msq queue with notificaion for Telegram
+    :param msg_queue:               redis backed msq queue with notification for Telegram
     :return:
     """
 

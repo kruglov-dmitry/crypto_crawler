@@ -15,9 +15,11 @@ from data.Deal import Deal
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for
 from utils.file_utils import log_to_file
 from debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
+from utils.system_utils import die_hard
 
 from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_receive_from_socket, \
-    log_subscription_cancelled, log_websocket_disconnect, log_send_heart_beat_failed
+    log_subscription_cancelled, log_websocket_disconnect, log_send_heart_beat_failed, \
+    log_subscribe_to_exchange_heartbeat, log_unsubscribe_to_exchange_heartbeat
 
 
 def parse_socket_update_huobi(order_book_delta, pair_id):
@@ -109,9 +111,8 @@ class SubscriptionHuobi:
 
     def on_open(self):
 
-        print("Huobi: Opening connection...")
-
         def run():
+            log_subscribe_to_exchange_heartbeat("Huobi")
             self.ws.send(self.subscription_url)
             try:
                 while self.should_run:
@@ -121,9 +122,14 @@ class SubscriptionHuobi:
             except Exception as e:
                 log_send_heart_beat_failed("Huobi", e)
 
+            log_unsubscribe_to_exchange_heartbeat("Huobi")
+
         thread.start_new_thread(run, ())
 
     def subscribe(self):
+
+        if self.should_run:
+            die_hard("Huobi - another subcription thread running?")
 
         self.should_run = True
 

@@ -303,7 +303,7 @@ class SubscriptionPoloniex:
     def subscribe(self):
 
         if self.should_run:
-            die_hard("Poloniex another running?")
+            die_hard("Poloniex - another subcription thread running?")
 
         msg = "Poloniex - call subscribe!"
         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)

@@ -15,6 +15,7 @@ from utils.file_utils import log_to_file
 from utils.key_utils import get_key_by_exchange
 from utils.string_utils import float_to_str
 from utils.time_utils import get_now_seconds_utc
+from utils.system_utils import die_hard
 
 # FIXME NOTE - global variables are VERY bad
 # is it for SINGLE arbitrage process only, not overall!
@@ -22,6 +23,9 @@ overall_profit_so_far = 0.0
 
 
 def init_deal(trade_to_perform, debug_msg):
+    # FIXME
+    die_hard("init_deal called for {f} with message: {msg}".format(f=trade_to_perform, msg=debug_msg))
+
     res = STATUS.FAILURE, None
     try:
         if trade_to_perform.trade_type == DEAL_TYPE.SELL:
@@ -72,49 +76,50 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
     msg_queue.add_message(DEAL_INFO_MSG, msg)
     log_to_file(msg, file_name)
 
-    return None
+    # FIXME
+    die_hard("init_deals_with_logging_speedy called for {f}".format(f=trade_pairs))
 
-    parallel_deals = []
-
-    for order in [trade_pairs.deal_1, trade_pairs.deal_2]:
-        method_for_url = dao.get_method_for_create_url_trade_by_exchange_id(order)
-        # key, pair_name, price, amount
-        key = get_key_by_exchange(order.exchange_id)
-        pair_name = get_currency_pair_name_by_exchange_id(order.pair_id, order.exchange_id)
-        post_details = method_for_url(key, pair_name, order.price, order.volume)
-        constructor = return_with_no_change
-
-        wu = WorkUnit(post_details.final_url, constructor, order)
-        wu.add_post_details(post_details)
-
-        parallel_deals.append(wu)
-
+    # parallel_deals = []
+    #
+    # for order in [trade_pairs.deal_1, trade_pairs.deal_2]:
+    #     method_for_url = dao.get_method_for_create_url_trade_by_exchange_id(order)
+    #     # key, pair_name, price, amount
+    #     key = get_key_by_exchange(order.exchange_id)
+    #     pair_name = get_currency_pair_name_by_exchange_id(order.pair_id, order.exchange_id)
+    #     post_details = method_for_url(key, pair_name, order.price, order.volume)
+    #     constructor = return_with_no_change
+    #
+    #     wu = WorkUnit(post_details.final_url, constructor, order)
+    #     wu.add_post_details(post_details)
+    #
+    #     parallel_deals.append(wu)
+    #
     # res = processor.process_async_post(parallel_deals, DEAL_MAX_TIMEOUT)
-
-    if res is None:
-        log_to_file("For TradePair - {tp} result is {res}".format(tp=trade_pairs, res=res), file_name)
-        log_to_file("For TradePair - {tp} result is {res}".format(tp=trade_pairs, res=res), ERROR_LOG_FILE_NAME)
-        return
-
-    # check for errors only
-    for entry in res:
-        json_responce, order = entry
-        if "ERROR" in json_responce:
-
-            msg = """   <b>ERROR: </b>NONE
-            During deal placement: {u1}
-            Details: {err_msg}
-            """.format(u1=order, err_msg=json_responce)
-
-            msg_queue.add_order(FAILED_ORDERS_MSG, order)
-
-        else:
-            msg = """ For trade {trade}
-            Response is {resp} """.format(trade=order, resp=json_responce)
-
-        print_to_console(msg, LOG_ALL_ERRORS)
-        msg_queue.add_message(DEBUG_INFO_MSG, msg)
-        log_to_file(msg, file_name)
-
-    for order in [trade_pairs.deal_1, trade_pairs.deal_2]:
-        msg_queue.add_order(ORDERS_MSG, order)
+    #
+    # if res is None:
+    #     log_to_file("For TradePair - {tp} result is {res}".format(tp=trade_pairs, res=res), file_name)
+    #     log_to_file("For TradePair - {tp} result is {res}".format(tp=trade_pairs, res=res), ERROR_LOG_FILE_NAME)
+    #     return
+    #
+    # # check for errors only
+    # for entry in res:
+    #     json_responce, order = entry
+    #     if "ERROR" in json_responce:
+    #
+    #         msg = """   <b>ERROR: </b>NONE
+    #         During deal placement: {u1}
+    #         Details: {err_msg}
+    #         """.format(u1=order, err_msg=json_responce)
+    #
+    #         msg_queue.add_order(FAILED_ORDERS_MSG, order)
+    #
+    #     else:
+    #         msg = """ For trade {trade}
+    #         Response is {resp} """.format(trade=order, resp=json_responce)
+    #
+    #     print_to_console(msg, LOG_ALL_ERRORS)
+    #     msg_queue.add_message(DEBUG_INFO_MSG, msg)
+    #     log_to_file(msg, file_name)
+    # 
+    # for order in [trade_pairs.deal_1, trade_pairs.deal_2]:
+    #     msg_queue.add_order(ORDERS_MSG, order)

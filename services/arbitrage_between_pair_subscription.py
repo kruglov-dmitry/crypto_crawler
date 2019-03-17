@@ -35,7 +35,7 @@ from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
-from utils.time_utils import get_now_seconds_utc, sleep_for
+from utils.time_utils import get_now_seconds_utc, sleep_for, get_now_seconds_utc_ms
 
 from logging_tools.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors, \
     log_reset_stage_successfully, log_init_reset, log_reset_final_stage, log_cant_update_volume_cap, \
@@ -414,9 +414,6 @@ class ArbitrageListener:
 
                     return
 
-            # assert(self.order_book_sell.is_valid())
-            # assert(self.order_book_buy.is_valid())
-
             self._print_top10_buy_bids_asks(exchange_id)
 
             # DK NOTE: only at this stage we are ready for searching for arbitrage
@@ -429,16 +426,23 @@ class ArbitrageListener:
 
             # init_deals_with_logging_speedy
             # FIXME NOTE: src dst vs buy sell
-            # status_code, deal_pair = search_for_arbitrage(self.order_book_sell, self.order_book_buy,
-            #                                               self.threshold,
-            #                                               self.balance_threshold,
-            #                                               init_deals_with_logging_speedy,
-            #                                               self.balance_state, self.deal_cap,
-            #                                               type_of_deal=DEAL_TYPE.ARBITRAGE,
-            #                                               worker_pool=self.processor,
-            #                                               msg_queue=self.msg_queue)
+            ts1 = get_now_seconds_utc_ms()
+            status_code, deal_pair = search_for_arbitrage(self.order_book_sell, self.order_book_buy,
+                                                          self.threshold,
+                                                          self.balance_threshold,
+                                                          init_deals_with_logging_speedy,
+                                                          self.balance_state, self.deal_cap,
+                                                          type_of_deal=DEAL_TYPE.ARBITRAGE,
+                                                          worker_pool=self.processor,
+                                                          msg_queue=self.msg_queue)
 
-            # add_orders_to_watch_list(deal_pair, self.priority_queue)
+            ts2 = get_now_seconds_utc_ms()
+
+            msg = "Start: {ts1} ms End: {ts2} ms Runtime: {d} ms".format(ts1=ts1, ts2=ts2, d=ts2-ts1)
+
+            log_to_file(msg, "profile.txt")
+
+            add_orders_to_watch_list(deal_pair, self.priority_queue)
 
             # self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
 

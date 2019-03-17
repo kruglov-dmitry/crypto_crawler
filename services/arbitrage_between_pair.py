@@ -30,6 +30,7 @@ from utils.exchange_utils import get_exchange_name_by_id
 from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for
+from utils.system_utils import die_hard
 
 from logging_tools.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors, \
     log_failed_to_retrieve_order_book, log_dublicative_order_book
@@ -167,8 +168,7 @@ if __name__ == "__main__":
             local_cache.cache_order_book(order_book_src)
             local_cache.cache_order_book(order_book_dst)
 
-            print("FIXME: SHOULD NOT BE RUN - LIVE TRADING!")
-            raise
+            die_hard("FIXME: SHOULD NOT BE RUN - LIVE TRADING!")
 
             # init_deals_with_logging_speedy
             # status_code, deal_pair = method(order_book_src, order_book_dst, active_threshold, cfg.balance_threshold,

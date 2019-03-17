@@ -166,6 +166,8 @@ sudo logrotate -s /var/log/logstatus /etc/logrotate.conf
 
 sudo vim /etc/crontab
 */5 * * * * root logrotate -f /etc/logrotate.conf
+
+sudo service crond restart
 ```
 
 https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_VPC.Scenarios.html#USER_VPC.Scenario3
