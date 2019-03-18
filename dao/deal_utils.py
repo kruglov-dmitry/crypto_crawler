@@ -16,10 +16,11 @@ from utils.key_utils import get_key_by_exchange
 from utils.string_utils import float_to_str
 from utils.time_utils import get_now_seconds_utc
 from utils.system_utils import die_hard
+from decimal import Decimal
 
 # FIXME NOTE - global variables are VERY bad
 # is it for SINGLE arbitrage process only, not overall!
-overall_profit_so_far = 0.0
+overall_profit_so_far = Decimal(0.0)
 
 
 def init_deal(trade_to_perform, debug_msg):
@@ -77,7 +78,7 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
     log_to_file(msg, file_name)
 
     # FIXME
-    die_hard("init_deals_with_logging_speedy called for {f}".format(f=trade_pairs))
+    # die_hard("init_deals_with_logging_speedy called for {f}".format(f=trade_pairs))
 
     # parallel_deals = []
     #

@@ -414,7 +414,7 @@ class ArbitrageListener:
 
                     return
 
-            self._print_top10_buy_bids_asks(exchange_id)
+            # self._print_top10_buy_bids_asks(exchange_id)
 
             # DK NOTE: only at this stage we are ready for searching for arbitrage
 
