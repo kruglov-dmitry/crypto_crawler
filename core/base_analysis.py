@@ -134,7 +134,8 @@ def get_change(current, previous, provide_abs=True):
     else:
         diff = Decimal(current - previous)
 
-    percent = 100.0
+    # FIXME NOTE: What if price would be different in multiple times?
+    percent = 0.001
 
     if tot != 0:
         z = diff / tot
