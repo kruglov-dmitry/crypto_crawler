@@ -137,7 +137,8 @@ def get_change(current, previous, provide_abs=True):
     percent = 100.0
 
     if tot != 0:
-        percent = truncate_float(((diff / tot) * 100)
-                                 , 2)
+        z = diff / tot
+        if z > 0.001:
+            percent = truncate_float((z * 100), 2)
 
     return percent

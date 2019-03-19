@@ -134,10 +134,10 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
         placement_status = action_to_perform(trade_pair, final_difference, "history_trades.log", worker_pool, msg_queue)
 
         # NOTE: if we can't update balance for more than TIMEOUT seconds arbitrage process will exit
-        for exchange_id in [trade_pair.deal_1.exchange_id, trade_pair.deal_2.exchange_id]:
-            update_balance_by_exchange(exchange_id)
+        # for exchange_id in [trade_pair.deal_1.exchange_id, trade_pair.deal_2.exchange_id]:
+        #     update_balance_by_exchange(exchange_id)
 
-        deal_status = placement_status, trade_pair
+        # deal_status = placement_status, trade_pair
 
     return deal_status
 
