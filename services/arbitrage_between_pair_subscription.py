@@ -35,7 +35,7 @@ from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
-from utils.time_utils import get_now_seconds_utc, sleep_for, get_now_seconds_utc_ms
+from utils.time_utils import get_now_seconds_utc, sleep_for, get_now_seconds_utc_ms, ts_to_string_utc
 
 from logging_tools.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors, \
     log_reset_stage_successfully, log_init_reset, log_reset_final_stage, log_cant_update_volume_cap, \
@@ -120,6 +120,19 @@ class ArbitrageListener:
 
         self.cap_update_timeout = cfg.cap_update_timeout
         self.balance_update_timeout = cfg.balance_update_timeout
+
+        #
+        #           For debug purposes
+        #
+
+        self.static_header = "{buy_exchange}\t\t\t\t\t\t\t\t{sell_exchange}".format(
+            buy_exchange=get_exchange_name_by_id(self.buy_exchange_id),
+            sell_exchange=get_exchange_name_by_id(self.sell_exchange_id))
+
+        self.bids_headline = "BIDS\t\t\t\t\t\t\t\t\tBIDS"
+        self.asks_headline = "ASKS\t\t\t\t\t\t\t\t\tASKS"
+
+        self.order_book_delemiter = '\t\t\t'
 
     def _init_infrastructure(self, app_settings):
         self.priority_queue = get_priority_queue(host=app_settings.cache_host, port=app_settings.cache_port)
@@ -339,6 +352,43 @@ class ArbitrageListener:
         for a in asks:
             print a
 
+    def _print_top10(self, exchange_id):
+
+        header = "Number of threads: {tn} Last update {ts} {td} from {up_exch_name}\n{s_header}".format(
+            tn=threading.active_count(), ts=get_now_seconds_utc(), td=ts_to_string_utc(get_now_seconds_utc()),
+            up_exch_name=get_exchange_name_by_id(exchange_id), s_header=self.static_header)
+
+        os.system('clear')
+        print(header)
+
+        print(self.bids_headline)
+        lb1 = len(self.order_book_buy.bid)
+        lb2 = len(self.order_book_sell.bid)
+        for idx in xrange(0, 10):
+            if idx < lb1:
+                print self.order_book_buy.bid[idx],
+            else:
+                print None,
+            print self.order_book_delemiter,
+            if idx < lb2:
+                print self.order_book_sell.bid[idx]
+            else:
+                print None
+
+        print(self.asks_headline)
+        la1 = len(self.order_book_buy.ask)
+        la2 = len(self.order_book_sell.ask)
+        for idx in xrange(0, 10):
+            if idx < la1:
+                print self.order_book_buy.ask[idx],
+            else:
+                print None
+            print self.order_book_delemiter,
+            if idx < la2:
+                print self.order_book_sell.ask[idx]
+            else:
+                print None
+
     def on_order_book_update(self, exchange_id, order_book_updates):
         """
         :param exchange_id:
@@ -416,6 +466,8 @@ class ArbitrageListener:
 
             # self._print_top10_buy_bids_asks(exchange_id)
 
+            self._print_top10(exchange_id)
+
             # DK NOTE: only at this stage we are ready for searching for arbitrage
 
             # for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
@@ -426,23 +478,23 @@ class ArbitrageListener:
 
             # init_deals_with_logging_speedy
             # FIXME NOTE: src dst vs buy sell
-            ts1 = get_now_seconds_utc_ms()
-            status_code, deal_pair = search_for_arbitrage(self.order_book_sell, self.order_book_buy,
-                                                          self.threshold,
-                                                          self.balance_threshold,
-                                                          init_deals_with_logging_speedy,
-                                                          self.balance_state, self.deal_cap,
-                                                          type_of_deal=DEAL_TYPE.ARBITRAGE,
-                                                          worker_pool=self.processor,
-                                                          msg_queue=self.msg_queue)
-
-            ts2 = get_now_seconds_utc_ms()
-
-            msg = "Start: {ts1} ms End: {ts2} ms Runtime: {d} ms".format(ts1=ts1, ts2=ts2, d=ts2-ts1)
-
-            log_to_file(msg, "profile.txt")
-
-            add_orders_to_watch_list(deal_pair, self.priority_queue)
+            # ts1 = get_now_seconds_utc_ms()
+            # status_code, deal_pair = search_for_arbitrage(self.order_book_sell, self.order_book_buy,
+            #                                               self.threshold,
+            #                                               self.balance_threshold,
+            #                                               init_deals_with_logging_speedy,
+            #                                               self.balance_state, self.deal_cap,
+            #                                               type_of_deal=DEAL_TYPE.ARBITRAGE,
+            #                                               worker_pool=self.processor,
+            #                                               msg_queue=self.msg_queue)
+            #
+            # ts2 = get_now_seconds_utc_ms()
+            #
+            # msg = "Start: {ts1} ms End: {ts2} ms Runtime: {d} ms".format(ts1=ts1, ts2=ts2, d=ts2-ts1)
+            #
+            # log_to_file(msg, "profile.txt")
+            #
+            # add_orders_to_watch_list(deal_pair, self.priority_queue)
 
             # self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
 
