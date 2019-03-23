@@ -77,6 +77,8 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
     msg_queue.add_message(DEAL_INFO_MSG, msg)
     log_to_file(msg, file_name)
 
+    print "FIXME", '\n', msg
+
     # FIXME
     # die_hard("init_deals_with_logging_speedy called for {f}".format(f=trade_pairs))
 

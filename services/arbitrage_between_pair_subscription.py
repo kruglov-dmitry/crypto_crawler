@@ -125,7 +125,7 @@ class ArbitrageListener:
         #           For debug purposes
         #
 
-        self.static_header = "{buy_exchange}\t\t\t\t\t\t\t\t{sell_exchange}".format(
+        self.static_header = "\n{buy_exchange}\t\t\t\t\t\t\t\t\t{sell_exchange}\n".format(
             buy_exchange=get_exchange_name_by_id(self.buy_exchange_id),
             sell_exchange=get_exchange_name_by_id(self.sell_exchange_id))
 
@@ -463,8 +463,6 @@ class ArbitrageListener:
                     self.shutdown_subscriptions()
 
                     return
-
-            # self._print_top10_buy_bids_asks(exchange_id)
 
             self._print_top10(exchange_id)
 

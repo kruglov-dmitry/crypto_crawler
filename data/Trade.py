@@ -6,7 +6,7 @@ from enums.exchange import EXCHANGE
 from enums.deal_type import get_order_type_by_id
 
 from debug_utils import get_logging_level, LOG_ALL_DEBUG, print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
-from utils.string_utils import float_to_str
+from utils.string_utils import truncate_float
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.currency_utils import get_pair_name_by_id
 from utils.file_utils import log_to_file
@@ -49,8 +49,8 @@ class Trade(Deal):
             exch=get_exchange_name_by_id(self.exchange_id),
             deal_type=get_order_type_by_id(self.trade_type),
             pair=get_pair_name_by_id(self.pair_id),
-            vol=float_to_str(self.volume),
-            price=float_to_str(self.price),
+            vol=truncate_float(self.volume, 8),
+            price=truncate_float(self.price, 8),
             ob_time=self.order_book_time,
             ct_time=self.create_time,
             ex_time=self.execute_time,

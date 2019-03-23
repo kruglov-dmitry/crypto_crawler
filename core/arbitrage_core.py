@@ -35,7 +35,6 @@ from dao.balance_utils import update_balance_by_exchange
 # FIXME NOTES:
 # 1. load current deals set?
 # 2. integrate to bot commands to show active deal and be able to cancel them by command in chat?
-# 3. take into account that we may need to change frequency of polling based on prospectivness of currency pair
 
 
 def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_threshold,
@@ -68,17 +67,11 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
         log_arbitrage_heart_beat(sell_order_book, buy_order_book, difference)
 
     if difference >= threshold:
-
-        print("before determine_minimum_volume- {df}".format(df=difference))
         min_volume = determine_minimum_volume(sell_order_book, buy_order_book, balance_state)
-
-        print("MinVolume - {mv}".format(mv=min_volume))
 
         min_volume = adjust_minimum_volume_by_trading_cap(deal_cap, min_volume)
 
         min_volume = adjust_maximum_volume_by_trading_cap(deal_cap, min_volume)
-
-        print("MinVolume - {mv} after adjustment".format(mv=min_volume))
 
         min_volume = round_volume_by_exchange_rules(sell_order_book.exchange_id, buy_order_book.exchange_id,
                                                     min_volume, sell_order_book.pair_id)
@@ -107,26 +100,6 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
                                                       difference, final_difference,
                                                       sell_order_book.pair_id, msg_queue)
             return deal_status
-        else:
-            msg = "diff = {diff}".format(diff=final_difference)
-            log_to_file(msg, "diff.log")
-
-            from utils.string_utils import float_to_str
-            from utils.currency_utils import get_pair_name_by_id
-            from utils.exchange_utils import get_exchange_name_by_id
-            from debug_utils import DEBUG_LOG_FILE_NAME, LOG_ALL_MARKET_NETWORK_RELATED_CRAP
-            from data_access.message_queue import DEBUG_INFO_MSG
-
-            msg = """HELL YEAH WE FUCKING GOT IT {pair_name} diff <b>{diff}</b>
-            first_exchange: {first_exchange}
-            second_exchange: {second_exchange}""".format(
-                pair_name=get_pair_name_by_id(sell_order_book.pair_id),
-                first_exchange=get_exchange_name_by_id(sell_order_book.exchange_id),
-                second_exchange=get_exchange_name_by_id(buy_order_book.exchange_id),
-                diff=float_to_str(final_difference))
-            print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
-            log_to_file(msg, DEBUG_LOG_FILE_NAME)
-            msg_queue.add_message(DEBUG_INFO_MSG, msg)
 
         trade_pair = TradePair(trade_at_first_exchange, trade_at_second_exchange, sell_order_book.timest,
                                buy_order_book.timest, type_of_deal)
@@ -283,11 +256,12 @@ def adjust_price_by_order_book(orders, min_volume):
         acc_volume += orders[idx].volume
         idx += 1
 
-    msg = "Order book:\n"
-    for o in orders:
-        msg += str(o) + "\n"
-    msg += "res_price: " + str(new_price)
-    log_to_file(msg, "price_adjustment.log")
+    # FIXME SLOW DEBUG
+    # msg = "Order book:\n"
+    # for o in orders:
+    #     msg += str(o) + "\n"
+    # msg += "res_price: " + str(new_price)
+    # log_to_file(msg, "price_adjustment.log")
 
     return new_price
 

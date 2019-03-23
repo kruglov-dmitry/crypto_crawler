@@ -13,3 +13,6 @@ class Deal(BaseData):
         if isinstance(self, other.__class__):
             return self.price == other.price
         return False
+
+    def __str__(self):
+        return "[price: {:16.8f} volume: {:16.8f} ]".format(self.price, self.volume)

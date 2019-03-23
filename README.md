@@ -185,6 +185,27 @@ How to merge all files in single file sorted by numerical indexes:
 ls socket_errors.log* | sort -Vr | xargs cat > history.log
 ```
 
+How to find all lines in log containing PID and sort entries by time:
+```bash
+grep 'PID: 9848' *.log* | sed 's/:/ : /'  | sort -k 3 > 9848_sorted_by_time.log
+```
+
+How to select log entries that are within particular time range:
+```bash
+awk '($3 >= 1553066553) && ($3<=1553066599)' 9848_1.log > suspect.log
+```
+
+How to build processing histogram:
+```bash
+head all_profile.log
+1553052602 :  PID: 19399 Start: 1553052602200 ms End: 1553052602201 ms Runtime: 1 ms
+1553052602 :  PID: 19115 Start: 1553052602187 ms End: 1553052602201 ms Runtime: 14 ms
+1553052602 :  PID: 18629 Start: 1553052602201 ms End: 1553052602202 ms Runtime: 1 ms
+
+more all_profile.log | awk '{ print $12 }' | sort -n | uniq -c
+
+```
+
 
 ### Anaconda profit report How-TO Windows
 1. Install https://www.anaconda.com/download/ for 2.7 Python
