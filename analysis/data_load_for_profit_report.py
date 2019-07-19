@@ -1,3 +1,6 @@
+from tqdm import tqdm
+from collections import defaultdict
+
 from enums.exchange import EXCHANGE
 from binance.constants import BINANCE_CURRENCY_PAIRS
 from binance.market_utils import get_trades_history_binance
@@ -28,12 +31,9 @@ from data.Trade import Trade
 from dao.db import save_order_into_pg, is_order_present_in_order_history, get_last_binance_trade, \
     is_trade_present_in_trade_history
 
-from collections import defaultdict
 from constants import START_OF_TIME
 
 from enums.status import STATUS
-
-from tqdm import tqdm
 
 
 def fetch_trades_history_to_db(pg_conn, start_time, end_time, fetch_from_start):
@@ -42,6 +42,7 @@ def fetch_trades_history_to_db(pg_conn, start_time, end_time, fetch_from_start):
     load_recent_poloniex_trades_to_db(pg_conn, start_time, end_time)
     load_recent_bittrex_trades_to_db(pg_conn, start_time, end_time)
     load_recent_huobi_trades_to_db(pg_conn, start_time, end_time)
+
 
 def get_trade_retrieval_method_by_exchange(exchange_id):
     return {
@@ -198,7 +199,7 @@ def get_recent_binance_trades(pg_conn, start_time, end_time, force_from_start):
         while True:
             recent_trades = receive_binance_trade_batch(key, pair_name, limit, last_order_id)
 
-            if len(recent_trades) == 0:
+            if not recent_trades:
                 break
 
             # Biggest = Latest - will be first

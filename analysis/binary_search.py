@@ -19,8 +19,7 @@ def binary_search(some_list, target, cmp_method):
         # i.e. single element
         if cmp_method(some_list[mid_idx], target):
             return mid_idx + 1
-        else:
-            return mid_idx
+        return mid_idx
 
     while min_idx < max_idx:
         if some_list[mid_idx] == target:

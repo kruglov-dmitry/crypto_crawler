@@ -52,7 +52,7 @@ def find_corresponding_trades(deal_from_bot, trade_history):
                     tot_volume += trade.volume
                     res.append(trade)
 
-        if len(res) == 0:
+        if not res:
             log_to_file("NOT FOUND deal in history for {a_id}".format(a_id=deal_from_bot),
                         "what_we_have_at_the_end.log")
     else:

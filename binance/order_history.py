@@ -1,51 +1,28 @@
-from urllib import urlencode as _urlencode
-
-from utils.key_utils import signed_body_256
 from utils.time_utils import get_now_seconds_utc_ms
 from utils.file_utils import log_to_file
 from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, LOG_ALL_DEBUG, \
-    DEBUG_LOG_FILE_NAME, ERROR_LOG_FILE_NAME
+    DEBUG_LOG_FILE_NAME
 
-from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_get_request_with_header
-from data.Trade import Trade
 
 from binance.constants import BINANCE_GET_ALL_ORDERS, BINANCE_DEAL_TIMEOUT, BINANCE_ORDER_HISTORY_LIMIT
-from binance.error_handling import is_error
+from binance.rest_api import generate_post_request, get_orders_binance_result_processor
 from enums.status import STATUS
 
 
 def get_order_history_binance_post_details(key, pair_name, limit, last_order_id=None):
-    final_url = BINANCE_GET_ALL_ORDERS
+
+    body = {
+        "symbol": pair_name,
+        "limit": limit,
+        "timestamp": get_now_seconds_utc_ms(),
+        "recvWindow": 5000
+    }
 
     if last_order_id is not None:
-        body = {
-            "symbol": pair_name,
-            "limit": limit,
-            "orderId": last_order_id,
-            "timestamp": get_now_seconds_utc_ms(),
-            "recvWindow": 5000
-        }
-    else:
-        body = {
-            "symbol": pair_name,
-            "limit": limit,
-            "timestamp": get_now_seconds_utc_ms(),
-            "recvWindow": 5000
-        }
+        body["orderId"] = last_order_id
 
-    signature = signed_body_256(body, key.secret)
-
-    body["signature"] = signature
-
-    final_url += _urlencode(body)
-
-    headers = {"X-MBX-APIKEY": key.api_key}
-
-    # Yeah, body after that should be empty
-    body = {}
-
-    post_details = PostRequestDetails(final_url, headers, body)
+    post_details = generate_post_request(BINANCE_GET_ALL_ORDERS, body, key)
 
     if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
         msg = "get orders history binance: {res}".format(res=post_details)
@@ -55,27 +32,6 @@ def get_order_history_binance_post_details(key, pair_name, limit, last_order_id=
     return post_details
 
 
-def get_order_history_binance_result_processor(json_document, pair_name):
-    """
-    json_document - response from exchange api as json string
-    pair_name - for backwords compabilities
-    """
-    orders = []
-    if is_error(json_document):
-
-        msg = "get_order_history_binance_result_processor - error response - {er}".format(er=json_document)
-        log_to_file(msg, ERROR_LOG_FILE_NAME)
-
-        return STATUS.FAILURE, orders
-
-    for entry in json_document:
-        order = Trade.from_binance(entry)
-        if order is not None:
-            orders.append(order)
-
-    return STATUS.SUCCESS, orders
-
-
 def get_order_history_binance(key, pair_name, limit=BINANCE_ORDER_HISTORY_LIMIT, last_order_id=None):
 
     post_details = get_order_history_binance_post_details(key, pair_name, limit, last_order_id)
@@ -83,7 +39,7 @@ def get_order_history_binance(key, pair_name, limit=BINANCE_ORDER_HISTORY_LIMIT,
     err_msg = "get_all_orders_binance for {pair_name}".format(pair_name=pair_name)
 
     status_code, json_responce = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
-                                                             timeout=BINANCE_DEAL_TIMEOUT)
+                                                              timeout=BINANCE_DEAL_TIMEOUT)
 
     if get_logging_level() >= LOG_ALL_DEBUG:
         msg = "get_order_history_binance: {sc} {resp}".format(sc=status_code, resp=json_responce)
@@ -92,6 +48,7 @@ def get_order_history_binance(key, pair_name, limit=BINANCE_ORDER_HISTORY_LIMIT,
 
     historical_orders = []
     if status_code == STATUS.SUCCESS:
-        status_code, historical_orders = get_order_history_binance_result_processor(json_responce, pair_name)
+        msg = "{fn} - error response - {er}".format(fn=get_order_history_binance.func_name, er=json_responce)
+        status_code, historical_orders = get_orders_binance_result_processor(json_responce, pair_name, msg)
 
     return status_code, historical_orders

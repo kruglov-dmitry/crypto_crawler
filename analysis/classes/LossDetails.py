@@ -1,8 +1,8 @@
-from utils.currency_utils import get_pair_name_by_id, get_currency_name_by_id
+from utils.currency_utils import get_currency_name_by_id
 from utils.string_utils import float_to_str
 
 
-class LossDetails():
+class LossDetails:
     def __init__(self, base_currency_id, dst_currency_id, pair_id, loss_in_coin, loss_in_base_currency):
         self.base_currency_id = base_currency_id
         self.dst_currency_id = dst_currency_id

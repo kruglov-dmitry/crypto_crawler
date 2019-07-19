@@ -10,7 +10,7 @@ from utils.string_utils import float_to_str
 from utils.time_utils import ts_to_string_local
 
 # OLAP :(
-from analysis.grouping_utils import group_orders_by_arbitrage_id, group_by_pair_and_exchange_id
+from analysis.grouping_utils import group_orders_by_arbitrage_id
 
 
 def compute_profit_by_pair(pair_id, trades_to_order_by_pair):

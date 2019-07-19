@@ -1,5 +1,4 @@
 from dao.db import get_all_orders
-from enums.exchange import EXCHANGE
 
 
 def find_order_bot_history(order_binance, order_bot_history):

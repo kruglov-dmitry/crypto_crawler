@@ -7,10 +7,10 @@ from enums.exchange import EXCHANGE
 from data.OrderBookUpdate import OrderBookUpdate
 from data.Deal import Deal
 
-from utils.time_utils import get_now_seconds_utc_ms
 from debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
 from utils.file_utils import log_to_file
 from utils.system_utils import die_hard
+from utils.time_utils import get_now_seconds_utc_ms
 
 from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_receive_from_socket, \
     log_subscription_cancelled, log_websocket_disconnect
@@ -61,8 +61,8 @@ def parse_socket_update_binance(order_book_delta):
     return OrderBookUpdate(sequence_id, bids, asks, timest_ms, trades_sell, trades_buy, sequence_id_end)
 
 
-def process_message(compressData):
-    return loads(compressData)
+def process_message(compress_data):
+    return loads(compress_data)
 
 
 class BinanceParameters:
@@ -88,7 +88,6 @@ class SubscriptionBinance:
                                     we pass reference to method WITH initialized order book for that pair_id
                                     whenever we receive update we update order book and trigger checks for arbitrage
         :param base_url:        - web-socket subscription end points
-        :param updates_queue:   - queue to accumulation of updates
         """
 
         self.url = base_url
