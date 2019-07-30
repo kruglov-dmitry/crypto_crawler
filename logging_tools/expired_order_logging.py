@@ -1,8 +1,9 @@
 from utils.file_utils import log_to_file
 from utils.string_utils import float_to_str
 from utils.exchange_utils import get_exchange_name_by_id
-from debug_utils import print_to_console, LOG_ALL_ERRORS, EXPIRED_ORDER_PROCESSING_FILE_NAME, ERROR_LOG_FILE_NAME
-from data_access.message_queue import DEAL_INFO_MSG
+from debug_utils import print_to_console, LOG_ALL_ERRORS, EXPIRED_ORDER_PROCESSING_FILE_NAME,\
+    ERROR_LOG_FILE_NAME, FAILED_ORDER_PROCESSING_FILE_NAME
+from data_access.message_queue import DEAL_INFO_MSG, DEBUG_INFO_MSG
 
 
 def log_cant_cancel_deal(every_deal, msg_queue, log_file_name=EXPIRED_ORDER_PROCESSING_FILE_NAME):
@@ -13,6 +14,26 @@ def log_cant_cancel_deal(every_deal, msg_queue, log_file_name=EXPIRED_ORDER_PROC
         log_to_file(msg, log_file_name)
 
     log_to_file(msg, EXPIRED_ORDER_PROCESSING_FILE_NAME)
+
+
+def log_expired_order_replacement_result(expired_order, json_document, msg_queue):
+    msg = """We have tried to replace existing order with new one:
+                {o}
+                and got response:
+                {r}
+                """.format(o=expired_order, r=json_document)
+    msg_queue.add_message(DEBUG_INFO_MSG, msg)
+    log_to_file(msg, EXPIRED_ORDER_PROCESSING_FILE_NAME)
+
+
+def log_failed_order_replacement_result(failed_order, json_document, msg_queue):
+    msg = """We have tried to replace failed order with new one:
+                {o}
+                and got response:
+                {r}
+                """.format(o=failed_order, r=json_document)
+    msg_queue.add_message(DEBUG_INFO_MSG, msg)
+    log_to_file(msg, FAILED_ORDER_PROCESSING_FILE_NAME)
 
 
 def log_placing_new_deal(every_deal, msg_queue, log_file_name=EXPIRED_ORDER_PROCESSING_FILE_NAME):

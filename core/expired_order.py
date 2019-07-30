@@ -3,7 +3,8 @@ from core.arbitrage_core import adjust_price_by_order_book, determine_maximum_vo
 from logging_tools.expired_order_logging import log_cant_cancel_deal, log_placing_new_deal, \
     log_cant_placing_new_deal, log_cant_retrieve_order_book, log_trace_all_open_orders, \
     log_trace_cancel_request_result, log_open_orders_by_exchange_bad_result, log_open_orders_is_empty, \
-    log_balance_expired, log_too_small_volume, log_cant_retrieve_ticker
+    log_balance_expired, log_too_small_volume, log_cant_retrieve_ticker, \
+    log_expired_order_replacement_result
 
 from dao.order_utils import get_open_orders_by_exchange
 from dao.ticker_utils import get_ticker
@@ -14,9 +15,9 @@ from dao.balance_utils import update_balance_by_exchange
 
 from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc, sleep_for
-from debug_utils import EXPIRED_ORDER_PROCESSING_FILE_NAME, LOG_ALL_ERRORS
+from debug_utils import EXPIRED_ORDER_PROCESSING_FILE_NAME
 
-from data_access.message_queue import ORDERS_MSG, FAILED_ORDERS_MSG, DEBUG_INFO_MSG
+from data_access.message_queue import ORDERS_MSG, FAILED_ORDERS_MSG
 from data_access.priority_queue import ORDERS_EXPIRE_MSG
 
 from enums.status import STATUS
@@ -26,7 +27,7 @@ from enums.exchange import EXCHANGE
 from constants import BALANCE_EXPIRED_THRESHOLD
 
 
-def process_expired_order(order, msg_queue, priority_queue, local_cache):
+def process_expired_order(expired_order, msg_queue, priority_queue, local_cache):
     """
             In order to speedup and simplify expired deal processing following approach implemented.
 
@@ -41,144 +42,137 @@ def process_expired_order(order, msg_queue, priority_queue, local_cache):
 
             FIXME NOTE: poloniex(? other ?) executed volume = 0 and volume != original ?
 
-    :param order:  order retrieved from redis cache
+    :param expired_order:  order retrieved from redis cache
     :param msg_queue: saving to postgres and re-process failed orders
     :param priority_queue: watch queue for expired orders
     :param local_cache: to retrieve balance
     :return:
     """
 
-    err_code, open_orders = get_open_orders_by_exchange(order.exchange_id, order.pair_id)
+    err_code, open_orders = get_open_orders_by_exchange(expired_order.exchange_id, expired_order.pair_id)
 
     if err_code == STATUS.FAILURE:
-        log_open_orders_by_exchange_bad_result(order)
+        log_open_orders_by_exchange_bad_result(expired_order)
 
-        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, expired_order)
 
         return
 
-    if len(open_orders) == 0:
-        log_open_orders_is_empty(order)
+    if not open_orders:
+        log_open_orders_is_empty(expired_order)
         return
 
     log_trace_all_open_orders(open_orders)
 
-    if update_executed_volume(open_orders, order):
-        err_code, responce = cancel_by_exchange(order)
+    if not executed_volume_updated(open_orders, expired_order):
+        log_to_file("Can't update volume for ", EXPIRED_ORDER_PROCESSING_FILE_NAME)
 
-        log_trace_cancel_request_result(order, err_code, responce)
+    err_code, responce = cancel_by_exchange(expired_order)
 
-        if err_code == STATUS.FAILURE:
-            log_cant_cancel_deal(order, msg_queue)
+    log_trace_cancel_request_result(expired_order, err_code, responce)
 
-            priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+    if err_code == STATUS.FAILURE:
+        log_cant_cancel_deal(expired_order, msg_queue)
 
-            return
+        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, expired_order)
 
-        # FIXME NOTE
-        # so we want exchange update for us available balance
-        # as we observe situation where its not happen immediatly we want to mitigate delay
-        # with this dirty workaround
-        sleep_for(2)
+        return
 
-        ticker = get_ticker(order.exchange_id, order.pair_id)
-        if ticker is None:
+    # FIXME NOTE
+    # so we want exchange update for us available balance
+    # as we observe situation where its not happen immediately
+    # we want to mitigate delay with this dirty workaround
+    sleep_for(2)
 
-            priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+    ticker = get_ticker(expired_order.exchange_id, expired_order.pair_id)
+    if ticker is None:
 
-            log_cant_retrieve_ticker(order, msg_queue)
-            return
+        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, expired_order)
 
-        min_volume = compute_min_cap_from_ticker(order.pair_id, ticker)
-        order_book = get_order_book(order.exchange_id, order.pair_id)
+        log_cant_retrieve_ticker(expired_order, msg_queue)
+        return
 
-        if order_book is None:
+    min_volume = compute_min_cap_from_ticker(expired_order.pair_id, ticker)
+    order_book = get_order_book(expired_order.exchange_id, expired_order.pair_id)
 
-            priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+    if order_book is None:
 
-            log_cant_retrieve_order_book(order, msg_queue)
-            return
+        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, expired_order)
 
-        if is_order_book_expired(EXPIRED_ORDER_PROCESSING_FILE_NAME, order_book, local_cache, msg_queue):
+        log_cant_retrieve_order_book(expired_order, msg_queue)
+        return
 
-            priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+    if is_order_book_expired(EXPIRED_ORDER_PROCESSING_FILE_NAME, order_book, local_cache, msg_queue):
 
-            return
+        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, expired_order)
 
-        orders = order_book.bid if order.trade_type == DEAL_TYPE.SELL else order_book.ask
+        return
 
-        order.price = adjust_price_by_order_book(orders, order.volume)
+    orders = order_book.bid if expired_order.trade_type == DEAL_TYPE.SELL else order_book.ask
 
-        # Forcefully update balance for exchange - maybe other processes consume those coins
-        update_balance_by_exchange(order.exchange_id)
-        # Do we have enough coins at our balance
-        balance = local_cache.get_balance(order.exchange_id)
+    expired_order.price = adjust_price_by_order_book(orders, expired_order.volume)
 
-        if balance.expired(BALANCE_EXPIRED_THRESHOLD):
+    # Forcefully update balance for exchange - maybe other processes consume those coins
+    update_balance_by_exchange(expired_order.exchange_id)
+    # Do we have enough coins at our balance
+    balance = local_cache.get_balance(expired_order.exchange_id)
 
-            priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+    if balance.expired(BALANCE_EXPIRED_THRESHOLD):
 
-            log_balance_expired(order.exchange_id, BALANCE_EXPIRED_THRESHOLD, balance, msg_queue)
+        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, expired_order)
 
-            assert False
+        log_balance_expired(expired_order.exchange_id, BALANCE_EXPIRED_THRESHOLD, balance, msg_queue)
 
-        max_volume = determine_maximum_volume_by_balance(order.pair_id, order.trade_type,
-                                                             order.volume, order.price,
-                                                             balance)
+        assert False
 
-        max_volume = round_volume(order.exchange_id, max_volume, order.pair_id)
+    max_volume = determine_maximum_volume_by_balance(expired_order.pair_id, expired_order.trade_type,
+                                                     expired_order.volume, expired_order.price, balance)
 
-        if max_volume < min_volume:
+    max_volume = round_volume(expired_order.exchange_id, max_volume, expired_order.pair_id)
 
-            log_too_small_volume(order, max_volume, min_volume, msg_queue)
+    if max_volume < min_volume:
 
-            return
+        log_too_small_volume(expired_order, max_volume, min_volume, msg_queue)
 
-        order.volume = max_volume
-        order.create_time = get_now_seconds_utc()
+        return
 
-        msg = "Replace existing order with new one - {tt}".format(tt=order)
-        err_code, json_document = init_deal(order, msg)
+    expired_order.volume = max_volume
+    expired_order.create_time = get_now_seconds_utc()
 
-        msg = """We have tried to replace existing order with new one:
-        {o}
-        and got response:
-        {r}
-        """.format(o=order, r=json_document)
-        msg_queue.add_message(DEBUG_INFO_MSG, msg)
-        log_to_file(msg, EXPIRED_ORDER_PROCESSING_FILE_NAME)
+    msg = "Replace EXPIRED order with new one - {tt}".format(tt=expired_order)
+    err_code, json_document = init_deal(expired_order, msg)
 
-        if err_code == STATUS.SUCCESS:
+    log_expired_order_replacement_result(expired_order, json_document, msg_queue)
 
-            order.execute_time = get_now_seconds_utc()
-            order.order_book_time = long(order_book.timest)
-            order.order_id = parse_order_id(order.exchange_id, json_document)
+    if err_code == STATUS.SUCCESS:
 
-            msg_queue.add_order(ORDERS_MSG, order)
+        expired_order.execute_time = get_now_seconds_utc()
+        expired_order.order_book_time = long(order_book.timest)
+        expired_order.order_id = parse_order_id(expired_order.exchange_id, json_document)
 
-            priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, order)
+        msg_queue.add_order(ORDERS_MSG, expired_order)
 
-            log_placing_new_deal(order, msg_queue)
-        else:
-            log_cant_placing_new_deal(order, msg_queue)
+        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, expired_order)
 
-            msg_queue.add_order(FAILED_ORDERS_MSG, order)
+        log_placing_new_deal(expired_order, msg_queue)
     else:
-        print "NU VOT EPTA"
+        log_cant_placing_new_deal(expired_order, msg_queue)
+
+        msg_queue.add_order(FAILED_ORDERS_MSG, expired_order)
 
 
-def update_executed_volume(open_orders_at_both_exchanges, every_deal):
+def executed_volume_updated(open_orders_at_both_exchanges, expired_order):
     # FIXME NOTE: I do hate functions with side effects this is very vicious practice
     # Open question: how to do it properly?
 
     for deal in open_orders_at_both_exchanges:
-        if deal == every_deal:
-            if every_deal.exchange_id != EXCHANGE.POLONIEX:
-                every_deal.volume = every_deal.volume - deal.executed_volume
-                every_deal.executed_volume = deal.executed_volume
+        if deal == expired_order:
+            if expired_order.exchange_id != EXCHANGE.POLONIEX:
+                expired_order.volume = expired_order.volume - deal.executed_volume
+                expired_order.executed_volume = deal.executed_volume
             else:
-                every_deal.executed_volume = every_deal.volume - deal.volume
-                every_deal.volume = deal.volume
+                expired_order.executed_volume = expired_order.volume - deal.volume
+                expired_order.volume = deal.volume
 
             return True
 
@@ -198,8 +192,8 @@ def add_orders_to_watch_list(orders_pair, priority_queue):
     log_to_file(msg, "expire_deal.log")
 
     # cache deals to be checked
-    if orders_pair.deal_1 is not None:
+    if orders_pair.deal_1:
         priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, orders_pair.deal_1)
 
-    if orders_pair.deal_2 is not None:
-        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG,orders_pair.deal_2)
+    if orders_pair.deal_2:
+        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, orders_pair.deal_2)

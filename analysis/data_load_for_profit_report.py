@@ -20,7 +20,6 @@ from huobi.constants import HUOBI_CURRENCY_PAIRS
 from huobi.order_history import get_order_history_huobi
 from huobi.currency_utils import get_currency_pair_to_huobi
 
-from kraken.constants import KRAKEN_CURRENCY_PAIRS
 from kraken.order_history import get_order_history_kraken
 from kraken.currency_utils import get_currency_pair_to_kraken
 

@@ -74,8 +74,6 @@ class ArbitrageListener:
         while True:
             sleep_for(local_timeout)
 
-            sleep_for(local_timeout)
-
             log_init_reset()
 
             set_stage(ORDER_BOOK_SYNC_STAGES.RESETTING)

@@ -1,6 +1,6 @@
 from collections import defaultdict, Counter
 
-from analysis.classes.LossDetails import LossDetails
+from analysis.classes.loss_details import LossDetails
 
 from enums.deal_type import DEAL_TYPE
 from utils.exchange_utils import get_fee_by_exchange, get_exchange_name_by_id

@@ -14,7 +14,7 @@ from analysis.data_load_for_profit_report import fetch_trades_history_to_db
 from analysis.grouping_utils import group_trades_by_orders
 from analysis.data_preparation import prepare_data
 from analysis.profit_report_analysis import compute_loss, compute_profit_by_pair, save_report
-from analysis.classes.ProfitDetails import ProfitDetails
+from analysis.classes.profit_details import ProfitDetails
 
 
 if __name__ == "__main__":

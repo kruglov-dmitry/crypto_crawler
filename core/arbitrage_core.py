@@ -1,9 +1,6 @@
-import sys
 from decimal import Decimal
 
-sys.setrecursionlimit(10000)
-
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
+from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 
 from utils.time_utils import get_now_seconds_utc
 from utils.currency_utils import split_currency_pairs
@@ -29,8 +26,6 @@ from constants import FIRST, LAST, NO_MAX_CAP_LIMIT, MIN_VOLUME_COEFFICIENT, MAX
 from logging_tools.arbitrage_core_logging import log_arbitrage_heart_beat, log_arbitrage_determined_volume_not_enough, \
     log_currency_disbalance_present, log_currency_disbalance_heart_beat, log_arbitrage_determined_price_not_enough
 
-from dao.balance_utils import update_balance_by_exchange
-
 
 # FIXME NOTES:
 # 1. load current deals set?
@@ -50,7 +45,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
     :param action_to_perform:       method that will be called in case threshold condition are met
     :param balance_state:           balance across all active exchange for all supported currencies
     :param deal_cap:                dynamically updated minimum volume per currency
-    :param type_of_deal:            ARBITRAGE\REVERSE. EXPIRED will not be processed here
+    :param type_of_deal:            ARBITRAGE or REVERSE. EXPIRED or FAILED will not be processed here
     :param worker_pool:             gevent based connection pool for speedy deal placement
     :param msg_queue:               redis backed msq queue with notification for Telegram
     :return:
@@ -157,7 +152,7 @@ def determine_minimum_volume(first_order_book, second_order_book, balance_state)
                                                    second_order_book.exchange_id,
                                                    min_volume,
                                                    second_order_book.ask[LAST].price):
-        min_volume = ( MAX_VOLUME_COEFFICIENT * balance_state.get_available_volume_by_currency(
+        min_volume = (MAX_VOLUME_COEFFICIENT * balance_state.get_available_volume_by_currency(
             base_currency_id, second_order_book.exchange_id)) / second_order_book.ask[LAST].price
 
     return min_volume
@@ -210,12 +205,12 @@ def adjust_maximum_volume_by_trading_cap(deal_cap, volume):
 
 
 def round_volume_by_exchange_rules(sell_exchange_id, buy_exchange_id, min_volume, pair_id):
-    if sell_exchange_id == EXCHANGE.BINANCE or buy_exchange_id == EXCHANGE.BINANCE:
+    if EXCHANGE.BINANCE in {sell_exchange_id, buy_exchange_id}:
         return round_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
-    elif sell_exchange_id == EXCHANGE.HUOBI or buy_exchange_id == EXCHANGE.HUOBI:
+    elif EXCHANGE.HUOBI in {sell_exchange_id, buy_exchange_id}:
         return round_volume_by_huobi_rules(volume=min_volume, pair_id=pair_id)
-    else:
-        return truncate_float(min_volume, 8)
+
+    return truncate_float(min_volume, 8)
 
 
 def round_volume(exchange_id, min_volume, pair_id):
@@ -223,8 +218,8 @@ def round_volume(exchange_id, min_volume, pair_id):
         return round_volume_by_binance_rules(volume=min_volume, pair_id=pair_id)
     elif exchange_id == EXCHANGE.HUOBI:
         return round_volume_by_huobi_rules(volume=min_volume, pair_id=pair_id)
-    else:
-        return truncate_float(min_volume, 8)
+
+    return truncate_float(min_volume, 8)
 
 
 def adjust_price_by_order_book(orders, min_volume):
@@ -309,7 +304,6 @@ def compute_new_min_cap_from_tickers(pair_id, tickers):
                 #               need to fix process_async_to_list at ConnectionPool
                 min_price = max(min_price, ticker.ask)
             except:
-                from debug_utils import ERROR_LOG_FILE_NAME
                 msg = "Msg bad ticker value = {}!".format(ticker)
                 log_to_file(msg, ERROR_LOG_FILE_NAME)
 

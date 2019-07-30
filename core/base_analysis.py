@@ -1,10 +1,11 @@
+from collections import defaultdict
+from decimal import Decimal
+
 from enums.currency_pair import CURRENCY_PAIR
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
 from utils.file_utils import log_to_file
 from utils.string_utils import truncate_float
 from core.base_math import get_all_permutation, get_all_permutation_list
-from collections import defaultdict
-from decimal import Decimal
 
 
 def get_matches(objs, key):

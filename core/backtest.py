@@ -17,11 +17,6 @@ from dao.db import init_pg_connection, get_order_book_by_time, get_time_entries
 def dummy_order_state_init():
     order_state_by_exchange = {}
 
-    open_orders = []
-    closed_orders = []
-
-    timest = get_now_seconds_utc()
-
     for exchange_id in EXCHANGE.values():
         order_state_by_exchange[exchange_id] = None
 
@@ -115,10 +110,8 @@ def common_cap_init(timest=get_now_seconds_utc()):
     return MarketCap(min_volume_cap, max_volume_cap, min_price_cap, max_price_cap, timest)
 
 
-def run_analysis_over_db(deal_threshold, some_functor_method):
+def run_analysis_over_db(deal_threshold, analysis_method):
     print "<<< WARNING >>> Non UPDATED FOR AGES."
-    if 1:
-        return
 
     # FIXME NOTE: accumulate profit
 
@@ -133,32 +126,26 @@ def run_analysis_over_db(deal_threshold, some_functor_method):
     current_balance = custom_balance_init(time_entries[0])
     deal_cap = common_cap_init()
 
-    for exch_id in current_balance.balance_per_exchange:
-        print current_balance.balance_per_exchange[exch_id]
+    for exchange_id in current_balance.balance_per_exchange:
+        print current_balance.balance_per_exchange[exchange_id]
 
     for every_time_entry in time_entries:
         order_book_grouped_by_time = get_order_book_by_time(pg_conn, every_time_entry)
 
-        for x in order_book_grouped_by_time:
-            # mega_analysis\
-            some_functor_method (order_book_grouped_by_time,
-                          deal_threshold,
-                          current_balance,
-                          log_to_file,
-                          deal_cap)
+        for order_book in order_book_grouped_by_time:
+            analysis_method (order_book, deal_threshold, current_balance, log_to_file, deal_cap)
 
         cnt += 1
-        some_msg = "Processed order_book #{cnt} out of {total} time entries\n current_balance={balance}".format(
+        msg = "Processed order_book #{cnt} out of {total} time entries\n current_balance={balance}".format(
             cnt=cnt, total=time_entries_num, balance=str(current_balance))
 
-        print some_msg
-
-        log_to_file(some_msg, "history_trades.txt")
+        print msg
+        log_to_file(msg, "history_trades.txt")
 
         if cnt == MAX_ORDER_BOOK_COUNT:
             raise
 
     print "At the end of processing we have following balance:"
-    print "NOTE: supposedly all buy \ sell request were fullfilled"
-    for exch_id in current_balance.balance_per_exchange:
-        print current_balance.balance_per_exchange[exch_id]
+    print "NOTE: supposedly all buy and sell requests were fulfilled"
+    for exchange_id in current_balance.balance_per_exchange:
+        print current_balance.balance_per_exchange[exchange_id]
