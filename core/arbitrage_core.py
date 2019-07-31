@@ -17,14 +17,22 @@ from data.Trade import Trade
 from data.TradePair import TradePair
 
 from data_access.memory_cache import get_next_arbitrage_id
+from data_access.message_queue import ORDERS_MSG, FAILED_ORDERS_MSG
+from data_access.priority_queue import ORDERS_EXPIRE_MSG
 
 from binance.precision_by_currency import round_volume_by_binance_rules
 from huobi.precision_by_currency import round_volume_by_huobi_rules
 
 from constants import FIRST, LAST, NO_MAX_CAP_LIMIT, MIN_VOLUME_COEFFICIENT, MAX_VOLUME_COEFFICIENT, DECIMAL_ZERO
 
+from dao.dao import parse_order_id
+from dao.deal_utils import init_deal
+
+
 from logging_tools.arbitrage_core_logging import log_arbitrage_heart_beat, log_arbitrage_determined_volume_not_enough, \
     log_currency_disbalance_present, log_currency_disbalance_heart_beat, log_arbitrage_determined_price_not_enough
+from logging_tools.expired_order_logging import log_placing_new_deal, log_cant_placing_new_deal, log_too_small_volume, \
+    log_expired_order_replacement_result
 
 
 # FIXME NOTES:
@@ -53,7 +61,7 @@ def search_for_arbitrage(sell_order_book, buy_order_book, threshold, balance_thr
 
     deal_status = STATUS.FAILURE, None
 
-    if len(sell_order_book.bid) == 0 or len(buy_order_book.ask) == 0:
+    if not sell_order_book.bid or not buy_order_book.ask:
         return deal_status
 
     difference = get_change(sell_order_book.bid[FIRST].price, buy_order_book.ask[LAST].price, provide_abs=False)
@@ -276,8 +284,9 @@ def adjust_currency_balance(first_order_book, second_order_book, threshold, bala
     if balance_state.is_there_disbalance(dst_currency_id, src_exchange_id, dst_exchange_id, balance_threshold) and \
             is_no_pending_order(pair_id, src_exchange_id, dst_exchange_id):
 
-        max_volume = Decimal(0.5) * abs(balance_state.get_available_volume_by_currency(dst_currency_id, dst_exchange_id) -
-                            balance_state.get_available_volume_by_currency(dst_currency_id, src_exchange_id))
+        max_volume = Decimal(0.5) * abs(balance_state.get_available_volume_by_currency(
+            dst_currency_id, dst_exchange_id) - balance_state.get_available_volume_by_currency(
+            dst_currency_id, src_exchange_id))
 
         # FIXME NOTE: side effect here
         deal_cap.update_max_volume_cap(max_volume)
@@ -327,3 +336,40 @@ def compute_min_cap_from_ticker(pair_id, ticker):
         return MIN_VOLUME_COEFFICIENT[base_currency_id] / min_price
 
     return DECIMAL_ZERO
+
+
+def place_order_by_market_rate(expired_order, msg_queue, priority_queue, min_volume, balance, order_book, log_file_name):
+    max_volume = determine_maximum_volume_by_balance(expired_order.pair_id, expired_order.trade_type,
+                                                     expired_order.volume, expired_order.price, balance)
+
+    max_volume = round_volume(expired_order.exchange_id, max_volume, expired_order.pair_id)
+
+    if max_volume < min_volume:
+
+        log_too_small_volume(expired_order, max_volume, min_volume, msg_queue)
+
+        return
+
+    expired_order.volume = max_volume
+    expired_order.create_time = get_now_seconds_utc()
+
+    msg = "Replace EXPIRED order with new one - {tt}".format(tt=expired_order)
+    err_code, json_document = init_deal(expired_order, msg)
+
+    log_expired_order_replacement_result(expired_order, json_document, msg_queue)
+
+    if err_code == STATUS.SUCCESS:
+
+        expired_order.execute_time = get_now_seconds_utc()
+        expired_order.order_book_time = long(order_book.timest)
+        expired_order.order_id = parse_order_id(expired_order.exchange_id, json_document)
+
+        msg_queue.add_order(ORDERS_MSG, expired_order)
+
+        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, expired_order)
+
+        log_placing_new_deal(expired_order, msg_queue, log_file_name)
+    else:
+        log_cant_placing_new_deal(expired_order, msg_queue)
+
+        msg_queue.add_order(FAILED_ORDERS_MSG, expired_order, log_file_name)

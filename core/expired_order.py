@@ -1,23 +1,20 @@
-from core.arbitrage_core import adjust_price_by_order_book, determine_maximum_volume_by_balance, \
-    compute_min_cap_from_ticker, round_volume
-from logging_tools.expired_order_logging import log_cant_cancel_deal, log_placing_new_deal, \
-    log_cant_placing_new_deal, log_cant_retrieve_order_book, log_trace_all_open_orders, \
+from core.arbitrage_core import adjust_price_by_order_book, compute_min_cap_from_ticker, \
+    place_order_by_market_rate
+from logging_tools.expired_order_logging import log_cant_cancel_deal, \
+    log_cant_retrieve_order_book, log_trace_all_open_orders, \
     log_trace_cancel_request_result, log_open_orders_by_exchange_bad_result, log_open_orders_is_empty, \
-    log_balance_expired, log_too_small_volume, log_cant_retrieve_ticker, \
-    log_expired_order_replacement_result
+    log_balance_expired, log_cant_retrieve_ticker
 
 from dao.order_utils import get_open_orders_by_exchange
 from dao.ticker_utils import get_ticker
-from dao.dao import cancel_by_exchange, parse_order_id
-from dao.deal_utils import init_deal
+from dao.dao import cancel_by_exchange
 from dao.order_book_utils import get_order_book, is_order_book_expired
 from dao.balance_utils import update_balance_by_exchange
 
 from utils.file_utils import log_to_file
-from utils.time_utils import get_now_seconds_utc, sleep_for
+from utils.time_utils import sleep_for
 from debug_utils import EXPIRED_ORDER_PROCESSING_FILE_NAME
 
-from data_access.message_queue import ORDERS_MSG, FAILED_ORDERS_MSG
 from data_access.priority_queue import ORDERS_EXPIRE_MSG
 
 from enums.status import STATUS
@@ -125,40 +122,8 @@ def process_expired_order(expired_order, msg_queue, priority_queue, local_cache)
 
         assert False
 
-    max_volume = determine_maximum_volume_by_balance(expired_order.pair_id, expired_order.trade_type,
-                                                     expired_order.volume, expired_order.price, balance)
-
-    max_volume = round_volume(expired_order.exchange_id, max_volume, expired_order.pair_id)
-
-    if max_volume < min_volume:
-
-        log_too_small_volume(expired_order, max_volume, min_volume, msg_queue)
-
-        return
-
-    expired_order.volume = max_volume
-    expired_order.create_time = get_now_seconds_utc()
-
-    msg = "Replace EXPIRED order with new one - {tt}".format(tt=expired_order)
-    err_code, json_document = init_deal(expired_order, msg)
-
-    log_expired_order_replacement_result(expired_order, json_document, msg_queue)
-
-    if err_code == STATUS.SUCCESS:
-
-        expired_order.execute_time = get_now_seconds_utc()
-        expired_order.order_book_time = long(order_book.timest)
-        expired_order.order_id = parse_order_id(expired_order.exchange_id, json_document)
-
-        msg_queue.add_order(ORDERS_MSG, expired_order)
-
-        priority_queue.add_order_to_watch_queue(ORDERS_EXPIRE_MSG, expired_order)
-
-        log_placing_new_deal(expired_order, msg_queue)
-    else:
-        log_cant_placing_new_deal(expired_order, msg_queue)
-
-        msg_queue.add_order(FAILED_ORDERS_MSG, expired_order)
+    place_order_by_market_rate(expired_order, msg_queue, priority_queue, min_volume, balance,
+                               order_book, EXPIRED_ORDER_PROCESSING_FILE_NAME)
 
 
 def executed_volume_updated(open_orders_at_both_exchanges, expired_order):
