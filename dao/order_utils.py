@@ -30,16 +30,17 @@ def get_open_orders_by_exchange(exchange_id, pair_id):
 
     pair_name = get_currency_pair_name_by_exchange_id(pair_id, exchange_id)
 
-    if exchange_id == EXCHANGE.BITTREX:
-        res = get_open_orders_bittrix(key, pair_name)
-    elif exchange_id == EXCHANGE.KRAKEN:
-        res = get_open_orders_kraken(key, pair_name)
-    elif exchange_id == EXCHANGE.POLONIEX:
-        res = get_open_orders_poloniex(key, pair_name)
-    elif exchange_id == EXCHANGE.BINANCE:
-        res = get_open_orders_binance(key, pair_name)
-    elif exchange_id == EXCHANGE.HUOBI:
-        res = get_open_orders_huobi(key, pair_name)
+    method_by_exchange = {
+        EXCHANGE.BITTREX: get_open_orders_bittrix,
+        EXCHANGE.KRAKEN: get_open_orders_kraken,
+        EXCHANGE.POLONIEX: get_open_orders_poloniex,
+        EXCHANGE.BINANCE: get_open_orders_binance,
+        EXCHANGE.HUOBI: get_open_orders_huobi
+    }
+
+    if exchange_id in method_by_exchange:
+        get_open_orders = method_by_exchange[exchange_id]
+        res = get_open_orders(key, pair_name)
     else:
         msg = "get_open_orders_by_exchange - Unknown exchange! {idx}".format(idx=exchange_id)
         print_to_console(msg, LOG_ALL_ERRORS)

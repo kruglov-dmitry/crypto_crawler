@@ -24,22 +24,21 @@ def get_balance_by_exchange(exchange_id):
 
     key = get_key_by_exchange(exchange_id)
 
-    if exchange_id == EXCHANGE.BITTREX:
-        res = get_balance_bittrex(key)
-    elif exchange_id == EXCHANGE.KRAKEN:
-        res = get_balance_kraken(key)
-    elif exchange_id == EXCHANGE.POLONIEX:
-        res = get_balance_poloniex(key)
-    elif exchange_id == EXCHANGE.BINANCE:
-        res = get_balance_binance(key)
-    elif exchange_id == EXCHANGE.HUOBI:
-        res = get_balance_huobi(key)
-    else:
-        msg = "get_balance_by_exchange - Unknown exchange! {idx}".format(idx=exchange_id)
-        print_to_console(msg, LOG_ALL_ERRORS)
+    method_by_exchange = {
+        EXCHANGE.BITTREX: get_balance_bittrex,
+        EXCHANGE.KRAKEN: get_balance_kraken,
+        EXCHANGE.POLONIEX: get_balance_poloniex,
+        EXCHANGE.BINANCE: get_balance_binance,
+        EXCHANGE.HUOBI: get_balance_huobi
+    }
 
-    a, b = res
-    log_to_file(b, "balance.log")
+    if exchange_id in method_by_exchange:
+        res = method_by_exchange[exchange_id](key)
+        _, balance = res
+        log_to_file(balance, "balance.log")
+    else:
+        msg = "get_balance_by_exchange - Unknown exchange_id! {idx}".format(idx=exchange_id)
+        print_to_console(msg, LOG_ALL_ERRORS)
 
     return res
 
@@ -89,22 +88,21 @@ def update_balance_by_exchange(exchange_id, cache=get_cache()):
         cache.update_balance(exchange_name, balance)
         log_to_file("Update balance at cache", "balance.log")
         log_to_file(balance, "balance.log")
-        return balance
 
     msg = "Can't update balance for exchange_id = {exch1} {exch_name}".format(exch1=exchange_id,
                                                                               exch_name=exchange_name)
     log_to_file(msg, "cache.log")
     log_to_file(msg, "balance.log")
 
-    return None
+    return status_code, balance
 
 
 def get_balance(exchange_id, cache=get_cache()):
     exchange_name = get_exchange_name_by_id(exchange_id)
     balance = cache.get_balance(exchange_id)
     while balance is None:
-        balance = update_balance_by_exchange(exchange_id)
-        if balance is None:
+        status_code, balance = update_balance_by_exchange(exchange_id)
+        if not balance:
             msg = "ERROR: BALANCE IS STILL NONE!!! for {n}".format(n=exchange_name)
             print_to_console(msg, LOG_ALL_ERRORS)
 

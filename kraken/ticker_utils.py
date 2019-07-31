@@ -31,7 +31,7 @@ def get_ticker_kraken(pair_name, timest):
     if error_code == STATUS.SUCCESS:
         get_ticker_kraken_result_processor(json_document, pair_name, timest)
 
-    return None
+    return error_code, json_document
 
 
 def get_ticker_kraken_result_processor(json_document, pair_name, timest):

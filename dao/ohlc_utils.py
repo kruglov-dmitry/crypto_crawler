@@ -45,20 +45,18 @@ def get_ohlc_speedup(date_start, date_end, processor):
     ohlc_async_requests = []
 
     for exchange_id in EXCHANGE.values():
-        if exchange_id != EXCHANGE.KRAKEN:
+        if exchange_id == EXCHANGE.KRAKEN:
             continue
         for pair_id in CURRENCY_PAIR.values():
 
             pair_name = get_currency_pair_name_by_exchange_id(pair_id, exchange_id)
-            if pair_name is None:
-                continue
+            if pair_name:
+                period = get_ohlc_period_by_exchange_id(exchange_id)
+                method_for_url = get_ohlc_url_by_echange_id(exchange_id)
+                request_url = method_for_url(pair_name, date_start, date_end, period)
+                constructor = get_candle_constructor_by_exchange_id(exchange_id)
 
-            period = get_ohlc_period_by_exchange_id(exchange_id)
-            method_for_url = get_ohlc_url_by_echange_id(exchange_id)
-            request_url = method_for_url(pair_name, date_start, date_end, period)
-            constructor = get_candle_constructor_by_exchange_id(exchange_id)
-
-            ohlc_async_requests.append(WorkUnit(request_url, constructor, pair_name, date_start, date_end))
+                ohlc_async_requests.append(WorkUnit(request_url, constructor, pair_name, date_start, date_end))
 
     return processor.process_async_to_list(ohlc_async_requests, HTTP_TIMEOUT_SECONDS)
 

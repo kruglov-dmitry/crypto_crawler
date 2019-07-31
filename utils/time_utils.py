@@ -36,6 +36,8 @@ def sleep_for(num_of_seconds):
 
 
 def get_date_time_from_epoch(ts_epoch):
+    if not ts_epoch:
+        return None
     return datetime.fromtimestamp(1.0 * long(ts_epoch))
 
 

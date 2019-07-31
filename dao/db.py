@@ -14,6 +14,13 @@ from constants import START_OF_TIME
 from enums.exchange import EXCHANGE
 
 
+def log_error_query_failed(query, arg_list, exception):
+    msg = "insert data failed for Query: {query} Args: {args} Exception: {excp}".format(
+        query=query, args=arg_list, excp=str(exception))
+    print_to_console(msg, LOG_ALL_ERRORS)
+    log_to_file(msg, ERROR_LOG_FILE_NAME)
+
+
 def init_pg_connection(_db_host="192.168.1.106", _db_port=5432, _db_name="postgres"):
     pg_conn = PostgresConnection(db_host=_db_host, db_port=_db_port, db_name=_db_name, db_user="postgres",
                                  db_password="postgres")
@@ -21,7 +28,7 @@ def init_pg_connection(_db_host="192.168.1.106", _db_port=5432, _db_name="postgr
     return pg_conn
 
 
-def insert_data(some_object, pg_conn, dummy_flag):
+def insert_data(some_object, pg_conn, is_this_order_book):
     # NOTE commit should be after all inserts! ONCE
     cur = pg_conn.get_cursor()
 
@@ -37,15 +44,10 @@ def insert_data(some_object, pg_conn, dummy_flag):
     try:
         cur.execute(PG_INSERT_QUERY, args_list)
     except Exception, e:
-        print PG_INSERT_QUERY, args_list
-        msg = "insert data failed for Query: {query} Args: {args} Exception: {excp}".format(query=PG_INSERT_QUERY,
-                                                                                            args=args_list,
-                                                                                            excp=str(e))
-        print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, ERROR_LOG_FILE_NAME)
+        log_error_query_failed(PG_INSERT_QUERY, args_list, e)
 
     # Yeap, this crap I am not the biggest fun of!
-    if dummy_flag:
+    if is_this_order_book:
         try:
             res = cur.fetchone()
             order_book_id = res[0]
@@ -65,7 +67,7 @@ def load_to_postgres(array, pattern_name, pg_conn):
 
     dummy_flag = (pattern_name == ORDER_BOOK_TYPE_NAME)
     for entry in array:
-        if entry is not None:
+        if entry:
             insert_data(entry, pg_conn, dummy_flag)
 
     pg_conn.commit()
@@ -85,7 +87,7 @@ def bulk_insert_to_postgres(pg_conn, table_name, column_names, array):
         #     raise
         log_to_file(x, table_name + ".txt")
         # log_to_file(x.tsv(), "wtf.txt")
-    # cursor.copy_from(f, table_name, columns=column_names)
+    cursor.copy_from(f, table_name, columns=column_names)
 
 
 def save_alarm_into_pg(src_ticker, dst_ticker, pg_conn):
@@ -107,11 +109,9 @@ def save_alarm_into_pg(src_ticker, dst_ticker, pg_conn):
     try:
         cur.execute(PG_INSERT_QUERY, args_list)
     except Exception, e:
-        msg = "save_alarm_into_pg insert data failed :( Exception: {excp}. Args: {args}".format(excp=str(e), args=args_list)
-        print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, ERROR_LOG_FILE_NAME)
-
-    pg_conn.commit()
+        log_error_query_failed(PG_INSERT_QUERY, args_list, e)
+    else:
+        pg_conn.commit()
 
 
 def get_time_entries(pg_conn):
@@ -205,17 +205,15 @@ def save_order_into_pg(order, pg_conn, table_name="arbitrage_orders"):
         order.order_book_time,
         order.create_time,
         order.execute_time,
-        get_date_time_from_epoch(order.execute_time) if order.execute_time is not None else order.execute_time
+        get_date_time_from_epoch(order.execute_time)
     )
 
     try:
         cur.execute(PG_INSERT_QUERY, args_list)
     except Exception, e:
-        msg = "save_order_into_pg insert data failed :( Exception: {excp}. Args: {args}".format(excp=str(e), args=args_list)
-        print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, ERROR_LOG_FILE_NAME)
-
-    pg_conn.commit()
+        log_error_query_failed(PG_INSERT_QUERY, args_list, e)
+    else:
+        pg_conn.commit()
 
 
 def get_all_orders(pg_conn, table_name="arbitrage_orders", time_start=START_OF_TIME, time_end=START_OF_TIME):

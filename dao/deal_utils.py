@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 # FIXME NOTE: from dao import * doesnt work and lead to circular import hell. Still not sure how to tackle it properly
 import dao
 
@@ -16,7 +18,6 @@ from utils.key_utils import get_key_by_exchange
 from utils.string_utils import float_to_str
 from utils.time_utils import get_now_seconds_utc
 from utils.system_utils import die_hard
-from decimal import Decimal
 
 # FIXME NOTE - global variables are VERY bad
 # is it for SINGLE arbitrage process only, not overall!
@@ -34,8 +35,8 @@ def init_deal(trade_to_perform, debug_msg):
         else:
             res = dao.buy_by_exchange(trade_to_perform)
     except Exception, e:
-        msg = "init_deal: FAILED ERROR WE ALL DIE with following exception: {excp} {dbg}".format(excp=str(e),
-                                                                                                 dbg=debug_msg)
+        msg = "init_deal: FAILED ERROR WE ALL DIE with following exception: {excp} {dbg}".format(
+            excp=e, dbg=debug_msg)
         print_to_console(msg, LOG_ALL_ERRORS)
         log_to_file(msg, ERROR_LOG_FILE_NAME)
 
@@ -48,8 +49,9 @@ def return_with_no_change(json_document, corresponding_trade):
 
     try:
         corresponding_trade.order_id = dao.parse_order_id(corresponding_trade.exchange_id, json_document)
-    except:
-        log_to_file("Cant parse order_id! for following document", "parce_order_id.log")
+    except Exception, e:
+        log_to_file("Cant parse order_id! for following document"
+                    "failed with exception - {}".format(e), "parce_order_id.log")
         log_to_file(json_document, "parce_order_id.log")
 
     return json_document, corresponding_trade
@@ -77,7 +79,8 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
     msg_queue.add_message(DEAL_INFO_MSG, msg)
     log_to_file(msg, file_name)
 
-    print "FIXME", '\n', msg
+    print "!!! Order placement is DISABLED !!!", '\n', msg
+    raise
 
     # FIXME
     # die_hard("init_deals_with_logging_speedy called for {f}".format(f=trade_pairs))
