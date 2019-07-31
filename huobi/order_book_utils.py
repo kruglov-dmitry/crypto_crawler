@@ -1,7 +1,7 @@
 from huobi.constants import HUOBI_GET_ORDER_BOOK
 from huobi.error_handling import is_error
 
-from data.OrderBook import OrderBook
+from data.order_book import OrderBook
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
 from utils.file_utils import log_to_file

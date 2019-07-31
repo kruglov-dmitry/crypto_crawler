@@ -1,4 +1,4 @@
-from BaseData import BaseData
+from data.base_data import BaseData
 from constants import NO_MAX_CAP_LIMIT, NO_MIN_CAP_LIMIT
 
 

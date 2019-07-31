@@ -65,13 +65,13 @@ class ArbitrageConfig:
               "{balance_threshold} --sell_exchange_id {sell_exchange_id} --buy_exchange_id {buy_exchange_id} " \
               "--pair_id {pair_id} --deal_expire_timeout {deal_expire_timeout} " \
               "--cfg {cfg}".format(cmd=full_path_to_script,
-                                                          threshold=self.threshold,
-                                                          reverse_threshold=self.reverse_threshold,
-                                                          balance_threshold=self.balance_threshold,
-                                                          sell_exchange_id=self.sell_exchange_id,
-                                                          buy_exchange_id=self.buy_exchange_id,
-                                                          pair_id=self.pair_id,
-                                                          deal_expire_timeout=self.deal_expire_timeout,
-                                                          cfg=self.cfg_file_name)
+                                   threshold=self.threshold,
+                                   reverse_threshold=self.reverse_threshold,
+                                   balance_threshold=self.balance_threshold,
+                                   sell_exchange_id=self.sell_exchange_id,
+                                   buy_exchange_id=self.buy_exchange_id,
+                                   pair_id=self.pair_id,
+                                   deal_expire_timeout=self.deal_expire_timeout,
+                                   cfg=self.cfg_file_name)
 
         return cmd

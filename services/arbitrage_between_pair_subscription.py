@@ -10,19 +10,19 @@ from core.expired_order import add_orders_to_watch_list
 from dao.deal_utils import init_deals_with_logging_speedy
 from enums.deal_type import DEAL_TYPE
 
-from data.BalanceState import dummy_balance_init
+from data.balance_state import dummy_balance_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_book
 from dao.ticker_utils import get_ticker_for_arbitrage
 from dao.socket_utils import get_subcribtion_by_exchange
 
-from data.ArbitrageConfig import ArbitrageConfig
-from data.OrderBook import OrderBook
+from data.arbitrage_config import ArbitrageConfig
+from data.order_book import OrderBook
 
 from data_access.classes.ConnectionPool import ConnectionPool
 from data_access.memory_cache import get_cache
-from data.MarketCap import MarketCap
+from data.market_cap import MarketCap
 
 from debug_utils import print_to_console, LOG_ALL_ERRORS, set_logging_level, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME, \
     set_log_folder, SOCKET_ERRORS_LOG_FILE_NAME

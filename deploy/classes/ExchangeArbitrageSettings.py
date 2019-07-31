@@ -1,4 +1,4 @@
-from data.BaseData import BaseData
+from data.base_data import BaseData
 from utils.exchange_utils import get_exchange_id_by_name
 
 

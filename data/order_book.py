@@ -9,8 +9,8 @@ from huobi.currency_utils import get_currency_pair_from_huobi
 
 from analysis.binary_search import binary_search
 
-from BaseData import BaseData
-from Deal import Deal
+from data.base_data import BaseData
+from data.deal import Deal
 
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
@@ -21,8 +21,8 @@ from utils.file_utils import log_to_file
 from utils.currency_utils import get_pair_name_by_id
 from utils.system_utils import die_hard
 
-from constants import MAX_VOLUME_ORDER_BOOK
-from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME, print_to_console, LOG_ALL_ERRORS
+from constants import MIN_VOLUME_ORDER_BOOK
+from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
 from logging_tools.socket_logging import log_sequence_id_mismatch
 
 # FIXME NOTE - not the smartest idea to deal with
@@ -41,8 +41,6 @@ ORDER_BOOK_TABLE_NAME = "order_book"
 ORDER_BOOK_COLUMNS = ("pair_id", "exchange_id", "timest", "date_time")
 ORDER_BOOK_INSERT_QUERY = """insert into {table_name} ({columns}) values(%s, %s, %s, %s) returning id;""".format(
     table_name=ORDER_BOOK_TABLE_NAME, columns=','.join(ORDER_BOOK_COLUMNS))
-
-TICKER_TYPE_NAME = "ticker"
 
 
 def cmp_method_ask(a, b):
@@ -72,7 +70,7 @@ class OrderBook(BaseData):
         self.sequence_id = sequence_id
 
     def is_valid(self):
-        return 0 < len(self.ask) and 0 < len(self.bid)
+        return self.ask and self.bid
 
     def sort_by_price(self):
         self.bid = sorted(self.bid, key=lambda x: x.price, reverse=True)        # highest - first
@@ -93,15 +91,9 @@ class OrderBook(BaseData):
         for every_attr in attr_list:
             str_repr += every_attr + " - " + str(getattr(self, every_attr)) + " "
 
-        str_repr += "bids - ["
-        for b in self.bid:
-            str_repr += "\n" + str(b)
-        str_repr += "] "
+        str_repr += "bids - [" + "\n".join(self.bid) + "] "
 
-        str_repr += "asks - ["
-        for a in self.ask:
-            str_repr += "\n" + str(a)
-        str_repr += "]"
+        str_repr += "asks - [" + "\n".join(self.ask) + "]"
 
         str_repr += "]"
 
@@ -114,16 +106,11 @@ class OrderBook(BaseData):
         "bids":[["0.00006600",46771.47390146],["0.00006591",25268.665],],
         "isFrozen":"0","seq":41049600}
         """
-        timest = timest
+
+        sell_bids = [Deal(entry[0], entry[1]) for entry in json_document["asks"]]
+        buy_bids = [Deal(entry[0], entry[1]) for entry in json_document["bids"]]
+
         pair_id = get_currency_pair_from_poloniex(currency)
-
-        sell_bids = []
-        for b in json_document["asks"]:
-            sell_bids.append(Deal(b[0], b[1]))
-
-        buy_bids = []
-        for b in json_document["bids"]:
-            buy_bids.append(Deal(b[0], b[1]))
 
         sequence_id = long(json_document["seq"])
 
@@ -136,13 +123,8 @@ class OrderBook(BaseData):
         "bids":[["0.080928","0.100",1501691107],["0.080926","0.255",1501691110]
         """
 
-        sell_bids = []
-        for b in json_document["asks"]:
-            sell_bids.append(Deal(b[0], b[1]))
-
-        buy_bids = []
-        for b in json_document["bids"]:
-            buy_bids.append(Deal(b[0], b[1]))
+        sell_bids = [Deal(entry[0], entry[1]) for entry in json_document["asks"]]
+        buy_bids = [Deal(entry[0], entry[1]) for entry in json_document["bids"]]
 
         pair_id = get_currency_pair_from_kraken(currency)
 
@@ -178,15 +160,8 @@ class OrderBook(BaseData):
         "lastUpdateId":1668114,"bids":[["0.40303000","22.00000000",[]],],"asks":[["0.41287000","1.00000000",[]]
         """
 
-        sell_bids = []
-        if "asks" in json_document:
-            for b in json_document["asks"]:
-                sell_bids.append(Deal(price=b[0], volume=b[1]))
-
-        buy_bids = []
-        if "bids" in json_document:
-            for b in json_document["bids"]:
-                buy_bids.append(Deal(price=b[0], volume=b[1]))
+        sell_bids = [Deal(price=entry[0], volume=entry[1]) for entry in json_document.get("asks", [])]
+        buy_bids = [Deal(price=entry[0], volume=entry[1]) for entry in json_document.get("bids", [])]
 
         pair_id = get_currency_pair_from_binance(currency)
 
@@ -215,15 +190,8 @@ class OrderBook(BaseData):
         :return:
         """
 
-        sell_bids = []
-        if "asks" in json_document:
-            for b in json_document["asks"]:
-                sell_bids.append(Deal(price=b[0], volume=b[1]))
-
-        buy_bids = []
-        if "bids" in json_document:
-            for b in json_document["bids"]:
-                buy_bids.append(Deal(price=b[0], volume=b[1]))
+        sell_bids = [Deal(price=entry[0], volume=entry[1]) for entry in json_document.get("asks", [])]
+        buy_bids = [Deal(price=entry[0], volume=entry[1]) for entry in json_document.get("bids", [])]
 
         pair_id = get_currency_pair_from_huobi(pair_name)
 
@@ -240,13 +208,8 @@ class OrderBook(BaseData):
         exchange_id = db_row[2]
         timest = db_row[3]
 
-        ask_bids = []
-        for r in asks_rows:
-            ask_bids.append(Deal(r[2], r[3]))
-
-        sell_bids = []
-        for r in sell_rows:
-            sell_bids.append(Deal(r[2], r[3]))
+        ask_bids = [Deal(entry[2], entry[3]) for entry in asks_rows]
+        sell_bids = [Deal(entry[2], entry[3]) for entry in sell_rows]
 
         return OrderBook(currency_pair_id, timest, ask_bids, sell_bids, exchange_id)
 
@@ -259,7 +222,7 @@ class OrderBook(BaseData):
 
         """
 
-        almost_zero = new_bid.volume <= MAX_VOLUME_ORDER_BOOK
+        almost_zero = new_bid.volume <= MIN_VOLUME_ORDER_BOOK
         item_insert_point = binary_search(self.bid, new_bid, cmp_method_bid)
         is_present = False
         if item_insert_point < len(self.bid):
@@ -298,7 +261,7 @@ class OrderBook(BaseData):
             Order of condition check is very IMPORTANT!
         """
 
-        almost_zero = new_ask.volume <= MAX_VOLUME_ORDER_BOOK
+        almost_zero = new_ask.volume <= MIN_VOLUME_ORDER_BOOK
         item_insert_point = binary_search(self.ask, new_ask, cmp_method_ask)
         is_present = False
         if item_insert_point < len(self.ask):
@@ -386,7 +349,6 @@ class OrderBook(BaseData):
                 return STATUS.SUCCESS
             elif (self.sequence_id + 1) != order_book_update.sequence_id:
                 log_sequence_id_mismatch("Bittrex", self.sequence_id, order_book_update.sequence_id)
-                # die_hard("Bittrex")
                 return STATUS.FAILURE
             
             self.sequence_id = order_book_update.sequence_id

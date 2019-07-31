@@ -1,6 +1,6 @@
 from urllib import urlencode as _urlencode
 
-from data.Trade import Trade
+from data.trade import Trade
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from utils.key_utils import signed_body_256
 

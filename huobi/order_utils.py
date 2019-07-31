@@ -5,7 +5,7 @@ from huobi.constants import HUOBI_DEAL_TIMEOUT, HUOBI_GET_OPEN_ORDERS, HUOBI_API
 from huobi.error_handling import is_error
 
 
-from data.Trade import Trade
+from data.trade import Trade
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_get_request_with_header

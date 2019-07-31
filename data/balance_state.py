@@ -1,8 +1,8 @@
 from constants import ARBITRAGE_CURRENCY
 from enums.exchange import EXCHANGE
 
-from BaseData import BaseData
-from data.Balance import Balance
+from data.base_data import BaseData
+from data.balance import Balance
 from utils.currency_utils import split_currency_pairs
 from core.base_analysis import get_change
 

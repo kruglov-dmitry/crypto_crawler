@@ -1,6 +1,6 @@
 import ConfigParser
 
-from data.BaseData import BaseData
+from data.base_data import BaseData
 
 from debug_utils import LOG_ALL_DEBUG, LOGS_FOLDER, get_debug_level_name_by_id, get_logging_level_id_by_name
 from constants import API_KEY_PATH, CACHE_HOST, CACHE_PORT, DB_HOST, DB_NAME, DB_PORT

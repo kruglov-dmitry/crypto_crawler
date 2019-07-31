@@ -5,10 +5,10 @@ from dao.ohlc_utils import get_ohlc_speedup
 from dao.order_book_utils import get_order_book_speedup
 from dao.ticker_utils import get_ticker_speedup
 
-from data.Candle import Candle
-from data.TradeHistory import TradeHistory
-from data.Ticker import Ticker
-from data.OrderBook import OrderBook
+from data.candle import Candle
+from data.trade_history import TradeHistory
+from data.ticker import Ticker
+from data.order_book import OrderBook
 
 from data_access.classes.ConnectionPool import ConnectionPool
 

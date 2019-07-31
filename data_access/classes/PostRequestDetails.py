@@ -1,4 +1,4 @@
-from data.BaseData import BaseData
+from data.base_data import BaseData
 
 
 class PostRequestDetails(BaseData):

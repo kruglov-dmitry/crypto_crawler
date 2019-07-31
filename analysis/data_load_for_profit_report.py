@@ -26,7 +26,7 @@ from kraken.currency_utils import get_currency_pair_to_kraken
 from utils.key_utils import get_key_by_exchange
 from utils.time_utils import sleep_for, get_now_seconds_utc
 
-from data.Trade import Trade
+from data.trade import Trade
 from dao.db import save_order_into_pg, is_order_present_in_order_history, get_last_binance_trade, \
     is_trade_present_in_trade_history
 

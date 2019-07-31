@@ -4,7 +4,7 @@ from huobi.constants import HUOBI_CHECK_BALANCE, HUOBI_DEAL_TIMEOUT, HUOBI_API_U
 from huobi.error_handling import is_error
 from huobi.account_utils import get_huobi_account
 
-from data.Balance import Balance
+from data.balance import Balance
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_get_request_with_header

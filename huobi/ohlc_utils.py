@@ -2,7 +2,7 @@
 from huobi.constants import HUOBI_GET_OHLC
 from huobi.error_handling import is_error
 
-from data.Candle import Candle
+from data.candle import Candle
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
 from utils.file_utils import log_to_file

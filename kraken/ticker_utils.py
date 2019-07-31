@@ -1,7 +1,7 @@
 from kraken.constants import KRAKEN_GET_TICKER
 from kraken.error_handling import is_error
 
-from data.Ticker import Ticker
+from data.ticker import Ticker
 
 from data_access.internet import send_request
 

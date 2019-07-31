@@ -8,7 +8,7 @@ from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_loggi
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_get_request_with_header
-from data.Trade import Trade
+from data.trade import Trade
 
 from huobi.constants import HUOBI_DEAL_TIMEOUT, HUOBI_ORDER_HISTORY_LIMIT, HUOBI_API_ONLY, HUOBI_GET_TRADE_HISTORY, \
     HUOBI_API_URL

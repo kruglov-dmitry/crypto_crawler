@@ -1,6 +1,6 @@
 from analysis.binary_search import binary_search
-from data.Deal import Deal
-from data.OrderBook import cmp_method_ask, cmp_method_bid
+from data.deal import Deal
+from data.order_book import cmp_method_ask, cmp_method_bid
 
 import random
 

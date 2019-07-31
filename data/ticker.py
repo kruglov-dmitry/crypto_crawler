@@ -9,7 +9,7 @@ from poloniex.currency_utils import get_currency_pair_from_poloniex
 from binance.currency_utils import get_currency_pair_from_binance
 from huobi.currency_utils import get_currency_pair_from_huobi
 
-from BaseData import BaseData
+from data.base_data import BaseData
 from enums.exchange import EXCHANGE
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.time_utils import get_date_time_from_epoch

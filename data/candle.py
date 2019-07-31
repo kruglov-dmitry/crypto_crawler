@@ -10,7 +10,7 @@ from poloniex.currency_utils import get_currency_pair_from_poloniex
 from binance.currency_utils import get_currency_pair_from_binance
 from huobi.currency_utils import get_currency_pair_from_huobi
 
-from BaseData import BaseData
+from base_data import BaseData
 from enums.exchange import EXCHANGE
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.time_utils import get_date_time_from_epoch
@@ -110,19 +110,19 @@ class Candle(BaseData):
     def from_binance(cls, json_document, currency):
         """
         [
-    		1499040000000,      // Open time
-    		"0.01634790",       // Open
-    		"0.80000000",       // High
-    		"0.01575800",       // Low
-    		"0.01577100",       // Close
-    		"148976.11427815",  // Volume
-    		1499644799999,      // Close time
-    		"2434.19055334",    // Quote asset volume
-    		308,                // Number of trades
-    		"1756.87402397",    // Taker buy base asset volume
-    		"28.46694368",      // Taker buy quote asset volume
-    		"17928899.62484339" // Can be ignored
-    	    ]
+        1499040000000,      // Open time
+        "0.01634790",       // Open
+        "0.80000000",       // High
+        "0.01575800",       // Low
+        "0.01577100",       // Close
+        "148976.11427815",  // Volume
+        1499644799999,      // Close time
+        "2434.19055334",    // Quote asset volume
+        308,                // Number of trades
+        "1756.87402397",    // Taker buy base asset volume
+        "28.46694368",      // Taker buy quote asset volume
+        "17928899.62484339" // Can be ignored
+        ]
         :return:
         """
         timest = 0.001 * long(json_document[0])
@@ -164,7 +164,7 @@ class Candle(BaseData):
 
     @classmethod
     def from_string(cls, some_string):
-        #[close - 0.07019143 exchange - BITTREX exchange_id - 3 high - 0.07031782 low - 0.06912551 open - 0.06912551
+        # [close - 0.07019143 exchange - BITTREX exchange_id - 3 high - 0.07031782 low - 0.06912551 open - 0.06912551
         # pair - BTC_TO_DASH pair_id - 1 timest - 1499000400]
         results = regex.findall(some_string)
 

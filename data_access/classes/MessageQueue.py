@@ -1,4 +1,4 @@
-from data.BaseData import BaseData
+from data.base_data import BaseData
 import redis as _redis
 import pickle
 from utils.time_utils import get_now_seconds_utc_ms

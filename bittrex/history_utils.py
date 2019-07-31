@@ -1,7 +1,7 @@
 from bittrex.constants import BITTREX_GET_HISTORY
 from bittrex.error_handling import is_error
 
-from data.TradeHistory import TradeHistory
+from data.trade_history import TradeHistory
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_OTHER_STUFF, ERROR_LOG_FILE_NAME
 from utils.file_utils import log_to_file

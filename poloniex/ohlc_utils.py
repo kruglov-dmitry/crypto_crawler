@@ -1,7 +1,7 @@
 from poloniex.constants import POLONIEX_GET_OHLC
 from poloniex.error_handling import is_error
 
-from data.Candle import Candle
+from data.candle import Candle
 
 from data_access.internet import send_request
 

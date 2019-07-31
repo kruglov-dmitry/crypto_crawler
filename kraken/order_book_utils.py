@@ -1,7 +1,7 @@
 from kraken.constants import KRAKEN_GET_ORDER_BOOK
 from kraken.error_handling import is_error
 
-from data.OrderBook import OrderBook
+from data.order_book import OrderBook
 
 from utils.file_utils import log_to_file
 

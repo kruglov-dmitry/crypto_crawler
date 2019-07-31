@@ -5,7 +5,7 @@ from bittrex.error_handling import is_error
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
 
-from data.Trade import Trade
+from data.trade import Trade
 from enums.status import STATUS
 
 from utils.key_utils import signed_string

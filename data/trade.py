@@ -1,5 +1,6 @@
-from Deal import Deal
 from decimal import Decimal
+
+from data.deal import Deal
 
 from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
@@ -23,11 +24,12 @@ class Trade(Deal):
     def __init__(self, trade_type, exchange_id, pair_id, price, volume,
                  order_book_time, create_time, execute_time=None,
                  order_id=None, trade_id=None, executed_volume=None, arbitrage_id=-13):
+
+        Deal.__init__(self, price, volume)
+
         self.trade_type = int(trade_type)
         self.exchange_id = int(exchange_id)
         self.pair_id = int(pair_id)
-        self.price = Decimal(price)
-        self.volume = Decimal(volume)
         self.order_book_time = long(order_book_time)
         self.create_time = long(create_time)
         self.execute_time = long(execute_time) if execute_time is not None else execute_time
@@ -68,8 +70,8 @@ class Trade(Deal):
 
     def __eq__(self, other):
         if get_logging_level() >= LOG_ALL_DEBUG:
-            msg = "compare {u} with {b}".format(u=self,b=other)
-            log_to_file(msg,"expire_deal.log")
+            msg = "compare {u} with {b}".format(u=self, b=other)
+            log_to_file(msg, "expire_deal.log")
         if other is None:
             return False
         # NOTE: we actually don't care about timest related crap as it will not be the same :(
@@ -83,8 +85,8 @@ class Trade(Deal):
     @classmethod
     def get_fields(cls):
         # for class object you can use dir()
-        return ["arbitrage_id", "exchange_id", "pair_id", "trade_type", "price", "volume", "order_book_time",
-                "create_time", "execute_time", "execute_datetime", "order_id", "executed_volume"]
+        return ("arbitrage_id", "exchange_id", "pair_id", "trade_type", "price", "volume", "order_book_time",
+                "create_time", "execute_time", "execute_datetime", "order_id", "executed_volume")
 
     def __iter__(self):
         return iter([self.arbitrage_id, get_exchange_name_by_id(self.exchange_id), get_pair_name_by_id(self.pair_id),
@@ -96,36 +98,36 @@ class Trade(Deal):
     def from_kraken(cls, order_id, json_doc):
         """
         "OMO3YX-5HSZM-26CQ36": {
- 				"status": "open",
- 				"fee": "0.000000",
- 				"expiretm": 0,
- 				"descr": {
- 					"leverage": "none",
- 					"ordertype": "limit",
- 					"price": "0.003310",
- 					"pair": "REPXBT",
- 					"price2": "0",
- 					"type": "sell",
- 					"order": "sell 349.78000000 REPXBT @ limit 0.003310"
- 				},
- 				"vol": "349.78000000",
- 				"cost": "0.000000",
- 				"misc": "",
- 				"price": "0.000000",
- 				"starttm": 0,
- 				"userref": null,
- 				"vol_exec": "0.00000000",
- 				"oflags": "fciq",
- 				"refid": null,
- 				"opentm": 1509591188.429
- 			}
+            "status": "open",
+            "fee": "0.000000",
+            "expiretm": 0,
+                "descr": {
+                    "leverage": "none",
+                    "ordertype": "limit",
+                    "price": "0.003310",
+                    "pair": "REPXBT",
+                    "price2": "0",
+                    "type": "sell",
+                    "order": "sell 349.78000000 REPXBT @ limit 0.003310"
+                },
+                "vol": "349.78000000",
+                "cost": "0.000000",
+                "misc": "",
+                "price": "0.000000",
+                "starttm": 0,
+                "userref": null,
+                "vol_exec": "0.00000000",
+                "oflags": "fciq",
+                "refid": null,
+                "opentm": 1509591188.429
+        }
         """
         price = json_doc["descr"]["price"]
         volume = json_doc["vol"]
         executed_volume = json_doc["vol_exec"]
 
         create_time = json_doc["opentm"]
-        order_book_time = create_time # Because at this stage we do not really know it
+        order_book_time = create_time  # Because at this stage we do not really know it
 
         trade_type_str = json_doc["descr"]["type"]
 
@@ -213,7 +215,7 @@ class Trade(Deal):
         trade_type = DEAL_TYPE.BUY
         if not json_document["isBuyer"]:
             trade_type = DEAL_TYPE.SELL
-        order_id = json_document["orderId"]     # Effective 01.03.2018
+        order_id = json_document["orderId"]  # Effective 01.03.2018
         trade_id = json_document["id"]
         executed_volume = volume
 
@@ -317,7 +319,6 @@ class Trade(Deal):
         return Trade(trade_type, EXCHANGE.BITTREX, pair_id, price, volume, order_book_time=timest, create_time=timest,
                      execute_time=execute_timest, order_id=order_id, trade_id=order_id, executed_volume=executed_volume)
 
-
     @classmethod
     def from_poloniex(cls, json_document, pair_name):
         """
@@ -419,7 +420,8 @@ class Trade(Deal):
         volume = Decimal(json_document["amount"])
         executed_volume = Decimal(json_document["field-amount"])
 
-        return Trade(trade_type, EXCHANGE.HUOBI, pair_id, price, volume, create_timest, create_timest, execute_time=executed_timest,
+        return Trade(trade_type, EXCHANGE.HUOBI, pair_id, price, volume, create_timest, create_timest,
+                     execute_time=executed_timest,
                      order_id=order_id, trade_id=trade_id, executed_volume=executed_volume)
 
     @classmethod

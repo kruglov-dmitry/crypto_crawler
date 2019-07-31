@@ -1,9 +1,11 @@
-from data.BaseData import BaseData
-from utils.other_utils import get_next_id
+from decimal import Decimal
+
+from data.base_data import BaseData
 from enums.deal_type import get_order_type_by_id
+
+from utils.other_utils import get_next_id
 from utils.exchange_utils import get_fee_by_exchange
 from utils.string_utils import float_to_str
-from decimal import Decimal
 
 
 class TradePair(BaseData):

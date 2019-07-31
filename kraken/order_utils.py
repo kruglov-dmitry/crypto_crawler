@@ -2,8 +2,8 @@ from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_GET_OPEN_ORDERS, EMPTY_
 from kraken.error_handling import is_error
 from kraken.order_history import get_order_history_kraken
 
-from data.OrderState import OrderState
-from data.Trade import Trade
+from data.order_state import OrderState
+from data.trade import Trade
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header

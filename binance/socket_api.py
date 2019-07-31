@@ -4,8 +4,8 @@ from websocket import create_connection
 
 from binance.currency_utils import get_currency_pair_to_binance
 from enums.exchange import EXCHANGE
-from data.OrderBookUpdate import OrderBookUpdate
-from data.Deal import Deal
+from data.order_book_update import OrderBookUpdate
+from data.deal import Deal
 
 from debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
 from utils.file_utils import log_to_file

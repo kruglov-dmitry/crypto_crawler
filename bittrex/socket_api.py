@@ -19,9 +19,9 @@ from utils.system_utils import die_hard
 from enums.exchange import EXCHANGE
 from enums.status import STATUS
 
-from data.OrderBookUpdate import OrderBookUpdate
-from data.Deal import Deal
-from data.OrderBook import OrderBook
+from data.order_book_update import OrderBookUpdate
+from data.deal import Deal
+from data.order_book import OrderBook
 
 
 class BittrexParameters:

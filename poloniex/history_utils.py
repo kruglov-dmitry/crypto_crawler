@@ -1,7 +1,7 @@
 from poloniex.constants import POLONIEX_GET_HISTORY
 from poloniex.error_handling import is_error
 
-from data.TradeHistory import TradeHistory
+from data.trade_history import TradeHistory
 
 from data_access.internet import send_request
 

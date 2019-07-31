@@ -3,7 +3,7 @@ from urllib import urlencode as _urlencode
 from bittrex.constants import BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT, BITTREX_GET_OPEN_ORDERS
 from bittrex.error_handling import is_error
 
-from data.Trade import Trade
+from data.trade import Trade
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header

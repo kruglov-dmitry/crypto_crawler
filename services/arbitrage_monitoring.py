@@ -6,7 +6,7 @@ from data_access.message_queue import get_message_queue, ARBITRAGE_MSG
 from core.base_analysis import compare_price, check_highest_bid_bigger_than_lowest_ask
 from dao.db import init_pg_connection, load_to_postgres, save_alarm_into_pg
 from dao.ticker_utils import get_ticker_speedup
-from data.Ticker import TICKER_TYPE_NAME
+from data.ticker import TICKER_TYPE_NAME
 from data_access.classes.ConnectionPool import ConnectionPool
 from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG
 from utils.currency_utils import get_pair_name_by_id

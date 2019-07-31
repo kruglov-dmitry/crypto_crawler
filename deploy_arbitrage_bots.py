@@ -11,7 +11,7 @@ from deploy.classes.DeployUnit import DeployUnit
 from utils.exchange_utils import get_exchange_id_by_name, get_exchange_name_by_id
 from utils.currency_utils import get_pair_id_by_name
 
-from data.ArbitrageConfig import ArbitrageConfig
+from data.arbitrage_config import ArbitrageConfig
 
 
 def form_balance_update_command(base_command, list_of_exchanges):

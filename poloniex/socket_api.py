@@ -15,9 +15,9 @@ from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_r
 
 from enums.exchange import EXCHANGE
 
-from data.OrderBookUpdate import OrderBookUpdate
-from data.Deal import Deal
-from data.OrderBook import OrderBook
+from data.order_book_update import OrderBookUpdate
+from data.deal import Deal
+from data.order_book import OrderBook
 
 from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME, get_logging_level, LOG_ALL_TRACE
 

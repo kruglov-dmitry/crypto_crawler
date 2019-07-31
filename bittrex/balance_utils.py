@@ -3,7 +3,7 @@ from urllib import urlencode as _urlencode
 from bittrex.constants import BITTREX_CHECK_BALANCE, BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT
 from bittrex.error_handling import is_error
 
-from data.Balance import Balance
+from data.balance import Balance
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header

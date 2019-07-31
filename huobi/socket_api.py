@@ -9,8 +9,8 @@ import uuid
 from huobi.currency_utils import get_currency_pair_to_huobi
 from enums.exchange import EXCHANGE
 
-from data.OrderBook import OrderBook
-from data.Deal import Deal
+from data.order_book import OrderBook
+from data.deal import Deal
 
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for
 from utils.file_utils import log_to_file

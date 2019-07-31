@@ -3,9 +3,9 @@ from constants import ARBITRAGE_CURRENCY
 from enums.exchange import EXCHANGE
 from enums.currency import CURRENCY
 
-from data.Balance import Balance
-from data.BalanceState import BalanceState
-from data.MarketCap import MarketCap
+from data.balance import Balance
+from data.balance_state import BalanceState
+from data.market_cap import MarketCap
 
 from utils.time_utils import get_now_seconds_utc
 from utils.file_utils import log_to_file

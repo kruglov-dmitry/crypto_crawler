@@ -1,7 +1,7 @@
 from dao.db import init_pg_connection, load_to_postgres
 from dao.order_book_utils import get_order_book_speedup
 
-from data.OrderBook import ORDER_BOOK_TYPE_NAME
+from data.order_book import ORDER_BOOK_TYPE_NAME
 from data_access.classes.ConnectionPool import ConnectionPool
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, set_logging_level, set_log_folder

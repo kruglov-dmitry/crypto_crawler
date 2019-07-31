@@ -2,7 +2,7 @@ from binance.constants import BINANCE_CHECK_BALANCE, BINANCE_DEAL_TIMEOUT
 from binance.error_handling import is_error
 from binance.rest_api import generate_post_request
 
-from data.Balance import Balance
+from data.balance import Balance
 
 from data_access.internet import send_get_request_with_header
 

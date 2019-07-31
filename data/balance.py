@@ -1,7 +1,7 @@
 # coding=utf-8
 from decimal import Decimal
 
-from BaseData import BaseData
+from data.base_data import BaseData
 from constants import ARBITRAGE_CURRENCY, ZERO_BALANCE
 from enums.exchange import EXCHANGE
 
@@ -260,6 +260,5 @@ class Balance(BaseData):
                             total_balance[currency_id] += volume
                         else:
                             total_balance[currency_id] = volume
-
 
         return Balance(EXCHANGE.HUOBI, last_update, available_balance, total_balance)

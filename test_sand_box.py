@@ -21,9 +21,9 @@ from dao.history_utils import get_history_speedup
 from dao.ohlc_utils import get_ohlc_speedup, get_ohlc
 from dao.order_book_utils import get_order_book_speedup
 from dao.ticker_utils import get_ticker_speedup
-from data.Trade import Trade
-from data.TradePair import TradePair
-from data.ArbitrageConfig import ArbitrageConfig
+from data.trade import Trade
+from data.trade_pair import TradePair
+from data.arbitrage_config import ArbitrageConfig
 from data_access.classes.ConnectionPool import ConnectionPool
 from data_access.memory_cache import generate_nonce
 from enums.currency import CURRENCY
@@ -704,7 +704,7 @@ def compare_order_book():
     import zlib
     from huobi.currency_utils import get_currency_pair_to_huobi
     from utils.file_utils import log_to_file
-    from data.OrderBook import OrderBook
+    from data.order_book import OrderBook
     import json
 
     ws = None

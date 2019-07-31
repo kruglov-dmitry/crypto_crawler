@@ -1,5 +1,4 @@
-from BaseData import BaseData
-from constants import FLOAT_POINT_PRECISION
+from data.base_data import BaseData
 from decimal import Decimal
 
 

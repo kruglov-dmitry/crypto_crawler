@@ -1,7 +1,7 @@
 from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_CHECK_BALANCE, KRAKEN_NUM_OF_DEAL_RETRY
 from kraken.error_handling import is_error
 
-from data.Balance import Balance
+from data.balance import Balance
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header

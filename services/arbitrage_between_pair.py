@@ -7,18 +7,18 @@ from data_access.priority_queue import get_priority_queue
 
 from core.arbitrage_core import search_for_arbitrage, adjust_currency_balance, compute_new_min_cap_from_tickers
 from core.expired_order import add_orders_to_watch_list
-from data.BalanceState import dummy_balance_init
+from data.balance_state import dummy_balance_init
 
 from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
 from dao.ticker_utils import get_ticker_for_arbitrage
 from dao.deal_utils import init_deals_with_logging_speedy
 
-from data.ArbitrageConfig import ArbitrageConfig
+from data.arbitrage_config import ArbitrageConfig
 
 from data_access.classes.ConnectionPool import ConnectionPool
 from data_access.memory_cache import get_cache
-from data.MarketCap import MarketCap
+from data.market_cap import MarketCap
 
 from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG, set_logging_level, \
     CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME, set_log_folder

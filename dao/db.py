@@ -1,8 +1,8 @@
 from collections import defaultdict
 
-from data.OrderBook import OrderBook, ORDER_BOOK_INSERT_BIDS, ORDER_BOOK_INSERT_ASKS, ORDER_BOOK_TYPE_NAME
-from data.Trade import Trade
-from data.Candle import Candle
+from data.order_book import OrderBook, ORDER_BOOK_INSERT_BIDS, ORDER_BOOK_INSERT_ASKS, ORDER_BOOK_TYPE_NAME
+from data.trade import Trade
+from data.candle import Candle
 
 from data_access.classes.PostgresConnection import PostgresConnection
 from utils.time_utils import get_date_time_from_epoch

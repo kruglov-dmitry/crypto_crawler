@@ -1,7 +1,7 @@
 from binance.constants import BINANCE_GET_TICKER
 from binance.error_handling import is_error
 
-from data.Ticker import Ticker
+from data.ticker import Ticker
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_OTHER_STUFF, ERROR_LOG_FILE_NAME
 from utils.file_utils import log_to_file

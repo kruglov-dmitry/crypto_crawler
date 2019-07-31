@@ -13,8 +13,8 @@ from enums.exchange import EXCHANGE
 from enums.deal_type import DEAL_TYPE
 from enums.status import STATUS
 
-from data.Trade import Trade
-from data.TradePair import TradePair
+from data.trade import Trade
+from data.trade_pair import TradePair
 
 from data_access.memory_cache import get_next_arbitrage_id
 from data_access.message_queue import ORDERS_MSG, FAILED_ORDERS_MSG

@@ -1,7 +1,7 @@
 from kraken.constants import KRAKEN_GET_OHLC, EMPTY_LIST
 from kraken.error_handling import is_error
 
-from data.Candle import Candle
+from data.candle import Candle
 
 from data_access.internet import send_request
 

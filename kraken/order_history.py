@@ -1,7 +1,7 @@
 from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_GET_CLOSE_ORDERS
 from kraken.error_handling import is_error
 
-from data.Trade import Trade
+from data.trade import Trade
 
 from data_access.classes.PostRequestDetails import PostRequestDetails
 from data_access.internet import send_post_request_with_header
