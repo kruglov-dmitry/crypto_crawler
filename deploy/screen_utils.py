@@ -6,23 +6,24 @@ from utils.exchange_utils import get_exchange_name_by_id
 
 
 def is_screen_present(screen_name):
-    var = check_output(["screen -ls; true"],shell=True)
-    if "." + screen_name + "\t(" in var:
-        print screen_name + " is running!"
+    var = check_output(["screen -ls; true"], shell=True)
+    if ".{}\t(".format(screen_name) in var:
+        print("Screen with name {} is running!".format(screen_name))
         return True
-    else:
-        print screen_name + " is not running"
-        return False
+
+    print("Screen with name {} is not running".format(screen_name))
+    return False
 
 
 def generate_screen_name(sell_exchange_id, buy_exchange_id):
-    screen_name = "{sell_exch}==>{buy_exch}".format(sell_exch=get_exchange_name_by_id(sell_exchange_id),
-                                                    buy_exch=get_exchange_name_by_id(buy_exchange_id))
+    screen_name = "{sell_exch}==>{buy_exch}".format(
+        sell_exch=get_exchange_name_by_id(sell_exchange_id),
+        buy_exch=get_exchange_name_by_id(buy_exchange_id))
     return screen_name
 
 
 def stop_screen(screen_name):
-    screen_pid = re.findall('\d*\.', commands.getoutput('screen -ls |grep %s' % screen_name))
+    screen_pid = re.findall(r'\d*\.', commands.getoutput('screen -ls |grep %s' % screen_name))
     if screen_pid:
         commands.getoutput('kill %s' % screen_pid[0][:-1])
 
@@ -36,12 +37,13 @@ def create_screen(screen_name):
     """
 
     if is_screen_present(screen_name):
-        print "NONONO! You already have with exact same name - {screen_name} It will lead to trouble.".format(screen_name=screen_name)
+        print("NONONO! You already have with exact same name - {screen_name} "
+              "It will lead to trouble.".format(screen_name=screen_name))
         assert False
 
     if isinstance(screen_name, str):
         out = commands.getoutput('screen -dmS "%s"' % screen_name)
-        print out
+        print(out)
     else:
         out = "No screen name provided"
 
@@ -57,7 +59,8 @@ def create_screen_window(screen_name, window_name):
     :param window_name:
     :return: False, if assert failed or command output
     """
-    cmd = """screen -S '{screen_name}' -X screen -t '{window_name}'""".format(screen_name=screen_name, window_name=window_name)
+    cmd = """screen -S '{screen_name}' -X screen -t '{window_name}'""".format(
+        screen_name=screen_name, window_name=window_name)
 
     return commands.getoutput(cmd)
 
@@ -71,7 +74,7 @@ def run_command_in_screen(screen_name, window_name, command):
     """
 
     cmd_line = """screen -S '{sn}' -p '{wn}' -X stuff '{exe}\n' """.format(sn=screen_name, wn=window_name, exe=command)
-    print cmd_line
+    print("Executing command:\n{}".format(cmd_line))
     return commands.getoutput(cmd_line)
 
 

@@ -4,7 +4,7 @@ from logging_tools.balance_monitoring_logging import log_initial_settings
 
 from utils.key_utils import load_keys
 from utils.time_utils import sleep_for, get_now_seconds_utc
-from deploy.classes.CommonSettings import CommonSettings
+from deploy.classes.common_settings import CommonSettings
 
 from analysis.data_load_for_profit_report import get_trade_retrieval_method_by_exchange
 

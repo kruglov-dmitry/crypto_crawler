@@ -8,7 +8,7 @@ from utils.file_utils import log_to_file
 from utils.time_utils import sleep_for
 
 import argparse
-from deploy.classes.CommonSettings import CommonSettings
+from deploy.classes.common_settings import CommonSettings
 
 
 if __name__ == "__main__":

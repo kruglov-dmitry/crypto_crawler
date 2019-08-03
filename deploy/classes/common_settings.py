@@ -18,8 +18,7 @@ class CommonSettings(BaseData):
                  db_host=DB_HOST,
                  db_port=DB_PORT,
                  db_name=DB_NAME,
-                 exchanges_ids=EXCHANGE.values()
-                 ):
+                 exchanges_ids=None):
 
         #           Logging
 
@@ -42,7 +41,10 @@ class CommonSettings(BaseData):
         self.db_name = db_name
 
         #           Exchanges
-        self.exchanges = exchanges_ids
+        if not exchanges_ids:
+            self.exchanges = EXCHANGE.values()
+        else:
+            self.exchanges = exchanges_ids
 
     @classmethod
     def from_cfg(cls, file_name):
@@ -62,5 +64,4 @@ class CommonSettings(BaseData):
                               config.get("postgres", "db_host"),
                               config.get("postgres", "db_port"),
                               config.get("postgres", "db_name"),
-                              exchanges_ids
-                              )
+                              exchanges_ids)

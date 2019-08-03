@@ -4,9 +4,9 @@ import ConfigParser
 
 from deploy.screen_utils import create_screen, generate_screen_name
 from deploy.constants import FULL_COMMAND
-from deploy.classes.ExchangeArbitrageSettings import ExchangeArbitrageSettings
+from deploy.classes.exchange_arbitrage_settings import ExchangeArbitrageSettings
 from deploy.service_utils import deploy_process_in_screen
-from deploy.classes.DeployUnit import DeployUnit
+from deploy.classes.deploy_unit import DeployUnit
 
 from utils.exchange_utils import get_exchange_id_by_name, get_exchange_name_by_id
 from utils.currency_utils import get_pair_id_by_name

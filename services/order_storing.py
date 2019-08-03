@@ -5,7 +5,7 @@ from dao.db import init_pg_connection, save_order_into_pg
 
 from constants import HEARTBEAT_TIMEOUT
 import argparse
-from deploy.classes.CommonSettings import CommonSettings
+from deploy.classes.common_settings import CommonSettings
 
 if __name__ == "__main__":
 

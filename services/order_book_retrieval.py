@@ -8,7 +8,7 @@ from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, se
 from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc, sleep_for
 
-from deploy.classes.CommonSettings import CommonSettings
+from deploy.classes.common_settings import CommonSettings
 
 import argparse
 

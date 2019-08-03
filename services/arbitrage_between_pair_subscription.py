@@ -44,7 +44,7 @@ from logging_tools.arbitrage_between_pair_logging import log_dont_supported_curr
 
 from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD
 
-from deploy.classes.CommonSettings import CommonSettings
+from deploy.classes.common_settings import CommonSettings
 
 from services.sync_stage import get_stage, set_stage
 

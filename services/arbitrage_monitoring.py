@@ -13,7 +13,7 @@ from utils.currency_utils import get_pair_name_by_id
 from utils.string_utils import float_to_str
 from utils.time_utils import sleep_for, get_now_seconds_utc, ts_to_string_local
 import argparse
-from deploy.classes.CommonSettings import CommonSettings
+from deploy.classes.common_settings import CommonSettings
 
 
 # time to poll

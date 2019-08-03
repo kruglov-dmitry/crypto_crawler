@@ -3,8 +3,8 @@ import argparse
 from debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.exchange_utils import get_exchange_name_by_id
 
-from deploy.classes.CommonSettings import CommonSettings
-from deploy.classes.DeployUnit import DeployUnit
+from deploy.classes.common_settings import CommonSettings
+from deploy.classes.deploy_unit import DeployUnit
 from deploy.service_utils import deploy_process_in_screen
 from deploy.constants import BALANCE_UPDATE_DEPLOY_UNIT
 from deploy.screen_utils import create_screen

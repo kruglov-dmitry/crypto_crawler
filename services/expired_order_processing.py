@@ -1,6 +1,6 @@
 import argparse
 
-from deploy.classes.CommonSettings import CommonSettings
+from deploy.classes.common_settings import CommonSettings
 
 from data_access.message_queue import get_message_queue
 from data_access.priority_queue import ORDERS_EXPIRE_MSG, get_priority_queue

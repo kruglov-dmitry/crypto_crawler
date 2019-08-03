@@ -1,7 +1,7 @@
 import socket
 import argparse
 from utils.time_utils import sleep_for
-from deploy.classes.CommonSettings import CommonSettings
+from deploy.classes.common_settings import CommonSettings
 from data_access.classes.command_queue import CommandQueue
 
 
