@@ -1,4 +1,4 @@
-class CURRENCY_PAIR:
+class CURRENCY_PAIR(object):
     BTC_TO_DASH = 1
     BTC_TO_ETH = 2
     BTC_TO_LTC = 3
@@ -342,5 +342,4 @@ class CURRENCY_PAIR:
                 CURRENCY_PAIR.USDT_TO_ELF,
                 CURRENCY_PAIR.USDT_TO_NAS,
                 CURRENCY_PAIR.USDT_TO_ELA,
-                CURRENCY_PAIR.USD_TO_USDT
-                ]
+                CURRENCY_PAIR.USD_TO_USDT]

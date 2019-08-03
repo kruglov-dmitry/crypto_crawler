@@ -1,4 +1,4 @@
-class EXCHANGE:
+class EXCHANGE(object):
     POLONIEX = 1
     POLONIEX_EXCHANGE = "POLONIEX"
 
@@ -20,8 +20,7 @@ class EXCHANGE:
                 EXCHANGE.KRAKEN,
                 EXCHANGE.BITTREX,
                 EXCHANGE.BINANCE,
-                EXCHANGE.HUOBI
-                ]
+                EXCHANGE.HUOBI]
 
     @classmethod
     def exchange_names(cls):
@@ -30,5 +29,9 @@ class EXCHANGE:
 
 
 # In percents
-EXCHANGE_FEE = {EXCHANGE.POLONIEX: 0.25, EXCHANGE.KRAKEN: 0.26, EXCHANGE.BITTREX: 0.25, EXCHANGE.BINANCE: 0.1,
+EXCHANGE_FEE = {EXCHANGE.POLONIEX: 0.25,
+                EXCHANGE.KRAKEN: 0.26,
+                EXCHANGE.BITTREX: 0.25,
+                EXCHANGE.BINANCE: 0.1,
                 EXCHANGE.HUOBI: 0.2}
+

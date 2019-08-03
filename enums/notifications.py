@@ -1,4 +1,4 @@
-class NOTIFICATION:
+class NOTIFICATION(object):
     ARBITRAGE = 1
     ARBITRAGE_NAME = "ARBITRAGE"
 

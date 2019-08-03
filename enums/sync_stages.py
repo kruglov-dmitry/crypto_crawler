@@ -1,4 +1,4 @@
-class ORDER_BOOK_SYNC_STAGES:
+class ORDER_BOOK_SYNC_STAGES(object):
     UNKNOWN = -1
     BEFORE_SYNC = 1
     AFTER_SYNC = 2

@@ -1,4 +1,4 @@
-class DEAL_TYPE:
+class DEAL_TYPE(object):
     SELL = 1
     BUY = 2
     ARBITRAGE = 3

@@ -1,6 +1,7 @@
-class HTTP_REQUEST:
+class HTTP_REQUEST(object):
     GET = 1
     POST = 2
+
 
 def get_http_request_type_by_id(http_request_id):
     return {
