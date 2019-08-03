@@ -6,7 +6,7 @@ from utils.key_utils import sign_string_256_base64
 from utils.file_utils import log_to_file
 from utils.time_utils import ts_to_string_utc, get_now_seconds_utc
 
-from data_access.classes.PostRequestDetails import PostRequestDetails
+from data_access.classes.post_request_details import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 
 from huobi.constants import HUOBI_CANCEL_ORDER, HUOBI_DEAL_TIMEOUT, HUOBI_API_URL, HUOBI_API_ONLY, \

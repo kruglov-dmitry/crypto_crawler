@@ -1,18 +1,17 @@
-from data_access.classes.PriorityQueue import PriorityQueue
+from data_access.classes.priority_queue import PriorityQueue
 from constants import CACHE_PORT, CACHE_HOST
 
 ORDERS_EXPIRE_MSG = "orders_watch_list"
-priority_queue = None
+PRIORITY_QUEUE = None
 
 
 def connect_to_priority_queue(host=CACHE_HOST, port=CACHE_PORT):
-    global priority_queue
-    priority_queue = PriorityQueue(host, port)
-    return priority_queue
+    global PRIORITY_QUEUE
+    PRIORITY_QUEUE = PriorityQueue(host, port)
+    return PRIORITY_QUEUE
 
 
 def get_priority_queue(host=CACHE_HOST, port=CACHE_PORT):
-    global priority_queue
-    if priority_queue is None:
+    if PRIORITY_QUEUE is None:
         return connect_to_priority_queue(host, port)
-    return priority_queue
+    return PRIORITY_QUEUE

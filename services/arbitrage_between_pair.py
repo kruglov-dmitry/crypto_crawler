@@ -16,7 +16,7 @@ from dao.deal_utils import init_deals_with_logging_speedy
 
 from data.arbitrage_config import ArbitrageConfig
 
-from data_access.classes.ConnectionPool import ConnectionPool
+from data_access.classes.connection_pool import ConnectionPool
 from data_access.memory_cache import get_cache
 from data.market_cap import MarketCap
 
@@ -117,9 +117,9 @@ if __name__ == "__main__":
     set_log_folder(app_settings.log_folder)
     load_keys(app_settings.key_path)
 
-    priority_queue = get_priority_queue(host=app_settings.cache_host, port=app_settings.cache_port)
+    PRIORITY_QUEUE = get_priority_queue(host=app_settings.cache_host, port=app_settings.cache_port)
     msg_queue = get_message_queue(host=app_settings.cache_host, port=app_settings.cache_port)
-    local_cache = get_cache(host=app_settings.cache_host, port=app_settings.cache_port)
+    LOCAL_CACHE = get_cache(host=app_settings.cache_host, port=app_settings.cache_port)
 
     processor = ConnectionPool(pool_size=2)
 
@@ -147,7 +147,7 @@ if __name__ == "__main__":
             method = search_for_arbitrage if mode_id == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
             active_threshold = cfg.threshold if mode_id == DEAL_TYPE.ARBITRAGE else cfg.reverse_threshold
 
-            balance_state = get_updated_balance_arbitrage(cfg, balance_state, local_cache)
+            balance_state = get_updated_balance_arbitrage(cfg, balance_state, LOCAL_CACHE)
 
             if balance_state.expired(cur_timest_sec, cfg.buy_exchange_id, cfg.sell_exchange_id, BALANCE_EXPIRED_THRESHOLD):
                 log_balance_expired_errors(cfg, msg_queue, balance_state)
@@ -161,12 +161,12 @@ if __name__ == "__main__":
                 sleep_for(3)
                 continue
 
-            if is_order_books_expired(order_book_src, order_book_dst, local_cache, msg_queue):
+            if is_order_books_expired(order_book_src, order_book_dst, LOCAL_CACHE, msg_queue):
                 sleep_for(3)
                 continue
 
-            local_cache.cache_order_book(order_book_src)
-            local_cache.cache_order_book(order_book_dst)
+            LOCAL_CACHE.cache_order_book(order_book_src)
+            LOCAL_CACHE.cache_order_book(order_book_dst)
 
             die_hard("FIXME: SHOULD NOT BE RUN - LIVE TRADING!")
 

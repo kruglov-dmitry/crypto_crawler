@@ -1,17 +1,10 @@
-import redis as _redis
 import pickle
+
 from utils.time_utils import get_now_seconds_utc_ms
+from data_access.classes.redis_connection import RedisConnection
 
 
-class PriorityQueue(object):
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
-        self._connect()
-
-    def _connect(self):
-        self.r = _redis.StrictRedis(host=self.host, port=self.port, db=0)
-
+class PriorityQueue(RedisConnection):
     def add_order_to_watch_queue(self, topic_id, order):
         """
             Place orders to watch list = priority queue by TIME.
@@ -21,9 +14,9 @@ class PriorityQueue(object):
         :param order:
         :return:
         """
-       
+
         assert order is not None
-    
+
         return self.r.zadd(topic_id, -get_now_seconds_utc_ms(), pickle.dumps(order))
 
     def first(self, topic_id):

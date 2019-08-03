@@ -45,6 +45,7 @@ class Balance(BaseData):
             str_repr += " " + get_currency_name_by_id(currency_id) + " - " + str(self.available_balance[currency_id])
 
         str_repr += " Total balance:"
+
         for currency_id in self.total_balance:
             str_repr += " " + get_currency_name_by_id(currency_id) + " - " + str(self.total_balance[currency_id])
 

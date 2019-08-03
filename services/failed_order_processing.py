@@ -47,8 +47,8 @@ if __name__ == "__main__":
 
     load_keys(settings.key_path)
     msg_queue = get_message_queue(host=settings.cache_host, port=settings.cache_port)
-    local_cache = get_cache(host=settings.cache_host, port=settings.cache_port)
-    priority_queue = get_priority_queue(host=settings.cache_host, port=settings.cache_port)
+    LOCAL_CACHE = get_cache(host=settings.cache_host, port=settings.cache_port)
+    PRIORITY_QUEUE = get_priority_queue(host=settings.cache_host, port=settings.cache_port)
     set_log_folder(settings.log_folder)
     set_logging_level(settings.logging_level_id)
 
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     while True:
         order = msg_queue.get_next_order(FAILED_ORDERS_MSG)
         if order is not None:
-            process_failed_order(order, msg_queue, priority_queue, local_cache, pg_conn)
+            process_failed_order(order, msg_queue, PRIORITY_QUEUE, LOCAL_CACHE, pg_conn)
 
         sleep_for(1)
         cnt += 1

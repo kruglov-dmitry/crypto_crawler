@@ -3,7 +3,7 @@ from binance.history_utils import get_history_binance, get_history_binance_url, 
 from bittrex.constants import BITTREX_CURRENCY_PAIRS
 from bittrex.history_utils import get_history_bittrex, get_history_bittrex_url, get_history_bittrex_result_processor
 from constants import HTTP_TIMEOUT_SECONDS
-from data_access.classes.WorkUnit import WorkUnit
+from data_access.classes.work_unit import WorkUnit
 from enums.currency_pair import CURRENCY_PAIR
 from enums.exchange import EXCHANGE
 from kraken.constants import KRAKEN_CURRENCY_PAIRS
@@ -32,7 +32,7 @@ def get_history_speedup(date_start, date_end, processor):
 
                 history_async_requests.append(WorkUnit(request_url, constructor, pair_name, date_end))
 
-    return processor.process_async_to_list(history_async_requests, HTTP_TIMEOUT_SECONDS)
+    return processor.process_async_get(history_async_requests, HTTP_TIMEOUT_SECONDS)
 
 
 def get_history_url_by_exchange_id(exchange_id):

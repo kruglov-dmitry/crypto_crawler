@@ -20,7 +20,7 @@ from dao.socket_utils import get_subcribtion_by_exchange
 from data.arbitrage_config import ArbitrageConfig
 from data.order_book import OrderBook
 
-from data_access.classes.ConnectionPool import ConnectionPool
+from data_access.classes.connection_pool import ConnectionPool
 from data_access.memory_cache import get_cache
 from data.market_cap import MarketCap
 

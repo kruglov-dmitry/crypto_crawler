@@ -3,7 +3,7 @@ from decimal import Decimal
 # FIXME NOTE: from dao import * doesnt work and lead to circular import hell. Still not sure how to tackle it properly
 import dao
 
-from data_access.classes.WorkUnit import WorkUnit
+from data_access.classes.work_unit import WorkUnit
 from data_access.message_queue import DEAL_INFO_MSG, DEBUG_INFO_MSG, ORDERS_MSG, FAILED_ORDERS_MSG
 
 from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME

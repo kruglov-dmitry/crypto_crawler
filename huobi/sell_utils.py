@@ -4,7 +4,7 @@ from urllib import urlencode as _urlencode
 from huobi.constants import HUOBI_SELL_ORDER, HUOBI_NUM_OF_DEAL_RETRY, HUOBI_DEAL_TIMEOUT, HUOBI_API_ONLY, HUOBI_API_URL
 from huobi.account_utils import get_huobi_account
 
-from data_access.classes.PostRequestDetails import PostRequestDetails
+from data_access.classes.post_request_details import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 
 from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level

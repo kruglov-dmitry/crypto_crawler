@@ -1,21 +1,20 @@
 from constants import CACHE_HOST, CACHE_PORT
-from data_access.classes.MemoryCache import MemoryCache
+from data_access.classes.memory_cache import MemoryCache
 
-local_cache = None
+LOCAL_CACHE = None
 
 
 def connect_to_cache(host=CACHE_HOST, port=CACHE_PORT):
     # FIXME NOTE temporary workaround for in-memory caching
-    global local_cache
-    local_cache = MemoryCache(host, port)
-    return local_cache
+    global LOCAL_CACHE
+    LOCAL_CACHE = MemoryCache(host, port)
+    return LOCAL_CACHE
 
 
 def get_cache(host=CACHE_HOST, port=CACHE_PORT):
-    global local_cache
-    if local_cache is None:
+    if LOCAL_CACHE is None:
         return connect_to_cache(host, port)
-    return local_cache
+    return LOCAL_CACHE
 
 
 def generate_nonce():

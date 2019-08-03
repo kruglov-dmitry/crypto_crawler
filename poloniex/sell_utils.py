@@ -1,6 +1,6 @@
 from poloniex.constants import POLONIEX_SELL_ORDER, POLONIEX_NUM_OF_DEAL_RETRY, POLONIEX_DEAL_TIMEOUT
 
-from data_access.classes.PostRequestDetails import PostRequestDetails
+from data_access.classes.post_request_details import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
 

@@ -4,7 +4,7 @@ from data.order_book import OrderBook, ORDER_BOOK_INSERT_BIDS, ORDER_BOOK_INSERT
 from data.trade import Trade
 from data.candle import Candle
 
-from data_access.classes.PostgresConnection import PostgresConnection
+from data_access.classes.postgres_connection import PostgresConnection
 from utils.time_utils import get_date_time_from_epoch
 from utils.file_utils import log_to_file
 
@@ -30,7 +30,7 @@ def init_pg_connection(_db_host="192.168.1.106", _db_port=5432, _db_name="postgr
 
 def insert_data(some_object, pg_conn, is_this_order_book):
     # NOTE commit should be after all inserts! ONCE
-    cur = pg_conn.get_cursor()
+    cur = pg_conn.cursor
 
     PG_INSERT_QUERY = some_object.insert_query
     args_list = some_object.get_pg_arg_list()
@@ -74,9 +74,9 @@ def load_to_postgres(array, pattern_name, pg_conn):
 
 
 def bulk_insert_to_postgres(pg_conn, table_name, column_names, array):
-    from data_access.classes.IteratorFile import IteratorFile
+    from data_access.classes.file_iterator import IteratorFile
 
-    cursor = pg_conn.get_cursor()
+    cursor = pg_conn.cursor
 
     f = IteratorFile((x.tsv() for x in array))
     log_to_file(table_name, table_name + ".txt")
@@ -91,7 +91,7 @@ def bulk_insert_to_postgres(pg_conn, table_name, column_names, array):
 
 
 def save_alarm_into_pg(src_ticker, dst_ticker, pg_conn):
-    cur = pg_conn.get_cursor()
+    cur = pg_conn.cursor
 
     PG_INSERT_QUERY = "insert into alarms(src_exchange_id, dst_exchange_id, src_pair_id, dst_pair_id, src_ask_price, " \
                       "dst_bid_price, timest, date_time) values(%s, %s, %s, %s, %s, %s, %s, %s);"
@@ -118,7 +118,7 @@ def get_time_entries(pg_conn):
     time_entries = []
 
     select_query = "select distinct timest from order_book order by timest asc"
-    cursor = pg_conn.get_cursor()
+    cursor = pg_conn.cursor
 
     cursor.execute(select_query)
 
@@ -132,7 +132,7 @@ def get_order_book_asks(pg_conn, order_book_id):
     order_books_asks = []
 
     select_query = "select id, order_book_id, price, volume from order_book_ask where order_book_id = " + str(order_book_id)
-    cursor = pg_conn.get_cursor()
+    cursor = pg_conn.cursor
 
     cursor.execute(select_query)
 
@@ -146,7 +146,7 @@ def get_order_book_bids(pg_conn, order_book_id):
     order_books_bids = []
 
     select_query = "select id, order_book_id, price, volume from order_book_bid where order_book_id = " + str(order_book_id)
-    cursor = pg_conn.get_cursor()
+    cursor = pg_conn.cursor
 
     cursor.execute(select_query)
 
@@ -160,7 +160,7 @@ def get_order_book_by_time(pg_conn, timest):
     order_books = defaultdict(list)
 
     select_query = "select id, pair_id, exchange_id, timest from order_book where timest = " + str(timest)
-    cursor = pg_conn.get_cursor()
+    cursor = pg_conn.cursor
 
     cursor.execute(select_query)
 
@@ -176,7 +176,7 @@ def get_order_book_by_time(pg_conn, timest):
 
 
 def get_arbitrage_id(pg_conn):
-    cursor = pg_conn.get_cursor()
+    cursor = pg_conn.cursor
     select_query = """select nextval('arbitrage_id_seq')"""
     cursor.execute(select_query)
 
@@ -187,7 +187,7 @@ def get_arbitrage_id(pg_conn):
 
 
 def save_order_into_pg(order, pg_conn, table_name="arbitrage_orders"):
-    cur = pg_conn.get_cursor()
+    cur = pg_conn.cursor
 
     PG_INSERT_QUERY = "insert into {table_name}(arbitrage_id, exchange_id, trade_type, pair_id, price, volume, " \
                       "executed_volume, order_id, trade_id, order_book_time, create_time, execute_time, execute_time_date) " \
@@ -228,7 +228,7 @@ def get_all_orders(pg_conn, table_name="arbitrage_orders", time_start=START_OF_T
         and create_time <= {end_time}
         """.format(table_name=table_name, start_time=time_start, end_time=time_end)
 
-    cursor = pg_conn.get_cursor()
+    cursor = pg_conn.cursor
 
     cursor.execute(select_query)
 
@@ -258,7 +258,7 @@ def is_order_present_in_order_history(pg_conn, trade, table_name="arbitrage_orde
         trade_id, order_book_time, create_time, execute_time from {table_name} where order_id = '{order_id}'""".format(
         table_name=table_name, order_id=trade.order_id)
 
-    cursor = pg_conn.get_cursor()
+    cursor = pg_conn.cursor
 
     cursor.execute(select_query)
 
@@ -290,7 +290,7 @@ def is_trade_present_in_trade_history(pg_conn, trade, table_name="arbitrage_trad
     select_query = """select * from {table_name} where trade_id = '{trade_id}'""".format(
         table_name=table_name, trade_id=trade.trade_id)
 
-    cursor = pg_conn.get_cursor()
+    cursor = pg_conn.cursor
 
     cursor.execute(select_query)
 
@@ -306,7 +306,7 @@ def get_next_candidates(pg_conn, predicate):
 
     select_query = "select id, pair_id, exchange_id, open, close, high, low, timest, date_time from candle"
 
-    cursor = pg_conn.get_cursor()
+    cursor = pg_conn.cursor
 
     cursor.execute(select_query)
 
@@ -344,7 +344,7 @@ def update_order_details(pg_conn, order):
     """.format(order_id=order.order_id, e_id=order.exchange_id, p_id=order.pair_id, d_type=order.trade_type,
                c_time=order.create_time)
 
-    cursor = pg_conn.get_cursor()
+    cursor = pg_conn.cursor
 
     cursor.execute(select_query)
 
@@ -361,7 +361,7 @@ def get_last_binance_trade(pg_conn, start_date, end_time, pair_id, table_name="a
     ORDER BY create_time DESC limit 1""".format(
         table_name=table_name, exchange_id=EXCHANGE.BINANCE, pair_id=pair_id, start_time=start_date, end_time=end_time)
 
-    cursor = pg_conn.get_cursor()
+    cursor = pg_conn.cursor
 
     cursor.execute(select_query)
 

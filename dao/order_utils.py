@@ -11,7 +11,7 @@ from huobi.order_utils import get_open_orders_huobi, get_open_orders_huobi_post_
 
 from constants import HTTP_TIMEOUT_SECONDS
 
-from data_access.classes.WorkUnit import WorkUnit
+from data_access.classes.work_unit import WorkUnit
 
 from debug_utils import print_to_console, LOG_ALL_ERRORS
 

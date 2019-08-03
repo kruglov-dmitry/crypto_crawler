@@ -3,7 +3,7 @@ from urllib import urlencode as _urlencode
 from bittrex.constants import BITTREX_GET_TRADE_HISTORY, BITTREX_NUM_OF_DEAL_RETRY
 from bittrex.error_handling import is_error
 
-from data_access.classes.PostRequestDetails import PostRequestDetails
+from data_access.classes.post_request_details import PostRequestDetails
 
 from data.trade import Trade
 from enums.status import STATUS

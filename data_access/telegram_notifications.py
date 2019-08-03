@@ -12,7 +12,7 @@ from enums.notifications import NOTIFICATION
 MAX_MESSAGE_LENGTH = 4000
 
 
-bot = telegram.Bot(token='438844686:AAE8lS3VyMsNgtytR4I1uWy4DLUaot2e5hU')
+BOT = telegram.Bot(token='438844686:AAE8lS3VyMsNgtytR4I1uWy4DLUaot2e5hU')
 
 
 def get_chat_id_by_type(notification_id):
@@ -23,17 +23,20 @@ def get_chat_id_by_type(notification_id):
     }[notification_id]
 
 
+def log_error_send_message(func_name, some_message, exception):
+    msg = "{func_name} FAILED: {msg} {ee}".format(func_name=func_name, msg=some_message, ee=exception)
+    print_to_console(msg, LOG_ALL_ERRORS)
+    log_to_file(msg, "telegram.log")
+
+
 def send_single_message_no_parsing(some_message, notification_type):
-    global bot
     chat_id = get_chat_id_by_type(notification_type)
     res = STATUS.FAILURE
     try:
-        bot.send_message(chat_id=chat_id, text=str(some_message), timeout=5, parse_mode=None)
+        BOT.send_message(chat_id=chat_id, text=str(some_message), timeout=5, parse_mode=None)
         res = STATUS.SUCCESS
-    except Exception, e:
-        msg = "send_single_message_no_parsing FAILED: {msg} {ee}".format(msg=some_message, ee=str(e))
-        print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, "telegram.log")
+    except Exception as e:
+        log_error_send_message("send_single_message_no_parsing", some_message, e)
 
     return res
 
@@ -43,18 +46,14 @@ def send_single_message(some_message, notification_type):
     if len(some_message) > MAX_MESSAGE_LENGTH:
         some_message = some_message[:MAX_MESSAGE_LENGTH] + "... etc"
 
-    global bot
     chat_id = get_chat_id_by_type(notification_type)
-    res = STATUS.FAILURE
+
     try:
-        bot.send_message(chat_id=chat_id, text=str(some_message), timeout=5,
+        BOT.send_message(chat_id=chat_id, text=str(some_message), timeout=5,
                          parse_mode=telegram.ParseMode.HTML)
         res = STATUS.SUCCESS
-    except Exception, e:
-        msg = "send_single_message FAILED: {msg} {ee}".format(msg=some_message, ee=str(e))
-        print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, "telegram.log")
-
+    except Exception as e:
+        log_error_send_message("send_single_message", some_message, e)
         res = send_single_message_no_parsing(some_message, notification_type)
 
     return res

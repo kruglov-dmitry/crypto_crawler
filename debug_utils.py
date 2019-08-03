@@ -75,6 +75,6 @@ def get_log_folder():
 
 
 def set_log_folder(log_folder):
-    if log_folder is not None:
+    if log_folder:
         global LOGS_FOLDER
         LOGS_FOLDER = log_folder

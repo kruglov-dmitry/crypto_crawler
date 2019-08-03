@@ -6,7 +6,7 @@ from huobi.account_utils import get_huobi_account
 
 from data.balance import Balance
 
-from data_access.classes.PostRequestDetails import PostRequestDetails
+from data_access.classes.post_request_details import PostRequestDetails
 from data_access.internet import send_get_request_with_header
 
 from debug_utils import print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, ERROR_LOG_FILE_NAME, \

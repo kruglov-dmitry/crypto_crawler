@@ -2,9 +2,7 @@ import socket
 import argparse
 from utils.time_utils import sleep_for
 from deploy.classes.CommonSettings import CommonSettings
-from data_access.classes.CommandQueue import CommandQueue
-
-import subprocess32 as subprocess
+from data_access.classes.command_queue import CommandQueue
 
 
 if __name__ == "__main__":
@@ -30,7 +28,6 @@ if __name__ == "__main__":
     # p = r.pubsub()
     # p.subscribe('test')
 
-
     puppets = []
 
     while True:
@@ -39,5 +36,5 @@ if __name__ == "__main__":
 
         cmd = command_queue.get_command()
         if cmd:
-            print "Subscriber: %s" % message['data']
+            print "Subscriber: %s" % cmd
         sleep_for(1)

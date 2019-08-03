@@ -6,7 +6,7 @@ from utils.file_utils import log_to_file
 from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, LOG_ALL_DEBUG, \
     DEBUG_LOG_FILE_NAME, ERROR_LOG_FILE_NAME
 
-from data_access.classes.PostRequestDetails import PostRequestDetails
+from data_access.classes.post_request_details import PostRequestDetails
 from data_access.internet import send_get_request_with_header
 from data.trade import Trade
 

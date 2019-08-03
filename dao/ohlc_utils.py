@@ -14,7 +14,7 @@ from huobi.constants import HUOBI_CURRENCY_PAIRS
 from huobi.ohlc_utils import get_ohlc_huobi, get_ohlc_huobi_url, get_ohlc_huobi_result_processor
 
 from constants import HTTP_TIMEOUT_SECONDS
-from data_access.classes.WorkUnit import WorkUnit
+from data_access.classes.work_unit import WorkUnit
 
 from enums.currency_pair import CURRENCY_PAIR
 from enums.exchange import EXCHANGE
@@ -58,7 +58,7 @@ def get_ohlc_speedup(date_start, date_end, processor):
 
                 ohlc_async_requests.append(WorkUnit(request_url, constructor, pair_name, date_start, date_end))
 
-    return processor.process_async_to_list(ohlc_async_requests, HTTP_TIMEOUT_SECONDS)
+    return processor.process_async_get(ohlc_async_requests, HTTP_TIMEOUT_SECONDS)
 
 
 def get_ohlc(date_start, date_end):

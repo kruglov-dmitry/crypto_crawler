@@ -92,10 +92,7 @@ class OrderBook(BaseData):
             str_repr += every_attr + " - " + str(getattr(self, every_attr)) + " "
 
         str_repr += "bids - [" + "\n".join(self.bid) + "] "
-
-        str_repr += "asks - [" + "\n".join(self.ask) + "]"
-
-        str_repr += "]"
+        str_repr += "asks - [" + "\n".join(self.ask) + "]]"
 
         return str_repr
 
@@ -222,11 +219,12 @@ class OrderBook(BaseData):
 
         """
 
-        almost_zero = new_bid.volume <= MIN_VOLUME_ORDER_BOOK
         item_insert_point = binary_search(self.bid, new_bid, cmp_method_bid)
         is_present = False
         if item_insert_point < len(self.bid):
             is_present = self.bid[item_insert_point] == new_bid
+
+        almost_zero = new_bid.volume <= MIN_VOLUME_ORDER_BOOK
         should_overwrite = is_present and overwrite_volume
         should_update_volume = is_present and not overwrite_volume
         update_volume_error = not is_present and not overwrite_volume
@@ -261,11 +259,12 @@ class OrderBook(BaseData):
             Order of condition check is very IMPORTANT!
         """
 
-        almost_zero = new_ask.volume <= MIN_VOLUME_ORDER_BOOK
         item_insert_point = binary_search(self.ask, new_ask, cmp_method_ask)
         is_present = False
         if item_insert_point < len(self.ask):
             is_present = self.ask[item_insert_point] == new_ask
+
+        almost_zero = new_ask.volume <= MIN_VOLUME_ORDER_BOOK
         should_overwrite = is_present and overwrite_volume
         should_update_volume = is_present and not overwrite_volume
         update_volume_error = not is_present and not overwrite_volume

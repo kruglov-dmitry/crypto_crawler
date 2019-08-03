@@ -24,7 +24,7 @@ from dao.ticker_utils import get_ticker_speedup
 from data.trade import Trade
 from data.trade_pair import TradePair
 from data.arbitrage_config import ArbitrageConfig
-from data_access.classes.ConnectionPool import ConnectionPool
+from data_access.classes.connection_pool import ConnectionPool
 from data_access.memory_cache import generate_nonce
 from enums.currency import CURRENCY
 from enums.currency_pair import CURRENCY_PAIR
@@ -678,7 +678,7 @@ def test_pool():
             yield iterable[ndx:min(ndx + n, l)]
 
     import gevent
-    from data_access.classes.ConnectionPool import ConnectionPool
+    from data_access.classes.connection_pool import ConnectionPool
     processor = ConnectionPool(10)
 
     iters = []

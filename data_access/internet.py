@@ -17,6 +17,7 @@ from debug_utils import print_to_console, LOG_ALL_ERRORS, DEBUG_LOG_FILE_NAME, E
 
 
 def send_request(final_url, error_msg):
+    res = STATUS.FAILURE, None
 
     try:
         response = requests.get(final_url, timeout=HTTP_TIMEOUT_SECONDS)
@@ -28,19 +29,16 @@ def send_request(final_url, error_msg):
         if response.status_code == HTTP_SUCCESS:
             res = STATUS.SUCCESS, json_response
         else:
-            res = STATUS.FAILURE, response
+            res = STATUS.FAILURE, json_response
 
     except Exception, e:
-        res = STATUS.FAILURE, error_msg + str(e)
-
-        msg = "send_request ERROR: {excp} MSG: {e_msg}".format(e_msg=error_msg, excp=str(e))
-        print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, ERROR_LOG_FILE_NAME)
+        log_error_request_failed("send_request", final_url, error_msg, e)
 
     return res
 
 
 def send_get_request_with_header(final_url, header, error_msg, timeout=HTTP_TIMEOUT_SECONDS):
+    res = STATUS.FAILURE, None
     try:
         response = requests.get(final_url, headers=header, timeout=timeout)
         json_response = response.json()
@@ -51,15 +49,10 @@ def send_get_request_with_header(final_url, header, error_msg, timeout=HTTP_TIME
         if response.status_code == HTTP_SUCCESS:
             res = STATUS.SUCCESS, json_response
         else:
-            res = STATUS.FAILURE, response
+            res = STATUS.FAILURE, json_response
 
     except Exception, e:
-
-        res = STATUS.FAILURE, error_msg + str(e)
-
-        msg = "send_get_request_with_header ERROR: {excp} MSG: {e_msg}".format(e_msg=error_msg, excp=str(e))
-        print_to_console(msg, LOG_ALL_ERRORS)
-        log_to_file(msg, ERROR_LOG_FILE_NAME)
+        log_error_request_failed("send_get_request_with_header", final_url, error_msg, e)
 
     return res
 
@@ -82,17 +75,12 @@ def send_post_request_with_header(post_details, error_msg, max_tries, timeout=HT
                     res=json_response, url=post_details.final_url)
                 log_to_file(msg, DEBUG_LOG_FILE_NAME)
 
-            if response.status_code == HTTP_SUCCESS:
-                return STATUS.SUCCESS, json_response
-            else:
-                return STATUS.FAILURE, response
+            status = STATUS.SUCCESS if HTTP_SUCCESS == response.status_code else STATUS.FAILURE
+
+            return status, json_response
 
         except Exception, e:
-            res = STATUS.FAILURE, error_msg + str(e)
-            msg = "send_post_request_with_header: Exception: {excp} Msg: {msg} for url={url}".format(
-                excp=error_msg, msg=str(e), url=post_details.final_url)
-            print_to_console(msg, LOG_ALL_ERRORS)
-            log_to_file(msg, ERROR_LOG_FILE_NAME)
+            log_error_request_failed("send_post_request_with_header", post_details.final_url, error_msg, e)
 
     return res
 
@@ -112,15 +100,18 @@ def send_delete_request_with_header(post_details, error_msg, max_tries):
                     res=json_response, url=post_details.final_url)
                 log_to_file(msg, DEBUG_LOG_FILE_NAME)
 
-            if response.status_code == HTTP_SUCCESS:
-                return STATUS.SUCCESS, json_response
-            else:
-                return STATUS.FAILURE, response
+            status = STATUS.SUCCESS if HTTP_SUCCESS == response.status_code else STATUS.FAILURE
+
+            return status, json_response
 
         except Exception, e:
-            res = STATUS.FAILURE, error_msg + str(e)
-            msg = "send_delete_request_with_header: Exception: {excp} Msg: {msg}".format(excp=error_msg, msg=str(e))
-            print_to_console(msg, LOG_ALL_ERRORS)
-            log_to_file(msg, DEBUG_LOG_FILE_NAME)
+            log_error_request_failed("send_delete_request_with_header", post_details.final_url, error_msg, e)
 
     return res
+
+
+def log_error_request_failed(func_name, url, error_msg, exception):
+    msg = "{func_name}: Exception: {excp} Msg: {msg} for url={url}".format(
+        func_name=func_name, excp=exception, msg=error_msg, url=url)
+    print_to_console(msg, LOG_ALL_ERRORS)
+    log_to_file(msg, ERROR_LOG_FILE_NAME)

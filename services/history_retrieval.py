@@ -10,7 +10,7 @@ from data.trade_history import TradeHistory
 from data.ticker import Ticker
 from data.order_book import OrderBook
 
-from data_access.classes.ConnectionPool import ConnectionPool
+from data_access.classes.connection_pool import ConnectionPool
 
 from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, set_log_folder, set_logging_level
 from utils.file_utils import log_to_file

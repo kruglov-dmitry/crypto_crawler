@@ -1,21 +1,13 @@
-from data.base_data import BaseData
-import redis as _redis
 import pickle
+
 from utils.time_utils import get_now_seconds_utc_ms
+from data_access.classes.redis_connection import RedisConnection
 
 
-class MessageQueue(BaseData):
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
-        self._connect()
-
-    def _connect(self):
-        self.r = _redis.StrictRedis(host=self.host, port=self.port, db=0)
-
+class MessageQueue(RedisConnection):
     def add_message(self, topic_id, msg):
-        msg = msg + "\nTS: " + str(get_now_seconds_utc_ms())
-        self.r.rpush(topic_id, msg)
+        msg_with_ts = "{msg}\nTS:{ts}".format(msg=msg, ts=get_now_seconds_utc_ms())
+        self.r.rpush(topic_id, msg_with_ts)
 
     def get_topic_size(self, topic_id):
         return self.r.llen(topic_id)
@@ -50,6 +42,6 @@ class MessageQueue(BaseData):
 
     def get_next_order(self, topic_id):
         entry = self.get_message(topic_id, True)
-        if entry is not None:
+        if entry:
             return pickle.loads(entry)
         return None

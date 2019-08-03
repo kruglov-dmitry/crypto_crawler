@@ -1,5 +1,6 @@
 import gevent.monkey
 gevent.monkey.patch_all()
+
 import requests
 from gevent.pool import Pool
 
@@ -16,13 +17,13 @@ def log_responce_cant_be_parsed(work_unit, file_name=None):
 
     json_responce = ""
     try:
-        json_responce = work_unit.future_result.value.json()
+        json_responce = work_unit.future_value_json
     except:
         pass
 
     responce_code = ""
     try:
-        responce_code = work_unit.future_result.value.status_code
+        responce_code = work_unit.future_status_code
     except:
         pass
 
@@ -30,7 +31,7 @@ def log_responce_cant_be_parsed(work_unit, file_name=None):
     For url {url} Response {resp} can't be parsed.
     HTTP Responce code, if any: {hc}
     JSON Data, if any: {js} 
-    """.format(url=work_unit.url, resp=work_unit.future_result.value, hc=responce_code, js=json_responce)
+    """.format(url=work_unit.url, resp=work_unit.future_value, hc=responce_code, js=json_responce)
     log_to_file(msg, ERROR_LOG_FILE_NAME)
 
     if file_name is not None:
@@ -42,14 +43,14 @@ def log_responce_cant_be_parsed(work_unit, file_name=None):
 def log_responce(work_unit):
     json_responce = ""
     try:
-        json_responce = work_unit.future_result.value.json()
+        json_responce = work_unit.future_value_json
     except:
         pass
 
-    if len(json_responce) > 0:
+    if json_responce:
         msg = "For url {url} response {resp}".format(url=work_unit.url, resp=json_responce)
     else:
-        msg = "For url {url} response {status_code}".format(url=work_unit.url, status_code=work_unit.future_result.value)
+        msg = "For url {url} response {status_code}".format(url=work_unit.url, status_code=work_unit.future_value)
 
     log_to_file(msg, POST_RESPONCE_FILE_NAME)
 
@@ -66,10 +67,11 @@ class ConnectionPool:
         self.pool_size = pool_size
         self.network_pool = Pool(self.pool_size)
 
-    def _process_futures(self, work_units_batch):
+    @classmethod
+    def _process_futures(cls, work_units_batch):
         """
             Operate under `WorkUnit` objects after returning from async calls.
-            Try to apply job specific constructor method for responce returned by exchange.
+            Try to apply job specific constructor method for response returned by exchange.
             In case constructor method fail for any reason - try to wrap all available details into debug string.
 
         :param work_units_batch:
@@ -82,10 +84,13 @@ class ConnectionPool:
 
             result = None
 
-            if work_unit.future_result.value is not None and work_unit.future_result.value.status_code == HTTP_SUCCESS:
+            if work_unit.future_value is None or work_unit.future_status_code != HTTP_SUCCESS:
+                result = log_responce_cant_be_parsed(work_unit)
+                res.append(result)
+            else:
                 try:
-                    result = work_unit.method(work_unit.future_result.value.json(), *work_unit.args)
-                except:
+                    result = work_unit.method(work_unit.future_value_json, *work_unit.args)
+                except Exception as e:
                     pass
 
                 if result is not None:
@@ -96,9 +101,6 @@ class ConnectionPool:
                 else:
                     result = log_responce_cant_be_parsed(work_unit)
                     res.append(result)
-            else:
-                result = log_responce_cant_be_parsed(work_unit)
-                res.append(result)
 
         return res
 
@@ -140,7 +142,7 @@ class ConnectionPool:
 
         return res
 
-    def process_async_to_list(self, work, timeout):
+    def process_async_get(self, work, timeout):
         return self.async_get_to_list(work, timeout)
 
     def process_async_post(self, work, timeout):
@@ -174,7 +176,6 @@ class ConnectionPool:
             futures.append(some_future)
         gevent.joinall(futures)
 
-        res = []
-        res += self._process_futures(work_units)
+        res = self._process_futures(work_units)
 
         return err_code, res

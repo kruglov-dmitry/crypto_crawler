@@ -7,7 +7,7 @@ from utils.file_utils import log_to_file
 
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
-from data_access.classes.PostRequestDetails import PostRequestDetails
+from data_access.classes.post_request_details import PostRequestDetails
 
 
 def cancel_order_kraken(key, order_id):

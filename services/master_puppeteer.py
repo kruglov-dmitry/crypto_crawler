@@ -1,7 +1,7 @@
 import argparse
 from utils.time_utils import sleep_for
 from deploy.classes.CommonSettings import CommonSettings
-from data_access.classes.CommandQueue import CommandQueue
+from data_access.classes.command_queue import CommandQueue
 
 
 if __name__ == "__main__":

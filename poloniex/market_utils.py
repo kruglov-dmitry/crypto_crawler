@@ -3,7 +3,7 @@ from poloniex.error_handling import is_error
 
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
-from data_access.classes.PostRequestDetails import PostRequestDetails
+from data_access.classes.post_request_details import PostRequestDetails
 
 from debug_utils import ERROR_LOG_FILE_NAME, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, \
     LOG_ALL_TRACE

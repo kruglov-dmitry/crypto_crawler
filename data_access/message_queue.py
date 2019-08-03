@@ -1,9 +1,9 @@
-from data_access.classes.MessageQueue import MessageQueue
+from data_access.classes.message_queue import MessageQueue
 from constants import CACHE_PORT, CACHE_HOST
 from enums.notifications import NOTIFICATION
 
 
-message_queue = None
+MESSAGE_QUEUE = None
 
 ARBITRAGE_MSG = "ticker_alerts"
 DEAL_INFO_MSG = "deal_alerts"
@@ -23,13 +23,12 @@ def get_notification_id_by_topic_name(topic_name):
 
 
 def connect_to_message_queue(host=CACHE_HOST, port=CACHE_PORT):
-    global message_queue
-    message_queue = MessageQueue(host, port)
-    return message_queue
+    global MESSAGE_QUEUE
+    MESSAGE_QUEUE = MessageQueue(host, port)
+    return MESSAGE_QUEUE
 
 
 def get_message_queue(host=CACHE_HOST, port=CACHE_PORT):
-    global message_queue
-    if message_queue is None:
+    if MESSAGE_QUEUE is None:
         return connect_to_message_queue(host, port)
-    return message_queue
+    return MESSAGE_QUEUE

@@ -3,7 +3,7 @@ from binance.ticker_utils import get_tickers_binance, get_tickers_binance_url, g
     get_ticker_binance_result_processor
 from bittrex.constants import BITTREX_CURRENCY_PAIRS
 from bittrex.ticker_utils import get_ticker_bittrex, get_ticker_bittrex_url, get_ticker_bittrex_result_processor
-from data_access.classes.WorkUnit import WorkUnit
+from data_access.classes.work_unit import WorkUnit
 from debug_utils import print_to_console, LOG_ALL_ERRORS
 
 from enums.currency_pair import CURRENCY_PAIR
@@ -59,7 +59,7 @@ def get_ticker_speedup(timest, processor):
 
             ohlc_async_requests.append(WorkUnit(request_url, constructor, pair_name, timest))
 
-    async_results = processor.process_async_to_list(ohlc_async_requests, timeout=HTTP_TIMEOUT_SECONDS)
+    async_results = processor.process_async_get(ohlc_async_requests, timeout=HTTP_TIMEOUT_SECONDS)
 
     async_results += get_tickers_poloniex(POLONIEX_CURRENCY_PAIRS, timest)
     async_results += get_tickers_binance(BINANCE_CURRENCY_PAIRS, timest)
@@ -123,7 +123,7 @@ def get_ticker_for_arbitrage(pair_id, timest, exchange_list, processor):
 
         async_requests.append(WorkUnit(request_url, constructor, pair_name, timest))
 
-    res = processor.process_async_to_list(async_requests, timeout=5)
+    res = processor.process_async_get(async_requests, timeout=5)
 
     return res
 
