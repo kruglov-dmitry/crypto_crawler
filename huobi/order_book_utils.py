@@ -11,8 +11,7 @@ from data_access.internet import send_request
 from enums.status import STATUS
 
 
-def get_order_book_huobi_url(pair_name, timest):
-    #
+def get_order_book_huobi_url(pair_name):
     final_url = HUOBI_GET_ORDER_BOOK + pair_name + "&type=step0"
 
     if should_print_debug():
@@ -23,7 +22,7 @@ def get_order_book_huobi_url(pair_name, timest):
 
 def get_order_book_huobi(pair_name, timest):
 
-    final_url = get_order_book_huobi_url(pair_name, timest)
+    final_url = get_order_book_huobi_url(pair_name)
 
     err_msg = "get_order_book_huobi called for {pair} at {timest}".format(pair=pair_name, timest=timest)
     error_code, json_document = send_request(final_url, err_msg)

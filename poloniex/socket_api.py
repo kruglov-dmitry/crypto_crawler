@@ -1,17 +1,21 @@
 # coding=utf-8
-import websocket
-from websocket import create_connection
 import json
 import thread
+import websocket
+from websocket import create_connection
 
 from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for, get_now_seconds_utc
 from utils.system_utils import die_hard
 
 from poloniex.currency_utils import get_currency_pair_to_poloniex
+from poloniex.constants import POLONIEX_WEBSCOKET_URL, POLONIEX_WEBSOCKET_TIMEOUT, \
+    POLONIEX_WEBSOCKET_ORDER, POLONIEX_WEBSOCKET_TRADE, POLONIEX_WEBSOCKET_ORDER_BID, \
+    POLONIEX_WEBSOCKET_ORDER_ASK, WEBSOCKET_SUBSCRIBE_HEARTBEAT
 
 from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_receive_from_socket, \
-    log_heartbeat_is_missing, log_subscription_cancelled, log_websocket_disconnect, log_send_heart_beat_failed, log_subscribe_to_exchange_heartbeat, log_unsubscribe_to_exchange_heartbeat
+    log_heartbeat_is_missing, log_subscription_cancelled, log_websocket_disconnect, \
+    log_send_heart_beat_failed, log_subscribe_to_exchange_heartbeat, log_unsubscribe_to_exchange_heartbeat
 
 from enums.exchange import EXCHANGE
 
@@ -19,24 +23,8 @@ from data.order_book_update import OrderBookUpdate
 from data.deal import Deal
 from data.order_book import OrderBook
 
-from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME, get_logging_level, LOG_ALL_TRACE
-
-
-class PoloniexParameters:
-    URL = "wss://api2.poloniex.com/"
-
-    SUBSCRIBE_TROLL_BOX = 1001
-    SUBSCRIBE_TICKER = 1002
-    SUBSCRIBE_BASE_COIN_24HR_STATS = 1003
-    SUBSCRIBE_HEARTBEAT = 1010
-
-    POLONIEX_ORDER = "o"
-    POLONIEX_TRADE = "t"
-
-    POLONIEX_ORDER_BID = 1
-    POLONIEX_ORDER_ASK = 0
-
-    POLONIEX_TIMEOUT = 5
+from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME, get_logging_level, LOG_ALL_TRACE, LOG_ALL_ERRORS, \
+    LOG_ALL_MARKET_RELATED_CRAP, print_to_console
 
 
 def parse_socket_order_book_poloniex(order_book_snapshot, pair_id):
@@ -176,18 +164,19 @@ def parse_socket_update_poloniex(order_book_delta):
 
     delta = order_book_delta[2]
     for entry in delta:
-        if entry[0] == PoloniexParameters.POLONIEX_ORDER:
+        if entry[0] == POLONIEX_WEBSOCKET_ORDER:
             new_deal = Deal(entry[2], entry[3])
 
             # If it is just orders - we insert in a way to keep sorted order
-            if entry[1] == PoloniexParameters.POLONIEX_ORDER_ASK:
+            if entry[1] == POLONIEX_WEBSOCKET_ORDER_ASK:
                 asks.append(new_deal)
-            elif entry[1] == PoloniexParameters.POLONIEX_ORDER_BID:
+            elif entry[1] == POLONIEX_WEBSOCKET_ORDER_BID:
                 bids.append(new_deal)
             else:
-                msg = "Poloniex socket update parsing - {wtf} total: {ttt}".format(wtf=entry, ttt=order_book_delta)
+                msg = "Poloniex socket update parsing - {update} total: {ttt}".format(
+                    update=entry, ttt=order_book_delta)
                 log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-        elif entry[0] == PoloniexParameters.POLONIEX_TRADE:
+        elif entry[0] == POLONIEX_WEBSOCKET_TRADE:
 
             # FIXME NOTE:   this is ugly hack to avoid creation of custom objects
             #               and at the same Deal object contains lt method that
@@ -198,9 +187,9 @@ def parse_socket_update_poloniex(order_book_delta):
             # in case we have trade with type bid -> we will update orders at ask
             # in case we have trade with type ask -> we will update orders at bid
 
-            if entry[2] == PoloniexParameters.POLONIEX_ORDER_BID:
+            if entry[2] == POLONIEX_WEBSOCKET_ORDER_BID:
                 trades_sell.append(new_deal)
-            elif entry[2] == PoloniexParameters.POLONIEX_ORDER_ASK:
+            elif entry[2] == POLONIEX_WEBSOCKET_ORDER_ASK:
                 trades_buy.append(new_deal)
             else:
                 msg = "Poloniex socket update parsing - {wtf}".format(wtf=entry)
@@ -224,7 +213,7 @@ def process_message(compress_data):
 
 def default_on_public(exchange_id, args):
     print("Poloniex: default_on_public")
-    print exchange_id, args
+    print(" - ".join([exchange_id, args]))
 
 
 def default_on_error():
@@ -236,7 +225,7 @@ def default_on_close():
 
 
 class SubscriptionPoloniex:
-    def __init__(self, pair_id, on_update=default_on_public, base_url=PoloniexParameters.URL):
+    def __init__(self, pair_id, on_update=default_on_public, base_url=POLONIEX_WEBSCOKET_URL):
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points
@@ -258,14 +247,21 @@ class SubscriptionPoloniex:
 
         self.last_heartbeat_ts = None
 
+        self.ws = None
+
+        self.subscribe_string = json.dumps({'command': 'subscribe', 'channel': self.pair_name})
+        self.subscribe_heartbeat = json.dumps({
+            'command': 'subscribe', 'channel': WEBSOCKET_SUBSCRIBE_HEARTBEAT
+        })
+
     def on_open(self):
 
         def run():
             log_subscribe_to_exchange_heartbeat("Poloniex")
-            self.ws.send(json.dumps({'command': 'subscribe', 'channel': self.pair_name}))
+            self.ws.send(self.subscribe_string)
             try:
                 while self.should_run:
-                    self.ws.send(json.dumps({'command': 'subscribe', 'channel': PoloniexParameters.SUBSCRIBE_HEARTBEAT}))
+                    self.ws.send(self.subscribe_heartbeat)
                     sleep_for(1)
             except Exception as e:
                 log_send_heart_beat_failed("Poloniex", e)
@@ -276,7 +272,8 @@ class SubscriptionPoloniex:
 
     def on_public(self, compressed_data):
         msg = process_message(compressed_data)
-        if not self.order_book_is_received and "orderBook" in compressed_data:      # FIXME Howdy DK - is this check promissing FAST?
+        # FIXME Howdy DK - is this check promissing FAST?
+        if not self.order_book_is_received and "orderBook" in compressed_data:
             self.order_book_is_received = True
             order_book_delta = parse_socket_order_book_poloniex(msg, self.pair_id)
         else:
@@ -305,9 +302,10 @@ class SubscriptionPoloniex:
         if self.should_run:
             die_hard("Poloniex - another subcription thread running?")
 
-        msg = "Poloniex - call subscribe!"
-        log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-        print msg        
+        if get_logging_level() == LOG_ALL_TRACE:
+            msg = "Poloniex - call subscribe!"
+            log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
+            print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
 
         self.should_run = True
 
@@ -316,18 +314,18 @@ class SubscriptionPoloniex:
 
         # Create connection
         try:
-            self.ws = create_connection(PoloniexParameters.URL, enable_multithread=True)
+            self.ws = create_connection(POLONIEX_WEBSCOKET_URL, enable_multithread=True)
             self.ws.settimeout(15)
         except Exception as e:
-            print('Poloniex - connect ws error - {}, retry...'.format(str(e)))
-
+            msg = 'Poloniex - connect ws error - {}, retry...'.format(str(e))
+            print_to_console(msg, LOG_ALL_ERRORS)
             self.disconnect()
 
             return
 
         # actual subscription in dedicated thread
         # self.on_open()
-        self.ws.send(json.dumps({'command': 'subscribe', 'channel': self.pair_name}))
+        self.ws.send(self.subscribe_string)
         log_conect_to_websocket("Poloniex")
 
         # event loop for processing responce
@@ -344,8 +342,8 @@ class SubscriptionPoloniex:
             if self.last_heartbeat_ts:
                 # During last 5 seconds - no heartbeats no any updates
                 ts_now = get_now_seconds_utc()
-                if ts_now - self.last_heartbeat_ts > PoloniexParameters.POLONIEX_TIMEOUT:
-                    log_heartbeat_is_missing("Poloniex", PoloniexParameters.POLONIEX_TIMEOUT, self.last_heartbeat_ts, ts_now)
+                if ts_now - self.last_heartbeat_ts > POLONIEX_WEBSOCKET_TIMEOUT:
+                    log_heartbeat_is_missing("Poloniex", POLONIEX_WEBSOCKET_TIMEOUT, self.last_heartbeat_ts, ts_now)
 
                     break
 

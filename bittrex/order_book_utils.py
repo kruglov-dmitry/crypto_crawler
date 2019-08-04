@@ -11,7 +11,7 @@ from data_access.internet import send_request
 from enums.status import STATUS
 
 
-def get_order_book_bittrex_url(pair_name, timest):
+def get_order_book_bittrex_url(pair_name):
     # https://bittrex.com/api/v1.1/public/getorderbook?type=both&market=BTC-LTC
     final_url = BITTREX_GET_ORDER_BOOK + pair_name
 
@@ -23,7 +23,7 @@ def get_order_book_bittrex_url(pair_name, timest):
 
 def get_order_book_bittrex(pair_name, timest):
 
-    final_url = get_order_book_bittrex_url(pair_name, timest)
+    final_url = get_order_book_bittrex_url(pair_name)
 
     err_msg = "get_order_book_bittrex called for {pair} at {timest}".format(pair=pair_name, timest=timest)
     error_code, r = send_request(final_url, err_msg)

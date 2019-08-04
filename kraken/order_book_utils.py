@@ -12,7 +12,7 @@ from enums.status import STATUS
 from debug_utils import print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME, should_print_debug
 
 
-def get_order_book_kraken_url(pair_name, timest):
+def get_order_book_kraken_url(pair_name):
     # https://api.kraken.com/0/public/Depth?pair=XETHXXBT
     final_url = KRAKEN_GET_ORDER_BOOK + pair_name
 
@@ -24,7 +24,7 @@ def get_order_book_kraken_url(pair_name, timest):
 
 def get_order_book_kraken(pair_name, timest):
 
-    final_url = get_order_book_kraken_url(pair_name, timest)
+    final_url = get_order_book_kraken_url(pair_name)
 
     err_msg = "get_order_book_kraken called for {pair} at {timest}".format(pair=pair_name, timest=timest)
     error_code, json_document = send_request(final_url, err_msg)

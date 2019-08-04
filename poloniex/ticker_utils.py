@@ -9,7 +9,13 @@ from data_access.internet import send_request
 from enums.status import STATUS
 
 
-def get_ticker_poloniex_url(currency_names, timest):
+def get_ticker_poloniex_url(currency_names):
+    """
+
+    :param currency_names: for backwards compatibility
+    :param timest: for backwards compatibility
+    :return:
+    """
     final_url = POLONIEX_GET_TICKER
 
     if should_print_debug():
@@ -19,29 +25,29 @@ def get_ticker_poloniex_url(currency_names, timest):
 
 
 def get_tickers_poloniex(currency_names, timest):
-    final_url = get_ticker_poloniex_url(currency_names, timest)
+    final_url = get_ticker_poloniex_url(currency_names)
 
     err_msg = "get_tickerS_poloniex called for list of pairS at {timest}".format(timest=timest)
-    error_code, r = send_request(final_url, err_msg)
+    error_code, json_response = send_request(final_url, err_msg)
 
     res = []
-    if error_code == STATUS.SUCCESS and r is not None:
+    if error_code == STATUS.SUCCESS and json_response is not None:
         for pair_name in currency_names:
-            if pair_name in r and r[pair_name] is not None:
-                res.append(Ticker.from_poloniex(pair_name, timest, r[pair_name]))
+            if pair_name in json_response and json_response[pair_name] is not None:
+                res.append(Ticker.from_poloniex(pair_name, timest, json_response[pair_name]))
 
     return res
 
 
 def get_ticker_poloniex(pair_name, timest):
-    final_url = get_ticker_poloniex_url(pair_name, timest)
+    final_url = get_ticker_poloniex_url(pair_name)
 
     err_msg = "get_ticker_poloniex called for {pair} at {timest}".format(pair=pair_name, timest=timest)
-    error_code, json_document = send_request(final_url, err_msg)
+    error_code, json_response = send_request(final_url, err_msg)
 
     res = None
     if error_code == STATUS.SUCCESS:
-        res = get_ticker_poloniex_result_processor(json_document, pair_name, timest)
+        res = get_ticker_poloniex_result_processor(json_response, pair_name, timest)
 
     return res
 

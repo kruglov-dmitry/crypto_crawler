@@ -40,7 +40,8 @@ def get_ohlc_bittrex_result_processor(json_document, pair_name, date_start, date
 
     for record in json_document["result"]:
         new_candle = Candle.from_bittrex(record, pair_name)
-        if new_candle.timest >= date_start:  # NOTE: API V2 tend to ignore time parameter - so we have to filter it manually
+        # NOTE: API V2 tend to ignore time parameter - so we have to filter it manually
+        if new_candle.timest >= date_start:
             result_set.append(new_candle)
 
     return result_set

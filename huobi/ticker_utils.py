@@ -12,7 +12,7 @@ from data_access.internet import send_request
 from enums.status import STATUS
 
 
-def get_ticker_huobi_url(pair_name, timest):
+def get_ticker_huobi_url(pair_name):
     final_url = HUOBI_GET_TICKER + pair_name
 
     if should_print_debug():
@@ -23,7 +23,7 @@ def get_ticker_huobi_url(pair_name, timest):
 
 def get_ticker_huobi(pair_name, timest):
 
-    final_url = get_ticker_huobi_url(pair_name, timest)
+    final_url = get_ticker_huobi_url(pair_name)
 
     err_msg = "get_ticker_huobi called for {pair} at {timest}".format(pair=pair_name, timest=timest)
     error_code, json_document = send_request(final_url, err_msg)

@@ -8,7 +8,8 @@ def register_node(config):
 
     # enter data to the redis
 
+    """
 
-
-
-
+    :param config:
+    :return:
+    """

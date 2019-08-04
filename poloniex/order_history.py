@@ -67,8 +67,8 @@ def get_order_history_poloniex_result_processor(json_document, pair_name):
     if pair_name != "all":
         orders = parse_orders_currency(json_document, pair_name)
     else:
-        for pair_name in json_document:
-            orders += parse_orders_currency(json_document[pair_name], pair_name)
+        for pair in json_document:
+            orders += parse_orders_currency(json_document[pair], pair)
 
     return STATUS.SUCCESS, orders
 

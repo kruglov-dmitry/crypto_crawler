@@ -52,7 +52,7 @@ def generate_body_and_url_get_request(key, base_url, path):
     return body, _urlencode(body)
 
 
-def send_post_request_with(post_details, err_msg):
+def send_post_request_with_logging(post_details, err_msg):
     res = send_post_request_with_header(post_details, err_msg, max_tries=HUOBI_NUM_OF_DEAL_RETRY,
                                         timeout=HUOBI_DEAL_TIMEOUT)
 

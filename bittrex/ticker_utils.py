@@ -12,7 +12,7 @@ from data_access.internet import send_request
 from enums.status import STATUS
 
 
-def get_ticker_bittrex_url(pair_name, timest):
+def get_ticker_bittrex_url(pair_name):
     # https://bittrex.com/api/v1.1/public/getticker?market=BTC-LTC
     final_url = BITTREX_GET_TICKER + pair_name
 
@@ -24,7 +24,7 @@ def get_ticker_bittrex_url(pair_name, timest):
 
 def get_ticker_bittrex(pair_name, timest):
 
-    final_url = get_ticker_bittrex_url(pair_name, timest)
+    final_url = get_ticker_bittrex_url(pair_name)
 
     err_msg = "get_ticker_bittrex called for {pair} at {timest}".format(pair=pair_name, timest=timest)
     error_code, json_document = send_request(final_url, err_msg)

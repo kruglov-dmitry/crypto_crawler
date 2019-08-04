@@ -1,24 +1,16 @@
-from poloniex.constants import POLONIEX_BUY_ORDER, POLONIEX_NUM_OF_DEAL_RETRY, POLONIEX_DEAL_TIMEOUT
+from poloniex.constants import POLONIEX_BUY_ORDER
+from poloniex.rest_api import generate_body, send_post_request_with_logging
 
 from data_access.classes.post_request_details import PostRequestDetails
-from data_access.internet import send_post_request_with_header
-from data_access.memory_cache import generate_nonce
 
 from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level
 
 from utils.file_utils import log_to_file
 from utils.key_utils import signed_body
-from utils.string_utils import float_to_str
 
 
 def add_buy_order_poloniex_url(key, pair_name, price, amount):
-    body = {
-        "command": "buy",
-        "currencyPair": pair_name,
-        "rate": float_to_str(price),
-        "amount": float_to_str(amount),
-        "nonce": generate_nonce()
-    }
+    body = generate_body(pair_name, price, amount, "buy")
 
     headers = {"Key": key.api_key, "Sign": signed_body(body, key.secret)}
     # https://poloniex.com/tradingApi
@@ -38,13 +30,7 @@ def add_buy_order_poloniex(key, pair_name, price, amount):
 
     post_details = add_buy_order_poloniex_url(key, pair_name, price, amount)
 
-    err_msg = "add_buy_order poloniex called for {pair} for amount = {amount} with price {price}".format(pair=pair_name, amount=amount, price=price)
+    err_msg = "add_buy_order poloniex called for {pair} for amount = {amount} with price {price}".format(
+        pair=pair_name, amount=amount, price=price)
 
-    res = send_post_request_with_header(post_details, err_msg,
-                                        max_tries=POLONIEX_NUM_OF_DEAL_RETRY, timeout=POLONIEX_DEAL_TIMEOUT)
-
-    if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
-        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
-        log_to_file(res, "market_utils.log")
-
-    return res
+    return send_post_request_with_logging(post_details, err_msg)

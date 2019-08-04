@@ -58,7 +58,7 @@ def get_order_book_speedup(date_start, date_end, processor):
             pair_name = get_currency_pair_name_by_exchange_id(pair_id, exchange_id)
             if pair_name:
                 method_for_url = get_order_book_url_by_exchange_id(exchange_id)
-                request_url = method_for_url(pair_name, date_end)
+                request_url = method_for_url(pair_name)
                 constructor = get_order_book_constructor_by_exchange_id(exchange_id)
 
                 order_book_async_requests.append(WorkUnit(request_url, constructor, pair_name, date_end))
@@ -77,7 +77,7 @@ def get_order_books_for_arbitrage_pair(cfg, date_end, processor):
             assert pair_name is None
 
         method_for_url = get_order_book_url_by_exchange_id(exchange_id)
-        request_url = method_for_url(pair_name, date_end)
+        request_url = method_for_url(pair_name)
         constructor = get_order_book_constructor_by_exchange_id(exchange_id)
 
         order_book_async_requests.append(WorkUnit(request_url, constructor, pair_name, date_end))

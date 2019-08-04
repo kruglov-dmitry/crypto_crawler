@@ -27,10 +27,9 @@ from constants import HTTP_TIMEOUT_SECONDS
 def get_ticker_constructor_by_exchange_id(exchange_id):
     """
         Return functor that expect following arguments:
-            json_array,
+            json_document - response of exchange,
             exchange specific name of currency
-            date_start
-            date_end
+            timest - current time
         It will return array of object from data/* folder
     """
     return {
@@ -54,7 +53,7 @@ def get_ticker_speedup(timest, processor):
                 continue
 
             method_for_url = get_ticker_url_by_exchange_id(exchange_id)
-            request_url = method_for_url(pair_name, timest)
+            request_url = method_for_url(pair_name)
             constructor = get_ticker_constructor_by_exchange_id(exchange_id)
 
             ohlc_async_requests.append(WorkUnit(request_url, constructor, pair_name, timest))
@@ -118,7 +117,7 @@ def get_ticker_for_arbitrage(pair_id, timest, exchange_list, processor):
             assert pair_name is None
 
         method_for_url = get_ticker_url_by_exchange_id(exchange_id)
-        request_url = method_for_url(pair_name, timest)
+        request_url = method_for_url(pair_name)
         constructor = get_ticker_constructor_by_exchange_id(exchange_id)
 
         async_requests.append(WorkUnit(request_url, constructor, pair_name, timest))

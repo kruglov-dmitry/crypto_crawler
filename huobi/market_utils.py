@@ -10,7 +10,7 @@ from data_access.classes.post_request_details import PostRequestDetails
 from huobi.constants import HUOBI_CANCEL_ORDER, HUOBI_API_URL, HUOBI_API_ONLY, \
     HUOBI_POST_HEADERS
 from huobi.error_handling import is_error
-from huobi.rest_api import init_body, send_post_request_with
+from huobi.rest_api import init_body, send_post_request_with_logging
 
 
 def cancel_order_huobi(key, order_id):
@@ -41,7 +41,7 @@ def cancel_order_huobi(key, order_id):
 
     err_msg = "cancel huobi order with id {id}".format(id=order_id)
 
-    return send_post_request_with(post_details, err_msg)
+    return send_post_request_with_logging(post_details, err_msg)
 
 
 def parse_order_id_huobi(json_document):

@@ -11,7 +11,7 @@ from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG, ERR
 from utils.file_utils import log_to_file
 
 
-def get_ticker_kraken_url(pair_name, timest):
+def get_ticker_kraken_url(pair_name):
     # https://api.kraken.com/0/public/Ticker?pair=DASHXBT
     final_url = KRAKEN_GET_TICKER + pair_name
 
@@ -23,7 +23,7 @@ def get_ticker_kraken_url(pair_name, timest):
 
 def get_ticker_kraken(pair_name, timest):
 
-    final_url = get_ticker_kraken_url(pair_name, timest)
+    final_url = get_ticker_kraken_url(pair_name)
 
     err_msg = "get_ticker_kraken called for {pair} at {timest}".format(pair=pair_name, timest=timest)
     error_code, json_document = send_request(final_url, err_msg)

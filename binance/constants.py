@@ -1,5 +1,5 @@
 
-BINANCE_GET_TICKER = "https://api.binance.com/api/v1/ticker/allBookTickers"  #  Yeah, it just return EVERYTHING
+BINANCE_GET_TICKER = "https://api.binance.com/api/v1/ticker/allBookTickers"  # Yeah, it just return EVERYTHING
 
 # OHLC ~ canddle stick urls
 # https://api.binance.com/api/v1/klines?symbol=XMRETH&interval=15m&startTime=

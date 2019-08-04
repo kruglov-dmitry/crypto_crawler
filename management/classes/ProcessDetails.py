@@ -1,5 +1,5 @@
 
-class ProcessDetails():
+class ProcessDetails(object):
     def __init__(self, cmd, pid):
         self.cmd = cmd
         self.pid = pid

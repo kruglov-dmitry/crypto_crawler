@@ -10,7 +10,7 @@ from debug_utils import get_logging_level, print_to_console, LOG_ALL_MARKET_RELA
 
 from utils.file_utils import log_to_file
 from utils.string_utils import float_to_str
-from huobi.rest_api import generate_body_and_url_get_request, send_post_request_with
+from huobi.rest_api import generate_body_and_url_get_request, send_post_request_with_logging
 
 BUY_URL = HUOBI_API_URL + HUOBI_BUY_ORDER + "?"
 
@@ -45,4 +45,4 @@ def add_buy_order_huobi(key, pair_name, price, amount):
     err_msg = "add_buy_order_huobi  called for {pair} for amount = {amount} with price {price}".format(
         pair=pair_name, amount=amount, price=price)
 
-    return send_post_request_with(post_details, err_msg)
+    return send_post_request_with_logging(post_details, err_msg)

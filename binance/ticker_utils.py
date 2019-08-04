@@ -11,7 +11,7 @@ from data_access.internet import send_request
 from enums.status import STATUS
 
 
-def get_tickers_binance_url(currency_names, timest):
+def get_tickers_binance_url(pair_name):
     final_url = BINANCE_GET_TICKER
 
     if should_print_debug():
@@ -20,18 +20,18 @@ def get_tickers_binance_url(currency_names, timest):
     return final_url
 
 
-def get_tickers_binance(currency_names, timest):
+def get_tickers_binance(pair_name, timest):
 
     """
    {"symbol":"ETHBTC","bidPrice":"0.04039700","bidQty":"4.50700000","askPrice":"0.04047500","askQty":"1.30600000"},
    {"symbol":"LTCBTC","bidPrice":"0.00875700","bidQty":"0.24000000","askPrice":"0.00876200","askQty":"0.01000000"},
 
-    :param currency_names:
+    :param pair_name:
     :param timest:
     :return:
     """
 
-    final_url = get_tickers_binance_url(currency_names, timest)
+    final_url = get_tickers_binance_url(pair_name)
 
     err_msg = "get_tickers_binance called for list of pairS at {timest}".format(timest=timest)
     error_code, r = send_request(final_url, err_msg)
@@ -39,14 +39,14 @@ def get_tickers_binance(currency_names, timest):
     res = []
     if error_code == STATUS.SUCCESS and r is not None:
         for entry in r:
-            if entry["symbol"] in currency_names:
+            if entry["symbol"] in pair_name:
                 res.append(Ticker.from_binance(entry["symbol"], timest, entry))
 
     return res
 
 
 def get_ticker_binance(pair_name, timest):
-    final_url = get_tickers_binance_url(pair_name, timest)
+    final_url = get_tickers_binance_url(pair_name)
 
     err_msg = "get_ticker_binance called for {pair} at {timest}".format(pair=pair_name, timest=timest)
     error_code, json_document = send_request(final_url, err_msg)

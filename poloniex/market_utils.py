@@ -1,12 +1,11 @@
-from poloniex.constants import POLONIEX_CANCEL_ORDER, POLONIEX_NUM_OF_DEAL_RETRY, POLONIEX_DEAL_TIMEOUT
+from poloniex.constants import POLONIEX_CANCEL_ORDER
 from poloniex.error_handling import is_error
+from poloniex.rest_api import send_post_request_with_logging
 
-from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
 from data_access.classes.post_request_details import PostRequestDetails
 
-from debug_utils import ERROR_LOG_FILE_NAME, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, \
-    LOG_ALL_TRACE
+from debug_utils import ERROR_LOG_FILE_NAME, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level
 
 from utils.file_utils import log_to_file
 from utils.key_utils import signed_body
@@ -24,23 +23,16 @@ def cancel_order_poloniex(key, order_id):
     # https://poloniex.com/tradingApi
     final_url = POLONIEX_CANCEL_ORDER
 
-    post_request = PostRequestDetails(final_url, headers, body)
+    post_details = PostRequestDetails(final_url, headers, body)
 
     if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
-        msg = "add_sell_order_poloniex: {res}".format(res=post_request)
+        msg = "add_sell_order_poloniex: {res}".format(res=post_details)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
     err_msg = "cancel poloniex called for {order_id}".format(order_id=order_id)
 
-    res = send_post_request_with_header(post_request, err_msg,
-                                        max_tries=POLONIEX_NUM_OF_DEAL_RETRY, timeout=POLONIEX_DEAL_TIMEOUT)
-
-    if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
-        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
-        log_to_file(res, "market_utils.log")
-
-    return res
+    return send_post_request_with_logging(post_details, err_msg)
 
 
 def parse_order_id_poloniex(json_document):
