@@ -20,8 +20,7 @@ HUOBI_CURRENCY_PAIRS = ['dashbtc', 'ethbtc', 'ltcbtc', 'xrpbtc', 'bchbtc', 'etcb
                         'lsketh', 'naseth', 'elaeth', 'adaeth',
                         'dashusdt', 'btcusdt', 'ltcusdt', 'xrpusdt', 'bchusdt', 'etcusdt', 'omgusdt', 'qtumusdt',
                         'ethusdt', 'zecusdt', 'neousdt', 'eosusdt', 'hsrusdt', 'zilusdt', 'venusdt', 'elfusdt',
-                        'nasusdt', 'elausdt', 'adausdt'
-                        ]
+                        'nasusdt', 'elausdt', 'adausdt']
 
 HUOBI_BUY_ORDER = "/v1/order/orders/place"
 
@@ -48,3 +47,6 @@ HUOBI_ACOUNT_ID = "huobi_account_id"
 EMPTY_LIST = []
 
 HUOBI_ORDER_HISTORY_LIMIT = 100
+
+HUOBI_POST_HEADERS = {'content-type': 'application/json', 'accept': 'application/json'}
+HUOBI_GET_HEADERS = {"Content-Type": "application/x-www-form-urlencoded"}

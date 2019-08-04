@@ -7,7 +7,7 @@ from kraken.order_utils import get_open_orders_kraken, get_open_orders_kraken_po
 from poloniex.order_utils import get_open_orders_poloniex, get_open_orders_poloniex_post_details, \
     get_open_orders_poloniex_result_processor
 from huobi.order_utils import get_open_orders_huobi, get_open_orders_huobi_post_details, \
-    get_open_orders_huobi_result_processor
+    get_orders_huobi_result_processor
 
 from constants import HTTP_TIMEOUT_SECONDS
 
@@ -64,7 +64,7 @@ def get_open_orders_constructor_by_exchange_id(exchange_id):
         EXCHANGE.KRAKEN: get_open_orders_kraken_result_processor,
         EXCHANGE.POLONIEX: get_open_orders_poloniex_result_processor,
         EXCHANGE.BINANCE: get_open_orders_binance_result_processor,
-        EXCHANGE.HUOBI: get_open_orders_huobi_result_processor
+        EXCHANGE.HUOBI: get_orders_huobi_result_processor
     }[exchange_id]
 
 

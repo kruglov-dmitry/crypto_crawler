@@ -1,4 +1,4 @@
-from currency_utils import get_currency_pair_to_huobi
+from huobi.currency_utils import get_currency_pair_to_huobi
 from utils.currency_utils import split_currency_pairs
 from utils.string_utils import truncate_float
 from enums.currency import CURRENCY

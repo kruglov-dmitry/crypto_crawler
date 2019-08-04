@@ -111,7 +111,8 @@ def cancel_by_exchange(trade):
     methods_by_exchange = {
         EXCHANGE.BITTREX: cancel_order_bittrex,
         EXCHANGE.KRAKEN: cancel_order_kraken,
-        EXCHANGE.POLONIEX: cancel_order_poloniex
+        EXCHANGE.POLONIEX: cancel_order_poloniex,
+        EXCHANGE.HUOBI: cancel_order_huobi
     }
 
     if trade.exchange_id in methods_by_exchange:
@@ -119,9 +120,6 @@ def cancel_by_exchange(trade):
     elif trade.exchange_id == EXCHANGE.BINANCE:
         pair_name = get_currency_pair_to_binance(trade.pair_id)
         res = cancel_order_binance(key, pair_name, trade.order_id)
-    elif trade.exchange_id == EXCHANGE.HUOBI:
-        pair_name = get_currency_pair_to_huobi(trade.pair_id)
-        res = cancel_order_huobi(key, pair_name, trade.order_id)
     else:
         log_error_unknown_exchange("cancel_by_exchange", trade)
 

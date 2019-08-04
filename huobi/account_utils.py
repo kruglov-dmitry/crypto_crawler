@@ -1,5 +1,3 @@
-from urllib import urlencode as _urlencode
-
 from data_access.memory_cache import get_cache
 
 from data_access.classes.post_request_details import PostRequestDetails
@@ -7,34 +5,19 @@ from data_access.internet import send_get_request_with_header
 
 from enums.status import STATUS
 
-from utils.key_utils import sign_string_256_base64
-from utils.time_utils import get_now_seconds_utc, ts_to_string_utc
-
-from huobi.constants import HUOBI_DEAL_TIMEOUT, HUOBI_ACOUNT_ID, HUOBI_GET_ACCOUNT_INFO, HUOBI_API_URL, HUOBI_API_ONLY
+from huobi.constants import HUOBI_DEAL_TIMEOUT, HUOBI_ACOUNT_ID, HUOBI_GET_ACCOUNT_INFO, \
+    HUOBI_API_URL, HUOBI_API_ONLY, HUOBI_GET_HEADERS
+from huobi.rest_api import generate_body_and_url_get_request
 
 
 def get_huobi_account_impl(key):
 
     final_url = HUOBI_API_URL + HUOBI_GET_ACCOUNT_INFO + "?"
 
-    body = [('AccessKeyId', key.api_key),
-            ('SignatureMethod', 'HmacSHA256'),
-            ('SignatureVersion', 2),
-            ('Timestamp', ts_to_string_utc(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S'))]
+    body, url = generate_body_and_url_get_request(key, HUOBI_API_ONLY, HUOBI_GET_ACCOUNT_INFO)
+    final_url += url
 
-    message = _urlencode(body).encode('utf8')
-
-    msg = "GET\n{base_url}\n{path}\n{msg1}".format(base_url=HUOBI_API_ONLY, path=HUOBI_GET_ACCOUNT_INFO, msg1=message)
-
-    signature = sign_string_256_base64(key.secret, msg)
-
-    body.append(("Signature", signature))
-
-    final_url += _urlencode(body)
-
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-
-    post_details = PostRequestDetails(final_url, headers, body)
+    post_details = PostRequestDetails(final_url, HUOBI_GET_HEADERS, body)
 
     err_msg = "get_huobi_account"
 

@@ -1,7 +1,7 @@
 from urllib import urlencode as _urlencode
 
 from huobi.constants import HUOBI_DEAL_TIMEOUT, HUOBI_GET_OPEN_ORDERS, HUOBI_API_URL, \
-    HUOBI_API_ONLY
+    HUOBI_API_ONLY, HUOBI_GET_HEADERS
 from huobi.error_handling import is_error
 
 
@@ -51,9 +51,7 @@ def get_open_orders_huobi_post_details(key, pair_name):
 
     params = {}
 
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-
-    res = PostRequestDetails(final_url, headers, params)
+    res = PostRequestDetails(final_url, HUOBI_GET_HEADERS, params)
 
     if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
         msg = "get_open_orders_huobi: {res}".format(res=res)
@@ -78,15 +76,19 @@ def get_open_orders_huobi(key, pair_name):
 
     orders = []
     if status_code == STATUS.SUCCESS:
-        status_code, orders = get_open_orders_huobi_result_processor(res, pair_name)
+        status_code, orders = get_orders_huobi_result_processor(res, pair_name)
 
     return status_code, orders
 
 
-def get_open_orders_huobi_result_processor(json_document, pair_name):
+def get_orders_huobi_result_processor(json_document, pair_name):
     """
-    json_document - response from exchange api as json string
-    pair_name - for backwords compabilities
+    Used to parse result for order_history and open_orders end points
+
+    :param json_document - response from exchange api as json string
+    :param pair_name - for backwards capabilities
+
+    :return pair of status code, result
     """
 
     orders = []

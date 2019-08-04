@@ -4,25 +4,20 @@ from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_loggi
 
 from utils.key_utils import sign_string_256_base64
 from utils.file_utils import log_to_file
-from utils.time_utils import ts_to_string_utc, get_now_seconds_utc
 
 from data_access.classes.post_request_details import PostRequestDetails
-from data_access.internet import send_post_request_with_header
 
-from huobi.constants import HUOBI_CANCEL_ORDER, HUOBI_DEAL_TIMEOUT, HUOBI_API_URL, HUOBI_API_ONLY, \
-    HUOBI_NUM_OF_DEAL_RETRY
+from huobi.constants import HUOBI_CANCEL_ORDER, HUOBI_API_URL, HUOBI_API_ONLY, \
+    HUOBI_POST_HEADERS
 from huobi.error_handling import is_error
+from huobi.rest_api import init_body, send_post_request_with
 
 
-def cancel_order_huobi(key, pair_name, order_id):
-
+def cancel_order_huobi(key, order_id):
     HUOBI_CANCEL_PATH = HUOBI_CANCEL_ORDER + str(order_id) + "/submitcancel"
     final_url = HUOBI_API_URL + HUOBI_CANCEL_PATH + "?"
 
-    body = [('AccessKeyId', key.api_key),
-            ('SignatureMethod', 'HmacSHA256'),
-            ('SignatureVersion', 2),
-            ('Timestamp', ts_to_string_utc(get_now_seconds_utc(), '%Y-%m-%dT%H:%M:%S'))]
+    body = init_body(key)
 
     message = _urlencode(body).encode('utf8')
 
@@ -34,28 +29,19 @@ def cancel_order_huobi(key, pair_name, order_id):
 
     final_url += _urlencode(body).encode('utf8')
 
-    headers = {'content-type': 'application/json', 'accept': 'application/json'}
-
     body = {}
 
-    post_details = PostRequestDetails(final_url, headers, body)
+    post_details = PostRequestDetails(final_url, HUOBI_POST_HEADERS, body)
 
     if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
         msg = "cancel_order_huobi: url - {url} headers - {headers} body - {body}".format(
-            url=final_url, headers=headers, body=body)
+            url=final_url, headers=HUOBI_POST_HEADERS, body=body)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
         log_to_file(msg, "market_utils.log")
 
     err_msg = "cancel huobi order with id {id}".format(id=order_id)
 
-    res = send_post_request_with_header(post_details, err_msg, max_tries=HUOBI_NUM_OF_DEAL_RETRY,
-                                        timeout=HUOBI_DEAL_TIMEOUT)
-
-    if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
-        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
-        log_to_file(res, "market_utils.log")
-
-    return res
+    return send_post_request_with(post_details, err_msg)
 
 
 def parse_order_id_huobi(json_document):

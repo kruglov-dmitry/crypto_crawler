@@ -1,10 +1,10 @@
-import websocket
-from websocket import create_connection
 import json
 import thread
 import ssl
 import zlib
 import uuid
+import websocket
+from websocket import create_connection
 
 from huobi.currency_utils import get_currency_pair_to_huobi
 from enums.exchange import EXCHANGE
@@ -14,8 +14,8 @@ from data.deal import Deal
 
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for
 from utils.file_utils import log_to_file
-from debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
 from utils.system_utils import die_hard
+from debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
 
 from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_receive_from_socket, \
     log_subscription_cancelled, log_websocket_disconnect, log_send_heart_beat_failed, \
@@ -23,28 +23,19 @@ from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_r
 
 
 def parse_socket_update_huobi(order_book_delta, pair_id):
-    if "tick" in order_book_delta:
-
-        order_book_delta = order_book_delta["tick"]
-
-        sequence_id = long(order_book_delta["version"])
-        asks = []
-        bids = []
-
-        if "asks" in order_book_delta:
-            for b in order_book_delta["asks"]:
-                asks.append(Deal(price=b[0], volume=b[1]))
-
-        if "bids" in order_book_delta:
-            for b in order_book_delta["bids"]:
-                bids.append(Deal(price=b[0], volume=b[1]))
-
-        timest_ms = get_now_seconds_utc_ms()
-        
-        return OrderBook(pair_id, timest_ms, asks, bids, EXCHANGE.HUOBI, sequence_id)
-
-    else:
+    if "tick" not in order_book_delta:
         return None
+
+    order_book_delta = order_book_delta["tick"]
+
+    sequence_id = long(order_book_delta["version"])
+
+    asks = [Deal(price=b[0], volume=b[1]) for b in order_book_delta.get("asks", [])]
+    bids = [Deal(price=b[0], volume=b[1]) for b in order_book_delta.get("bids", [])]
+
+    timest_ms = get_now_seconds_utc_ms()
+        
+    return OrderBook(pair_id, timest_ms, asks, bids, EXCHANGE.HUOBI, sequence_id)
 
 
 def process_message(compress_data):
@@ -54,14 +45,13 @@ def process_message(compress_data):
         log_to_file(compress_data, "huobi.log")
 
 
-class HuobiParameters:
-    URL = "wss://api.huobipro.com/ws"
-    SUBSCRIPTION_STRING = """{{"sub": "market.{pair_name}.depth.step0","id": "{uuid_id}"}}"""
+HUOBI_WEBSOCKET_URL = "wss://api.huobipro.com/ws"
+HUOBI_SUBSCRIPTION_STRING = """{{"sub": "market.{pair_name}.depth.step0","id": "{uuid_id}"}}"""
 
 
 def default_on_public(exchange_id, args):
-    print "on_public"
-    print exchange_id, args
+    print("on_public")
+    print("".join([exchange_id, args]))
 
 
 def default_on_error(ws, error):
@@ -69,13 +59,11 @@ def default_on_error(ws, error):
     print(error)
 
 
-class SubscriptionHuobi:
-    def __init__(self, pair_id, on_update=default_on_public, base_url=HuobiParameters.URL):
+class SubscriptionHuobi(object):
+    def __init__(self, pair_id, on_update=default_on_public, base_url=HUOBI_WEBSOCKET_URL):
         """
         :param pair_id:     - currency pair to be used for trading
         :param base_url:    - web-socket subscription end points
-        :param on_receive:  - pass
-        :param on_error:    - recconect
         :param on_update:   - idea is the following:
             we pass reference to method WITH initialized order book for that pair_id
             whenever we receive update we update order book and trigger checks for arbitrage
@@ -86,7 +74,8 @@ class SubscriptionHuobi:
         self.pair_id = pair_id
         self.pair_name = get_currency_pair_to_huobi(self.pair_id)
 
-        self.subscription_url = HuobiParameters.SUBSCRIPTION_STRING.format(pair_name=self.pair_name, uuid_id=uuid.uuid4())
+        self.subscription_url = HUOBI_SUBSCRIPTION_STRING.format(
+            pair_name=self.pair_name, uuid_id=uuid.uuid4())
 
         self.on_update = on_update
 
@@ -138,7 +127,7 @@ class SubscriptionHuobi:
 
         # Create connection
         try:
-            self.ws = create_connection(HuobiParameters.URL, enable_multithread=True, sslopt={"cert_reqs": ssl.CERT_NONE})
+            self.ws = create_connection(HUOBI_WEBSOCKET_URL, enable_multithread=True, sslopt={"cert_reqs": ssl.CERT_NONE})
             self.ws.settimeout(15)
         except Exception as e:
             print('Huobi - connect ws error - {}, retry...'.format(str(e)))
