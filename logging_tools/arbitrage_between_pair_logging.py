@@ -1,4 +1,5 @@
-from debug_utils import LOG_ALL_ERRORS, print_to_console, SOCKET_ERRORS_LOG_FILE_NAME, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME
+from debug_utils import LOG_ALL_ERRORS, print_to_console, SOCKET_ERRORS_LOG_FILE_NAME, \
+    CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME
 
 from utils.file_utils import log_to_file
 from utils.exchange_utils import get_exchange_name_by_id
@@ -39,7 +40,6 @@ def log_dont_supported_currency(cfg, exchange_id, pair_id):
 
 
 def log_dublicative_order_book(log_file_name, msg_queue, order_book, prev_order_book):
-
     msg = """ <b> !!! WARNING !!! </b>
     Number of similar asks OR bids are the same for the most recent and cached version of order book for
     exchange_name {exch} pair_name {pn}
@@ -110,8 +110,10 @@ def log_all_order_book_synced():
 
 
 def log_order_book_update_failed_pre_sync(kind, exchange_id, order_book_updates):
-    msg = "Reset stage will be initiated becase Orderbook update FAILED during pre-SYNC stage - {kind} - for {exch_name} Update itself: {upd}".format(
-        kind=kind, exch_name=get_exchange_name_by_id(exchange_id), upd=order_book_updates)
+    msg = "Reset stage will be initiated because Orderbook update FAILED during pre-SYNC stage - {kind} - " \
+          "for {exch_name} Update itself: {upd}".format(kind=kind,
+                                                        exch_name=get_exchange_name_by_id(exchange_id),
+                                                        upd=order_book_updates)
     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
     print_to_console(msg, LOG_ALL_ERRORS)
 

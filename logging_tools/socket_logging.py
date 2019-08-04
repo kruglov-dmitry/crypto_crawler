@@ -34,7 +34,7 @@ def log_subscription_cancelled(exch_name):
 
 def log_websocket_disconnect(exch_name, e):
     msg = "{exch_name} - triggered exception during closing socket = {e} at disconnect!".format(
-        exch_name=exch_name,e=str(e))
+        exch_name=exch_name, e=str(e))
     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
     print_to_console(msg, LOG_ALL_ERRORS)
 
@@ -57,8 +57,8 @@ def log_subscribe_to_exchange_heartbeat(exch_name):
     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
     print_to_console(msg, LOG_ALL_ERRORS)
 
+
 def log_unsubscribe_to_exchange_heartbeat(exch_name):
     msg = "{exch_name} - DISCONNECT FROM exchange heartbeat".format(exch_name=exch_name)
     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
     print_to_console(msg, LOG_ALL_ERRORS)
-

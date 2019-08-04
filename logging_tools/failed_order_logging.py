@@ -4,8 +4,8 @@ from debug_utils import FAILED_ORDER_PROCESSING_FILE_NAME
 
 def log_trace_all_closed_orders(open_orders_at_both_exchanges):
     log_to_file("Closed orders below:", FAILED_ORDER_PROCESSING_FILE_NAME)
-    for v in open_orders_at_both_exchanges:
-        log_to_file(v, FAILED_ORDER_PROCESSING_FILE_NAME)
+    for open_order in open_orders_at_both_exchanges:
+        log_to_file(open_order, FAILED_ORDER_PROCESSING_FILE_NAME)
 
 
 def log_trace_found_failed_order_in_open(order):

@@ -146,8 +146,8 @@ def log_too_small_volume(order, max_volume, min_volume, msg_queue):
 
 def log_trace_all_open_orders(open_orders_at_both_exchanges):
     log_to_file("Open orders below:", EXPIRED_ORDER_PROCESSING_FILE_NAME)
-    for v in open_orders_at_both_exchanges:
-        log_to_file(v, EXPIRED_ORDER_PROCESSING_FILE_NAME)
+    for open_order in open_orders_at_both_exchanges:
+        log_to_file(open_order, EXPIRED_ORDER_PROCESSING_FILE_NAME)
 
 
 def log_trace_log_time_key(time_key):
@@ -179,8 +179,8 @@ def log_trace_cancel_request_result(order, err_code, responce):
 
 
 def log_trace_warched_orders_after_processing(order_list):
-    for tkey in order_list:
-        msg = "For ts = {ts} cached orders are:".format(ts=str(tkey))
+    for time_key in order_list:
+        msg = "For ts = {ts} cached orders are:".format(ts=str(time_key))
         log_to_file(msg, EXPIRED_ORDER_PROCESSING_FILE_NAME)
-        for b in order_list[tkey]:
-            log_to_file(str(b), EXPIRED_ORDER_PROCESSING_FILE_NAME)
+        for expired_order in order_list[time_key]:
+            log_to_file(str(expired_order), EXPIRED_ORDER_PROCESSING_FILE_NAME)

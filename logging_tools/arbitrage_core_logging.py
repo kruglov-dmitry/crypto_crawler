@@ -43,16 +43,15 @@ def log_currency_disbalance_heart_beat(src_exchange_id, dst_exchange_id, currenc
 
 def log_arbitrage_heart_beat(sell_order_book, buy_order_book, difference):
     msg = """check_highest_bid_bigger_than_lowest_ask:
-            For pair - {pair_name}
-            Exchange1 - {exch1} BID = {bid}
-            Exchange2 - {exch2} ASK = {ask}
-            DIFF = {diff}""".format(
-        pair_name=get_pair_name_by_id(sell_order_book.pair_id),
-        exch1=get_exchange_name_by_id(sell_order_book.exchange_id),
-        bid=float_to_str(sell_order_book.bid[FIRST].price),
-        exch2=get_exchange_name_by_id(buy_order_book.exchange_id),
-        ask=float_to_str(buy_order_book.ask[LAST].price),
-        diff=difference)
+    \tFor pair - {pair_name}
+    \tExchange1 - {exch1} BID = {bid}
+    \tExchange2 - {exch2} ASK = {ask}
+    \tDIFF = {diff}""".format(pair_name=get_pair_name_by_id(sell_order_book.pair_id),
+                              exch1=get_exchange_name_by_id(sell_order_book.exchange_id),
+                              bid=float_to_str(sell_order_book.bid[FIRST].price),
+                              exch2=get_exchange_name_by_id(buy_order_book.exchange_id),
+                              ask=float_to_str(buy_order_book.ask[LAST].price),
+                              diff=difference)
     print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
     log_to_file(msg, DEBUG_LOG_FILE_NAME)
 
@@ -75,18 +74,16 @@ def log_arbitrage_determined_volume_not_enough(sell_order_book, buy_order_book, 
 def log_arbitrage_determined_price_not_enough(sell_price, sell_price_order_book, buy_price, buy_price_order_book,
                                               difference, final_difference, pair_id, msg_queue):
     msg = """analyse order book - adjusted prices below 0.2 hardcoded threshold:
-        final_sell: {sell_price} initial_sell: {i_sell}
-        final_buy: {final_buy} initial_buy: {i_buy}
-        final_diff: {final_diff} original_diff: {diff} 
-        for pair_id = {p_name}
-        """.format(
-        sell_price=float_to_str(sell_price),
-        i_sell=float_to_str(sell_price_order_book),
-        final_buy=float_to_str(buy_price),
-        i_buy=float_to_str(buy_price_order_book),
-        final_diff=final_difference,
-        p_name=get_pair_name_by_id(pair_id),
-        diff=difference)
+    \tfinal_sell: {sell_price} initial_sell: {i_sell}
+    \tfinal_buy: {final_buy} initial_buy: {i_buy}
+    \tfinal_diff: {final_diff} original_diff: {diff} 
+    \tfor pair_id = {p_name}""".format(sell_price=float_to_str(sell_price),
+                                       i_sell=float_to_str(sell_price_order_book),
+                                       final_buy=float_to_str(buy_price),
+                                       i_buy=float_to_str(buy_price_order_book),
+                                       final_diff=final_difference,
+                                       p_name=get_pair_name_by_id(pair_id),
+                                       diff=difference)
     print_to_console(msg, LOG_ALL_MARKET_NETWORK_RELATED_CRAP)
     log_to_file(msg, DEBUG_LOG_FILE_NAME)
     msg_queue.add_message(DEBUG_INFO_MSG, msg)
