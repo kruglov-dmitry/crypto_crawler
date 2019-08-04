@@ -1,5 +1,6 @@
 from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_GET_CLOSE_ORDERS
 from kraken.error_handling import is_error
+from kraken.constants import EMPTY_LIST
 
 from data.trade import Trade
 
@@ -14,8 +15,6 @@ from enums.status import STATUS
 from utils.file_utils import log_to_file
 from utils.key_utils import sign_kraken
 from utils.time_utils import get_now_seconds_utc
-
-from constants import EMPTY_LIST
 
 
 def get_closed_orders_kraken_post_details(key, pair_name=None, time_start=0, time_end=get_now_seconds_utc()):

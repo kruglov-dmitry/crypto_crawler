@@ -12,6 +12,13 @@ from enums.status import STATUS
 
 
 def get_history_kraken_url(pair_name, prev_time, now_time):
+    """
+
+    :param pair_name:
+    :param prev_time:
+    :param now_time: for backwards compatibility
+    :return:
+    """
     # https://api.kraken.com/0/public/Trades?pair=XETHXXBT&since=1501693512
     final_url = KRAKEN_GET_HISTORY + pair_name + "&since=" + str(prev_time)
 

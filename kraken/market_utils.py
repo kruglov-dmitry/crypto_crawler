@@ -1,11 +1,11 @@
-from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_CANCEL_ORDER, KRAKEN_NUM_OF_DEAL_RETRY, KRAKEN_DEAL_TIMEOUT
+from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_CANCEL_ORDER
 from kraken.error_handling import is_error
+from kraken.rest_api import send_post_request_with_logging
 
 from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, ERROR_LOG_FILE_NAME
 from utils.key_utils import sign_kraken
 from utils.file_utils import log_to_file
 
-from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
 from data_access.classes.post_request_details import PostRequestDetails
 
@@ -31,13 +31,7 @@ def cancel_order_kraken(key, order_id):
 
     err_msg = "cancel kraken called for {order_id}".format(order_id=order_id)
 
-    res = send_post_request_with_header(post_details, err_msg, max_tries=KRAKEN_NUM_OF_DEAL_RETRY, timeout=KRAKEN_DEAL_TIMEOUT)
-
-    if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
-        print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)
-        log_to_file(res, "market_utils.log")
-
-    return res
+    return send_post_request_with_logging(post_details, err_msg)
 
 
 def parse_order_id_kraken(json_document):

@@ -38,7 +38,7 @@ def get_ticker_kraken_result_processor(json_document, pair_name, timest):
 
     if is_error(json_document):
 
-        msg = "get_order_book_kraken_result_processor - error response - {er}".format(er=json_document)
+        msg = "get_ticker_kraken_result_processor - error response - {er}".format(er=json_document)
         log_to_file(msg, ERROR_LOG_FILE_NAME)
 
         return None

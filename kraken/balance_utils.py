@@ -47,7 +47,7 @@ def get_balance_kraken_result_processor(json_document, timest):
 
 def get_balance_kraken(key):
     """
-    Example of request \ responce
+    Example of request and responce
         https://api.kraken.com/0/private/Balance
         {'API-Key': 'whatever',
          'API-Sign': u'whatever'}

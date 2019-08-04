@@ -1,5 +1,7 @@
 import json
 
+KRAKEN_ERRORS = {"EOrder", "Unavailable", "Busy", "ETrade", "EGeneral:Invalid", "timeout"}
+
 
 def is_error(response):
     """
@@ -23,14 +25,14 @@ def is_error(response):
     EOrder:Unknown position
 
     :param response: raw responce from requests
-    :return: True\False as indicator for possible errors
+    :return: True or False as indicator for possible errors
     """
     if response is None or 'result' not in response:
         return True
 
     str_repr = json.dumps(response)
-    if "EOrder" in str_repr or "Unavailable" in str_repr or "Busy" in str_repr or "ETrade" in str_repr or \
-            "EGeneral:Invalid" in str_repr or "timeout" in str_repr:
-        return True
+    for entry in KRAKEN_ERRORS:
+        if entry in str_repr:
+            return True
 
     return False

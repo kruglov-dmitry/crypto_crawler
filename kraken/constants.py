@@ -14,11 +14,10 @@ KRAKEN_CURRENCY_PAIRS = ["DASHXBT", "XETHXXBT", "XLTCXXBT", "XXRPXXBT", "BCHXBT"
                          "XXMRXXBT", "XXDGXXBT", "EOSXBT", "XLMXBT",
                          "XETCXETH", "XREPXETH", "EOSETH",
                          "DASHUSD", "XETHZUSD", "XLTCZUSD", "XXRPZUSD", "BCHUSD", "XETCZUSD", "XZECZUSD", "XXMRZUSD",
-                         "USDTZUSD"
-                         ]
+                         "USDTZUSD"]
 
 KRAKEN_CURRENCIES = ["DASH", "BCH", "ZUSD", "XXBT", "EOS", "USDT", "XXRP", "XREP", "XETC", "XETH", "XXDG", "XZEC",
-                     "XREP", "XXMR", "XXLM", "XLM",]
+                     "XREP", "XXMR", "XXLM", "XLM"]
 
 
 KRAKEN_BASE_API_URL = "https://api.kraken.com"
