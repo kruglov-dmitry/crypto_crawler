@@ -206,11 +206,9 @@ def get_history_time_fast():
 @timecall
 def get_order_book_time_fast():
     end_time = get_now_seconds_utc()
-    start_time = end_time - POLL_PERIOD_SECONDS
     processor = ConnectionPool()
-
-    trade_history = get_order_book_speedup(start_time, end_time, processor)
-    return trade_history
+    order_book = get_order_book_speedup(end_time, processor)
+    return order_book
 
 
 def check_deal_placements():

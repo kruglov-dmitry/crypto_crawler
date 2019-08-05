@@ -29,6 +29,7 @@ from enums.exchange import EXCHANGE
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from utils.time_utils import get_now_seconds_utc
 from logging_tools.arbitrage_between_pair_logging import log_dublicative_order_book
+from utils.system_utils import die_hard
 
 
 def get_order_book_constructor_by_exchange_id(exchange_id):
@@ -48,7 +49,7 @@ def get_order_book_constructor_by_exchange_id(exchange_id):
     }[exchange_id]
 
 
-def get_order_book_speedup(date_start, date_end, processor):
+def get_order_book_speedup(date_end, processor):
 
     order_book_async_requests = []
 
@@ -73,8 +74,7 @@ def get_order_books_for_arbitrage_pair(cfg, date_end, processor):
     for exchange_id in [cfg.sell_exchange_id, cfg.buy_exchange_id]:
         pair_name = get_currency_pair_name_by_exchange_id(cfg.pair_id, exchange_id)
         if pair_name is None:
-            print "UNSUPPORTED COMBINATION OF PAIR ID AND EXCHANGE", cfg.pair_id, exchange_id
-            assert pair_name is None
+            die_hard("UNSUPPORTED COMBINATION OF PAIR ID - {} AND EXCHANGE - {}".format(cfg.pair_id, exchange_id))
 
         method_for_url = get_order_book_url_by_exchange_id(exchange_id)
         request_url = method_for_url(pair_name)

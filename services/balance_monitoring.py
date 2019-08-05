@@ -13,31 +13,33 @@ from debug_utils import set_log_folder, set_logging_level
 from utils.key_utils import load_keys
 from utils.time_utils import sleep_for
 from utils.exchange_utils import get_exchange_id_by_name, EXCHANGE
+from utils.system_utils import die_hard
 
-from constants import BASE_CURRENCY, BASE_CURRENCIES_BALANCE_THRESHOLD
-
-TIMEOUT_HEALTH_CHECK = 180
-POLL_TIMEOUT = 3
-
-# FIXME NOTE - process exchange in parallel to avoid bot stoping in case one of exchanges get stuck
+from constants import BASE_CURRENCY, BASE_CURRENCIES_BALANCE_THRESHOLD, BALANCE_POLL_TIMEOUT, \
+    BALANCE_HEALTH_CHECK_TIMEOUT
 
 
-if __name__ == "__main__":
+def watch_balance_for_exchange(args):
+    """
+            Those routine update balance at redis CACHE
+            for ALL coins at ONE exchange for active key set.
 
-    parser = argparse.ArgumentParser(description="Balance monitoring service, every {POLL_TIMEOUT} for configured via "
-                                                 "--exchanges_ids comma-separated list of exchange names ".format(POLL_TIMEOUT=POLL_TIMEOUT))
-    parser.add_argument('--cfg', action='store', required=True)
-    parser.add_argument('--exchange', action='store', required=True)
+            NOTE:   It still rely on REST api - i.e. not proactive
+                    For some exchanges - balance not immediately updated
 
-    arguments = parser.parse_args()
+                    Initially all exchanges were polled sequentially
+                    But it lead to delays in the past
+                    due to exchange errors or throttling
 
-    settings = CommonSettings.from_cfg(arguments.cfg)
+    :param args: config file and exchange_id
+    :return:
+    """
+    settings = CommonSettings.from_cfg(args.cfg)
 
-    exchange_id = get_exchange_id_by_name(arguments.exchange)
+    exchange_id = get_exchange_id_by_name(args.exchange)
     if exchange_id not in EXCHANGE.values():
         log_wrong_exchange_id(exchange_id)
-
-        assert exchange_id in EXCHANGE.values()
+        die_hard("Exchange id {} seems to be unknown? 0_o".format(exchange_id))
 
     log_initial_settings("Starting balance monitoring for following exchange: \n", [exchange_id])
 
@@ -54,9 +56,9 @@ if __name__ == "__main__":
 
     while True:
         # We load initial balance using init_balance
-        sleep_for(POLL_TIMEOUT)
+        sleep_for(BALANCE_POLL_TIMEOUT)
 
-        cnt += POLL_TIMEOUT
+        cnt += BALANCE_POLL_TIMEOUT
 
         log_balance_update_heartbeat(exchange_id)
 
@@ -66,11 +68,25 @@ if __name__ == "__main__":
             sleep_for(1)
             balance_for_exchange = update_balance_by_exchange(exchange_id, cache)
 
-        if cnt >= TIMEOUT_HEALTH_CHECK:
+        if cnt >= BALANCE_HEALTH_CHECK_TIMEOUT:
             cnt = 0
             log_last_balances(settings.exchanges, cache, msg_queue)
 
             for base_currency_id in BASE_CURRENCY:
                 threshold = BASE_CURRENCIES_BALANCE_THRESHOLD[base_currency_id]
                 if not balance_for_exchange.do_we_have_enough(base_currency_id, threshold):
-                    log_not_enough_base_currency(exchange_id, base_currency_id, threshold, balance_for_exchange, msg_queue)
+                    log_not_enough_base_currency(exchange_id, base_currency_id, threshold,
+                                                 balance_for_exchange, msg_queue)
+
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(
+        description="Balance monitoring service, every {POLL_TIMEOUT} for configured via "
+                    "--exchanges_ids comma-separated list of exchange names ".format(POLL_TIMEOUT=BALANCE_POLL_TIMEOUT))
+    parser.add_argument('--cfg', action='store', required=True)
+    parser.add_argument('--exchange', action='store', required=True)
+
+    arguments = parser.parse_args()
+
+    watch_balance_for_exchange(arguments)

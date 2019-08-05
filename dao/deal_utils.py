@@ -1,18 +1,20 @@
 from decimal import Decimal
 
-# FIXME NOTE: from dao import * doesnt work and lead to circular import hell. Still not sure how to tackle it properly
+# FIXME NOTE: from dao import * doesnt work and lead to circular import hell.
+# Still not sure how to tackle it properly
 import dao
 
 from data_access.classes.work_unit import WorkUnit
 from data_access.message_queue import DEAL_INFO_MSG, DEBUG_INFO_MSG, ORDERS_MSG, FAILED_ORDERS_MSG
 
 from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
-from constants import DEAL_MAX_TIMEOUT
+from constants import DEAL_MAX_TIMEOUT, YES_I_KNOW_WHAT_AM_I_DOING
 
 from enums.deal_type import DEAL_TYPE
 from enums.status import STATUS
 
-from utils.currency_utils import get_currency_pair_name_by_exchange_id, split_currency_pairs, get_currency_name_by_id
+from utils.currency_utils import get_currency_pair_name_by_exchange_id, \
+    split_currency_pairs, get_currency_name_by_id
 from utils.file_utils import log_to_file
 from utils.key_utils import get_key_by_exchange
 from utils.string_utils import float_to_str
@@ -79,53 +81,50 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
     msg_queue.add_message(DEAL_INFO_MSG, msg)
     log_to_file(msg, file_name)
 
-    print "!!! Order placement is DISABLED !!!", '\n', msg
-    raise
+    if YES_I_KNOW_WHAT_AM_I_DOING:
+        die_hard("init_deals_with_logging_speedy called for {f}".format(f=trade_pairs))
 
-    # FIXME
-    # die_hard("init_deals_with_logging_speedy called for {f}".format(f=trade_pairs))
+    parallel_deals = []
 
-    # parallel_deals = []
-    #
-    # for order in [trade_pairs.deal_1, trade_pairs.deal_2]:
-    #     method_for_url = dao.get_method_for_create_url_trade_by_exchange_id(order)
-    #     # key, pair_name, price, amount
-    #     key = get_key_by_exchange(order.exchange_id)
-    #     pair_name = get_currency_pair_name_by_exchange_id(order.pair_id, order.exchange_id)
-    #     post_details = method_for_url(key, pair_name, order.price, order.volume)
-    #     constructor = return_with_no_change
-    #
-    #     wu = WorkUnit(post_details.final_url, constructor, order)
-    #     wu.add_post_details(post_details)
-    #
-    #     parallel_deals.append(wu)
-    #
-    # res = processor.process_async_post(parallel_deals, DEAL_MAX_TIMEOUT)
-    #
-    # if res is None:
-    #     log_to_file("For TradePair - {tp} result is {res}".format(tp=trade_pairs, res=res), file_name)
-    #     log_to_file("For TradePair - {tp} result is {res}".format(tp=trade_pairs, res=res), ERROR_LOG_FILE_NAME)
-    #     return
-    #
-    # # check for errors only
-    # for entry in res:
-    #     json_responce, order = entry
-    #     if "ERROR" in json_responce:
-    #
-    #         msg = """   <b>ERROR: </b>NONE
-    #         During deal placement: {u1}
-    #         Details: {err_msg}
-    #         """.format(u1=order, err_msg=json_responce)
-    #
-    #         msg_queue.add_order(FAILED_ORDERS_MSG, order)
-    #
-    #     else:
-    #         msg = """ For trade {trade}
-    #         Response is {resp} """.format(trade=order, resp=json_responce)
-    #
-    #     print_to_console(msg, LOG_ALL_ERRORS)
-    #     msg_queue.add_message(DEBUG_INFO_MSG, msg)
-    #     log_to_file(msg, file_name)
-    # 
-    # for order in [trade_pairs.deal_1, trade_pairs.deal_2]:
-    #     msg_queue.add_order(ORDERS_MSG, order)
+    for order in [trade_pairs.deal_1, trade_pairs.deal_2]:
+        method_for_url = dao.get_method_for_create_url_trade_by_exchange_id(order)
+        # key, pair_name, price, amount
+        key = get_key_by_exchange(order.exchange_id)
+        pair_name = get_currency_pair_name_by_exchange_id(order.pair_id, order.exchange_id)
+        post_details = method_for_url(key, pair_name, order.price, order.volume)
+        constructor = return_with_no_change
+
+        wu = WorkUnit(post_details.final_url, constructor, order)
+        wu.add_post_details(post_details)
+
+        parallel_deals.append(wu)
+
+    res = processor.process_async_post(parallel_deals, DEAL_MAX_TIMEOUT)
+
+    if res is None:
+        log_to_file("For TradePair - {tp} result is {res}".format(tp=trade_pairs, res=res), file_name)
+        log_to_file("For TradePair - {tp} result is {res}".format(tp=trade_pairs, res=res), ERROR_LOG_FILE_NAME)
+        return
+
+    # check for errors only
+    for entry in res:
+        json_response, order = entry
+        if "ERROR" in json_response:
+
+            msg = """   <b>ERROR: </b>NONE
+            During deal placement: {u1}
+            Details: {err_msg}
+            """.format(u1=order, err_msg=json_response)
+
+            msg_queue.add_order(FAILED_ORDERS_MSG, order)
+
+        else:
+            msg = """ For trade {trade}
+            Response is {resp} """.format(trade=order, resp=json_response)
+
+        print_to_console(msg, LOG_ALL_ERRORS)
+        msg_queue.add_message(DEBUG_INFO_MSG, msg)
+        log_to_file(msg, file_name)
+
+    for order in [trade_pairs.deal_1, trade_pairs.deal_2]:
+        msg_queue.add_order(ORDERS_MSG, order)

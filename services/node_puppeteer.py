@@ -18,9 +18,10 @@ if __name__ == "__main__":
     command_queue = CommandQueue(settings.cache_host, settings.cache_port)
 
     #
-    # whilte true read settings
+    # while true read settings
     #   1) what kind of services to deploy
     #   2) service specific settings
+    #
 
     server_name = socket.gethostname()
     command_queue.register_node(server_name)

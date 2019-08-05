@@ -4,6 +4,14 @@ from decimal import Decimal
 from enums.currency import CURRENCY
 from enums.currency_pair import CURRENCY_PAIR
 
+#
+#   Please note that routine below may trigger some trades
+#               which may lead to money loss
+#               Do NOT enable with out understanding of consequences
+#
+YES_I_KNOW_WHAT_AM_I_DOING = False
+
+
 SECONDS_IN_WEEK = 604800
 SECONDS_IN_DAY = 86400
 
@@ -49,9 +57,6 @@ POOL_SIZE = 8 * CORE_NUM
 FIRST = 0
 LAST = 0
 
-BALANCE_EXPIRED_THRESHOLD = 60
-MIN_CAP_UPDATE_TIMEOUT = 900
-BALANCE_UPDATE_TIMEOUT = 1
 NO_MAX_CAP_LIMIT = 0
 NO_MIN_CAP_LIMIT = 0
 
@@ -62,13 +67,28 @@ START_OF_TIME = -1
 FLOAT_POINT_PRECISION = Decimal("0.00000001")
 MIN_VOLUME_ORDER_BOOK = 0.00001
 
-HEARTBEAT_TIMEOUT = 60
-
 API_KEY_PATH = "./secret_keys"
+
+#
+#   Hey, curious reader - don't worry too much about it - VMs are destroyed already :)
+#
 
 DB_HOST = "orders.cervsj06c8zw.us-west-1.rds.amazonaws.com"
 DB_PORT = 5432
 DB_NAME = "crypto"
 
 
-ARBITRAGE_UPDATE_TIMEOUT = 15
+#
+#           Various timeout, in seconds
+#
+
+BALANCE_EXPIRED_THRESHOLD = 60
+BALANCE_POLL_TIMEOUT = 3
+BALANCE_HEALTH_CHECK_TIMEOUT = 180
+
+ORDER_BOOK_POLL_TIMEOUT = 5
+
+MIN_CAP_UPDATE_TIMEOUT = 900
+BALANCE_UPDATE_TIMEOUT = 1
+HEARTBEAT_TIMEOUT = 60
+ORDER_EXPIRATION_TIMEOUT = 15

@@ -1,19 +1,22 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import argparse
 
 from data_access.message_queue import get_message_queue, ARBITRAGE_MSG
+from data_access.classes.connection_pool import ConnectionPool
 
 from core.base_analysis import compare_price, check_highest_bid_bigger_than_lowest_ask
-from dao.db import init_pg_connection, load_to_postgres, save_alarm_into_pg
+from dao.db import load_to_postgres, save_alarm_into_pg
 from dao.ticker_utils import get_ticker_speedup
+
 from data.ticker import TICKER_TYPE_NAME
-from data_access.classes.connection_pool import ConnectionPool
+
 from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG
 from utils.currency_utils import get_pair_name_by_id
 from utils.string_utils import float_to_str
 from utils.time_utils import sleep_for, get_now_seconds_utc, ts_to_string_local
-import argparse
-from deploy.classes.common_settings import CommonSettings
+
+from services.common import process_args
 
 
 # time to poll
@@ -22,6 +25,15 @@ TRIGGER_THRESHOLD = 1.5 # 2 percents only
 
 
 def analyse_tickers(pg_conn, msg_queue):
+    """
+            Retrieve tickers from ALL exchanges via REST api and save into DB.
+
+            NOTE: Very first routine to analyse gap between rates at different exchanges.
+
+    :param pg_conn:
+    :param msg_queue:
+    :return:
+    """
 
     processor = ConnectionPool()
 
@@ -37,7 +49,7 @@ def analyse_tickers(pg_conn, msg_queue):
             Date: {dt}
             Pair: {pair_name}, {ask_exchange}: {ask_price} {sell_exchange}: {sell_price}
             TAG: {ask_exchange}-{sell_exchange}
-            """.format(msg=entry[0], ts = timest, dt = ts_to_string_local(timest), pair_name=get_pair_name_by_id(entry[1]),
+            """.format(msg=entry[0], ts=timest, dt=ts_to_string_local(timest), pair_name=get_pair_name_by_id(entry[1]),
                        ask_exchange=entry[2].exchange, ask_price=float_to_str(entry[2].bid),
                        sell_exchange=entry[3].exchange, sell_price=float_to_str(entry[3].ask))
             print_to_console(msg, LOG_ALL_ERRORS)
@@ -65,11 +77,8 @@ if __name__ == "__main__":
 
     arguments = parser.parse_args()
 
-    settings = CommonSettings.from_cfg(arguments.cfg)
-
-    pg_conn = init_pg_connection(_db_host=settings.db_host,
-                                 _db_port=settings.db_port,
-                                 _db_name=settings.db_name)
+    pg_conn, settings = process_args(arguments)
 
     msg_queue = get_message_queue(host=settings.cache_host, port=settings.cache_port)
+
     analyse_tickers(pg_conn, msg_queue)

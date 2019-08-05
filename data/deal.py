@@ -15,3 +15,5 @@ class Deal(BaseData):
 
     def __str__(self):
         return "[price: {:16.8f} volume: {:16.8f} ]".format(self.price, self.volume)
+
+    __repr__ = __str__

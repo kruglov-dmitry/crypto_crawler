@@ -1,3 +1,4 @@
+import os
 import argparse
 import threading
 from Queue import Queue as queue
@@ -36,19 +37,18 @@ from utils.exchange_utils import get_exchange_name_by_id
 from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for, get_now_seconds_utc_ms, ts_to_string_utc
+from utils.system_utils import die_hard
 
 from logging_tools.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors, \
     log_reset_stage_successfully, log_init_reset, log_reset_final_stage, log_cant_update_volume_cap, \
     log_finishing_syncing_order_book, log_all_order_book_synced, log_order_book_update_failed_pre_sync, \
     log_order_book_update_failed_post_sync, log_one_of_subscriptions_failed
 
-from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD
+from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD, YES_I_KNOW_WHAT_AM_I_DOING
 
 from deploy.classes.common_settings import CommonSettings
 
 from services.sync_stage import get_stage, set_stage
-
-import os
 
 
 class ArbitrageListener:
@@ -130,7 +130,7 @@ class ArbitrageListener:
         self.bids_headline = "BIDS\t\t\t\t\t\t\t\t\tBIDS"
         self.asks_headline = "ASKS\t\t\t\t\t\t\t\t\tASKS"
 
-        self.order_book_delemiter = '\t\t\t'
+        self.order_book_delimiter = '\t\t\t'
 
     def _init_infrastructure(self, app_settings):
         self.priority_queue = get_priority_queue(host=app_settings.cache_host, port=app_settings.cache_port)
@@ -222,18 +222,19 @@ class ArbitrageListener:
 
         return STATUS.SUCCESS
 
-    def clear_queue(self, queue):
+    @classmethod
+    def clear_queue(cls, m_queue):
         while True:
 
             try:
-                order_book_update = queue.get(block=False)
+                order_book_update = m_queue.get(block=False)
             except:
                 order_book_update = None
 
             if order_book_update is None:
                 break
 
-            queue.task_done()
+            m_queue.task_done()
 
     def sync_sell_order_book(self):
         if self.sell_exchange_id in [EXCHANGE.BINANCE, EXCHANGE.BITTREX]:
@@ -334,21 +335,15 @@ class ArbitrageListener:
         self.buy_subscription.disconnect()
 
     def _print_top10_buy_bids_asks(self, exchange_id):
-
-        bids = self.order_book_buy.bid[:10]
-        asks = self.order_book_buy.ask[:10]
-
         os.system('clear')
 
         print get_exchange_name_by_id(self.buy_exchange_id), "Current number of threads: ", threading.active_count(), \
             "Last update from: ", get_exchange_name_by_id(exchange_id), "at", get_now_seconds_utc()
         print "BIDS:"
-        for b in bids:
-            print b
+        print self.order_book_buy.bid[:10]
 
         print "ASKS"
-        for a in asks:
-            print a
+        print self.order_book_buy.ask[:10]
 
     def _print_top10(self, exchange_id):
 
@@ -367,7 +362,7 @@ class ArbitrageListener:
                 print self.order_book_buy.bid[idx],
             else:
                 print None,
-            print self.order_book_delemiter,
+            print self.order_book_delimiter,
             if idx < lb2:
                 print self.order_book_sell.bid[idx]
             else:
@@ -381,7 +376,7 @@ class ArbitrageListener:
                 print self.order_book_buy.ask[idx],
             else:
                 print None
-            print self.order_book_delemiter,
+            print self.order_book_delimiter,
             if idx < la2:
                 print self.order_book_sell.ask[idx]
             else:
@@ -464,35 +459,42 @@ class ArbitrageListener:
 
             self._print_top10(exchange_id)
 
-            # DK NOTE: only at this stage we are ready for searching for arbitrage
+            if YES_I_KNOW_WHAT_AM_I_DOING:
+                die_hard("LIVE TRADING!")
 
-            # for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
-            #   method = search_for_arbitrage if mode_id == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
-            #   active_threshold = self.threshold if mode_id == DEAL_TYPE.ARBITRAGE else self.reverse_threshold
+                # DK NOTE: only at this stage we are ready for searching for arbitrage
 
-            # FIXME NOTE: order book expiration check
+                # for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
+                #   method = search_for_arbitrage if mode_id == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
+                #   active_threshold = self.threshold if mode_id == DEAL_TYPE.ARBITRAGE else self.reverse_threshold
 
-            # init_deals_with_logging_speedy
-            # FIXME NOTE: src dst vs buy sell
-            # ts1 = get_now_seconds_utc_ms()
-            # status_code, deal_pair = search_for_arbitrage(self.order_book_sell, self.order_book_buy,
-            #                                               self.threshold,
-            #                                               self.balance_threshold,
-            #                                               init_deals_with_logging_speedy,
-            #                                               self.balance_state, self.deal_cap,
-            #                                               type_of_deal=DEAL_TYPE.ARBITRAGE,
-            #                                               worker_pool=self.processor,
-            #                                               msg_queue=self.msg_queue)
-            #
-            # ts2 = get_now_seconds_utc_ms()
-            #
-            # msg = "Start: {ts1} ms End: {ts2} ms Runtime: {d} ms".format(ts1=ts1, ts2=ts2, d=ts2-ts1)
-            #
-            # log_to_file(msg, "profile.txt")
-            #
-            # add_orders_to_watch_list(deal_pair, self.priority_queue)
+                # FIXME NOTE: order book expiration check
+                # FIXME NOTE: src dst vs buy sell
+                ts1 = get_now_seconds_utc_ms()
+                status_code, deal_pair = search_for_arbitrage(self.order_book_sell, self.order_book_buy,
+                                                              self.threshold,
+                                                              self.balance_threshold,
+                                                              init_deals_with_logging_speedy,
+                                                              self.balance_state, self.deal_cap,
+                                                              type_of_deal=DEAL_TYPE.ARBITRAGE,
+                                                              worker_pool=self.processor,
+                                                              msg_queue=self.msg_queue)
 
-            # self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
+                ts2 = get_now_seconds_utc_ms()
+
+                msg = "Start: {ts1} ms End: {ts2} ms Runtime: {d} ms".format(ts1=ts1, ts2=ts2, d=ts2-ts1)
+
+                #
+                #               FIXME
+                #
+                #   Yeah, we write to disk after every trade
+                #   Yeah, it is not really about speed :(
+                #
+                log_to_file(msg, "profile.txt")
+
+                add_orders_to_watch_list(deal_pair, self.priority_queue)
+
+                self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
 
 
 if __name__ == "__main__":
@@ -510,22 +512,18 @@ if __name__ == "__main__":
 
     parser.add_argument('--cfg', action="store", required=True)
 
-    results = parser.parse_args()
+    arguments = parser.parse_args()
 
-    cfg = ArbitrageConfig(results.sell_exchange_id, results.buy_exchange_id,
-                          results.pair_id, results.threshold,
-                          results.reverse_threshold, results.balance_threshold,
-                          results.deal_expire_timeout,
-                          results.cfg)
+    cfg = ArbitrageConfig.from_args(arguments)
 
-    app_settings = CommonSettings.from_cfg(results.cfg)
+    app_settings = CommonSettings.from_cfg(cfg.cfg)
 
     set_logging_level(app_settings.logging_level_id)
     set_log_folder(app_settings.log_folder)
     load_keys(app_settings.key_path)
 
     # to avoid time-consuming check in future - validate arguments here
-    for exchange_id in [results.sell_exchange_id, results.buy_exchange_id]:
+    for exchange_id in [cfg.sell_exchange_id, cfg.buy_exchange_id]:
         pair_name = get_currency_pair_name_by_exchange_id(cfg.pair_id, exchange_id)
         if pair_name is None:
             log_dont_supported_currency(cfg, exchange_id, cfg.pair_id)

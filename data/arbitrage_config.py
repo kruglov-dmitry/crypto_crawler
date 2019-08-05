@@ -21,6 +21,14 @@ class ArbitrageConfig:
         self.cap_update_timeout = cap_update_timeout
         self.balance_update_timeout = balance_update_timeout
 
+    @staticmethod
+    def from_args(arguments):
+        return ArbitrageConfig(arguments.sell_exchange_id, arguments.buy_exchange_id,
+                               arguments.pair_id, arguments.threshold,
+                               arguments.reverse_threshold, arguments.balance_threshold,
+                               arguments.deal_expire_timeout,
+                               arguments.cfg)
+
     def __str__(self):
         str_repr = """Sell=Bid exchange - {sell_exch} id = {id1} Buy-Ask exchange - {buy_exch} id = {id2} 
         currency pair - {pair} Arbitrage Threshold = {thrshld} Reverse Threshold = {rv_thr} Balance Threshold = {b_thr}
