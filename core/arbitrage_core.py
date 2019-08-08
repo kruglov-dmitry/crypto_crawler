@@ -379,7 +379,6 @@ def place_order_by_market_rate(expired_order, msg_queue, priority_queue, min_vol
         msg_queue.add_order(FAILED_ORDERS_MSG, expired_order, log_file_name)
 
 
-
 #
 #       Routines below used in first version of arbitrage - via REST processing only
 #

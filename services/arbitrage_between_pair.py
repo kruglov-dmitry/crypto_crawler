@@ -38,11 +38,7 @@ from deploy.classes.common_settings import CommonSettings
 
 
 def arbitrage_between_pair(args):
-    cfg = ArbitrageConfig(args.sell_exchange_id, args.buy_exchange_id,
-                          args.pair_id, args.threshold,
-                          args.reverse_threshold, args.balance_threshold,
-                          args.deal_expire_timeout,
-                          args.cfg)
+    cfg = ArbitrageConfig.from_args(args)
 
     app_settings = CommonSettings.from_cfg(args.cfg)
 
@@ -64,8 +60,8 @@ def arbitrage_between_pair(args):
             exit()
 
     deal_cap = MarketCap(cfg.pair_id, get_now_seconds_utc())
-    update_min_cap(cfg, deal_cap, processor)
     deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
+    update_min_cap(cfg, deal_cap, processor)
 
     balance_state = dummy_balance_init(timest=0, default_volume=Decimal("0"), default_available_volume=Decimal("0"))
 

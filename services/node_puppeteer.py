@@ -36,7 +36,7 @@ if __name__ == "__main__":
     It will be deployed to every node to 
         1. Register within dashboard
         2. Send heartbeat to msg queue to reflect that agent is active at this node 
-        3. watch for commands to deploy\stop\\reconfigure all services at this node  
+        3. watch for commands to deploy\\stop\\reconfigure all services at this node  
     """)
 
     parser.add_argument('--cfg', action='store', required=True)
