@@ -459,42 +459,39 @@ class ArbitrageListener:
 
             self._print_top10(exchange_id)
 
-            if YES_I_KNOW_WHAT_AM_I_DOING:
+            if not YES_I_KNOW_WHAT_AM_I_DOING:
                 die_hard("LIVE TRADING!")
 
-                # DK NOTE: only at this stage we are ready for searching for arbitrage
+            # DK NOTE: only at this stage we are ready for searching for arbitrage
 
-                # for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
-                #   method = search_for_arbitrage if mode_id == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
-                #   active_threshold = self.threshold if mode_id == DEAL_TYPE.ARBITRAGE else self.reverse_threshold
-
-                # FIXME NOTE: order book expiration check
-                # FIXME NOTE: src dst vs buy sell
-                ts1 = get_now_seconds_utc_ms()
-                status_code, deal_pair = search_for_arbitrage(self.order_book_sell, self.order_book_buy,
-                                                              self.threshold,
-                                                              self.balance_threshold,
-                                                              init_deals_with_logging_speedy,
-                                                              self.balance_state, self.deal_cap,
-                                                              type_of_deal=DEAL_TYPE.ARBITRAGE,
-                                                              worker_pool=self.processor,
+            # for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
+            #   method = search_for_arbitrage if mode_id == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
+            #   active_threshold = self.threshold if mode_id == DEAL_TYPE.ARBITRAGE else self.reverse_threshold
+            # FIXME NOTE: order book expiration check
+            # FIXME NOTE: src dst vs buy sell
+            ts1 = get_now_seconds_utc_ms()
+            status_code, deal_pair = search_for_arbitrage(self.order_book_sell, self.order_book_buy,
+                                                          self.threshold,
+                                                          self.balance_threshold,
+                                                          init_deals_with_logging_speedy,
+                                                          self.balance_state, self.deal_cap,
+                                                          type_of_deal=DEAL_TYPE.ARBITRAGE,
+                                                          worker_pool=self.processor,
                                                               msg_queue=self.msg_queue)
 
-                ts2 = get_now_seconds_utc_ms()
+            ts2 = get_now_seconds_utc_ms()
 
-                msg = "Start: {ts1} ms End: {ts2} ms Runtime: {d} ms".format(ts1=ts1, ts2=ts2, d=ts2-ts1)
+            msg = "Start: {ts1} ms End: {ts2} ms Runtime: {d} ms".format(ts1=ts1, ts2=ts2, d=ts2-ts1)
 
-                #
-                #               FIXME
-                #
-                #   Yeah, we write to disk after every trade
-                #   Yeah, it is not really about speed :(
-                #
-                log_to_file(msg, "profile.txt")
-
-                add_orders_to_watch_list(deal_pair, self.priority_queue)
-
-                self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
+            #
+            #               FIXME
+            #
+            #   Yeah, we write to disk after every trade
+            #   Yeah, it is not really about speed :(
+            #
+            log_to_file(msg, "profile.txt")
+            add_orders_to_watch_list(deal_pair, self.priority_queue)
+            self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
 
 
 if __name__ == "__main__":

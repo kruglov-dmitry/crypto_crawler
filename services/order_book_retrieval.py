@@ -49,7 +49,7 @@ def load_order_books(args):
 
         if should_print_debug():
             msg = """Orderbook retrieval at {tt}:
-                Order book size - {num1} Order book asks - {num10} Order book bids - {num20}""".format(
+            Order book size - {num1} Order book asks - {num10} Order book bids - {num20}""".format(
                 tt=ts, num1=order_book_size, num10=order_book_ask_size, num20=order_book_bid_size)
             print_to_console(msg, LOG_ALL_ERRORS)
             log_to_file(msg, "order_book.log")

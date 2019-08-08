@@ -1,11 +1,13 @@
 from decimal import Decimal
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
+from debug_utils import should_print_debug, ERROR_LOG_FILE_NAME, print_to_console, \
+    LOG_ALL_ERRORS, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME
 
 from utils.time_utils import get_now_seconds_utc
 from utils.currency_utils import split_currency_pairs
 from utils.file_utils import log_to_file
 from utils.string_utils import truncate_float
+from utils.exchange_utils import get_exchange_name_by_id
 
 from core.base_analysis import get_change
 
@@ -27,10 +29,12 @@ from constants import FIRST, LAST, NO_MAX_CAP_LIMIT, MIN_VOLUME_COEFFICIENT, MAX
 
 from dao.dao import parse_order_id
 from dao.deal_utils import init_deal
+from dao.ticker_utils import get_ticker_for_arbitrage
 
 
 from logging_tools.arbitrage_core_logging import log_arbitrage_heart_beat, log_arbitrage_determined_volume_not_enough, \
     log_currency_disbalance_present, log_currency_disbalance_heart_beat, log_arbitrage_determined_price_not_enough
+from logging_tools.arbitrage_between_pair_logging import log_dublicative_order_book
 from logging_tools.expired_order_logging import log_placing_new_deal, log_cant_placing_new_deal, log_too_small_volume, \
     log_expired_order_replacement_result
 
@@ -373,3 +377,57 @@ def place_order_by_market_rate(expired_order, msg_queue, priority_queue, min_vol
         log_cant_placing_new_deal(expired_order, msg_queue)
 
         msg_queue.add_order(FAILED_ORDERS_MSG, expired_order, log_file_name)
+
+
+
+#
+#       Routines below used in first version of arbitrage - via REST processing only
+#
+
+
+def update_min_cap(cfg, deal_cap, processor):
+    cur_timest_sec = get_now_seconds_utc()
+    tickers = get_ticker_for_arbitrage(cfg.pair_id, cur_timest_sec,
+                                       [cfg.buy_exchange_id, cfg.sell_exchange_id], processor)
+    new_cap = compute_new_min_cap_from_tickers(cfg.pair_id, tickers)
+
+    if new_cap > 0:
+        msg = "Updating old cap {op}".format(op=deal_cap)
+        log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
+
+        deal_cap.update_min_volume_cap(new_cap, cur_timest_sec)
+
+        msg = "New cap {op}".format(op=deal_cap)
+        log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
+
+    else:
+        msg = """CAN'T update minimum_volume_cap for {pair_id} at following
+        exchanges: {exch1} {exch2}""".format(pair_id=cfg.pair_id, exch1=get_exchange_name_by_id(cfg.buy_exchange_id),
+                                             exch2=get_exchange_name_by_id(cfg.sell_exchange_id))
+        print_to_console(msg, LOG_ALL_ERRORS)
+        log_to_file(msg, cfg.log_file_name)
+
+        log_to_file(msg, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME)
+
+
+def is_order_books_expired(order_book_src, order_book_dst, local_cache, msg_queue, log_file_name):
+
+    for order_book in [order_book_src, order_book_dst]:
+        prev_order_book = local_cache.get_last_order_book(order_book.pair_id, order_book.exchange_id)
+
+        if prev_order_book is None:
+            continue
+
+        total_asks = len(order_book.ask)
+        number_of_same_asks = len(set(order_book.ask).intersection(prev_order_book.ask))
+
+        total_bids = len(order_book.bid)
+        number_of_same_bids = len(set(order_book.bid).intersection(prev_order_book.bid))
+
+        if total_asks == number_of_same_asks or total_bids == number_of_same_bids:
+            # FIXME NOTE: probably we can loose a bit this condition - for example check that order book
+            # should differ for more than 10% of bids OR asks ?
+            log_dublicative_order_book(log_file_name, order_book, prev_order_book, msg_queue)
+            return True
+
+    return False

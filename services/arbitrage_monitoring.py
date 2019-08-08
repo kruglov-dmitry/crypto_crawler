@@ -21,17 +21,17 @@ from services.common import process_args
 
 # time to poll
 POLL_PERIOD_SECONDS = 120
-TRIGGER_THRESHOLD = 1.5 # 2 percents only
+TRIGGER_THRESHOLD = 1.5  # in percents
 
 
-def analyse_tickers(pg_conn, msg_queue):
+def analyse_tickers(pg_connection, notify_queue):
     """
             Retrieve tickers from ALL exchanges via REST api and save into DB.
 
             NOTE: Very first routine to analyse gap between rates at different exchanges.
 
-    :param pg_conn:
-    :param msg_queue:
+    :param pg_connection:
+    :param notify_queue:
     :return:
     """
 
@@ -54,11 +54,11 @@ def analyse_tickers(pg_conn, msg_queue):
                        sell_exchange=entry[3].exchange, sell_price=float_to_str(entry[3].ask))
             print_to_console(msg, LOG_ALL_ERRORS)
 
-            msg_queue.add_message(ARBITRAGE_MSG, msg)
-            save_alarm_into_pg(entry[2], entry[3], pg_conn)
+            notify_queue.add_message(ARBITRAGE_MSG, msg)
+            save_alarm_into_pg(entry[2], entry[3], pg_connection)
 
         print_to_console("Total amount of tickers = {num}".format(num=len(tickers)), LOG_ALL_DEBUG)
-        load_to_postgres(tickers, TICKER_TYPE_NAME, pg_conn)
+        load_to_postgres(tickers, TICKER_TYPE_NAME, pg_connection)
 
         print_to_console("Before sleep...", LOG_ALL_DEBUG)
         sleep_for(POLL_PERIOD_SECONDS)
