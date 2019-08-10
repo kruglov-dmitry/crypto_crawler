@@ -1,7 +1,7 @@
 from utils.file_utils import log_to_file
 from utils.string_utils import float_to_str
 from utils.exchange_utils import get_exchange_name_by_id
-from debug_utils import print_to_console, LOG_ALL_ERRORS, EXPIRED_ORDER_PROCESSING_FILE_NAME,\
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS, EXPIRED_ORDER_PROCESSING_FILE_NAME,\
     ERROR_LOG_FILE_NAME, FAILED_ORDER_PROCESSING_FILE_NAME
 from data_access.message_queue import DEAL_INFO_MSG, DEBUG_INFO_MSG
 

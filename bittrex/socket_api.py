@@ -4,7 +4,6 @@ from signalr import Connection
 from zlib import decompress, MAX_WBITS
 from json import loads
 from base64 import b64decode
-import time
 
 from bittrex.currency_utils import get_currency_pair_to_bittrex, get_currency_pair_from_bittrex
 
@@ -12,7 +11,7 @@ from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_r
     log_subscription_cancelled, log_websocket_disconnect, log_send_heart_beat_failed
 
 from utils.file_utils import log_to_file
-from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
+from utils.debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for
 from utils.system_utils import die_hard
 

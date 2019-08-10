@@ -1,4 +1,4 @@
-from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, LOG_ALL_ERRORS, LOG_ALL_DEBUG
+from utils.debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, LOG_ALL_ERRORS, LOG_ALL_DEBUG
 from utils.file_utils import log_to_file
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.time_utils import get_now_seconds_utc

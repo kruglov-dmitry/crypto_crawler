@@ -22,7 +22,7 @@ from utils.currency_utils import get_pair_name_by_id
 from utils.system_utils import die_hard
 
 from constants import MIN_VOLUME_ORDER_BOOK
-from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
+from utils.debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
 from logging_tools.socket_logging import log_sequence_id_mismatch
 
 # FIXME NOTE - not the smartest idea to deal with

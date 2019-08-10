@@ -8,7 +8,7 @@ from data_access.classes.postgres_connection import PostgresConnection
 from utils.time_utils import get_date_time_from_epoch
 from utils.file_utils import log_to_file
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME, FAILED_ORDER_PROCESSING_FILE_NAME
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME, FAILED_ORDER_PROCESSING_FILE_NAME
 from constants import START_OF_TIME
 
 from enums.exchange import EXCHANGE
@@ -42,9 +42,11 @@ def insert_data(some_object, pg_conn, is_this_order_book):
     """
 
     try:
+        print "Inserting", some_object
         cur.execute(PG_INSERT_QUERY, args_list)
     except Exception, e:
         log_error_query_failed(PG_INSERT_QUERY, args_list, e)
+        raise
 
     # Yeap, this crap I am not the biggest fun of!
     if is_this_order_book:
@@ -79,15 +81,15 @@ def bulk_insert_to_postgres(pg_conn, table_name, column_names, array):
     cursor = pg_conn.cursor
 
     f = IteratorFile((x.tsv() for x in array))
-    log_to_file(table_name, table_name + ".txt")
-    log_to_file(column_names, table_name + ".txt")
-    for x in array:
-        # if x.table_name == "candle":
-        #     print x
-        #     raise
-        log_to_file(x, table_name + ".txt")
-        # log_to_file(x.tsv(), "wtf.txt")
+    #
+    #       Debug only
+    #
+    # log_to_file(table_name, table_name + ".txt")
+    # log_to_file(column_names, table_name + ".txt")
+    # for x in array:
+    #    log_to_file(x.tsv(), table_name + ".txt")
     cursor.copy_from(f, table_name, columns=column_names)
+    pg_conn.commit()
 
 
 def save_alarm_into_pg(src_ticker, dst_ticker, pg_conn):

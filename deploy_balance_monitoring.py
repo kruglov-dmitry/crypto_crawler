@@ -1,6 +1,6 @@
 import argparse
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.exchange_utils import get_exchange_name_by_id
 
 from deploy.classes.common_settings import CommonSettings

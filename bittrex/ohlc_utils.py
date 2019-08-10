@@ -3,7 +3,7 @@ from bittrex.error_handling import is_error
 
 from data.candle import Candle
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
+from utils.debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
 from utils.file_utils import log_to_file
 
 from data_access.internet import send_request
@@ -39,10 +39,7 @@ def get_ohlc_bittrex_result_processor(json_document, pair_name, date_start, date
         return result_set
 
     for record in json_document["result"]:
-        new_candle = Candle.from_bittrex(record, pair_name)
-        # NOTE: API V2 tend to ignore time parameter - so we have to filter it manually
-        if new_candle.timest >= date_start:
-            result_set.append(new_candle)
+        result_set.append(Candle.from_bittrex(record, pair_name))
 
     return result_set
 

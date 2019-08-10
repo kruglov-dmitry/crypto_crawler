@@ -23,7 +23,7 @@ from data.order_book_update import OrderBookUpdate
 from data.deal import Deal
 from data.order_book import OrderBook
 
-from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME, get_logging_level, LOG_ALL_TRACE, LOG_ALL_ERRORS, \
+from utils.debug_utils import SOCKET_ERRORS_LOG_FILE_NAME, get_logging_level, LOG_ALL_TRACE, LOG_ALL_ERRORS, \
     LOG_ALL_MARKET_RELATED_CRAP, print_to_console
 
 

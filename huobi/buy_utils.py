@@ -6,7 +6,7 @@ from huobi.account_utils import get_huobi_account
 
 from data_access.classes.post_request_details import PostRequestDetails
 
-from debug_utils import get_logging_level, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
+from utils.debug_utils import get_logging_level, print_to_console, LOG_ALL_MARKET_RELATED_CRAP
 
 from utils.file_utils import log_to_file
 from utils.string_utils import float_to_str

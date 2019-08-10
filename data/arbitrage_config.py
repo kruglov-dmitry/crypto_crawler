@@ -1,6 +1,6 @@
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.currency_utils import get_pair_name_by_id
-from debug_utils import get_debug_level_name_by_id
+from utils.debug_utils import get_debug_level_name_by_id
 from constants import BALANCE_UPDATE_TIMEOUT, MIN_CAP_UPDATE_TIMEOUT
 
 

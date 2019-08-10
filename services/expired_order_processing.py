@@ -6,7 +6,7 @@ from data_access.message_queue import get_message_queue
 from data_access.priority_queue import ORDERS_EXPIRE_MSG, get_priority_queue
 from data_access.memory_cache import get_cache
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS, EXPIRED_ORDER_PROCESSING_FILE_NAME, \
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS, EXPIRED_ORDER_PROCESSING_FILE_NAME, \
     set_log_folder, set_logging_level
 from utils.time_utils import sleep_for, get_now_seconds_utc
 from utils.key_utils import load_keys

@@ -4,7 +4,7 @@ from binance.ticker_utils import get_tickers_binance, get_tickers_binance_url, g
 from bittrex.constants import BITTREX_CURRENCY_PAIRS
 from bittrex.ticker_utils import get_ticker_bittrex, get_ticker_bittrex_url, get_ticker_bittrex_result_processor
 from data_access.classes.work_unit import WorkUnit
-from debug_utils import print_to_console, LOG_ALL_ERRORS
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS
 
 from enums.currency_pair import CURRENCY_PAIR
 from enums.exchange import EXCHANGE

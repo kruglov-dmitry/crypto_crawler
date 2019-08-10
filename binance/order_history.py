@@ -1,6 +1,6 @@
 from utils.time_utils import get_now_seconds_utc_ms
 from utils.file_utils import log_to_file
-from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, LOG_ALL_DEBUG, \
+from utils.debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, LOG_ALL_DEBUG, \
     DEBUG_LOG_FILE_NAME
 
 from data_access.internet import send_get_request_with_header

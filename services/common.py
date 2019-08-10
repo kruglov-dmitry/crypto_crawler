@@ -1,6 +1,6 @@
 from dao.db import init_pg_connection
 from deploy.classes.common_settings import CommonSettings
-from debug_utils import set_logging_level, set_log_folder
+from utils.debug_utils import set_logging_level, set_log_folder
 
 
 def process_args(args):

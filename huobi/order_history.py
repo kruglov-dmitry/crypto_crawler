@@ -3,7 +3,7 @@ from urllib import urlencode as _urlencode
 from utils.key_utils import sign_string_256_base64
 from utils.time_utils import ts_to_string_utc, get_now_seconds_utc
 from utils.file_utils import log_to_file
-from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, LOG_ALL_DEBUG, \
+from utils.debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, LOG_ALL_DEBUG, \
     DEBUG_LOG_FILE_NAME
 
 from enums.status import STATUS

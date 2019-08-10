@@ -6,7 +6,7 @@ from utils.file_utils import log_to_file
 
 from huobi.constants import HUOBI_DEAL_TIMEOUT, HUOBI_NUM_OF_DEAL_RETRY
 from data_access.internet import send_post_request_with_header
-from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level
+from utils.debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level
 
 
 def init_body(key):

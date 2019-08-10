@@ -7,7 +7,7 @@ from gevent.pool import Pool
 from constants import POOL_SIZE, HTTP_SUCCESS
 
 from utils.file_utils import log_to_file
-from debug_utils import get_logging_level, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME, POST_RESPONCE_FILE_NAME
+from utils.debug_utils import get_logging_level, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME, POST_RESPONCE_FILE_NAME
 
 from enums.http_request import HTTP_REQUEST
 from enums.status import STATUS

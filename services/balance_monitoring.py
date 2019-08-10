@@ -8,7 +8,7 @@ from data_access.memory_cache import connect_to_cache
 from logging_tools.balance_monitoring_logging import log_initial_settings, log_balance_update_heartbeat, \
     log_cant_update_balance, log_last_balances, log_not_enough_base_currency
 from logging_tools.exchange_util_logging import log_wrong_exchange_id
-from debug_utils import set_log_folder, set_logging_level
+from utils.debug_utils import set_log_folder, set_logging_level
 
 from utils.key_utils import load_keys
 from utils.time_utils import sleep_for

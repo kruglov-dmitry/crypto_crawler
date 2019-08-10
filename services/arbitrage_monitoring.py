@@ -11,7 +11,7 @@ from dao.ticker_utils import get_ticker_speedup
 
 from data.ticker import TICKER_TYPE_NAME
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG
 from utils.currency_utils import get_pair_name_by_id
 from utils.string_utils import float_to_str
 from utils.time_utils import sleep_for, get_now_seconds_utc, ts_to_string_local
@@ -40,7 +40,9 @@ def analyse_tickers(pg_connection, notify_queue):
     while True:
 
         timest = get_now_seconds_utc()
-        tickers = get_ticker_speedup(timest, processor)
+        results = get_ticker_speedup(timest, processor)
+
+        tickers = filter(lambda x: type(x) != str, results)
 
         res = compare_price(tickers, TRIGGER_THRESHOLD, check_highest_bid_bigger_than_lowest_ask)
 

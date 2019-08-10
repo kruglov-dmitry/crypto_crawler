@@ -9,7 +9,7 @@ from data_access.internet import send_request
 
 from enums.status import STATUS
 
-from debug_utils import print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME, should_print_debug
+from utils.debug_utils import print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME, should_print_debug
 
 
 def get_order_book_kraken_url(pair_name):

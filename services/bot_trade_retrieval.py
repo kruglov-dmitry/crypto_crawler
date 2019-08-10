@@ -4,7 +4,7 @@ from logging_tools.balance_monitoring_logging import log_initial_settings
 
 from analysis.data_load_for_profit_report import get_trade_retrieval_method_by_exchange
 
-from debug_utils import print_to_console, LOG_ALL_DEBUG
+from utils.debug_utils import print_to_console, LOG_ALL_DEBUG
 from utils.time_utils import sleep_for, get_now_seconds_utc, parse_time
 from utils.key_utils import load_keys
 from utils.system_utils import die_hard

@@ -9,6 +9,7 @@ LOG_ALL_TRACE = 10000
 
 DEBUG_LEVEL = LOG_ALL_OTHER_STUFF
 
+LOGS_FOLDER = "./logs/"
 
 DEBUG_LOG_FILE_NAME = "debug.log"
 ERROR_LOG_FILE_NAME = "error.log"
@@ -64,9 +65,6 @@ def get_logging_level_id_by_name(logging_level_name):
         "LOG_ALL_DEBUG": LOG_ALL_DEBUG,
         "LOG_ALL_OTHER_STUFF": LOG_ALL_OTHER_STUFF
     }[logging_level_name.upper()]
-
-
-LOGS_FOLDER = "./logs/"
 
 
 def get_log_folder():

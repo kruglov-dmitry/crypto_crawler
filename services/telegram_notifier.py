@@ -5,7 +5,7 @@ from data_access.telegram_notifications import send_single_message
 
 from enums.status import STATUS
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS, set_log_folder, set_logging_level
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS, set_log_folder, set_logging_level
 from utils.file_utils import log_to_file
 from utils.time_utils import sleep_for
 

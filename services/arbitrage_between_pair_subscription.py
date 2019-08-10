@@ -18,7 +18,7 @@ from dao.socket_utils import get_subcribtion_by_exchange
 from data.arbitrage_config import ArbitrageConfig
 from data.order_book import OrderBook
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS, set_logging_level, \
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS, set_logging_level, \
     set_log_folder, SOCKET_ERRORS_LOG_FILE_NAME
 
 from enums.deal_type import DEAL_TYPE
@@ -34,8 +34,7 @@ from utils.time_utils import get_now_seconds_utc, sleep_for, get_now_seconds_utc
 from utils.system_utils import die_hard
 
 from logging_tools.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors, \
-    log_reset_stage_successfully, log_init_reset, log_reset_final_stage, log_cant_update_volume_cap, \
-    log_finishing_syncing_order_book, log_all_order_book_synced, log_order_book_update_failed_pre_sync, \
+    log_reset_stage_successfully, log_init_reset, log_reset_final_stage, log_finishing_syncing_order_book, log_all_order_book_synced, log_order_book_update_failed_pre_sync, \
     log_order_book_update_failed_post_sync, log_one_of_subscriptions_failed
 
 from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD, YES_I_KNOW_WHAT_AM_I_DOING

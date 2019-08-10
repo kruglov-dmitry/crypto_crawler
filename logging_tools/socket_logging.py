@@ -1,4 +1,4 @@
-from debug_utils import LOG_ALL_ERRORS, print_to_console, SOCKET_ERRORS_LOG_FILE_NAME
+from utils.debug_utils import LOG_ALL_ERRORS, print_to_console, SOCKET_ERRORS_LOG_FILE_NAME
 
 from utils.file_utils import log_to_file
 

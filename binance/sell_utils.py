@@ -3,7 +3,7 @@ from binance.rest_api import generate_post_request
 
 from data_access.internet import send_post_request_with_header
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level
+from utils.debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level
 
 from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc_ms

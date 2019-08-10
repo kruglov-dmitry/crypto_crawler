@@ -35,7 +35,7 @@ from enums.status import STATUS
 from enums.deal_type import DEAL_TYPE
 
 from utils.key_utils import get_key_by_exchange
-from debug_utils import print_to_console, LOG_ALL_ERRORS
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.file_utils import log_to_file
 
 

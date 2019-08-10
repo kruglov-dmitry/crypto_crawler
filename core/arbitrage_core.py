@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from debug_utils import should_print_debug, ERROR_LOG_FILE_NAME, print_to_console, \
+from utils.debug_utils import should_print_debug, ERROR_LOG_FILE_NAME, print_to_console, \
     LOG_ALL_ERRORS, CAP_ADJUSTMENT_TRACE_LOG_FILE_NAME
 
 from utils.time_utils import get_now_seconds_utc

@@ -5,7 +5,7 @@ from data_access.classes.post_request_details import PostRequestDetails
 from bittrex.constants import BITTREX_CANCEL_ORDER, BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT
 from bittrex.error_handling import is_error
 
-from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, ERROR_LOG_FILE_NAME
+from utils.debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, ERROR_LOG_FILE_NAME
 from utils.key_utils import signed_string
 from utils.file_utils import log_to_file
 

@@ -7,7 +7,7 @@ from data_access.internet import send_request
 
 from enums.status import STATUS
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
+from utils.debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
 from utils.file_utils import log_to_file
 
 

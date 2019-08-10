@@ -7,7 +7,7 @@ from data_access.memory_cache import generate_nonce
 
 from data.trade import Trade
 
-from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, ERROR_LOG_FILE_NAME
+from utils.debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, ERROR_LOG_FILE_NAME
 from utils.file_utils import log_to_file
 from utils.key_utils import signed_body
 from utils.time_utils import get_now_seconds_utc

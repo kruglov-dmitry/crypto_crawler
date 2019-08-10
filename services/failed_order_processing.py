@@ -4,7 +4,7 @@ from data_access.message_queue import get_message_queue, FAILED_ORDERS_MSG
 from data_access.priority_queue import get_priority_queue
 from data_access.memory_cache import get_cache
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.time_utils import sleep_for
 from utils.key_utils import load_keys
 

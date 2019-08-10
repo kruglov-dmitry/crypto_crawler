@@ -3,7 +3,7 @@ from binance.rest_api import generate_post_request, get_orders_binance_result_pr
 
 from data_access.internet import send_get_request_with_header
 
-from debug_utils import LOG_ALL_DEBUG, DEBUG_LOG_FILE_NAME, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, \
+from utils.debug_utils import LOG_ALL_DEBUG, DEBUG_LOG_FILE_NAME, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, \
     get_logging_level
 
 from enums.status import STATUS

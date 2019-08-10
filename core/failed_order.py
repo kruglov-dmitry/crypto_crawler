@@ -15,7 +15,7 @@ from enums.deal_type import DEAL_TYPE
 from enums.status import STATUS
 
 from constants import BALANCE_EXPIRED_THRESHOLD
-from debug_utils import FAILED_ORDER_PROCESSING_FILE_NAME
+from utils.debug_utils import FAILED_ORDER_PROCESSING_FILE_NAME
 from utils.time_utils import sleep_for
 
 from logging_tools.expired_order_logging import log_open_orders_by_exchange_bad_result, log_trace_all_open_orders, \

@@ -9,7 +9,7 @@ from data_access.classes.post_request_details import PostRequestDetails
 from data_access.internet import send_post_request_with_header
 from data_access.memory_cache import generate_nonce
 
-from debug_utils import get_logging_level, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, ERROR_LOG_FILE_NAME
+from utils.debug_utils import get_logging_level, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, ERROR_LOG_FILE_NAME
 
 from enums.exchange import EXCHANGE
 from enums.status import STATUS

@@ -1,6 +1,6 @@
 from data_access.internet import send_get_request_with_header, send_delete_request_with_header
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, \
+from utils.debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, \
     ERROR_LOG_FILE_NAME, LOG_ALL_DEBUG, DEBUG_LOG_FILE_NAME
 
 from utils.key_utils import signed_body_256

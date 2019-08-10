@@ -13,7 +13,7 @@ from huobi.balance_utils import get_balance_huobi, get_balance_huobi_post_detail
 
 from data_access.memory_cache import get_cache
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.key_utils import get_key_by_exchange
 from utils.file_utils import log_to_file
 from utils.exchange_utils import get_exchange_name_by_id

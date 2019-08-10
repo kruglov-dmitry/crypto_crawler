@@ -1,6 +1,6 @@
 from urllib import urlencode as _urlencode
 
-from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, ERROR_LOG_FILE_NAME
+from utils.debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, ERROR_LOG_FILE_NAME
 
 from utils.key_utils import sign_string_256_base64
 from utils.file_utils import log_to_file

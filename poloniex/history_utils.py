@@ -5,7 +5,7 @@ from data.trade_history import TradeHistory
 
 from data_access.internet import send_request
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_OTHER_STUFF, ERROR_LOG_FILE_NAME
+from utils.debug_utils import should_print_debug, print_to_console, LOG_ALL_OTHER_STUFF, ERROR_LOG_FILE_NAME
 from utils.file_utils import log_to_file
 from enums.status import STATUS
 

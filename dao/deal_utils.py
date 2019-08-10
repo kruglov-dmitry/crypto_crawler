@@ -7,7 +7,7 @@ import dao
 from data_access.classes.work_unit import WorkUnit
 from data_access.message_queue import DEAL_INFO_MSG, DEBUG_INFO_MSG, ORDERS_MSG, FAILED_ORDERS_MSG
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 from constants import DEAL_MAX_TIMEOUT, YES_I_KNOW_WHAT_AM_I_DOING
 
 from enums.deal_type import DEAL_TYPE

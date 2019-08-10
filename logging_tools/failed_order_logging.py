@@ -1,5 +1,5 @@
 from utils.file_utils import log_to_file
-from debug_utils import FAILED_ORDER_PROCESSING_FILE_NAME
+from utils.debug_utils import FAILED_ORDER_PROCESSING_FILE_NAME
 
 
 def log_trace_all_closed_orders(open_orders_at_both_exchanges):

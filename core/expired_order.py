@@ -13,7 +13,7 @@ from dao.balance_utils import update_balance_by_exchange
 
 from utils.file_utils import log_to_file
 from utils.time_utils import sleep_for
-from debug_utils import EXPIRED_ORDER_PROCESSING_FILE_NAME
+from utils.debug_utils import EXPIRED_ORDER_PROCESSING_FILE_NAME
 
 from data_access.priority_queue import ORDERS_EXPIRE_MSG
 

@@ -2,7 +2,7 @@ import argparse
 
 from data_access.message_queue import ORDERS_MSG, get_message_queue
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.time_utils import sleep_for
 
 from dao.db import save_order_into_pg

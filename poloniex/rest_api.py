@@ -6,7 +6,7 @@ from data_access.memory_cache import generate_nonce
 from utils.string_utils import float_to_str
 from utils.file_utils import log_to_file
 
-from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level
+from utils.debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level
 
 
 def generate_body(pair_name, price, amount, order_type):

@@ -6,7 +6,7 @@ from dao.db import init_pg_connection
 
 from utils.key_utils import load_keys
 from utils.time_utils import parse_time
-from debug_utils import set_log_folder
+from utils.debug_utils import set_log_folder
 from utils.currency_utils import split_currency_pairs
 
 from analysis.data_load_for_profit_report import fetch_trades_history_to_db

@@ -19,6 +19,7 @@ from data_access.classes.work_unit import WorkUnit
 from enums.currency_pair import CURRENCY_PAIR
 from enums.exchange import EXCHANGE
 
+from utils.time_utils import sleep_for
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
 
 
@@ -62,11 +63,13 @@ def get_ohlc_speedup(date_start, date_end, processor):
 
 
 def get_ohlc(date_start, date_end):
+
     all_ohlc = []
 
     for pair_name in BITTREX_CURRENCY_PAIRS:
         period = "thirtyMin"
         all_ohlc += get_ohlc_bittrex(pair_name, date_start, date_end, period)
+        sleep_for(1)
 
     for pair_name in KRAKEN_CURRENCY_PAIRS:
         period = 15

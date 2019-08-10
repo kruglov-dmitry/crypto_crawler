@@ -19,7 +19,7 @@ from dao.balance_utils import get_updated_balance_arbitrage
 from dao.order_book_utils import get_order_books_for_arbitrage_pair
 from dao.deal_utils import init_deals_with_logging_speedy
 
-from debug_utils import print_to_console, LOG_ALL_DEBUG, set_logging_level, set_log_folder
+from utils.debug_utils import print_to_console, LOG_ALL_DEBUG, set_logging_level, set_log_folder
 
 from enums.deal_type import DEAL_TYPE
 

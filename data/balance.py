@@ -9,7 +9,7 @@ from utils.currency_utils import get_currency_name_by_id
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.time_utils import ts_to_string_local, get_now_seconds_utc
 from utils.file_utils import log_to_file
-from debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 
 from bittrex.currency_utils import get_currency_name_for_bittrex
 from kraken.currency_utils import get_currency_name_for_kraken

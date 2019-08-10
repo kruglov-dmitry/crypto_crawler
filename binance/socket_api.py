@@ -7,7 +7,7 @@ from enums.exchange import EXCHANGE
 from data.order_book_update import OrderBookUpdate
 from data.deal import Deal
 
-from debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
+from utils.debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
 from utils.file_utils import log_to_file
 from utils.system_utils import die_hard
 from utils.time_utils import get_now_seconds_utc_ms

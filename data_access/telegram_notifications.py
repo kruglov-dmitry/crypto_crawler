@@ -3,7 +3,7 @@
 
 import telegram
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.file_utils import log_to_file
 
 from enums.status import STATUS

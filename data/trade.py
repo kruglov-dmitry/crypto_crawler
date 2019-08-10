@@ -6,7 +6,7 @@ from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
 from enums.deal_type import get_order_type_by_id
 
-from debug_utils import get_logging_level, LOG_ALL_DEBUG, print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
+from utils.debug_utils import get_logging_level, LOG_ALL_DEBUG, print_to_console, LOG_ALL_ERRORS, ERROR_LOG_FILE_NAME
 from utils.string_utils import truncate_float
 from utils.exchange_utils import get_exchange_name_by_id
 from utils.currency_utils import get_pair_name_by_id

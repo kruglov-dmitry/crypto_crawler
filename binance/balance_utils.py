@@ -6,7 +6,7 @@ from data.balance import Balance
 
 from data_access.internet import send_get_request_with_header
 
-from debug_utils import print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, ERROR_LOG_FILE_NAME, \
+from utils.debug_utils import print_to_console, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, ERROR_LOG_FILE_NAME, \
     should_print_debug, get_logging_level, LOG_ALL_DEBUG
 
 from enums.status import STATUS

@@ -2,7 +2,7 @@ from kraken.constants import KRAKEN_BASE_API_URL, KRAKEN_CANCEL_ORDER
 from kraken.error_handling import is_error
 from kraken.rest_api import send_post_request_with_logging
 
-from debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, ERROR_LOG_FILE_NAME
+from utils.debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, ERROR_LOG_FILE_NAME
 from utils.key_utils import sign_kraken
 from utils.file_utils import log_to_file
 

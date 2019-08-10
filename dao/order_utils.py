@@ -13,7 +13,7 @@ from constants import HTTP_TIMEOUT_SECONDS
 
 from data_access.classes.work_unit import WorkUnit
 
-from debug_utils import print_to_console, LOG_ALL_ERRORS
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS
 
 from enums.exchange import EXCHANGE
 from enums.status import STATUS

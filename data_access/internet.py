@@ -7,7 +7,7 @@ from constants import HTTP_TIMEOUT_SECONDS, HTTP_SUCCESS
 from enums.status import STATUS
 
 from utils.file_utils import log_to_file
-from debug_utils import print_to_console, LOG_ALL_ERRORS, DEBUG_LOG_FILE_NAME, ERROR_LOG_FILE_NAME, \
+from utils.debug_utils import print_to_console, LOG_ALL_ERRORS, DEBUG_LOG_FILE_NAME, ERROR_LOG_FILE_NAME, \
     get_logging_level, LOG_ALL_DEBUG
 
 """

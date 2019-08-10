@@ -6,7 +6,7 @@ from dao.order_book_utils import get_order_book_speedup
 from data.order_book import ORDER_BOOK_TYPE_NAME
 from data_access.classes.connection_pool import ConnectionPool
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS
+from utils.debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS
 from constants import ORDER_BOOK_POLL_TIMEOUT
 
 from utils.file_utils import log_to_file
@@ -34,7 +34,9 @@ def load_order_books(args):
     while True:
         ts = get_now_seconds_utc()
 
-        order_book = get_order_book_speedup(ts, processor)
+        results = get_order_book_speedup(ts, processor)
+
+        order_book = filter(lambda x: type(x) != str, results)
 
         load_to_postgres(order_book, ORDER_BOOK_TYPE_NAME, pg_conn)
 

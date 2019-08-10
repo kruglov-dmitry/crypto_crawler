@@ -6,7 +6,7 @@ from utils.key_utils import signed_body_256
 
 from utils.file_utils import log_to_file
 from enums.status import STATUS
-from debug_utils import ERROR_LOG_FILE_NAME
+from utils.debug_utils import ERROR_LOG_FILE_NAME
 
 from binance.error_handling import is_error
 

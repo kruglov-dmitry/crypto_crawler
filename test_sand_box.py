@@ -41,7 +41,7 @@ from poloniex.sell_utils import add_sell_order_poloniex
 from utils.key_utils import load_keys, get_key_by_exchange
 from utils.time_utils import sleep_for, get_now_seconds_utc, get_now_seconds_local
 from utils.currency_utils import get_currency_pair_name_by_exchange_id
-from data_access.message_queue import get_message_queue, ORDERS_MSG, FAILED_ORDERS_MSG
+from data_access.message_queue import get_message_queue, FAILED_ORDERS_MSG
 from dao.dao import parse_order_id
 from data_access.priority_queue import ORDERS_EXPIRE_MSG, get_priority_queue
 
@@ -57,7 +57,7 @@ from dao.db import save_order_into_pg, init_pg_connection, is_order_present_in_o
 import csv
 from collections import defaultdict
 
-from debug_utils import LOG_ALL_DEBUG
+from utils.debug_utils import LOG_ALL_DEBUG
 
 POLL_PERIOD_SECONDS = 900
 
@@ -527,11 +527,7 @@ def test_private_huobi_methods():
 
 def test_trade_methods_huobi():
     from huobi.currency_utils import get_currency_pair_to_huobi
-    from huobi.market_utils import cancel_order_huobi
     from huobi.order_utils import get_open_orders_huobi
-    from huobi.order_history import get_order_history_huobi
-    from utils.time_utils import parse_time
-
 
     """
     Sell Zil 1000 штук по 0.00000620 - должно сработать
@@ -596,10 +592,7 @@ def test_trade_methods_huobi():
 
 
 def test_trade_history_huobi_methods():
-    from huobi.order_history import get_order_history_huobi
-    from analysis.data_load_for_profit_report import get_recent_huobi_trades, load_recent_huobi_trades_to_db
-
-    from huobi.currency_utils import get_currency_pair_to_huobi
+    from analysis.data_load_for_profit_report import load_recent_huobi_trades_to_db
 
     load_keys("./secret_keys")
     key = get_key_by_exchange(EXCHANGE.HUOBI)

@@ -15,7 +15,7 @@ from data.deal import Deal
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for
 from utils.file_utils import log_to_file
 from utils.system_utils import die_hard
-from debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
+from utils.debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
 
 from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_receive_from_socket, \
     log_subscription_cancelled, log_websocket_disconnect, log_send_heart_beat_failed, \

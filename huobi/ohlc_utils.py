@@ -4,7 +4,7 @@ from huobi.error_handling import is_error
 
 from data.candle import Candle
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
+from utils.debug_utils import should_print_debug, print_to_console, LOG_ALL_DEBUG, ERROR_LOG_FILE_NAME
 from utils.file_utils import log_to_file
 
 from data_access.internet import send_request
@@ -46,7 +46,7 @@ def get_ohlc_huobi_result_processor(json_response, pair_name, date_start, date_e
     """
     result_set = []
 
-    if is_error(json_response) and "data" not in json_response:
+    if is_error(json_response) or "data" not in json_response:
 
         msg = "get_ohlc_huobi_result_processor - error response - {er}".format(er=json_response)
         log_to_file(msg, ERROR_LOG_FILE_NAME)

@@ -1,4 +1,4 @@
-from debug_utils import print_to_console, get_logging_level, LOG_ALL_TRACE, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, \
+from utils.debug_utils import print_to_console, get_logging_level, LOG_ALL_TRACE, LOG_ALL_MARKET_NETWORK_RELATED_CRAP, \
     DEBUG_LOG_FILE_NAME
 
 from utils.exchange_utils import get_exchange_name_by_id

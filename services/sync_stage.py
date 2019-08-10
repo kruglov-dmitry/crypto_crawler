@@ -1,7 +1,7 @@
 from enums.sync_stages import ORDER_BOOK_SYNC_STAGES
 
 from utils.file_utils import log_to_file
-from debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
+from utils.debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
 
 SYNC_STAGE = ORDER_BOOK_SYNC_STAGES.UNKNOWN
 

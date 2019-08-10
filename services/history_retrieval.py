@@ -14,7 +14,7 @@ from data.order_book import OrderBook
 
 from data_access.classes.connection_pool import ConnectionPool
 
-from debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS
+from utils.debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRORS
 from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc, sleep_for
 
@@ -44,19 +44,40 @@ def load_all_public_data(args):
 
     processor = ConnectionPool()
 
+    def split_on_errors(raw_response):
+        valid_objects = filter(lambda x: type(x) != str, raw_response)
+        error_strings = filter(lambda x: type(x) != str, raw_response)
+
+        return valid_objects, error_strings
+
     while True:
         end_time = get_now_seconds_utc()
         start_time = end_time - POLL_PERIOD_SECONDS
 
-        trade_history = get_history_speedup(start_time, end_time, processor)
-        tickers = get_ticker_speedup(end_time, processor)
-        candles = get_ohlc_speedup(start_time, end_time, processor)
-        order_books = get_order_book_speedup(end_time, processor)
+        candles, errs = split_on_errors(get_ohlc_speedup(start_time, end_time, processor))
+        # from dao.ohlc_utils import get_ohlc
+        # candles = get_ohlc(start_time, end_time)
+        # trade_history, errs = split_on_errors(get_history_speedup(start_time, end_time, processor))
+        # tickers, errs = split_on_errors(get_ticker_speedup(end_time, processor))
+        # order_books, errs = split_on_errors(get_order_book_speedup(end_time, processor))
+        #
+        #
+        # from dao.db import load_to_postgres
+        #
+        print len(candles)
+        #
+        # load_to_postgres(candles, Candle.type, pg_conn)
+
+        # for x in candles:
+        #     insert_data(x, pg_conn, False)
+        #
+        # pg_conn.commit()
 
         bulk_insert_to_postgres(pg_conn, Candle.table_name, Candle.columns, candles)
-        bulk_insert_to_postgres(pg_conn, TradeHistory.table_name, TradeHistory.columns, trade_history)
-        bulk_insert_to_postgres(pg_conn, Ticker.table_name, Ticker.columns, tickers)
-        bulk_insert_to_postgres(pg_conn, OrderBook.table_name, OrderBook.columns, order_books)
+
+        # bulk_insert_to_postgres(pg_conn, TradeHistory.table_name, TradeHistory.columns, trade_history)
+        # bulk_insert_to_postgres(pg_conn, Ticker.table_name, Ticker.columns, tickers)
+        # bulk_insert_to_postgres(pg_conn, OrderBook.table_name, OrderBook.columns, order_books)
 
         if should_print_debug():
             msg = """History retrieval at {ts}:
