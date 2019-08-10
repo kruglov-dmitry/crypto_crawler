@@ -77,7 +77,7 @@ def test_bittrex():
 
 
 def test_huobi():
-    def process_result(result):
+    def process_result(compressData):
         result = zlib.decompress(compressData, 16 + zlib.MAX_WBITS).decode('utf-8')
         if result[:7] == '{"ping"':
             ts = result[8:21]
@@ -86,7 +86,7 @@ def test_huobi():
             ws.send(tradeStr)
         return result
 
-    while(1):
+    while True:
         try:
             ws = create_connection("wss://api.huobipro.com/ws")
             ws.settimeout(1)
@@ -98,16 +98,16 @@ def test_huobi():
     tradeStr="""{"sub": "market.ethbtc.depth.step0","id": "id10"}"""
 
     ws.send(tradeStr)
-    compressData=ws.recv()
+    compressData = ws.recv()
     print "CONFIRMATION OF SUBSCRIPTION:", process_result(compressData)
     raise
 
-    while(1):
+    while True:
         try:
-            compressData=ws.recv()
+            compressData = ws.recv()
             print "DELTA?", process_result(compressData)
         except Exception as e:
-            print "EXCEPTION:", e 
+            print "EXCEPTION:", e
             break
 
 

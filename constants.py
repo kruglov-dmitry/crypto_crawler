@@ -7,7 +7,7 @@ from enums.currency_pair import CURRENCY_PAIR
 #
 #   Please note that routine below may trigger some trades
 #               which may lead to money loss
-#               Do NOT enable with out understanding of consequences
+#               Do NOT enable it without understanding of consequences
 #
 YES_I_KNOW_WHAT_AM_I_DOING = False
 

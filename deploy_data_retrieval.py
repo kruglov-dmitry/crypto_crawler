@@ -7,8 +7,6 @@ from deploy.service_utils import deploy_telegram_notifier, deploy_process_in_scr
 
 
 if __name__ == "__main__":
-    # FIXME NOTE: read settings from cfg
-
     screen_name = TELEGRAM_NOTIFIER_DEPLOY_UNIT.screen_name
 
     deploy_telegram_notifier(screen_name, should_create_screen=True)

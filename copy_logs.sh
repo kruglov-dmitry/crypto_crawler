@@ -23,6 +23,6 @@ for host_address in ${amazon_hosts[@]}; do
     echo "Copying PRICE ADJUSTMENT logs for $host_address"
     scp -i wtf.pem ec2-user@${host_address}:/home/ec2-user/crypto_crawler/logs/price_adjustment* ../
     gunzip ../price_adjustment*.gz
-    cat ../price_adjustment* > ${host_address}-expire_deal.log
+    cat ../price_adjustment* > ${host_address}-price_adjustment.log
     rm ../price_adjustment*
 done

@@ -663,12 +663,12 @@ def test_failed_order_placement_bittrex():
 
 def test_pool():
     def heavy_load():
-	sleep_for(3)
-	print "heavy_load"
+        sleep_for(3)
+        print "heavy_load"
 
     def more_heavy_load():
-	sleep_for(30)
-	print "WTF"
+        sleep_for(30)
+        print "WTF"
 
     def batch(iterable, n=1):
         l = len(iterable)
@@ -681,19 +681,19 @@ def test_pool():
 
     iters = []
     for x in xrange(100):
-	iters.append(x)
+        iters.append(x)
 
     for work_batch in batch(iters, 10):
         futures = []	
-	for x in work_batch:
-	    futures.append(processor.network_pool.spawn(more_heavy_load))
-	gevent.joinall(futures)
+        for x in work_batch:
+            futures.append(processor.network_pool.spawn(more_heavy_load))
+        gevent.joinall(futures)
 
     for work_batch in batch(iters, 10):
         futures = []
-	for x in work_batch:
-	    futures.append(processor.network_pool.spawn(heavy_load))
-	gevent.joinall(futures)
+        for x in work_batch:
+            futures.append(processor.network_pool.spawn(heavy_load))
+        gevent.joinall(futures)
 
 def compare_order_book():
     from huobi.order_book_utils import get_order_book_huobi
@@ -715,39 +715,42 @@ def compare_order_book():
             continue
         now_time = get_now_seconds_utc()
         order_book1 = get_order_book_huobi(pair_name, now_time)
-	log_to_file(order_book1,"rest_api.txt")
+        log_to_file(order_book1,"rest_api.txt")
 
-	tradeStr="""{"sub": "market.ethbtc.depth.step0","id": "id10"}"""
-	# tradeStr="""{{'sub': 'market.{pp}.depth.step0','id': 'id10'}}""".format(pp=pair_name)
 
-        while(1):
-	    try:
-	        ws = create_connection("wss://api.huobipro.com/ws")
-	        break
-            except:
-	        print('connect ws error,retry...')
-	        time.sleep(5)
-        def process_result(result,tradeStr):
-            result=zlib.decompress(compressData, 16+zlib.MAX_WBITS).decode('utf-8')
-            if result[:7] == '{"ping"':
-	        ts=result[8:21]
-	        pong='{"pong":'+ts+'}'
-	        ws.send(pong)
-	        ws.send(tradeStr)
-            return result
+    tradeStr="""{"sub": "market.ethbtc.depth.step0","id": "id10"}"""
+    # tradeStr="""{{'sub': 'market.{pp}.depth.step0','id': 'id10'}}""".format(pp=pair_name)
 
-	ws.send(tradeStr)
-	compressData=ws.recv()
-	print "CONFIRMATION OF SUBSCRIPTION:", process_result(compressData, tradeStr)
-	
-	while True:
-	    compressData=ws.recv()
-	    json_repr = process_result(compressData, tradeStr)
-	    print "DELTA?", json_repr 
-	    if "ping" not in json_repr:
-		json_repr = json.loads(json_repr)
-	        order_book2 = OrderBook.from_huobi(json_repr["tick"], pair_name,get_now_seconds_utc())
-	        log_to_file(order_book2,"socket_api.txt")
-                break
+    while(1):
+        try:
+            ws = create_connection("wss://api.huobipro.com/ws")
+            break
+        except:
+            print('connect ws error,retry...')
+            time.sleep(5)
 
-compare_order_book()
+    def process_result(compressData, tradeStr):
+        result=zlib.decompress(compressData, 16+zlib.MAX_WBITS).decode('utf-8')
+        if result[:7] == '{"ping"':
+            ts=result[8:21]
+            pong='{"pong":'+ts+'}'
+            ws.send(pong)
+            ws.send(tradeStr)
+
+        return result
+
+    ws.send(tradeStr)
+    compressData = ws.recv()
+    print "CONFIRMATION OF SUBSCRIPTION:", process_result(compressData, tradeStr)
+
+    while True:
+        compressData = ws.recv()
+        json_repr = process_result(compressData, tradeStr)
+        print "DELTA?", json_repr
+        if "ping" not in json_repr:
+            json_repr = json.loads(json_repr)
+            order_book2 = OrderBook.from_huobi(json_repr["tick"], pair_name,get_now_seconds_utc())
+            log_to_file(order_book2,"socket_api.txt")
+            break
+
+    compare_order_book()

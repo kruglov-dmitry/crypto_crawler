@@ -2,7 +2,7 @@ postgres:
   container_name: postgres
   restart: always
   image: postgres:9.6
-  volumes:
-    - /mnt/PG_HISTORY/PG_DATA:/var/lib/postgresql/data
+  # volumes:
+  #   - /mnt/PG_HISTORY/PG_DATA:/var/lib/postgresql/data
   ports:
     - 5432:5432

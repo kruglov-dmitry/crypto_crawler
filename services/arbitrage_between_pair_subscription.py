@@ -116,8 +116,8 @@ class ArbitrageListener(ArbitrageWrapper):
         buy_subscription_constructor = get_subcribtion_by_exchange(self.buy_exchange_id)
         sell_subscription_constructor = get_subcribtion_by_exchange(self.sell_exchange_id)
 
-        self.buy_subscription = buy_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update)
-        self.sell_subscription = sell_subscription_constructor(pair_id=self.pair_id, on_update=self.on_order_book_update)
+        self.buy_subscription = buy_subscription_constructor(self.pair_id, on_update=self.on_order_book_update)
+        self.sell_subscription = sell_subscription_constructor(self.pair_id, on_update=self.on_order_book_update)
 
     def _init_arbitrage_state(self):
         self.init_deal_cap()

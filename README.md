@@ -1,17 +1,33 @@
 # DEPLOY - HOWTO
-## Prerequsities:
-* redis in place
-* postgres in place with proper schema
-FIXME: automate this part as part of ticket https://gitlab.com/crypto_trade/crypto_crawler/issues/23
-sudo service docker start
-cd ~/deploy
-sudo /usr/local/bin/docker-compose -f docker_compose.yml up
-/home/ec2-user/crypto_crawler/deploy
-python update_nonce_redis.py
 
+## Prerequisites:
+Node with data and cache:
+* redis in place
+```bash
+sudo service docker start
+cd ~/crypto_deploy/redis
+# NOTE: you may want to edit path to mounted volume for data persistence 
+sudo docker-compose -f redis_compose.yml up
+# NOTE: redis IP is hardcoded there:
+python redis_queue.py
+```
+* postgres in place with proper schema and data:
+```bash
+sudo service docker start
+cd ~/crypto_deploy/postgres
+# NOTE: you may want to edit path to mounted volume for data persistence
+sudo docker-compose -f docker-compose-postgres.yml up
+psql -h 127.0.0.1 -Upostgres -f schema/schema.sql
+psql -h 127.0.0.1 -Upostgres -f schema/data.sql
+```
+
+* node with bot processes:
+```bash
 yum groupinstall "Development Tools"
 pip install -r requirements.txt
-
+``` 
+  - make sure that config contains proper public IP addresses or domain names
+  - make sure that firewall rules at aws allow incoming connections from bot nodes to data node
 
 ## Deploying data retrieval services: order_book, history, tickers and notification
 python deploy_data_retrieval
