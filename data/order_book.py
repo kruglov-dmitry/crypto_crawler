@@ -91,8 +91,8 @@ class OrderBook(BaseData):
         for every_attr in attr_list:
             str_repr += every_attr + " - " + str(getattr(self, every_attr)) + " "
 
-        str_repr += "bids - [" + "\n".join(self.bid) + "] "
-        str_repr += "asks - [" + "\n".join(self.ask) + "]]"
+        str_repr += "bids - [" + "\n".join(map(str, self.bid)) + "] "
+        str_repr += "asks - [" + "\n".join(map(str, self.ask)) + "]]"
 
         return str_repr
 

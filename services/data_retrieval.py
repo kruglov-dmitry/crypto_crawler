@@ -55,28 +55,14 @@ def load_all_public_data(args):
         start_time = end_time - POLL_PERIOD_SECONDS
 
         candles, errs = split_on_errors(get_ohlc_speedup(start_time, end_time, processor))
-        # from dao.ohlc_utils import get_ohlc
-        # candles = get_ohlc(start_time, end_time)
-        # trade_history, errs = split_on_errors(get_history_speedup(start_time, end_time, processor))
-        # tickers, errs = split_on_errors(get_ticker_speedup(end_time, processor))
+        trade_history, errs = split_on_errors(get_history_speedup(start_time, end_time, processor))
+        tickers, errs = split_on_errors(get_ticker_speedup(end_time, processor))
         # order_books, errs = split_on_errors(get_order_book_speedup(end_time, processor))
-        #
-        #
-        # from dao.db import load_to_postgres
-        #
-        print len(candles)
-        #
-        # load_to_postgres(candles, Candle.type, pg_conn)
-
-        # for x in candles:
-        #     insert_data(x, pg_conn, False)
-        #
-        # pg_conn.commit()
 
         bulk_insert_to_postgres(pg_conn, Candle.table_name, Candle.columns, candles)
+        bulk_insert_to_postgres(pg_conn, TradeHistory.table_name, TradeHistory.columns, trade_history)
+        bulk_insert_to_postgres(pg_conn, Ticker.table_name, Ticker.columns, tickers)
 
-        # bulk_insert_to_postgres(pg_conn, TradeHistory.table_name, TradeHistory.columns, trade_history)
-        # bulk_insert_to_postgres(pg_conn, Ticker.table_name, Ticker.columns, tickers)
         # bulk_insert_to_postgres(pg_conn, OrderBook.table_name, OrderBook.columns, order_books)
 
         if should_print_debug():
@@ -84,9 +70,7 @@ def load_all_public_data(args):
                 Candle size - {num}
                 Ticker size - {num3}
                 Trade history size - {num2}
-                Order books size - {num4}
-                """.format(ts=end_time, num=len(candles), num3=len(tickers), num2=len(trade_history),
-                           num4=len(order_books))
+                """.format(ts=end_time, num=len(candles), num3=len(tickers), num2=len(trade_history))
             print_to_console(msg, LOG_ALL_ERRORS)
             log_to_file(msg, "candles_trade_history.log")
 
@@ -97,7 +81,8 @@ def load_all_public_data(args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="""
-    History retrieval service - every {tm} retrieve trades history from all available exchanges.
+    Data retrieval service - every {tm} retrieve trades history, tickers and candles 
+    from all available exchanges.
         """.format(tm=POLL_PERIOD_SECONDS))
 
     parser.add_argument('--cfg', action='store', required=True)

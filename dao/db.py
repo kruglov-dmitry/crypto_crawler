@@ -42,7 +42,6 @@ def insert_data(some_object, pg_conn, is_this_order_book):
     """
 
     try:
-        print "Inserting", some_object
         cur.execute(PG_INSERT_QUERY, args_list)
     except Exception, e:
         log_error_query_failed(PG_INSERT_QUERY, args_list, e)

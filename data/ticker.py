@@ -45,7 +45,8 @@ class Ticker(BaseData):
 
     def tsv(self):
         return ("{}\t{}\t{}\t{}\t{}\t'{}'".format(
-            self.pair_id, self.exchange_id, self.ask, self.bid, self.timest, get_date_time_from_epoch(self.timest)).decode('utf8'))
+            self.pair_id, self.exchange_id, self.ask, self.bid, self.timest,
+            get_date_time_from_epoch(self.timest)).decode('utf8'))
 
     def get_pg_arg_list(self):
         return (self.pair_id,

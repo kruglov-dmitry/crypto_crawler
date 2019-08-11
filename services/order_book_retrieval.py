@@ -15,6 +15,13 @@ from utils.time_utils import get_now_seconds_utc, sleep_for
 from services.common import process_args
 
 
+#
+#       You can read all data directly using data_retrieval.py
+#       But due to throttling pre-cautions from exchanges you may need
+#       to start this process at independent node
+#
+
+
 def load_order_books(args):
     """
         Periodically retrieve FULL order books
