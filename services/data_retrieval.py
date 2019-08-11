@@ -4,13 +4,11 @@ from dao.db import bulk_insert_to_postgres
 
 from dao.history_utils import get_history_speedup
 from dao.ohlc_utils import get_ohlc_speedup
-from dao.order_book_utils import get_order_book_speedup
 from dao.ticker_utils import get_ticker_speedup
 
 from data.candle import Candle
 from data.trade_history import TradeHistory
 from data.ticker import Ticker
-from data.order_book import OrderBook
 
 from data_access.classes.connection_pool import ConnectionPool
 
@@ -18,7 +16,7 @@ from utils.debug_utils import should_print_debug, print_to_console, LOG_ALL_ERRO
 from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc, sleep_for
 
-from services.common import process_args
+from utils.args_utils import process_args
 
 # time to poll - 15 minutes
 POLL_PERIOD_SECONDS = 900
@@ -55,15 +53,13 @@ def load_all_public_data(args):
         start_time = end_time - POLL_PERIOD_SECONDS
 
         candles, errs = split_on_errors(get_ohlc_speedup(start_time, end_time, processor))
-        trade_history, errs = split_on_errors(get_history_speedup(start_time, end_time, processor))
-        tickers, errs = split_on_errors(get_ticker_speedup(end_time, processor))
-        # order_books, errs = split_on_errors(get_order_book_speedup(end_time, processor))
-
         bulk_insert_to_postgres(pg_conn, Candle.table_name, Candle.columns, candles)
-        bulk_insert_to_postgres(pg_conn, TradeHistory.table_name, TradeHistory.columns, trade_history)
-        bulk_insert_to_postgres(pg_conn, Ticker.table_name, Ticker.columns, tickers)
 
-        # bulk_insert_to_postgres(pg_conn, OrderBook.table_name, OrderBook.columns, order_books)
+        trade_history, errs = split_on_errors(get_history_speedup(start_time, end_time, processor))
+        bulk_insert_to_postgres(pg_conn, TradeHistory.table_name, TradeHistory.columns, trade_history)
+
+        tickers, errs = split_on_errors(get_ticker_speedup(end_time, processor))
+        bulk_insert_to_postgres(pg_conn, Ticker.table_name, Ticker.columns, tickers)
 
         if should_print_debug():
             msg = """History retrieval at {ts}:

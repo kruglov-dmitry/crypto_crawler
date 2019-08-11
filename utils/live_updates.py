@@ -10,7 +10,7 @@ ASKS_HEADLINE = "ASKS\t\t\t\t\t\t\t\t\tASKS"
 ORDER_BOOK_DELIMITER = '\t\t\t'
 
 
-def _print_top10(exchange_id, order_book_buy, order_book_sell):
+def print_top10(exchange_id, order_book_buy, order_book_sell):
     header = "Number of threads: {tn} Last update {ts} {td} from {up_exch_name}\n" \
              "\n{buy_exchange}\t\t\t\t\t\t\t\t\t{sell_exchange}\n".\
         format(tn=threading.active_count(), ts=get_now_seconds_utc(),

@@ -9,7 +9,7 @@ from utils.time_utils import sleep_for, get_now_seconds_utc, parse_time
 from utils.key_utils import load_keys
 from utils.system_utils import die_hard
 
-from services.common import process_args
+from utils.args_utils import process_args
 
 TRADE_POLL_TIMEOUT = 900
 

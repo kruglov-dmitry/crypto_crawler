@@ -3,9 +3,6 @@ import threading
 from Queue import Queue
 
 from data_access.classes.connection_pool import ConnectionPool
-from data_access.memory_cache import get_cache
-from data_access.message_queue import get_message_queue
-from data_access.priority_queue import get_priority_queue
 
 from core.arbitrage_core import update_min_cap, search_for_arbitrage
 from core.expired_order import add_orders_to_watch_list
@@ -31,7 +28,8 @@ from utils.exchange_utils import get_exchange_name_by_id
 from utils.file_utils import log_to_file
 from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for, get_now_seconds_utc_ms
-from utils.system_utils import die_hard
+from utils.system_utils import die_hard, start_process_daemon, clear_queue
+from utils.args_utils import init_queues
 
 from logging_tools.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors, \
     log_reset_stage_successfully, log_init_reset, log_reset_final_stage, log_finishing_syncing_order_book, log_all_order_book_synced, log_order_book_update_failed_pre_sync, \
@@ -41,9 +39,9 @@ from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD, YES_I_KNOW_WH
 
 from deploy.classes.common_settings import CommonSettings
 
-from services.sync_stage import get_stage, set_stage
-from services.arbitrage_wrapper import ArbitrageWrapper
-from services.live_updates import _print_top10
+from data_access.sync_stage import get_stage, set_stage
+from data.arbitrage_wrapper import ArbitrageWrapper
+from utils.live_updates import print_top10
 
 
 class ArbitrageListener(ArbitrageWrapper):
@@ -78,8 +76,8 @@ class ArbitrageListener(ArbitrageWrapper):
             self.update_balance_run_flag = False
             self.update_min_cap_run_flag = False
 
-            self.clear_queue(self.sell_exchange_updates)
-            self.clear_queue(self.buy_exchange_updates)
+            clear_queue(self.sell_exchange_updates)
+            clear_queue(self.buy_exchange_updates)
 
             self._init_arbitrage_state()            # Spawn balance & cap threads, no blocking
             self.subscribe_to_order_book_update()   # Spawn order book subscription threads, no blocking
@@ -104,9 +102,9 @@ class ArbitrageListener(ArbitrageWrapper):
         log_reset_stage_successfully()
 
     def _init_infrastructure(self, app_settings):
-        self.priority_queue = get_priority_queue(host=app_settings.cache_host, port=app_settings.cache_port)
-        self.msg_queue = get_message_queue(host=app_settings.cache_host, port=app_settings.cache_port)
-        self.local_cache = get_cache(host=app_settings.cache_host, port=app_settings.cache_port)
+
+        self.priority_queue, self.msg_queue, self.local_cache = init_queues(app_settings)
+
         self.processor = ConnectionPool(pool_size=2)
 
         self.sell_exchange_updates = Queue()
@@ -173,20 +171,6 @@ class ArbitrageListener(ArbitrageWrapper):
 
         return STATUS.SUCCESS
 
-    @classmethod
-    def clear_queue(cls, m_queue):
-        while True:
-
-            try:
-                order_book_update = m_queue.get(block=False)
-            except:
-                order_book_update = None
-
-            if order_book_update is None:
-                break
-
-            m_queue.task_done()
-
     def sync_sell_order_book(self):
         if self.sell_exchange_id in [EXCHANGE.BINANCE, EXCHANGE.BITTREX]:
             self.order_book_sell = get_order_book(self.sell_exchange_id, self.pair_id)
@@ -229,8 +213,8 @@ class ArbitrageListener(ArbitrageWrapper):
         msg = "sync_order_books - stage status is {}".format(get_stage())
         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
-        sync_sell_order_book_thread = self.start_process_daemon(self.sync_sell_order_book, args=())
-        sync_buy_order_book_thread = self.start_process_daemon(self.sync_buy_order_book, args=())
+        sync_sell_order_book_thread = start_process_daemon(self.sync_sell_order_book, args=())
+        sync_buy_order_book_thread = start_process_daemon(self.sync_buy_order_book, args=())
 
         # Wait for both thread be finished
         sync_sell_order_book_thread.join()
@@ -242,7 +226,7 @@ class ArbitrageListener(ArbitrageWrapper):
         log_all_order_book_synced()
 
     def subscribe_cap_update(self):
-        self.start_process_daemon(self.update_min_cap, args=())
+        start_process_daemon(self.update_min_cap, args=())
 
     def update_balance(self):
 
@@ -259,18 +243,11 @@ class ArbitrageListener(ArbitrageWrapper):
             sleep_for(self.balance_update_timeout)
 
     def subscribe_balance_update(self):
-        self.start_process_daemon(self.update_balance, args=())
-
-    @staticmethod
-    def start_process_daemon(method, args):
-        new_thread = threading.Thread(target=method, args=args)
-        new_thread.daemon = True
-        new_thread.start()
-        return new_thread
+        start_process_daemon(self.update_balance, args=())
 
     def subscribe_to_order_book_update(self):
-        self.start_process_daemon(self.buy_subscription.subscribe, args=())
-        self.start_process_daemon(self.sell_subscription.subscribe, args=())
+        start_process_daemon(self.buy_subscription.subscribe, args=())
+        start_process_daemon(self.sell_subscription.subscribe, args=())
 
     def shutdown_subscriptions(self):
         self.sell_subscription.disconnect()
@@ -353,7 +330,7 @@ class ArbitrageListener(ArbitrageWrapper):
 
                     return
 
-            _print_top10(exchange_id, self.order_book_buy, self.order_book_sell)
+            print_top10(exchange_id, self.order_book_buy, self.order_book_sell)
 
             if not YES_I_KNOW_WHAT_AM_I_DOING:
                 die_hard("LIVE TRADING!")

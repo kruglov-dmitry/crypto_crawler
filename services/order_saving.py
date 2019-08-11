@@ -9,7 +9,7 @@ from dao.db import save_order_into_pg
 
 from constants import HEARTBEAT_TIMEOUT
 
-from services.common import process_args
+from utils.args_utils import process_args
 
 
 def process_placed_orders(args):

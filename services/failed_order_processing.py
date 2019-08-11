@@ -1,15 +1,13 @@
 import argparse
 
-from data_access.message_queue import get_message_queue, FAILED_ORDERS_MSG
-from data_access.priority_queue import get_priority_queue
-from data_access.memory_cache import get_cache
+from data_access.message_queue import FAILED_ORDERS_MSG
 
 from utils.debug_utils import print_to_console, LOG_ALL_ERRORS
 from utils.time_utils import sleep_for
 from utils.key_utils import load_keys
 
 from core.failed_order import process_failed_order
-from services.common import process_args
+from utils.args_utils import process_args, init_queues
 
 from constants import HEARTBEAT_TIMEOUT
 
@@ -44,11 +42,9 @@ def process_failed_orders(args):
     """
 
     pg_conn, settings = process_args(args)
-
     load_keys(settings.key_path)
-    msg_queue = get_message_queue(host=settings.cache_host, port=settings.cache_port)
-    local_cache = get_cache(host=settings.cache_host, port=settings.cache_port)
-    priority_queue = get_priority_queue(host=settings.cache_host, port=settings.cache_port)
+
+    priority_queue, msg_queue, local_cache = init_queues(settings)
 
     cnt = 0
 

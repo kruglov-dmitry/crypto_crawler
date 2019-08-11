@@ -12,7 +12,7 @@ from constants import ORDER_BOOK_POLL_TIMEOUT
 from utils.file_utils import log_to_file
 from utils.time_utils import get_now_seconds_utc, sleep_for
 
-from services.common import process_args
+from utils.args_utils import process_args
 
 
 #

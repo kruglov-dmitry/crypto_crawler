@@ -2,10 +2,7 @@ import argparse
 
 from decimal import Decimal
 
-from data_access.message_queue import get_message_queue
-from data_access.priority_queue import get_priority_queue
 from data_access.classes.connection_pool import ConnectionPool
-from data_access.memory_cache import get_cache
 
 from core.arbitrage_core import search_for_arbitrage, adjust_currency_balance, \
     update_min_cap, is_order_books_expired
@@ -27,6 +24,7 @@ from utils.currency_utils import get_currency_pair_name_by_exchange_id
 from utils.key_utils import load_keys
 from utils.time_utils import get_now_seconds_utc, sleep_for
 from utils.system_utils import die_hard
+from utils.args_utils import init_queues
 
 from logging_tools.arbitrage_between_pair_logging import log_dont_supported_currency, \
     log_balance_expired_errors, log_failed_to_retrieve_order_book
@@ -46,9 +44,7 @@ def arbitrage_between_pair(args):
     set_log_folder(app_settings.log_folder)
     load_keys(app_settings.key_path)
 
-    priority_queue = get_priority_queue(host=app_settings.cache_host, port=app_settings.cache_port)
-    msg_queue = get_message_queue(host=app_settings.cache_host, port=app_settings.cache_port)
-    local_cache = get_cache(host=app_settings.cache_host, port=app_settings.cache_port)
+    priority_queue, msg_queue, local_cache = init_queues(app_settings)
 
     processor = ConnectionPool(pool_size=2)
 

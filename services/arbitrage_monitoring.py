@@ -15,7 +15,7 @@ from utils.debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG
 from utils.currency_utils import get_pair_name_by_id
 from utils.time_utils import sleep_for, get_now_seconds_utc, ts_to_string_local
 
-from services.common import process_args
+from utils.args_utils import process_args
 
 
 # time to poll

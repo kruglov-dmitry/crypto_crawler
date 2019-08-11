@@ -2,15 +2,14 @@ import argparse
 
 from deploy.classes.common_settings import CommonSettings
 
-from data_access.message_queue import get_message_queue
-from data_access.priority_queue import ORDERS_EXPIRE_MSG, get_priority_queue
-from data_access.memory_cache import get_cache
+from data_access.priority_queue import ORDERS_EXPIRE_MSG
 
 from utils.debug_utils import print_to_console, LOG_ALL_ERRORS, EXPIRED_ORDER_PROCESSING_FILE_NAME, \
     set_log_folder, set_logging_level
 from utils.time_utils import sleep_for, get_now_seconds_utc
 from utils.key_utils import load_keys
 from utils.file_utils import log_to_file
+from utils.args_utils import init_queues
 
 from core.expired_order import process_expired_order
 from constants import HEARTBEAT_TIMEOUT, ORDER_EXPIRATION_TIMEOUT
@@ -27,9 +26,8 @@ def process_expired_orders(args):
     set_logging_level(settings.logging_level_id)
 
     load_keys(settings.key_path)
-    msg_queue = get_message_queue(host=settings.cache_host, port=settings.cache_port)
-    priority_queue = get_priority_queue(host=settings.cache_host, port=settings.cache_port)
-    local_cache = get_cache(host=settings.cache_host, port=settings.cache_port)
+
+    priority_queue, msg_queue, local_cache = init_queues(settings)
 
     cnt = 0
 
@@ -37,7 +35,8 @@ def process_expired_orders(args):
         curr_ts = get_now_seconds_utc()
 
         order = priority_queue.get_oldest_order(ORDERS_EXPIRE_MSG)
-        if order is not None:
+
+        if order:
             msg = "Current expired order - {}".format(order)
             log_to_file(msg, EXPIRED_ORDER_PROCESSING_FILE_NAME)
             order_age = curr_ts - order.create_time

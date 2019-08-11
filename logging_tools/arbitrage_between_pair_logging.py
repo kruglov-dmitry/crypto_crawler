@@ -9,7 +9,7 @@ from utils.time_utils import ts_to_string_utc
 from data_access.message_queue import DEAL_INFO_MSG
 from constants import BALANCE_EXPIRED_THRESHOLD
 
-from services.sync_stage import get_stage
+from data_access.sync_stage import get_stage
 
 
 def log_balance_expired_errors(cfg, msg_queue, balance_state):
