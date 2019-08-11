@@ -1,3 +1,42 @@
+# Project structure
+
+System consist from multiple independent processes that may be run on different node.   
+Communication is implemented on top of various message queues on top of redis.    
+Redis is also used as distributed caching layer - to reflect actual balance across all exchanges.    
+Data in queues usually pickled.  
+Persistence for historical data - postgres.    
+Alerting is implemented on top of Telegram messenger.   
+CLI management is done manually using scripts within this project.    
+
+NOTE: Web based UI and data scrapping framework from various resources are NOT part of this repo.
+
+## Terminology
+- _**bot**_ - arbitrage process that trade single commodity between exactly two exchanges
+- _**order**_ - what bot is placed to markets
+- _**trade**_ - what was actually executed at markets, single order may be closed by multiple trades
+
+
+## Key services:
+- _**telegram notifier**_ - watch message queues and forward messages based on their severity 
+to corresponding Telegram channels
+- _**balance_monitoring**_ - update cached values of balances for all currencies for all exchanges in portfolio
+All trading processes validate time of last update and will immediately stopped if it expired.
+- _**expired order processing**_ - due to many reasons order placed by bot may be not closed in time,
+this service re-process them trying to minimise loss 
+- _**failed order processing**_ - timeout, exchange errors and ill fate may lead to situation that 
+we got errors as result of order placement request. This service carefully check current state of order:
+whether it was registered within exchange or not, whether it was fulfilled or not.
+
+## Data analysis:
+- _**order saving**_ - save all orders that were placed by arbitrage processes into Postgres db
+- _**bot trade retrieval**_ - retrieve information from all exchanges in regards to recently executed trades. 
+- _**arbitrage monitoring**_ - read tickers for all supported currency across all exchanges and 
+issue a telegram notification about direct arbitrage opportunities
+
+
+
+You may find all available services under services packages.
+
 # DEPLOY - HOWTO
 
 ## Prerequisites:
@@ -20,17 +59,23 @@ sudo docker-compose -f docker-compose-postgres.yml up
 psql -h 127.0.0.1 -Upostgres -f schema/schema.sql
 psql -h 127.0.0.1 -Upostgres -f schema/data.sql
 ```
-
-* node with bot processes:
+* data retrieval & nodes with bot processes:
 ```bash
 yum groupinstall "Development Tools"
 pip install -r requirements.txt
 ``` 
-  - make sure that config contains proper public IP addresses or domain names
-  - make sure that firewall rules at aws allow incoming connections from bot nodes to data node
+* copy `common_sample.cfg` to `common.cfg` and update it with proper public IP addresses and domain names
+* make sure that firewall rules at aws allow incoming connections from bot nodes to data node
 
-## Deploying data retrieval services: order_book, history, tickers and notification
-python deploy_data_retrieval
+## Deploying data retrieval services
+
+Will deploy: 
+* order_book, history, candles, 
+* arbitrage notifications based on tickers
+* telegram notifications
+```bash
+python deploy_data_retrieval.py
+```
 
 ## Deploying arbitrage bots
 1. verify settings at config file:

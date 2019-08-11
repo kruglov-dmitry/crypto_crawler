@@ -2,8 +2,10 @@
 
 def float_to_str(f):
     """
-    :param f:   Float of Decimal number
+    :param f:   Float or Decimal number
     :return: to be represented within EXACT precision as string
+    NOTE: For Decimal you may end up with following numbers:
+    0.0019120000000000000710265180003943896736018359661102294921875
     """
     float_string = str(f).lower()   # For Decimal class that represent within capitalized notation: 1E-10 1e-10
     if 'e' in float_string:  # detect scientific notation

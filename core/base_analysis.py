@@ -91,14 +91,18 @@ def get_diff_lowest_ask_vs_highest_bid(first_one, second_one, threshold):
 
 
 def check_highest_bid_bigger_than_lowest_ask(first_one, second_one, threshold):
+
+    if not first_one.bid or not second_one.ask:
+        return
+
     difference = get_change(first_one.bid, second_one.ask, provide_abs=False)
 
     if should_print_debug():
         msg = """check_highest_bid_bigger_than_lowest_ask called for
         threshold = {threshold}
-        BID: {bid}
-        AKS: {ask}
-        DIFF: {diff}
+        BID: {bid:.7f}
+        AKS: {ask:.7f}
+        DIFF: {diff:.7f}
         """.format(threshold=threshold, bid=first_one.bid, ask=second_one.ask, diff=difference)
         print_to_console(msg, LOG_ALL_MARKET_RELATED_CRAP)
 
@@ -112,7 +116,7 @@ def check_highest_bid_bigger_than_lowest_ask(first_one, second_one, threshold):
             severity_flag = "<b>!!! ACT IMMEDIATELY !!!</b>"
             factual_threshold = 10.0
         msg = """{severity_flag}
-        highest bid bigger than Lowest ask for more than {num} - <b>{diff}</b>""".format(
+        highest bid bigger than Lowest ask for more than {num} - <b>{diff:.7f}</b>""".format(
             severity_flag=severity_flag, num=factual_threshold, diff=difference)
         return msg, first_one.pair_id, first_one, second_one
 

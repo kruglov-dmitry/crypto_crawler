@@ -13,7 +13,6 @@ from data.ticker import TICKER_TYPE_NAME
 
 from utils.debug_utils import print_to_console, LOG_ALL_ERRORS, LOG_ALL_DEBUG
 from utils.currency_utils import get_pair_name_by_id
-from utils.string_utils import float_to_str
 from utils.time_utils import sleep_for, get_now_seconds_utc, ts_to_string_local
 
 from services.common import process_args
@@ -49,11 +48,11 @@ def analyse_tickers(pg_connection, notify_queue):
         for entry in res:
             msg = """Condition: {msg} at {ts}
             Date: {dt}
-            Pair: {pair_name}, {ask_exchange}: {ask_price} {sell_exchange}: {sell_price}
+            Pair: {pair_name}, {ask_exchange}: {ask_price:.7f} {sell_exchange}: {sell_price:.7f}
             TAG: {ask_exchange}-{sell_exchange}
             """.format(msg=entry[0], ts=timest, dt=ts_to_string_local(timest), pair_name=get_pair_name_by_id(entry[1]),
-                       ask_exchange=entry[2].exchange, ask_price=float_to_str(entry[2].bid),
-                       sell_exchange=entry[3].exchange, sell_price=float_to_str(entry[3].ask))
+                       ask_exchange=entry[2].exchange, ask_price=entry[2].bid,
+                       sell_exchange=entry[3].exchange, sell_price=entry[3].ask)
             print_to_console(msg, LOG_ALL_ERRORS)
 
             notify_queue.add_message(ARBITRAGE_MSG, msg)
