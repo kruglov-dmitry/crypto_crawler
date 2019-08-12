@@ -29,9 +29,9 @@ def get_ticker_kraken(pair_name, timest):
     error_code, json_document = send_request(final_url, err_msg)
 
     if error_code == STATUS.SUCCESS:
-        get_ticker_kraken_result_processor(json_document, pair_name, timest)
+        return get_ticker_kraken_result_processor(json_document, pair_name, timest)
 
-    return error_code, json_document
+    return None
 
 
 def get_ticker_kraken_result_processor(json_document, pair_name, timest):

@@ -32,8 +32,9 @@ from utils.system_utils import die_hard, start_process_daemon, clear_queue
 from utils.args_utils import init_queues
 
 from logging_tools.arbitrage_between_pair_logging import log_dont_supported_currency, log_balance_expired_errors, \
-    log_reset_stage_successfully, log_init_reset, log_reset_final_stage, log_finishing_syncing_order_book, log_all_order_book_synced, log_order_book_update_failed_pre_sync, \
-    log_order_book_update_failed_post_sync, log_one_of_subscriptions_failed
+    log_reset_stage_successfully, log_init_reset, log_reset_final_stage, log_finishing_syncing_order_book, \
+    log_all_order_book_synced, log_order_book_update_failed_pre_sync, log_order_book_update_failed_post_sync, \
+    log_one_of_subscriptions_failed
 
 from constants import NO_MAX_CAP_LIMIT, BALANCE_EXPIRED_THRESHOLD, YES_I_KNOW_WHAT_AM_I_DOING
 
@@ -330,40 +331,44 @@ class ArbitrageListener(ArbitrageWrapper):
 
                     return
 
+            #
+            #   Remove this line to activate trading
+            #
             print_top10(exchange_id, self.order_book_buy, self.order_book_sell)
 
             if not YES_I_KNOW_WHAT_AM_I_DOING:
                 die_hard("LIVE TRADING!")
 
-            # DK NOTE: only at this stage we are ready for searching for arbitrage
+                # DK NOTE: only at this stage we are ready for searching for arbitrage
 
-            # for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
-            #   method = search_for_arbitrage if mode_id == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
-            #   active_threshold = self.threshold if mode_id == DEAL_TYPE.ARBITRAGE else self.reverse_threshold
-            # FIXME NOTE: order book expiration check
-            # FIXME NOTE: src dst vs buy sell
-            ts1 = get_now_seconds_utc_ms()
-            status_code, deal_pair = search_for_arbitrage(self.order_book_sell, self.order_book_buy,
-                                                          self.threshold,
-                                                          self.balance_threshold,
-                                                          init_deals_with_logging_speedy,
-                                                          self.balance_state, self.deal_cap,
-                                                          type_of_deal=DEAL_TYPE.ARBITRAGE,
-                                                          worker_pool=self.processor,
-                                                          msg_queue=self.msg_queue)
+                # for mode_id in [DEAL_TYPE.ARBITRAGE, DEAL_TYPE.REVERSE]:
+                #   method = search_for_arbitrage if mode_id == DEAL_TYPE.ARBITRAGE else adjust_currency_balance
+                #   active_threshold = self.threshold if mode_id == DEAL_TYPE.ARBITRAGE else self.reverse_threshold
+                # FIXME NOTE: order book expiration check
+                # FIXME NOTE: src dst vs buy sell
+                ts1 = get_now_seconds_utc_ms()
+                status_code, deal_pair = search_for_arbitrage(self.order_book_sell, self.order_book_buy,
+                                                              self.threshold,
+                                                              self.balance_threshold,
+                                                              init_deals_with_logging_speedy,
+                                                              self.balance_state, self.deal_cap,
+                                                              type_of_deal=DEAL_TYPE.ARBITRAGE,
+                                                              worker_pool=self.processor,
+                                                              msg_queue=self.msg_queue)
 
-            ts2 = get_now_seconds_utc_ms()
+                ts2 = get_now_seconds_utc_ms()
 
-            msg = "Start: {ts1} ms End: {ts2} ms Runtime: {d} ms".format(ts1=ts1, ts2=ts2, d=ts2-ts1)
+                msg = "Start: {ts1} ms End: {ts2} ms Runtime: {d} ms".format(ts1=ts1, ts2=ts2, d=ts2-ts1)
 
-            #
-            #               FIXME
-            #
-            #   Yeah, we write to disk after every trade
-            #   Yeah, it is not really about speed :(
-            #
-            log_to_file(msg, "profile.txt")
-            add_orders_to_watch_list(deal_pair, self.priority_queue)
+                #
+                #               FIXME
+                #
+                #   Yeah, we write to disk after every trade
+                #   Yeah, it is not really about speed :(
+                #
+                log_to_file(msg, "profile.txt")
+                add_orders_to_watch_list(deal_pair, self.priority_queue)
+
             self.deal_cap.update_max_volume_cap(NO_MAX_CAP_LIMIT)
 
 
@@ -379,7 +384,6 @@ if __name__ == "__main__":
     parser.add_argument('--buy_exchange_id', action="store", type=int, required=True)
     parser.add_argument('--pair_id', action="store", type=int, required=True)
     parser.add_argument('--deal_expire_timeout', action="store", type=int, required=True)
-
     parser.add_argument('--cfg', action="store", required=True)
 
     arguments = parser.parse_args()

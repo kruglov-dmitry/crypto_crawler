@@ -12,3 +12,8 @@ subprocess32
 websocket
 # bittrex websocket subscription
 signalr-client
+#
+#   Testing
+#
+nose
+rednose
