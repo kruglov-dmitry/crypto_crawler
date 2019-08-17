@@ -64,9 +64,9 @@ def process_expired_order(expired_order, msg_queue, priority_queue, local_cache)
     if not executed_volume_updated(open_orders, expired_order):
         log_to_file("Can't update volume for ", EXPIRED_ORDER_PROCESSING_FILE_NAME)
 
-    err_code, responce = cancel_by_exchange(expired_order)
+    err_code, response = cancel_by_exchange(expired_order)
 
-    log_trace_cancel_request_result(expired_order, err_code, responce)
+    log_trace_cancel_request_result(expired_order, err_code, response)
 
     if err_code == STATUS.FAILURE:
         log_cant_cancel_deal(expired_order, msg_queue)

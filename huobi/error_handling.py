@@ -4,7 +4,7 @@ def is_error(json_document):
         :return:
     """
 
-    if json_document is None or "tick" not in json_document:
+    if json_document is None:
         return True
 
     return False

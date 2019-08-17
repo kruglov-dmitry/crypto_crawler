@@ -6,11 +6,7 @@ from binance.buy_utils import add_buy_order_binance
 from binance.market_utils import cancel_order_binance
 from binance.order_utils import get_open_orders_binance
 from binance.sell_utils import add_sell_order_binance
-from bittrex.balance_utils import get_balance_bittrex
-from bittrex.buy_utils import add_buy_order_bittrex
-from bittrex.market_utils import cancel_order_bittrex
-from bittrex.order_utils import get_open_orders_bittrix
-from bittrex.sell_utils import add_sell_order_bittrex
+
 from core.backtest import dummy_order_state_init
 from dao.deal_utils import init_deals_with_logging_speedy
 from dao.history_utils import get_history_speedup
@@ -58,13 +54,6 @@ from utils.debug_utils import LOG_ALL_DEBUG
 POLL_PERIOD_SECONDS = 900
 
 
-# def test_bittrex_market_api(bit_key):
-#     get_balance_bittrex(bit_key)
-#     cancel_order_bittrex(bit_key, '0e2ffb00-3509-4150-a7d2-f2b7e8c1a9e4')
-#     add_buy_order_bittrex(bit_key, "BTC-OMG", 0.00249870, 1)
-#     add_sell_order_bittrex(bit_key, "BTC-OMG", 0.0025, 1)
-#
-#
 # def test_kraken_placing_deals(krak_key):
 #     order_state = dummy_order_state_init()
 #     # order_state = get_updated_order_state(order_state)
@@ -106,9 +95,6 @@ POLL_PERIOD_SECONDS = 900
 #     print r
 #     pol_key = get_key_by_exchange(EXCHANGE.POLONIEX)
 #     r = get_balance_poloniex(pol_key)
-#     print r
-#     bit_key = get_key_by_exchange(EXCHANGE.BITTREX)
-#     r = get_balance_bittrex(bit_key)
 #     print r
 #     """add_buy_order_kraken_try_till_the_end(krak_key, "XETHXXBT", 0.07220, 0.02)
 #     add_sell_order_kraken_till_the_end(krak_key, "XETHXXBT", 0.07220, 0.02)
@@ -211,15 +197,11 @@ POLL_PERIOD_SECONDS = 900
 #     krak_key = get_key_by_exchange(EXCHANGE.KRAKEN)
 #     bin_key = get_key_by_exchange(EXCHANGE.BINANCE)
 #     pol_key = get_key_by_exchange(EXCHANGE.POLONIEX)
-#     bittrex_key = get_key_by_exchange(EXCHANGE.BITTREX)
 #
 #     err_code, res = get_open_orders_binance(bin_key, "XMRBTC")
 #     for r in res:
 #         print r
 #
-#     err_code, res = get_open_orders_bittrix(bittrex_key, None)
-#     for r in res:
-#         print r
 #
 #     err_code, res = get_open_orders_kraken(krak_key, None)
 #     for r in res:
@@ -654,7 +636,7 @@ POLL_PERIOD_SECONDS = 900
 #             continue
 #         now_time = get_now_seconds_utc()
 #         order_book1 = get_order_book_huobi(pair_name, now_time)
-#         log_to_file(order_book1,"rest_api.txt")
+#         log_to_file(order_book1,"public_rest_api.txt")
 #
 #
 #     tradeStr="""{"sub": "market.ethbtc.depth.step0","id": "id10"}"""

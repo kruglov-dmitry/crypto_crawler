@@ -2,7 +2,7 @@ from urllib import urlencode as _urlencode
 
 from data_access.classes.post_request_details import PostRequestDetails
 
-from bittrex.constants import BITTREX_CANCEL_ORDER, BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT
+from bittrex.constants import BITTREX_CANCEL_ORDER, BITTREX_DEAL_TIMEOUT
 from bittrex.error_handling import is_error
 
 from utils.debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, ERROR_LOG_FILE_NAME
@@ -10,7 +10,7 @@ from utils.key_utils import signed_string
 from utils.file_utils import log_to_file
 
 from data_access.memory_cache import generate_nonce
-from data_access.internet import send_post_request_with_header
+from data_access.internet import send_get_request_with_header
 
 
 def cancel_order_bittrex(key, order_id):
@@ -34,8 +34,10 @@ def cancel_order_bittrex(key, order_id):
 
     err_msg = "cancel bittrex order with id {id}".format(id=order_id)
 
-    res = send_post_request_with_header(post_details, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY,
-                                        timeout=BITTREX_DEAL_TIMEOUT)
+    res = send_get_request_with_header(post_details.final_url,
+                                       post_details.headers,
+                                       err_msg,
+                                       timeout=BITTREX_DEAL_TIMEOUT)
 
     if get_logging_level() >= LOG_ALL_MARKET_RELATED_CRAP:
         print_to_console(res, LOG_ALL_MARKET_RELATED_CRAP)

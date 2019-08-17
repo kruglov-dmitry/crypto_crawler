@@ -10,14 +10,14 @@ from utils.debug_utils import get_logging_level, print_to_console, LOG_ALL_MARKE
 
 from utils.file_utils import log_to_file
 from utils.string_utils import float_to_str
-from huobi.rest_api import generate_body_and_url_get_request, send_post_request_with_logging
+from huobi.rest_api import generate_url, send_post_request_with_logging
 
 BUY_URL = HUOBI_API_URL + HUOBI_BUY_ORDER + "?"
 
 
 def add_buy_order_huobi_url(key, pair_name, price, amount):
 
-    final_url = BUY_URL + generate_body_and_url_get_request(key, HUOBI_API_ONLY, HUOBI_BUY_ORDER)
+    final_url = BUY_URL + generate_url(key, HUOBI_API_ONLY, HUOBI_BUY_ORDER)
 
     params = json.dumps({
         "account-id": get_huobi_account(key),

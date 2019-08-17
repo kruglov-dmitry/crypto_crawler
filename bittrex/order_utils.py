@@ -1,12 +1,12 @@
 from urllib import urlencode as _urlencode
 
-from bittrex.constants import BITTREX_NUM_OF_DEAL_RETRY, BITTREX_DEAL_TIMEOUT, BITTREX_GET_OPEN_ORDERS
+from bittrex.constants import BITTREX_DEAL_TIMEOUT, BITTREX_GET_OPEN_ORDERS
 from bittrex.error_handling import is_error
 
 from data.trade import Trade
 
 from data_access.classes.post_request_details import PostRequestDetails
-from data_access.internet import send_post_request_with_header
+from data_access.internet import send_get_request_with_header
 from data_access.memory_cache import generate_nonce
 
 from utils.debug_utils import ERROR_LOG_FILE_NAME, print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, \
@@ -43,8 +43,8 @@ def get_open_orders_bittrix(key, pair_name):
 
     err_msg = "get_orders_bittrix"
 
-    status_code, res = send_post_request_with_header(post_details, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY,
-                                                     timeout=BITTREX_DEAL_TIMEOUT)
+    status_code, res = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
+                                                    timeout=BITTREX_DEAL_TIMEOUT)
 
     if get_logging_level() >= LOG_ALL_DEBUG:
         msg = "get_open_orders_bittrix: {r}".format(r=res)

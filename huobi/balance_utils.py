@@ -34,7 +34,7 @@ def get_balance_huobi_post_details(key):
 
 
 def get_balance_huobi_result_processor(json_document, timest):
-    if not is_error(json_document) and "data" in json_document and json_document["data"] is not None:
+    if not is_error(json_document) and "data" in json_document and json_document["data"]:
         return STATUS.SUCCESS, Balance.from_huobi(timest, json_document["data"])
 
     msg = "get_balance_huobi_result_processor - error response - {er}".format(er=json_document)

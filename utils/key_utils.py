@@ -90,6 +90,12 @@ def load_keys(path):
         access_keys[exchange_id] = key
 
 
-def get_key_by_exchange(exchange_id):
+def load_key_by_exchange(path, exchange_id):
     global access_keys
+    exchange_name = get_exchange_name_by_id(exchange_id)
+    key = ExchangeKey.from_file(path, exchange_name)
+    access_keys[exchange_id] = key
+
+
+def get_key_by_exchange(exchange_id):
     return access_keys.get(exchange_id)

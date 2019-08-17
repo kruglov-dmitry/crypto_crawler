@@ -93,6 +93,7 @@ def get_orders_huobi_result_processor(json_document, pair_name):
 
     orders = []
     if is_error(json_document) or "data" not in json_document:
+        # {u'status': u'error', u'err-code': u'invalid-symbol', u'data': None, u'err-msg': u'Invalid symbol.'}
         msg = "get_open_orders_huobi_result_processor - error response - {er}".format(er=json_document)
         log_to_file(msg, ERROR_LOG_FILE_NAME)
 
