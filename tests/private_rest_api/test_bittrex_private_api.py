@@ -16,7 +16,7 @@ from bittrex.sell_utils import add_sell_order_bittrex
 from bittrex.order_utils import get_open_orders_bittrix
 
 
-class BittrexPublicApiTests(unittest.TestCase):
+class BittrexPrivateApiTests(unittest.TestCase):
     def setUp(self):
         set_logging_level(LOG_ALL_ERRORS)
         load_key_by_exchange(API_KEY_PATH, EXCHANGE.BITTREX)

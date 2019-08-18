@@ -16,7 +16,7 @@ from huobi.sell_utils import add_sell_order_huobi
 from huobi.order_utils import get_open_orders_huobi
 
 
-class HuobiPublicApiTests(unittest.TestCase):
+class HuobiPrivateApiTests(unittest.TestCase):
     def setUp(self):
         set_logging_level(LOG_ALL_ERRORS)
         load_key_by_exchange(API_KEY_PATH, EXCHANGE.HUOBI)
@@ -45,7 +45,7 @@ class HuobiPublicApiTests(unittest.TestCase):
         status, response = add_sell_order_huobi(self.huobi_key, pair_name="NULL", price=0.0, amount=0.0)
 
         self.assertEquals(STATUS.SUCCESS, status)
-        self.assertTrue("invalid-amount" in str(response) or "invalid-symbol" in  str(response))
+        self.assertTrue("invalid-amount" in str(response) or "invalid-symbol" in str(response))
 
     def test_open_orders_retrieval(self):
         status, orders = get_open_orders_huobi(self.huobi_key, pair_name='dashbtc')
