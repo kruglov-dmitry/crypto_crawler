@@ -7,6 +7,7 @@ import websocket
 from websocket import create_connection
 
 from huobi.currency_utils import get_currency_pair_to_huobi
+from huobi.constants import HUOBI_WEBSOCKET_URL, HUOBI_SUBSCRIPTION_STRING
 from enums.exchange import EXCHANGE
 
 from data.order_book import OrderBook
@@ -15,7 +16,7 @@ from data.deal import Deal
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for
 from utils.file_utils import log_to_file
 from utils.system_utils import die_hard
-from utils.debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
+from utils.debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME, LOG_ALL_DEBUG
 
 from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_receive_from_socket, \
     log_subscription_cancelled, log_websocket_disconnect, log_send_heart_beat_failed, \
@@ -41,17 +42,15 @@ def parse_socket_update_huobi(order_book_delta, pair_id):
 def process_message(compress_data):
     try:
         return json.loads(zlib.decompress(compress_data, 16 + zlib.MAX_WBITS))
-    except:
+    except Exception as e:
+        log_to_file(e, "huobi.log")
         log_to_file(compress_data, "huobi.log")
 
 
-HUOBI_WEBSOCKET_URL = "wss://api.huobipro.com/ws"
-HUOBI_SUBSCRIPTION_STRING = """{{"sub": "market.{pair_name}.depth.step0","id": "{uuid_id}"}}"""
-
-
 def default_on_public(exchange_id, args):
-    print("on_public")
-    print("".join([exchange_id, args]))
+    if get_logging_level() >= LOG_ALL_DEBUG:
+        print("on_public")
+        print("".join([str(exchange_id), str(args)]))
 
 
 def default_on_error(ws, error):

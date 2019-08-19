@@ -50,3 +50,6 @@ HUOBI_ORDER_HISTORY_LIMIT = 100
 
 HUOBI_POST_HEADERS = {'content-type': 'application/json', 'accept': 'application/json'}
 HUOBI_GET_HEADERS = {"Content-Type": "application/x-www-form-urlencoded"}
+
+HUOBI_WEBSOCKET_URL = "wss://api.huobipro.com/ws"
+HUOBI_SUBSCRIPTION_STRING = """{{"sub": "market.{pair_name}.depth.step0","id": "{uuid_id}"}}"""

@@ -11,7 +11,7 @@ from logging_tools.socket_logging import log_conect_to_websocket, log_error_on_r
     log_subscription_cancelled, log_websocket_disconnect, log_send_heart_beat_failed
 
 from utils.file_utils import log_to_file
-from utils.debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
+from utils.debug_utils import SOCKET_ERRORS_LOG_FILE_NAME, get_logging_level, LOG_ALL_DEBUG
 from utils.time_utils import get_now_seconds_utc_ms, sleep_for
 from utils.system_utils import die_hard
 
@@ -46,7 +46,7 @@ class BittrexParameters:
 
 def parse_socket_order_book_bittrex(order_book_snapshot, pair_id):
     """
-    :param order_book_snapshot stringified json of following format:
+    :param: order_book_snapshot stringified json of following format:
         Bittrex order book format:
         "S" = "Sells"
         "Z" = "Buys"
@@ -269,8 +269,9 @@ def default_on_error():
 
 
 def default_on_public(exchange_id, args):
-    print "Bittrex: default_on_public:"
-    print exchange_id, args
+    if get_logging_level() >= LOG_ALL_DEBUG:
+        print "Bittrex: default_on_public:"
+        print exchange_id, args
 
 
 class SubscriptionBittrex:

@@ -38,17 +38,17 @@ def get_order_history_binance(key, pair_name, limit=BINANCE_ORDER_HISTORY_LIMIT,
 
     err_msg = "get_all_orders_binance for {pair_name}".format(pair_name=pair_name)
 
-    status_code, json_responce = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
+    status_code, json_response = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
                                                               timeout=BINANCE_DEAL_TIMEOUT)
 
     if get_logging_level() >= LOG_ALL_DEBUG:
-        msg = "get_order_history_binance: {sc} {resp}".format(sc=status_code, resp=json_responce)
+        msg = "get_order_history_binance: {sc} {resp}".format(sc=status_code, resp=json_response)
         print_to_console(msg, LOG_ALL_DEBUG)
         log_to_file(msg, DEBUG_LOG_FILE_NAME)
 
     historical_orders = []
     if status_code == STATUS.SUCCESS:
-        msg = "{fn} - error response - {er}".format(fn=get_order_history_binance.func_name, er=json_responce)
-        status_code, historical_orders = get_orders_binance_result_processor(json_responce, pair_name, msg)
+        msg = "{fn} - error response - {er}".format(fn=get_order_history_binance.func_name, er=json_response)
+        status_code, historical_orders = get_orders_binance_result_processor(json_response, pair_name, msg)
 
     return status_code, historical_orders

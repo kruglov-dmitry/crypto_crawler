@@ -29,7 +29,7 @@ def generate_post_request(final_url, body, key):
 def get_orders_binance_result_processor(msg, json_document, pair_name):
     """
     json_document - response from exchange api as json string
-    pair_name - for backwords compabilities
+    pair_name - for backwards compatibilities
     """
     orders = []
     if is_error(json_document):

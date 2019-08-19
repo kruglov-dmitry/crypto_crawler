@@ -60,3 +60,6 @@ BINANCE_GET_ALL_ORDERS = "https://api.binance.com/api/v3/allOrders?"
 BINANCE_GET_ALL_TRADES = "https://api.binance.com/api/v3/myTrades?"
 
 EMPTY_LIST = []
+
+BINANCE_WEBSOCKET_URL = "wss://stream.binance.com:9443/ws/"
+BINANCE_SUBSCRIPTION_STRING = "{pair_name}@depth"

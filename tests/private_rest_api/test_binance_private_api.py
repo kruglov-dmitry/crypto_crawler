@@ -14,6 +14,7 @@ from binance.market_utils import cancel_order_binance
 from binance.buy_utils import add_buy_order_binance
 from binance.sell_utils import add_sell_order_binance
 from binance.order_utils import get_open_orders_binance
+from binance.order_history import get_order_history_binance
 
 
 class BinancePrivateApiTests(unittest.TestCase):
@@ -51,5 +52,10 @@ class BinancePrivateApiTests(unittest.TestCase):
 
     def test_open_orders_retrieval(self):
         status, orders = get_open_orders_binance(self.binance_key, pair_name='NULL')
+        self.assertEquals(STATUS.FAILURE, status)
+        self.assertEquals(len(orders), 0)
+
+    def test_order_history_retrieval(self):
+        status, orders = get_order_history_binance(self.binance_key, pair_name='NULL')
         self.assertEquals(STATUS.FAILURE, status)
         self.assertEquals(len(orders), 0)

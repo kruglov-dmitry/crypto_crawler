@@ -14,6 +14,7 @@ from bittrex.market_utils import cancel_order_bittrex
 from bittrex.buy_utils import add_buy_order_bittrex
 from bittrex.sell_utils import add_sell_order_bittrex
 from bittrex.order_utils import get_open_orders_bittrix
+from bittrex.order_history import get_order_history_bittrex
 
 
 class BittrexPrivateApiTests(unittest.TestCase):
@@ -50,5 +51,10 @@ class BittrexPrivateApiTests(unittest.TestCase):
 
     def test_open_orders_retrieval(self):
         status, orders = get_open_orders_bittrix(self.bittrex_key, pair_name="NULL")
+        self.assertEquals(STATUS.SUCCESS, status)
+        self.assertEquals(len(orders), 0)
+
+    def test_order_history_retrieval(self):
+        status, orders = get_order_history_bittrex(self.bittrex_key, pair_name='NULL')
         self.assertEquals(STATUS.SUCCESS, status)
         self.assertEquals(len(orders), 0)

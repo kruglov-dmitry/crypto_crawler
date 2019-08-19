@@ -13,7 +13,7 @@ from utils.debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get
 from utils.file_utils import log_to_file
 
 from data_access.memory_cache import generate_nonce
-from data_access.internet import send_post_request_with_header
+from data_access.internet import send_get_request_with_header
 
 
 def get_order_history_bittrex_post_details(key, pair_name):
@@ -66,10 +66,12 @@ def get_order_history_bittrex(key, pair_name):
 
     err_msg = "get bittrex order history for time interval for pp={pp}".format(pp=post_details)
 
-    status_code, json_responce = send_post_request_with_header(post_details, err_msg, max_tries=BITTREX_NUM_OF_DEAL_RETRY)
+    status_code, json_response = send_get_request_with_header(post_details.final_url,
+                                                              post_details.headers,
+                                                              err_msg)
 
     historical_orders = []
     if status_code == STATUS.SUCCESS:
-        status_code, historical_orders = get_order_history_bittrex_result_processor(json_responce, pair_name)
+        status_code, historical_orders = get_order_history_bittrex_result_processor(json_response, pair_name)
 
     return status_code, historical_orders

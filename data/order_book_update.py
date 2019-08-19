@@ -14,15 +14,16 @@ class OrderBookUpdate(BaseData):
 
     def __str__(self):
         attr_list = [a for a in dir(self) if not a.startswith('__') and
-                     not a.startswith("ask") and not a.startswith("bid") and not a.startswith("trades") and not callable(getattr(self, a))]
+                     not a.startswith("ask") and not a.startswith("bid") and not a.startswith("trades")
+                     and not callable(getattr(self, a))]
 
         str_repr = "["
         for every_attr in attr_list:
             str_repr += every_attr + " - " + str(getattr(self, every_attr)) + " "
 
-        str_repr += "bids - [" + "\n".join(self.bid) + "] "
-        str_repr += "asks - [" + "\n".join(self.ask) + "]]"
-        str_repr += "trades_sell - [" + "\n".join(self.trades_sell) + "] "
-        str_repr += "trades_buy - [" + "\n".join(self.trades_buy) + "]"
+        str_repr += "bids - [" + "\n".join(map(str, self.bid)) + "] "
+        str_repr += "asks - [" + "\n".join(map(str, self.ask)) + "]]"
+        str_repr += "trades_sell - [" + "\n".join(map(str, self.trades_sell)) + "] "
+        str_repr += "trades_buy - [" + "\n".join(map(str, self.trades_buy)) + "]"
 
         return str_repr

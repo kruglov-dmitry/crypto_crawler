@@ -4,7 +4,7 @@ from utils.key_utils import sign_string_256_base64
 from utils.time_utils import ts_to_string_utc, get_now_seconds_utc
 from utils.file_utils import log_to_file
 from utils.debug_utils import print_to_console, LOG_ALL_MARKET_RELATED_CRAP, get_logging_level, LOG_ALL_DEBUG, \
-    DEBUG_LOG_FILE_NAME
+    DEBUG_LOG_FILE_NAME, LOG_ALL_ERRORS
 
 from enums.status import STATUS
 
@@ -28,12 +28,19 @@ def get_order_history_huobi_post_details(key, pair_name, time_start, time_end):
 
     ts1 = None
     ts2 = None
+    if time_start == 0:
+        time_start = time_end - 3600 * 24   # day ago
+    elif time_end - time_start > 3600 * 24:
+        msg = "Huobi allow time range not bigger than 24 hours! start: {} end: {}".format(
+            time_start, time_end)
+        print_to_console(msg, LOG_ALL_ERRORS)
+
     if 0 < time_start <= time_end:
         ts1 = ts_to_string_utc(time_start, format_string='%Y-%m-%d')
         ts2 = ts_to_string_utc(time_end, format_string='%Y-%m-%d')
 
     body = init_body(key)
-    body.append('direct', '')
+    body.append(('direct', ''))
 
     if ts1 is None or ts2 is None:
         body.append(('end-date', ''))
@@ -80,16 +87,16 @@ def get_order_history_huobi(key, pair_name, time_start=0, time_end=get_now_secon
 
     err_msg = "get_all_orders_huobi for {pair_name}".format(pair_name=pair_name)
 
-    status_code, json_responce = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
+    status_code, json_response = send_get_request_with_header(post_details.final_url, post_details.headers, err_msg,
                                                               timeout=HUOBI_DEAL_TIMEOUT)
 
     if get_logging_level() >= LOG_ALL_DEBUG:
-        msg = "get_order_history_huobi: {sc} {resp}".format(sc=status_code, resp=json_responce)
+        msg = "get_order_history_huobi: {sc} {resp}".format(sc=status_code, resp=json_response)
         print_to_console(msg, LOG_ALL_DEBUG)
         log_to_file(msg, DEBUG_LOG_FILE_NAME)
 
     historical_orders = []
     if status_code == STATUS.SUCCESS:
-        status_code, historical_orders = get_orders_huobi_result_processor(json_responce, pair_name)
+        status_code, historical_orders = get_orders_huobi_result_processor(json_response, pair_name)
 
     return status_code, historical_orders

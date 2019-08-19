@@ -3,11 +3,12 @@ import websocket
 from websocket import create_connection
 
 from binance.currency_utils import get_currency_pair_to_binance
+from binance.constants import BINANCE_WEBSOCKET_URL, BINANCE_SUBSCRIPTION_STRING
 from enums.exchange import EXCHANGE
 from data.order_book_update import OrderBookUpdate
 from data.deal import Deal
 
-from utils.debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME
+from utils.debug_utils import get_logging_level, LOG_ALL_TRACE, SOCKET_ERRORS_LOG_FILE_NAME, LOG_ALL_DEBUG
 from utils.file_utils import log_to_file
 from utils.system_utils import die_hard
 from utils.time_utils import get_now_seconds_utc_ms
@@ -47,16 +48,10 @@ def parse_socket_update_binance(order_book_delta):
     sequence_id = long(order_book_delta["U"])
     sequence_id_end = long(order_book_delta["u"])
 
-    asks = []
-    bids = []
+    asks = [Deal(a[0], a[1]) for a in order_book_delta["a"]]
+    bids = [Deal(b[0], b[1]) for b in order_book_delta["b"]]
     trades_sell = []
     trades_buy = []
-
-    for a in order_book_delta["a"]:
-        asks.append(Deal(a[0], a[1]))
-
-    for a in order_book_delta["b"]:
-        bids.append(Deal(a[0], a[1]))
 
     return OrderBookUpdate(sequence_id, bids, asks, timest_ms, trades_sell, trades_buy, sequence_id_end)
 
@@ -65,23 +60,18 @@ def process_message(compress_data):
     return loads(compress_data)
 
 
-class BinanceParameters:
-    URL = "wss://stream.binance.com:9443/ws/"
-
-    SUBSCRIBE_UPDATE = "{pair_name}@depth"
-
-
 def default_on_error():
     print "Binance: default_on_error"
 
 
 def default_on_public(exchange_id, args):
-    print "Binance: odefault_on_public:"
-    print exchange_id, args
+    if get_logging_level() >= LOG_ALL_DEBUG:
+        print("Binance: default_on_public:")
+        print exchange_id, args
 
 
 class SubscriptionBinance:
-    def __init__(self, pair_id, on_update=default_on_public, base_url=BinanceParameters.URL):
+    def __init__(self, pair_id, on_update=default_on_public, base_url=BINANCE_WEBSOCKET_URL):
         """
         :param pair_id:         - currency pair to be used for trading
         :param on_update:       - idea is the following:
@@ -95,7 +85,7 @@ class SubscriptionBinance:
         self.pair_id = pair_id
         self.pair_name = get_currency_pair_to_binance(self.pair_id).lower()
 
-        self.subscription_url = BinanceParameters.URL + BinanceParameters.SUBSCRIBE_UPDATE.format(pair_name=self.pair_name)
+        self.subscription_url = BINANCE_WEBSOCKET_URL + BINANCE_SUBSCRIPTION_STRING.format(pair_name=self.pair_name)
 
         self.on_update = on_update
 
@@ -122,7 +112,6 @@ class SubscriptionBinance:
 
         msg = "Binance - call subscribe!"
         log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
-        print msg
 
         self.should_run = True
 

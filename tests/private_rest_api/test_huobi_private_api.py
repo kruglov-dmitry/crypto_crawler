@@ -14,6 +14,7 @@ from huobi.market_utils import cancel_order_huobi
 from huobi.buy_utils import add_buy_order_huobi
 from huobi.sell_utils import add_sell_order_huobi
 from huobi.order_utils import get_open_orders_huobi
+from huobi.order_history import get_order_history_huobi
 
 
 class HuobiPrivateApiTests(unittest.TestCase):
@@ -50,5 +51,10 @@ class HuobiPrivateApiTests(unittest.TestCase):
     def test_open_orders_retrieval(self):
         status, orders = get_open_orders_huobi(self.huobi_key, pair_name='dashbtc')
 
+        self.assertEquals(STATUS.SUCCESS, status)
+        self.assertEquals(len(orders), 0)
+
+    def test_order_history_retrieval(self):
+        status, orders = get_order_history_huobi(self.huobi_key, pair_name='dashbtc')
         self.assertEquals(STATUS.SUCCESS, status)
         self.assertEquals(len(orders), 0)

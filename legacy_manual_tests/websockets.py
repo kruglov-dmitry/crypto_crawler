@@ -16,8 +16,8 @@ from base64 import b64decode
 
 from bittrex.socket_api import BittrexParameters
 from utils.file_utils import log_to_file
-
-from utils.time_utils import get_now_seconds_utc_ms 
+from utils.time_utils import get_now_seconds_utc_ms, sleep_for
+from utils.debug_utils import SOCKET_ERRORS_LOG_FILE_NAME
 
 
 order_book_is_received = True
@@ -47,10 +47,6 @@ def test_bittrex():
         if msg is not None:
             print msg
 
-    def on_private(args):
-        # print 100
-        pass
-
     # create error handler
     def print_error(error):
         print('error: ', error)
@@ -77,13 +73,13 @@ def test_bittrex():
 
 
 def test_huobi():
-    def process_result(compressData):
-        result = zlib.decompress(compressData, 16 + zlib.MAX_WBITS).decode('utf-8')
+    def process_result(compressed_data):
+        result = zlib.decompress(compressed_data, 16 + zlib.MAX_WBITS).decode('utf-8')
         if result[:7] == '{"ping"':
             ts = result[8:21]
             pong = '{"pong":' + ts + '}'
             ws.send(pong)
-            ws.send(tradeStr)
+            ws.send(trade_str)
         return result
 
     while True:
@@ -95,24 +91,23 @@ def test_huobi():
             print('connect ws error,retry...')
             time.sleep(5)
 
-    tradeStr="""{"sub": "market.ethbtc.depth.step0","id": "id10"}"""
+    trade_str = """{"sub": "market.ethbtc.depth.step0","id": "id10"}"""
 
-    ws.send(tradeStr)
-    compressData = ws.recv()
-    print "CONFIRMATION OF SUBSCRIPTION:", process_result(compressData)
-    raise
+    ws.send(trade_str)
+    compress_data = ws.recv()
+    print "CONFIRMATION OF SUBSCRIPTION:", process_result(compress_data)
 
     while True:
         try:
-            compressData = ws.recv()
-            print "DELTA?", process_result(compressData)
+            compress_data = ws.recv()
+            print "DELTA?", process_result(compress_data)
         except Exception as e:
             print "EXCEPTION:", e
             break
 
 
 def test_binance():
-    def on_message(ws, message):
+    def on_message(message):
         print(message)
 
     def on_error(ws, error):
@@ -160,30 +155,32 @@ def test_binance():
     # event loop
     while True:
         try:
-            compressData = ws.recv()
-            on_message(ws, compressData)
+            compress_data = ws.recv()
+            on_message(compress_data)
         except Exception as e:      # Supposedly timeout big enough to not trigger re-syncing
             msg = "Binance - triggered exception during reading from socket = {}".format(str(e))
             print msg
             break
 
-    msg = "Binance - triggered on_close. We have to re-init the whole state from the scratch. Current thread will be finished."
+    msg = "Binance - triggered on_close. We have to re-init the whole state from the scratch. " \
+          "Current thread will be finished."
     log_to_file(msg, SOCKET_ERRORS_LOG_FILE_NAME)
 
 
-first_responce = False
+first_response = False
+
 
 def test_poloniex():
     def on_message(ws, msg):
-        global first_responce
+        global first_response
         name = "poloniex-" + str(get_now_seconds_utc_ms()) + ".json"
     
         with open(name, 'w') as outfile:
             j = json.loads(msg)
             json.dump(j, outfile)
 
-        if "orderBook" in msg and not first_responce:
-            first_responce = True
+        if "orderBook" in msg and not first_response:
+            first_response = True
         else:
             print(msg)
 
@@ -214,97 +211,8 @@ def test_poloniex():
 
     websocket.enableTrace(True)
     ws = websocket.WebSocketApp("wss://api2.poloniex.com/",
-                              on_message = on_message,
-                              on_error = on_error,
-                              on_close = on_close)
+                                on_message=on_message,
+                                on_error=on_error,
+                                on_close=on_close)
     ws.on_open = on_open
     ws.run_forever()
-
-def test_poloniex_advanced():
-    import threading
-    from enums.currency_pair import CURRENCY_PAIR
-    from poloniex.socket_api import SubscriptionPoloniex
-
-    t1 = SubscriptionPoloniex(CURRENCY_PAIR.BTC_TO_ETC)
-    t1.subscribe()
-
-    # buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
-    # buy_subscription_thread.daemon = True
-    # buy_subscription_thread.start()
-    #
-    # return t1
-
-def test_bittrex_advanced():
-    from enums.currency_pair import CURRENCY_PAIR
-    from bittrex.socket_api import SubscriptionBittrex
-    import threading
-
-    t1 = SubscriptionBittrex(CURRENCY_PAIR.BTC_TO_ETC)
-    t1.subscribe()
-
-    # buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
-    # buy_subscription_thread.daemon = True
-    # buy_subscription_thread.start()
-
-    # return t1
-
-
-def test_huobi_advanced():
-    import threading
-    from enums.currency_pair import CURRENCY_PAIR
-    from huobi.socket_api import SubscriptionHuobi
-    t1 = SubscriptionHuobi(CURRENCY_PAIR.BTC_TO_ETC)
-    # t1.subscribe()
-
-    buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
-    buy_subscription_thread.daemon = True
-    buy_subscription_thread.start()
-
-    return t1
-
-
-def test_binance_advanced():
-    import threading
-    from enums.currency_pair import CURRENCY_PAIR
-    from binance.socket_api import SubscriptionBinance
-    t1 = SubscriptionBinance(CURRENCY_PAIR.BTC_TO_ETC)
-    t1.subscribe()
-    # buy_subscription_thread = threading.Thread(target=t1.subscribe, args=())
-    # buy_subscription_thread.daemon = True
-    # buy_subscription_thread.start()
-
-    return t1
-
-
-if __name__ == "__main__":
-    from utils.time_utils import sleep_for
-    # test_huobi()
-    # w = test_huobi_advanced()
-    # sleep_for(10)
-    # w.disconnect()
-    # print(w.should_run)
-
-    # test_poloniex()
-    w = test_poloniex_advanced()
-    # sleep_for(10)
-    # w.disconnect()
-    # print(w.should_run)
-
-    # test_binance()
-    # w = test_binance_advanced()
-    # sleep_for(10)
-    # w.disconnect()
-    # print(w.should_run)
-
-    # w = test_bittrex_advanced()
-
-    # while 1:
-    #     print "WTF"
-    #     sleep_for(10)
-
-    # cnt = 0
-    # while True:
-    #     sleep_for(10)
-    #     cnt += 1
-    #     if cnt == 5:
-    #         w.disconnect()

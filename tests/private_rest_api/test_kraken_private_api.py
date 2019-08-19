@@ -14,6 +14,7 @@ from kraken.market_utils import cancel_order_kraken
 from kraken.buy_utils import add_buy_order_kraken
 from kraken.sell_utils import add_sell_order_kraken
 from kraken.order_utils import get_open_orders_kraken
+from kraken.order_history import get_order_history_kraken
 
 
 class KrakenPrivateApiTests(unittest.TestCase):
@@ -49,5 +50,10 @@ class KrakenPrivateApiTests(unittest.TestCase):
 
     def test_open_orders_retrieval(self):
         status, orders = get_open_orders_kraken(self.kraken_key, pair_name="NULL")
+        self.assertEquals(STATUS.SUCCESS, status)
+        self.assertEquals(len(orders), 0)
+
+    def test_order_history_retrieval(self):
+        status, orders = get_order_history_kraken(self.kraken_key, pair_name='NULL')
         self.assertEquals(STATUS.SUCCESS, status)
         self.assertEquals(len(orders), 0)

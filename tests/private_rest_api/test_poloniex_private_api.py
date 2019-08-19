@@ -14,6 +14,7 @@ from poloniex.market_utils import cancel_order_poloniex
 from poloniex.buy_utils import add_buy_order_poloniex
 from poloniex.sell_utils import add_sell_order_poloniex
 from poloniex.order_utils import get_open_orders_poloniex
+from poloniex.order_history import get_order_history_poloniex
 
 
 class PoloniexPrivateApiTests(unittest.TestCase):
@@ -54,5 +55,10 @@ class PoloniexPrivateApiTests(unittest.TestCase):
     def test_open_orders_retrieval(self):
         status, orders = get_open_orders_poloniex(self.poloniex_key, pair_name="NULL")
 
+        self.assertEquals(STATUS.FAILURE, status)
+        self.assertEquals(len(orders), 0)
+
+    def test_order_history_retrieval(self):
+        status, orders = get_order_history_poloniex(self.poloniex_key, pair_name='NULL')
         self.assertEquals(STATUS.FAILURE, status)
         self.assertEquals(len(orders), 0)

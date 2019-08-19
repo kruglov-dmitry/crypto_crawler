@@ -24,7 +24,7 @@ from data.deal import Deal
 from data.order_book import OrderBook
 
 from utils.debug_utils import SOCKET_ERRORS_LOG_FILE_NAME, get_logging_level, LOG_ALL_TRACE, LOG_ALL_ERRORS, \
-    LOG_ALL_MARKET_RELATED_CRAP, print_to_console
+    LOG_ALL_MARKET_RELATED_CRAP, print_to_console, LOG_ALL_DEBUG
 
 
 def parse_socket_order_book_poloniex(order_book_snapshot, pair_id):
@@ -212,8 +212,9 @@ def process_message(compress_data):
 
 
 def default_on_public(exchange_id, args):
-    print("Poloniex: default_on_public")
-    print(" - ".join([exchange_id, args]))
+    if get_logging_level() >= LOG_ALL_DEBUG:
+        print("Poloniex: default_on_public")
+        print(" - ".join([exchange_id, args]))
 
 
 def default_on_error():
