@@ -13,7 +13,7 @@ from enums.currency_pair import CURRENCY_PAIR
 from dao.db import save_order_into_pg, init_pg_connection, is_order_present_in_order_history, \
     is_trade_present_in_trade_history
 
-from constants import DB_HOST, DB_PORT, DB_NAME
+from constants import DB_HOST, DB_PORT, DB_NAME, API_KEY_PATH
 
 from analysis.data_load_for_profit_report import load_recent_huobi_trades_to_db, \
     wrap_with_progress_bar, save_to_pg_adapter
@@ -83,7 +83,7 @@ def load_trades_from_csv_to_db():
 
 def test_trade_history_huobi_methods():
 
-    load_keys("./secret_keys")
+    load_keys(API_KEY_PATH)
     key = get_key_by_exchange(EXCHANGE.HUOBI)
 
     time_end = get_now_seconds_utc()

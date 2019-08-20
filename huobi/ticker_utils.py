@@ -35,7 +35,7 @@ def get_ticker_huobi(pair_name, timest):
 
 
 def get_ticker_huobi_result_processor(json_document, pair_name, timest):
-    if is_error(json_document) or json_document["tick"] is None:
+    if is_error(json_document) or json_document.get("tick") is None:
 
         msg = "get_ticker_huobi_result_processor - error response - {er}".format(er=json_document)
         log_to_file(msg, ERROR_LOG_FILE_NAME)

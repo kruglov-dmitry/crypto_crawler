@@ -81,7 +81,7 @@ def init_deals_with_logging_speedy(trade_pairs, difference, file_name, processor
     msg_queue.add_message(DEAL_INFO_MSG, msg)
     log_to_file(msg, file_name)
 
-    if YES_I_KNOW_WHAT_AM_I_DOING:
+    if not YES_I_KNOW_WHAT_AM_I_DOING:
         die_hard("init_deals_with_logging_speedy called for {f}".format(f=trade_pairs))
 
     parallel_deals = []

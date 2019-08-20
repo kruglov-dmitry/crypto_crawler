@@ -13,10 +13,12 @@ from enums.deal_type import DEAL_TYPE
 from enums.exchange import EXCHANGE
 from enums.currency_pair import CURRENCY_PAIR
 
+from constants import API_KEY_PATH
+
 
 def test_failed_order_placement_huobi():
 
-    load_keys("./secret_keys")
+    load_keys(API_KEY_PATH)
 
     ts = get_now_seconds_utc()
     order = Trade(DEAL_TYPE.SELL, EXCHANGE.HUOBI, CURRENCY_PAIR.BTC_TO_ZIL,
@@ -31,7 +33,7 @@ def test_failed_order_placement_huobi():
 
 
 def test_failed_order_placement_bittrex():
-    load_keys("./secret_keys")
+    load_keys(API_KEY_PATH)
 
     ts = get_now_seconds_utc()
     order = Trade(DEAL_TYPE.SELL, EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_ETH,
@@ -46,7 +48,7 @@ def test_failed_order_placement_bittrex():
 
 
 def test_expired_deal_placement():
-    load_keys("./secret_keys")
+    load_keys(API_KEY_PATH)
     priority_queue = get_priority_queue()
     ts = get_now_seconds_utc()
     order = Trade(DEAL_TYPE.SELL, EXCHANGE.BINANCE, CURRENCY_PAIR.BTC_TO_STRAT, price=0.001, volume=5.0,
@@ -60,7 +62,7 @@ def test_expired_deal_placement():
 
 
 def test_failed_deal_placement():
-    load_keys("./secret_keys")
+    load_keys(API_KEY_PATH)
     msg_queue = get_message_queue()
     ts = 1517938516
     order = Trade(DEAL_TYPE.SELL, EXCHANGE.BITTREX, CURRENCY_PAIR.BTC_TO_STRAT, price=0.000844, volume=5.0,
